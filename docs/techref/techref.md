@@ -1,4 +1,4 @@
-# D-FAST Morphological Impact - Technical Reference
+# Technical Description
 
 This is the technical reference manual.
 
