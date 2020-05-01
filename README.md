@@ -2,8 +2,8 @@
 
 This is one of the [Deltares](https://www.deltares.nl) Fluvial Assessment Tools.
 The purpose of this tool is to provide a first estimate the morphological impact of engineering measures in rivers without doing a morphological simulation.
-The user should carry out two steady state hydrodynamic simulations (one *before* case, and one *after* case) using [D-Flow FM](https://www.deltares.nl/en/software/module/d-flow-flexible-mesh/).
-The results of these two simulations will be combined with some basic morphological characteristics to arrive at the estimated impact.
+The user should carry out six steady state hydrodynamic simulations using [D-Flow FM](https://www.deltares.nl/en/software/module/d-flow-flexible-mesh/).
+The results of these simulations will be combined with some basic morphological characteristics to arrive at the estimated impact.
 For more details see the documentation section.
 
 ## Documentation

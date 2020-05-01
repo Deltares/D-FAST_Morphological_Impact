@@ -1,5 +1,7 @@
 # coding: utf-8
 import logging
+import math
+import numpy
 from configparser import ConfigParser
 #from ConfigParser import ConfigParser  # ver. < 3.0
 
@@ -37,6 +39,83 @@ def program_header():
     logging.info('Source code location:')
     logging.info('https://github.com/Deltares/D-FAST_Morphological_Impact')
     logging.info('')
+
+
+def read_rivers(filename = 'rivers.ini'):
+    # read the file
+    config = ConfigParser()
+    fid = open(filename, 'r')
+    config.read_file(fid)
+    fid.close()
+    
+    # initialize rivers
+    rivers = {}
+    
+    # parse branches
+    branches = []
+    i = 0
+    while True:
+        i = i+1
+        name = 'Name'+str(i)
+        try:
+            branch = config['Branches'][name]
+            branches.extend([branch])
+        except:
+            break
+    rivers['branches'] = branches
+    
+    # parse reaches
+    allreaches    = []
+    qlocations    = []
+    for branch in branches:
+        qlocation = config[branch]['QLocation']
+        qlocations.extend([qlocation])
+        
+        i          = 0
+        reaches    = []
+        while True:
+            i = i+1
+            try:
+                 reach = config[branch]['Reach'+str(i)]
+                 reaches.extend([reach])
+            except:
+                 break
+        allreaches.extend([reaches])
+    rivers['reaches']    = allreaches
+    rivers['qlocations'] = qlocations
+    
+    nreaches = [len(x) for x in allreaches]
+    rivers['proprate_high'] = collect_values(config, branches, nreaches, 'PrHigh')
+    rivers['proprate_low']  = collect_values(config, branches, nreaches, 'PrLow')
+    rivers['normal_width']  = collect_values(config, branches, nreaches, 'NWidth')
+    rivers['ucritical']     = collect_values(config, branches, nreaches, 'UCrit')
+    rivers['qbankfull']     = collect_values(config, branches, nreaches, 'QBank')
+    
+    return rivers
+
+
+def collect_values(config, branches, nreaches, key):
+    try:
+        g_val = config['Branches'][key]
+    except:
+        g_val = None
+    allvalues = []
+    for ib in range(len(branches)):
+        branch = branches[ib]
+        try:
+            b_val = config[branch][key]
+        except:
+            b_val = g_val
+        values = []
+        for i in range(nreaches[ib]):
+            stri = str(i+1)
+            try:
+                val = config[branch][key+stri]
+            except:
+                val = b_val
+            values.extend([float(val)])
+        allvalues.extend([values])
+    return allvalues
 
 
 def read_config(input_file):
@@ -98,3 +177,166 @@ def run_analysis(config):
 def write_results(results):
     logging.info('Writing results')
     logging.debug('')
+
+
+def char_discharge(jtak, jstuk, q_threshold, q_bankfull):
+    if jtak == 4: # Maas
+        q_stagnant = 1000
+    elif jtak == 1 and jstuk > 0: # stuwpanden Nederrijn en Lek
+        q_stagnant = 1500
+    else:
+        q_stagnant = 800
+    
+    if jtak == 4: # Maas
+        Q1, Q2, Q3 = char_discharges_maas(q_stagnant, q_threshold, q_bankfull)
+    else:
+        Q1, Q2, Q3 = char_discharges_rijntakken(q_stagnant, q_threshold, q_bankfull)
+    
+    return q_stagnant, Q1, Q2, Q3
+
+
+def char_times(jtak, jstuk, q_stagnant, Q1, Q2, Q3, proprate_hg, proprate_lw, nwidth):
+    if jtak == 4: # Maas
+        Qa = 0
+        Qb = 300
+    else:
+        Qa = 800
+        Qb = 1280
+    
+    if jtak == 4 or (jtak == 1 and jstuk > 0): # Maas or stuwpanden Nederrijn en Lek
+        t_stagnant = 1 - math.exp((Qa-q_stagnant)/Qb)
+    else:
+        t_stagnant = 0
+    
+    t1 = 1 - math.exp((Qa-Q1)/Qb) - t_stagnant
+    if Q2 is None:
+        t2 = 0
+    else:
+        t2 = math.exp((Qa-Q1)/Qb) - math.exp((Qa-Q2)/Qb)
+    t3 = max(1-t1-t2-t_stagnant, 0) # math.exp((Qa-Q2)/Qb)
+    
+    rsigma1 = math.exp(-500*proprate_lw*t1/nwidth)
+    if not Q2 is None:
+        rsigma2 = math.exp(-500*proprate_hg*t2/nwidth)
+    else:
+        rsigma2 = 1
+    if not Q3 is None:
+        rsigma3 = math.exp(-500*proprate_hg*t3/nwidth)
+    else:
+        rsigma3 = 1
+    
+    return t_stagnant, t1, t2, t3, rsigma1, rsigma2, rsigma3
+
+
+def char_discharges_rijntakken(q_stagnant, q_threshold, q_bankfull):
+    if not q_threshold is None: # has threshold discharge
+        Q1      = q_threshold
+        if q_threshold < 3000:
+            if q_bankfull < 6000:
+                Q2 = max(q_bankfull, Q1+1000)
+                Q3 = max(6000, Q2+1000)
+            else:
+                Q2 = 4000
+                Q3 = q_bankfull
+        elif q_threshold < 4000:
+            Q2      = max(q_bankfull, q_threshold+1000)
+            Q3      = 6000
+        else: # q_threshold >= 4000
+            Q2      = None
+            if q_threshold > 6000:
+                Q3   = min(q_threshold+1000, 10000)
+            else:
+                Q3   = max(6000, q_threshold+1000)
+    else: # no threshold discharge
+        Q1      = 3000
+        if q_bankfull < 6000:
+            Q2 = max(4000, q_bankfull)
+            Q3 = 6000
+        else:
+            Q2 = min(4000, q_bankfull-1000)
+            Q3 = q_bankfull
+    
+    return Q1, Q2, Q3
+
+def char_discharges_maas(q_stagnant, q_threshold, q_bankfull):
+    if not q_threshold is None: # has threshold discharge
+        Q1      = q_threshold
+        if q_threshold < 1250:
+            if q_bankfull < 2000:
+                Q2 = max(q_bankfull, q_threshold+250)
+                Q3 = max(2000, Q2+250)
+            else:
+                Q2 = 1500
+                Q3 = q_bankfull
+        else:
+            if q_threshold < 1500:
+                Q2      = max(q_bankfull, q_threshold+250)
+                Q3      = 2000
+            else:
+                Q2      = None
+                if q_threshold > 2000:
+                    Q3   = min(q_threshold+200, 3000)
+                else:
+                    Q3   = max(2000, q_threshold+200)
+    else: # no threshold discharge
+        Q1      = 1250
+        if q_bankfull < 2000:
+            Q2 = max(1500, q_bankfull)
+            Q3 = 2000
+        else:
+            Q2 = min(1500, q_bankfull-250)
+            Q3 = q_bankfull
+        if Q2 == Q3:
+           Q3 = None
+        if Q1 == Q2:
+            Q2 = None
+    
+    return Q1, Q2, Q3
+
+
+def estimate_sedimentationlength(rsigma1, rsigma2, rsigma3, nwidth):
+    length = - math.log(rsigma1) - math.log(rsigma2) - math.log(rsigma3)
+    return int(2 * nwidth * length)
+
+
+def main_computation(dzq1, dzq2, dzq3, tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3):
+    mask = numpy.isnan(dzq1) | numpy.isnan(dzq2) | numpy.isnan(dzq3)
+    sz = numpy.shape(dzq1)
+    rsigma1l = numpy.ones(sz)*rsigma1
+    rsigma2l = numpy.ones(sz)*rsigma2
+    rsigma3l = numpy.ones(sz)*rsigma3
+    rsigma1l[mask] = 1
+    rsigma2l[mask] = 1
+    rsigma3l[mask] = 1
+    
+    den  = 1-rsigma1l*rsigma2l*rsigma3l
+    
+    zmbb = (dzq1 * (1-rsigma1l) * rsigma2l * rsigma3l
+            + dzq2 * (1-rsigma2l) * rsigma3l
+            + dzq3 * (1-rsigma3l))
+    
+    with numpy.errstate(divide='ignore', invalid='ignore'):
+        z1o  = numpy.where(den != 0,
+                           (dzq1 * (1-rsigma1l) * rsigma2l * rsigma3l
+                            + dzq2 * (1-rsigma2l) * rsigma3l
+                            + dzq3 * (1-rsigma3l)
+                           )/den,
+                           0)
+        
+        z2o  = numpy.where(den != 0,
+                           (dzq1 * (1-rsigma1l)
+                            + dzq2 * (1-rsigma2l) * rsigma3l * rsigma1l
+                            + dzq3 * (1-rsigma3l) * rsigma1l
+                           )/den,
+                           0)
+        
+        z3o  = numpy.where(den != 0,
+                           (dzq1 * (1-rsigma1l) * rsigma2l
+                            + dzq2 * (1-rsigma2l)
+                            + dzq3 * (1-rsigma3l) * rsigma1l * rsigma2l
+                           )/den,
+                           0)
+    
+    zgem = z1o * (t1+t3)/2 + z2o * ((t2+t1)/2+tstag) + z3o*(t3+t2)/2
+    
+    return zgem, z1o, z2o
