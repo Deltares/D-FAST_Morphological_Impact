@@ -1,0 +1,73 @@
+\chapter{Introduction}
+
+Beste collega,
+
+In deze memo wordt een methodiek beschreven waarmee een eerste inschatting kan worden gemaakt van bodemveranderingen in het zomerbed als gevolg van lokale ingrepen buiten het zomerbed.
+
+De vuistregel in dit memorandum heeft slechts betrekking op afzonderlijke effecten van lokale ingrepen (maximaal een enkele uiterwaard lang), met een seizoensvariatie in drie karakteristieke afvoersituaties (gewone afvoer, hoogwater en een overgang er tussen), en met een pragmatische inschatting van de ruimtelijke structuur.
+
+Bodemveranderingen buiten het directe invloedsgebied van de maatregel blijven bij deze vuistregel buiten beschouwing.
+De bodemveranderingen zijn een indicatie van effecten indien er een voldoende lange cyclus van hoog- en laagwaterseizoenen zou optreden.
+
+De vuistregel is uitgewerkt tot \dfastmi dat als volgt gebruikt kan worden
+
+\begin{itemize}
+\item Met \dfastmi wordt een inschatting gemaakt van de voor de morfologie benodigde WAQUA berekeningen.
+\dfastmi geeft hiervoor de bijbehorende afvoeren op.
+
+\item Voor de stationaire afvoeren zoals bij Stap 1 geadviseerd door \dfastmi worden het plan en de referentie doorgerekend waarna waterdiepten en stroomsnelheden via WAQVIEQ in export files zijn opgeslagen.
+
+\item Met de exportfiles als invoer voor \dfastmi (Stap 2) wordt vervolgens met \dfastmi een inschatting gemaakt van i) jaargemiddelde bodemverandering; ii) maximale bodemverandering (einde hoogwaterseizoen) en iii) minimale bodemverandering (einde laagwaterseizoen).
+Indien bij de WAQUA berekenningen is afgeweken van de bij Stap 1 geadviseerde afvoeren, dan in \dfastmi de juiste afvoer opgeven.
+\end{itemize}
+
+De methode levert een indicatie van grootte en plaats van bodemveranderingen, maar kan een nauwkeuriger simulatie met numerieke modellen voor riviermorfologie niet altijd vervangen.
+Het doel van de vuistregel is dus een eenvoudige en eenduidige eerste beoordeling om onnodige analyses te voorkomen of om kritische effecten juist tijdig te signaleren en nauwkeuriger analyses te motiveren.
+
+Het gebruik van de resultaten, de geschatte bodemveranderingen, wordt beschreven in het rivierkundig beoordelingskader.
+
+Tenslotte. Een evaluatie van de vuistregel is gerapporteerd in "Verificatie WAQmorf Vergelijking resultaten WAQmorf en Delft2D en advies gebruik vuistregel", HKV PR1720.10, Oktober 2009.
+Hierin wordt het volgende opgemerkt.
+
+\begin{itemize}
+
+\item Op basis van de vergelijking van WAQmorf en Delft2D resultaten voor 2 casestudies kan geconcludeerd worden dat \dfastmi een betrouwbaar en robuust beeld kan geven van bodemveranderingen in het zomerbed.
+De vuistregel dient dan wel toegepast te worden voor situaties waarvoor deze is bedoeld en de gebruiker dient zich bewust te zijn van de aannames in- en beperkingen van de vuistregel en welke gevolgen deze hebben op de berekende bodemveranderingen.
+
+\item Als de met WAQmorf geschatte bodemveranderingen kritisch zijn voor scheepvaart en/of veiligheid, of als een ingreep buiten het toepassingsgebied van WAQmorf valt, volstaat toepassing van WAQmorf niet.
+Er is dan, in overleg met de rivierbeheerder, nader onderzoek met Delft2D en/of Sobek noodzakelijk.
+
+\item WAQmorf is het meest geschikt voor de bepaling van morfologische effecten in het zomerbed ten gevolge van een rivierverruimende ingreep die (1) over een beperkte lengte de stroming in de hoofdgeul be\"invloedt en (2) relatief weinig water onttrekt aan de hoofdgeul.
+Voor ingrepen die hiervan afwijken dient de gebruiker de resultaten met zorg te interpreteren en zich bewust te zijn van de aannames en beperkingen van WAQmorf.
+
+\item WAQmorf kan worden toegepast voor verschillende typen rivierverruimende ingrepen.
+Het gaat er vooral om dat het stroomvoerende karakter van een ingreep goed geschematiseerd kan worden in maximaal 3 afvoerblokken.
+
+\item De vuistregel is naar verwachting ook toe te passen voor riviertrajecten met sterk(er) gegradeerd bodemmateriaal.
+\end{itemize}
+
+Tot slot wordt hier een deel van de standaard-tekst herhaald die bij elke toepassing is te vinden in de bijbehorende file verslag.run.
+
+Dit programma is de "WAQUA vuistregel" voor het schatten van lokale morfologische effecten door een lokale ingreep (zie RWS-WD memo WAQUA vuistregel 20-10-08).
+Het is een inschatting van evenwichtsbodemveranderingen in het zomerbed die als gevolg van een ingreep en zonder aangepast beheer na lange tijd ontstaan.
+Dit betreft het effect op de bodem in [m]:
+
+\begin{itemize}
+\item jaargemiddeld zonder baggeren
+\item maximaal (na hoogwater) zonder baggeren
+\item minimaal (na laagwater) zonder baggeren
+\end{itemize}
+
+Met deze bodemveranderingen kunnen knelpunten worden gesignaleerd.
+De resultaten zijn niet direkt geschikt voor het bepalen van de invloed op vaargeulonderhoud!
+
+De jaarlijkse sedimentvracht door de rivier bepaalt de termijn waarbinnen dit evenwichtseffect kan ontwikkelen.
+
+Dit is versie 10-09-2011.
+De resultaten zijn niet geldig voor combinaties van meerdere ingrepen, of een enkele ingreep over een traject van meer dan 4 km lengte!
+
+Om \dfastmi te kunnen gebruiken dient voor de referentiesituatie en de plansituatie hetzelfde WAQUA rooster te worden gebruikt.
+
+Met vriendelijke groet,
+
+Arjan Sieben
