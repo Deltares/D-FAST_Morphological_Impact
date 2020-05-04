@@ -129,112 +129,32 @@ def write_results(results):
     logging.debug('')
 
 
-def char_discharge(jtak, jstuk, q_threshold, q_bankfull):
-    if jtak == 4: # Maas
-        q_stagnant = 1000
-    elif jtak == 1 and jstuk > 0: # stuwpanden Nederrijn en Lek
-        q_stagnant = 1500
-    else:
-        q_stagnant = 800
-
-    if jtak == 4: # Maas
-        Q1, Q2, Q3 = char_discharges_maas(q_stagnant, q_threshold, q_bankfull)
-    else:
-        Q1, Q2, Q3 = char_discharges_rijntakken(q_stagnant, q_threshold, q_bankfull)
-
-    return q_stagnant, Q1, Q2, Q3
-
-
-def char_times(jtak, jstuk, q_stagnant, Q1, Q2, Q3, proprate_hg, proprate_lw, nwidth):
-    if jtak == 4: # Maas
-        Qa = 0
-        Qb = 300
-    else:
-        Qa = 800
-        Qb = 1280
-
-    if jtak == 4 or (jtak == 1 and jstuk > 0): # Maas or stuwpanden Nederrijn en Lek
-        t_stagnant = 1 - math.exp((Qa-q_stagnant)/Qb)
-    else:
-        t_stagnant = 0
-
-    t1 = 1 - math.exp((Qa-Q1)/Qb) - t_stagnant
-    if Q2 is None:
-        t2 = 0
-    else:
-        t2 = math.exp((Qa-Q1)/Qb) - math.exp((Qa-Q2)/Qb)
-    t3 = max(1-t1-t2-t_stagnant, 0) # math.exp((Qa-Q2)/Qb)
-
-    rsigma1 = math.exp(-500*proprate_lw*t1/nwidth)
-    if not Q2 is None:
-        rsigma2 = math.exp(-500*proprate_hg*t2/nwidth)
-    else:
-        rsigma2 = 1
-    if not Q3 is None:
-        rsigma3 = math.exp(-500*proprate_hg*t3/nwidth)
-    else:
-        rsigma3 = 1
-
-    return t_stagnant, t1, t2, t3, rsigma1, rsigma2, rsigma3
-
-
-def char_discharges_rijntakken(q_stagnant, q_threshold, q_bankfull):
+def char_discharges(q_lvl, dq, q_threshold, q_bankfull):
     if not q_threshold is None: # has threshold discharge
         Q1      = q_threshold
-        if q_threshold < 3000:
-            if q_bankfull < 6000:
-                Q2 = max(q_bankfull, Q1+1000)
-                Q3 = max(6000, Q2+1000)
+        if q_threshold < q_lvl[0]:
+            if q_bankfull < q_lvl[2]:
+                Q2 = max(q_bankfull, q_threshold+dq[1])
+                Q3 = max(q_lvl[2], Q2+dq[1])
             else:
-                Q2 = 4000
+                Q2 = q_lvl[1]
                 Q3 = q_bankfull
-        elif q_threshold < 4000:
-            Q2      = max(q_bankfull, q_threshold+1000)
-            Q3      = 6000
-        else: # q_threshold >= 4000
+        elif q_threshold < q_lvl[1]:
+            Q2      = max(q_bankfull, q_threshold+dq[1])
+            Q3      = q_lvl[2]
+        else: # q_threshold >= q_lvl[1]
             Q2      = None
-            if q_threshold > 6000:
-                Q3   = min(q_threshold+1000, 10000)
+            if q_threshold > q_lvl[2]:
+                Q3   = min(q_threshold+dq[0], q_lvl[3])
             else:
-                Q3   = max(6000, q_threshold+1000)
+                Q3   = max(q_lvl[2], q_threshold+dq[0])
     else: # no threshold discharge
-        Q1      = 3000
-        if q_bankfull < 6000:
-            Q2 = max(4000, q_bankfull)
-            Q3 = 6000
+        Q1      = q_lvl[0]
+        if q_bankfull < q_lvl[2]:
+            Q2 = max(q_lvl[1], q_bankfull)
+            Q3 = q_lvl[2]
         else:
-            Q2 = min(4000, q_bankfull-1000)
-            Q3 = q_bankfull
-
-    return Q1, Q2, Q3
-
-def char_discharges_maas(q_stagnant, q_threshold, q_bankfull):
-    if not q_threshold is None: # has threshold discharge
-        Q1      = q_threshold
-        if q_threshold < 1250:
-            if q_bankfull < 2000:
-                Q2 = max(q_bankfull, q_threshold+250)
-                Q3 = max(2000, Q2+250)
-            else:
-                Q2 = 1500
-                Q3 = q_bankfull
-        else:
-            if q_threshold < 1500:
-                Q2      = max(q_bankfull, q_threshold+250)
-                Q3      = 2000
-            else:
-                Q2      = None
-                if q_threshold > 2000:
-                    Q3   = min(q_threshold+200, 3000)
-                else:
-                    Q3   = max(2000, q_threshold+200)
-    else: # no threshold discharge
-        Q1      = 1250
-        if q_bankfull < 2000:
-            Q2 = max(1500, q_bankfull)
-            Q3 = 2000
-        else:
-            Q2 = min(1500, q_bankfull-250)
+            Q2 = min(q_lvl[1], q_bankfull-dq[1])
             Q3 = q_bankfull
         if Q2 == Q3:
            Q3 = None
@@ -242,6 +162,32 @@ def char_discharges_maas(q_stagnant, q_threshold, q_bankfull):
             Q2 = None
 
     return Q1, Q2, Q3
+
+
+def char_times(q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth):
+    if q_stagnant > q_fit[0]:
+        t_stagnant = 1 - math.exp((q_fit[0]-q_stagnant)/q_fit[1])
+    else:
+        t_stagnant = 0
+
+    t1 = 1 - math.exp((q_fit[0]-Q1)/q_fit[1]) - t_stagnant
+    if Q2 is None:
+        t2 = 0
+    else:
+        t2 = math.exp((q_fit[0]-Q1)/q_fit[1]) - math.exp((q_fit[0]-Q2)/q_fit[1])
+    t3 = max(1-t1-t2-t_stagnant, 0) # math.exp((q_fit[0]-Q2)/q_fit[1])
+
+    rsigma1 = math.exp(-500*celerity_lw*t1/nwidth)
+    if not Q2 is None:
+        rsigma2 = math.exp(-500*celerity_hg*t2/nwidth)
+    else:
+        rsigma2 = 1
+    if not Q3 is None:
+        rsigma3 = math.exp(-500*celerity_hg*t3/nwidth)
+    else:
+        rsigma3 = 1
+
+    return t_stagnant, t1, t2, t3, rsigma1, rsigma2, rsigma3
 
 
 def estimate_sedimentationlength(rsigma1, rsigma2, rsigma3, nwidth):

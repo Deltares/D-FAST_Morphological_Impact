@@ -220,17 +220,22 @@ def read_rivers(filename = 'rivers.ini'):
     rivers['qlocations'] = qlocations
 
     nreaches = [len(x) for x in allreaches]
-    rivers['proprate_high'] = collect_values(config, branches, nreaches, 'PrHigh')
-    rivers['proprate_low']  = collect_values(config, branches, nreaches, 'PrLow')
-    rivers['normal_width']  = collect_values(config, branches, nreaches, 'NWidth')
-    rivers['ucritical']     = collect_values(config, branches, nreaches, 'UCrit')
-    rivers['qbankfull']     = collect_values(config, branches, nreaches, 'QBank')
+    rivers['proprate_high'] = collect_values(config, branches, nreaches, 1, 'PrHigh')
+    rivers['proprate_low']  = collect_values(config, branches, nreaches, 1, 'PrLow')
+    rivers['normal_width']  = collect_values(config, branches, nreaches, 1, 'NWidth')
+    rivers['ucritical']     = collect_values(config, branches, nreaches, 1, 'UCrit')
+    rivers['qbankfull']     = collect_values(config, branches, nreaches, 1, 'QBankfull')
+    rivers['qstagnant']     = collect_values(config, branches, nreaches, 1, 'QStagnant')
+    rivers['qmin']          = collect_values(config, branches, nreaches, 1, 'QMin')
+    rivers['qfit']          = collect_values(config, branches, nreaches, 2, 'QFit')
+    rivers['qlevels']       = collect_values(config, branches, nreaches, 4, 'QLevels')
+    rivers['dq']            = collect_values(config, branches, nreaches, 2, 'dQ')
 
     return rivers
 
 
 """Read river configuration data"""
-def collect_values(config, branches, nreaches, key):
+def collect_values(config, branches, nreaches, nval, key):
     try:
         g_val = config['Branches'][key]
     except:
@@ -249,6 +254,12 @@ def collect_values(config, branches, nreaches, key):
                 val = config[branch][key+stri]
             except:
                 val = b_val
-            values.extend([float(val)])
+            if nval==1:
+                vals = float(val)
+            else:
+                vals = [float(x) for x in val.split()]
+                if len(vals) != nval:
+                    raise Exception('Incorrect number of values read from "{}". Need {} values.',val,nval)
+            values.extend([vals])
         allvalues.extend([values])
     return allvalues

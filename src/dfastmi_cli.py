@@ -77,17 +77,25 @@ def interactive_mode(reduced_output):
     
     alldone = False
     while not alldone:
-        jtak  = get_item('branch',branches)
-        jstuk = get_item('reach',reaches[jtak])
+        ibranch     = get_item('branch',branches)
+        ireach      = get_item('reach',reaches[ibranch])
         log_text('---')
-        branch      = branches[jtak]
-        reach       = reaches[jtak][jstuk]
-        border      = rivers['qlocations'][jtak]
-        q_border    = rivers['qbankfull'][jtak][jstuk]
-        proprate_hg = rivers['proprate_high'][jtak][jstuk]
-        proprate_lw = rivers['proprate_low'][jtak][jstuk]
-        nwidth      = rivers['normal_width'][jtak][jstuk]
-        ucrit       = rivers['ucritical'][jtak][jstuk]
+        branch      = branches[ibranch]
+        reach       = reaches[ibranch][ireach]
+        
+        q_location  = rivers['qlocations'][ibranch]
+        q_border    = rivers['qbankfull'][ibranch][ireach]
+        q_stagnant  = rivers['qstagnant'][ibranch][ireach]
+        q_min       = rivers['qmin'][ibranch][ireach]
+        q_fit       = rivers['qfit'][ibranch][ireach]
+        q_levels    = rivers['qlevels'][ibranch][ireach]
+        dq          = rivers['dq'][ibranch][ireach]
+        
+        celerity_hg = rivers['proprate_high'][ibranch][ireach]
+        celerity_lw = rivers['proprate_low'][ibranch][ireach]
+        nwidth      = rivers['normal_width'][ibranch][ireach]
+        ucrit       = rivers['ucritical'][ibranch][ireach]
+        
         log_text('reach', dict = {'reach': reach})
         log_text('---')
         alldone = get_bool('confirm_location')
@@ -95,15 +103,15 @@ def interactive_mode(reduced_output):
             continue
         
         log_text('intro-measure')
-        if (jtak == 2 and jstuk != 1):
+        if q_stagnant > q_fit[0]:
             log_text('query_flowing_when_barriers_open')
         else:
-            log_text('query_flowing_above_qmin', dict={'border': border})
+            log_text('query_flowing_above_qmin', dict={'border': q_location, 'qmin': int(q_min)})
         tdrem = get_bool('confirm_or')
         if tdrem:
             q_threshold = None
         else:
-            q_threshold = get_float('query_qthreshold', dict={'border': border})
+            q_threshold = get_float('query_qthreshold', dict={'border': q_location})
         
         if q_threshold is None or q_threshold < q_border:
              log_text('query_flowing', dict={'qborder': int(q_border)})
@@ -115,7 +123,7 @@ def interactive_mode(reduced_output):
         else:
             q_bankfull = 0
         
-        q_stagnant, Q1, Q2, Q3 =  dfastmi_kernel.char_discharge(jtak, jstuk, q_threshold, q_bankfull)
+        Q1, Q2, Q3 =  dfastmi_kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
         
         Q1 = check_discharge(1, Q1)
         if Q1 is None:
@@ -128,8 +136,8 @@ def interactive_mode(reduced_output):
             Q3 = check_discharge(3, Q3, stages[1], Q2)
             if Q3 is None:
                 break
-        
-        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 =  dfastmi_kernel.char_times(jtak, jstuk, q_stagnant, Q1, Q2, Q3, proprate_hg, proprate_lw, nwidth)
+
+        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 =  dfastmi_kernel.char_times(q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth)
         nlength = dfastmi_kernel.estimate_sedimentationlength(rsigma1, rsigma2, rsigma3, nwidth)
         nQ = (not Q1 is None) + (not Q2 is None) + (not Q3 is None)
         
@@ -184,11 +192,11 @@ def interactive_mode(reduced_output):
             else:
                 log_text('need_multiple_input', dict={'reach': reach, 'numq': nQ})
             if not Q1 is None:
-                log_text('lowwater', dict={'border': border, 'q': Q1})
+                log_text('lowwater', dict={'border': q_location, 'q': Q1})
             if not Q2 is None:
-                log_text('transition', dict={'border': border, 'q': Q2})
+                log_text('transition', dict={'border': q_location, 'q': Q2})
             if not Q3 is None:
-                log_text('highwater', dict={'border': border, 'q': Q3})
+                log_text('highwater', dict={'border': q_location, 'q': Q3})
             log_text('length_estimate', dict={'nlength': nlength})
             log_text('---')
             log_text('canclose')
@@ -198,21 +206,21 @@ def interactive_mode(reduced_output):
                 log_text('reach', dict={'reach': reach}, file=report)
                 log_text('', file=report)
                 if not q_threshold is None:
-                    log_text('report_qthreshold', dict={'q': q_threshold, 'border': border}, file=report)
-                log_text('report_qbankfull', dict={'q': q_threshold, 'border': border}, file=report)
+                    log_text('report_qthreshold', dict={'q': q_threshold, 'border': q_location}, file=report)
+                log_text('report_qbankfull', dict={'q': q_threshold, 'border': q_location}, file=report)
                 log_text('', file=report)
-                if (jtak==1 and jstuk>0) or jtak == 4:
+                if q_stagnant > q_fit[0]:
                     log_text('closed_barriers', dict={'ndays': int(tstag*365)}, file=report)
                     log_text('', file=report)
-                log_text('char_discharge', dict={'n': 1, 'q': Q1,'border': border}, file=report)
+                log_text('char_discharge', dict={'n': 1, 'q': Q1,'border': q_location}, file=report)
                 log_text('char_period', dict={'n': 1, 'ndays': int(t1*365)}, file=report)
                 log_text('', file=report)
                 if not Q2 is None:
-                    log_text('char_discharge', dict={'n': 2, 'q': Q2,'border': border}, file=report)
+                    log_text('char_discharge', dict={'n': 2, 'q': Q2,'border': q_location}, file=report)
                     log_text('char_period', dict={'n': 2, 'ndays': int(t2*365)}, file=report)
                     log_text('', file=report)
                 if not Q3 is None:
-                    log_text('char_discharge', dict={'n': 3, 'q': Q3,'border': border}, file=report)
+                    log_text('char_discharge', dict={'n': 3, 'q': Q3,'border': q_location}, file=report)
                     log_text('char_period', dict={'n': 3, 'ndays': int(t3*365)}, file=report)
                     log_text('---', file=report)
                 if nQ == 1:
@@ -220,11 +228,11 @@ def interactive_mode(reduced_output):
                 else:
                     log_text('need_multiple_input', dict={'reach': reach, 'numq': nQ}, file=report)
                 if not Q1 is None:
-                    log_text('lowwater', dict={'q': Q1, 'border': border}, file=report)
+                    log_text('lowwater', dict={'q': Q1, 'border': q_location}, file=report)
                 if not Q2 is None:
-                    log_text('transition', dict={'q': Q2, 'border': border}, file=report)
+                    log_text('transition', dict={'q': Q2, 'border': q_location}, file=report)
                 if not Q3 is None:
-                    log_text('highwater', dict={'q': Q3, 'border':border}, file=report)
+                    log_text('highwater', dict={'q': Q3, 'border':q_location}, file=report)
                 log_text('---', file=report)
                 log_text('length_estimate', dict={'nlength': nlength}, file=report)
                 log_text('prepare_input', file=report)
