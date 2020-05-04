@@ -1,9 +1,38 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2020 Stichting Deltares.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation version 2.1.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+contact: delft3d.support@deltares.nl
+Stichting Deltares
+P.O. Box 177
+2600 MH Delft, The Netherlands
+
+All indications and logos of, and references to, "Delft3D" and "Deltares"
+are registered trademarks of Stichting Deltares, and remain the property of
+Stichting Deltares. All rights reserved.
+
+INFORMATION
+This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
+"""
+
 import logging
 import argparse
 import sys
 import os
 import numpy
+import dfastmi_io
 import dfastmi_kernel
 import pathlib
 
@@ -12,16 +41,16 @@ def interactive_mode(reduced_output):
     progloc   = str(pathlib.Path(__file__).parent.absolute())
     PROGTEXTS = read_program_texts(progloc + os.path.sep + 'messages.NL.ini')
     
-    report        = open ('verslag.run', 'w')
+    report    = open ('verslag.run', 'w')
     
-    rivers   = dfastmi_kernel.read_rivers(progloc + os.path.sep + 'rivers.ini')
-    branches = rivers['branches']
-    reaches  = rivers['reaches']
-    stages   = program_texts('stage_descriptions')
-    version  = dfastmi_kernel.program_version()
+    rivers    = dfastmi_io.read_rivers(progloc + os.path.sep + 'rivers.ini')
+    branches  = rivers['branches']
+    reaches   = rivers['reaches']
+    stages    = program_texts('stage_descriptions')
+    version   = dfastmi_kernel.program_version()
     
     log_text('header', dict={'version': version})
-    tdum = get_bool('confirm')
+    tdum      = get_bool('confirm')
     
     log_text('limits')
     log_text('qblocks')
@@ -119,19 +148,19 @@ def interactive_mode(reduced_output):
             log_text('',repeat=19)
             
             if not Q1 is None:
-                dzq1 = get_values(1, Q1, ucrit, report)
+                dzq1, firstm, firstn = get_values(1, Q1, ucrit, report, reduced_output)
                 if dzq1 is None:
                     break
             else:
                 dzq1 = 0
             if not Q2 is None:
-                dzq2 = get_values(2, Q2, ucrit, report)
+                dzq2 = get_values(2, Q2, ucrit, report, reduced_output)
                 if dzq2 is None:
                     break
             else:
                 dzq2 = 0
             if not Q3 is None:
-                dzq3 = get_values(3, Q3, ucrit, report)
+                dzq3 = get_values(3, Q3, ucrit, report, reduced_output)
                 if dzq3 is None:
                     break
             else:
@@ -139,9 +168,9 @@ def interactive_mode(reduced_output):
             log_text('char_bed_changes')
             data_zgem, data_z1o, data_z2o = dfastmi_kernel.main_computation(dzq1, dzq2, dzq3, tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3)
             
-            writewaq('jaargem.out', data_zgem)
-            writewaq('maxmorf.out', data_z1o)
-            writewaq('minmorf.out', data_z2o)
+            dfastmi_io.write_simona_box('jaargem.out', data_zgem, firstm, firstn)
+            dfastmi_io.write_simona_box('maxmorf.out', data_z1o, firstm, firstn)
+            dfastmi_io.write_simona_box('minmorf.out', data_z2o, firstm, firstn)
             
             log_text('')
             log_text('length_estimate', dict={'nlength': nlength})
@@ -228,7 +257,7 @@ def check_discharge(i, Q, pname='dummy', Qp=0):
     return Q
 
 
-def get_values(stage, q, ucrit, report):
+def get_values(stage, q, ucrit, report, reduced_output):
     cblok = str(stage)
     log_text('input_xyz', dict={'stage':stage, 'q':q})
     log_text('---')
@@ -250,15 +279,21 @@ def get_values(stage, q, ucrit, report):
         log_text('')
     
     log_text('input_xyz_read', dict={'stage':stage})
-    u0temp = numpy.genfromtxt(files[0], delimiter=',', skip_header=1, usecols=(2, 3, 4))
+    u0temp = dfastmi_io.read_waqua_xyz(files[0], usecols=(2, 3, 4))
     m      = u0temp[:,1].astype(int)-1
     n      = u0temp[:,2].astype(int)-1
     u0temp = u0temp[:,0]
-    h0temp = numpy.genfromtxt(files[1], delimiter=',', skip_header=1, usecols=(2))
-    u1temp = numpy.genfromtxt(files[2], delimiter=',', skip_header=1, usecols=(2))
+    h0temp = dfastmi_io.read_waqua_xyz(files[1])
+    u1temp = dfastmi_io.read_waqua_xyz(files[2])
     
-    szm    = max(m)+1
-    szn    = max(n)+1
+    if reduced_output:
+        firstm = min(m)
+        firstn = min(n)
+    else:
+        firstm = 0
+        firstn = 0
+    szm    = max(m)+1-firstm
+    szn    = max(n)+1-firstn
     szk    = szm*szn
     k      = szn*m + n
     u0 = numpy.zeros([szk])
@@ -274,29 +309,9 @@ def get_values(stage, q, ucrit, report):
     h0 = h0.reshape(sz)
     u1 = u1.reshape(sz)
     
-    with numpy.errstate(divide='ignore', invalid='ignore'):
-        dzq = numpy.where((abs(u0)>ucrit) & (abs(u1)>ucrit) & (abs(u0)<100), h0*(u0-u1)/u0, numpy.NaN)
+    dzq = dfastmi_kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
     log_text('---')
-    return dzq
-
-
-def writewaq(filename, ldata):
-    rdata = ldata.transpose()
-    boxfile = open (filename, 'w')
-    shp = numpy.shape(rdata)
-    nmax = shp[0]
-    mmax = shp[1]
-    boxheader = '      BOX MNMN=({m1:4d},{n1:5d},{m2:5d},{n2:5d}), VARIABLE_VAL=\n'
-    nstep     = 10
-    for j in range(0,nmax,nstep): #j=firstn,nmax,10
-        k = min(nmax, j+nstep)
-        boxfile.write(boxheader.format(m1=1, n1=j+1, m2=mmax, n2=k))
-        nvalues = mmax*(k-j)
-        boxdata = ('   '+'{:12.3f}'*(k-j)+'\n')*mmax
-        values  = tuple(rdata[j:k,:].transpose().reshape(nvalues))
-        boxfile.write(boxdata.format(*values))
-    
-    boxfile.close()
+    return dzq, firstm, firstn
 
 
 def get_bool(key,dict={}):
