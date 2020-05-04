@@ -137,12 +137,11 @@ def ugrid_add(dstfile, varname, ldata, meshname, facedim):
 
 
 """Write a SIMONA BOX file"""
-def write_simona_box(filename, ldata, firstm, firstn):
-    rdata = ldata.transpose()
+def write_simona_box(filename, rdata, firstm, firstn):
     boxfile = open (filename, 'w')
     shp = numpy.shape(rdata)
-    nmax = shp[0]
-    mmax = shp[1]
+    mmax = shp[0]
+    nmax = shp[1]
     boxheader = '      BOX MNMN=({m1:4d},{n1:5d},{m2:5d},{n2:5d}), VARIABLE_VAL=\n'
     nstep     = 10
     for j in range(firstn,nmax,nstep):
@@ -150,13 +149,13 @@ def write_simona_box(filename, ldata, firstm, firstn):
         boxfile.write(boxheader.format(m1=firstm+1, n1=j+1, m2=mmax, n2=k))
         nvalues = (mmax-firstm)*(k-j)
         boxdata = ('   '+'{:12.3f}'*(k-j)+'\n')*(mmax-firstm)
-        values  = tuple(rdata[j:k,:].transpose().reshape(nvalues))
+        values  = tuple(rdata[:,j:k].reshape(nvalues))
         boxfile.write(boxdata.format(*values))
     
     boxfile.close()
 
 
-"""Read program texts"""
+"""Read program dialog texts"""
 def read_program_texts(filename):
     all_lines = open(filename, 'r').read().splitlines()
     dict      = {}
@@ -175,7 +174,7 @@ def read_program_texts(filename):
     return dict
 
 
-"""Read river data"""
+"""Read the configuration file containing the listing of various branches/reaches and associated default parameter settings"""
 def read_rivers(filename = 'rivers.ini'):
     import configparser
     # read the file
@@ -230,6 +229,7 @@ def read_rivers(filename = 'rivers.ini'):
     return rivers
 
 
+"""Read river configuration data"""
 def collect_values(config, branches, nreaches, key):
     try:
         g_val = config['Branches'][key]

@@ -255,7 +255,6 @@ def dzq_from_du_and_h(u0, h0, u1, ucrit):
     return dzq
 
 
-
 def main_computation(dzq1, dzq2, dzq3, tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3):
     mask = numpy.isnan(dzq1) | numpy.isnan(dzq2) | numpy.isnan(dzq3)
     sz = numpy.shape(dzq1)

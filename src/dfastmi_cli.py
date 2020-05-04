@@ -148,7 +148,7 @@ def interactive_mode(reduced_output):
             log_text('',repeat=19)
             
             if not Q1 is None:
-                dzq1, firstm, firstn = get_values(1, Q1, ucrit, report, reduced_output)
+                dzq1, firstm, firstn = get_values(1, Q1, ucrit, report, reduced_output, nargout=3)
                 if dzq1 is None:
                     break
             else:
@@ -257,7 +257,7 @@ def check_discharge(i, Q, pname='dummy', Qp=0):
     return Q
 
 
-def get_values(stage, q, ucrit, report, reduced_output):
+def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
     cblok = str(stage)
     log_text('input_xyz', dict={'stage':stage, 'q':q})
     log_text('---')
@@ -279,7 +279,7 @@ def get_values(stage, q, ucrit, report, reduced_output):
         log_text('')
     
     log_text('input_xyz_read', dict={'stage':stage})
-    u0temp = dfastmi_io.read_waqua_xyz(files[0], usecols=(2, 3, 4))
+    u0temp = dfastmi_io.read_waqua_xyz(files[0], cols=(2, 3, 4))
     m      = u0temp[:,1].astype(int)-1
     n      = u0temp[:,2].astype(int)-1
     u0temp = u0temp[:,0]
@@ -311,7 +311,10 @@ def get_values(stage, q, ucrit, report, reduced_output):
     
     dzq = dfastmi_kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
     log_text('---')
-    return dzq, firstm, firstn
+    if nargout == 3:
+        return dzq, firstm, firstn
+    else:
+        return dzq
 
 
 def get_bool(key,dict={}):
