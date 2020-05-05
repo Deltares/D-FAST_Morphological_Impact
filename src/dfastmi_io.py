@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 import numpy
 import netCDF4
+import configparser
 
 
 """Read data columns from a SIMONA XYZ file"""
@@ -176,12 +177,10 @@ def read_program_texts(filename):
 
 """Read the configuration file containing the listing of various branches/reaches and associated default parameter settings"""
 def read_rivers(filename = 'rivers.ini'):
-    import configparser
     # read the file
     config = configparser.ConfigParser()
-    fid = open(filename, 'r')
-    config.read_file(fid)
-    fid.close()
+    with open(filename, 'r') as configfile:
+        config.read_file(configfile)
 
     # initialize rivers
     rivers = {}
