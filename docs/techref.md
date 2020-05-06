@@ -435,5 +435,5 @@ For the automated testing, unit tests and regression tests based on known input/
 ## Automated Generation of Documentation
 
 An automated environment for generation of the user manual will be set up.
-This will use be integrated in the daily cycle of building all manuals on Deltares TeamCity server.
+This will be integrated in the daily cycle of building all manuals on Deltares TeamCity server.
 The documentation written in a combination of LaTeX and markdown files is maintained in the GitHub repository alongside the source code.
