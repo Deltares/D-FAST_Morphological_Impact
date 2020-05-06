@@ -190,7 +190,7 @@ def char_times(q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth):
     return t_stagnant, t1, t2, t3, rsigma1, rsigma2, rsigma3
 
 
-def estimate_sedimentationlength(rsigma1, rsigma2, rsigma3, nwidth):
+def estimate_sedimentation_length(rsigma1, rsigma2, rsigma3, nwidth):
     length = - math.log(rsigma1) - math.log(rsigma2) - math.log(rsigma3)
     return int(2 * nwidth * length)
 

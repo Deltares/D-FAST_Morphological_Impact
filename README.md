@@ -10,7 +10,7 @@ For more details see the documentation section.
 
 The documentation consists of
 * a LaTeX user manual including scientific description, and
-* a [Technical Reference Manual](docs/techref/techref.md) in Markdown
+* a [Technical Reference Manual](docs/techref.md) in Markdown
 the sources of both documents can be found in the `docs` folder.
 
 ## License

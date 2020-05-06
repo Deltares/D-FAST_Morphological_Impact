@@ -214,7 +214,7 @@ def update_qvalues():
         celerity_lw = rivers['proprate_low'][ibranch][ireach]
         nwidth      = rivers['normal_width'][ibranch][ireach]
         tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 =  dfastmi_kernel.char_times(qfit, qstagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth)
-        nlength     = dfastmi_kernel.estimate_sedimentationlength(rsigma1, rsigma2, rsigma3, nwidth)
+        nlength     = dfastmi_kernel.estimate_sedimentation_length(rsigma1, rsigma2, rsigma3, nwidth)
         dialog['nlength'].setText(str(nlength))
     except:
         Q1 = None
@@ -325,29 +325,7 @@ def save_configuration():
     config.add_section('Q3')
     config['Q3']['Reference']      = dialog['q1file1'].text()
     config['Q3']['WithMeasure']    = dialog['q1file2'].text()
-    write_config(filename, config)
-
-
-def write_config(filename, config):
-    sections = config.sections()
-    ml = 0
-    for s in sections:
-        options = config.options(s)
-        if len(options)>0:
-            ml = max(ml, max([len(x) for x in options]))
-    
-    OPTIONLINE = "  {{:{}s}} = {{}}\n".format(ml)
-    with open(filename, 'w') as configfile:
-        first = True
-        for s in sections:
-            if first:
-                first = False
-            else:
-                configfile.write("\n")
-            configfile.write("[{}]\n".format(s))
-            options = config.options(s)
-            for o in options:
-                configfile.write(OPTIONLINE.format(o,config[s][o]))
+    dfastmi_io.write_config(filename, config)
 
 
 def menu_about_self():

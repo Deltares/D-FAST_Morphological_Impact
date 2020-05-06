@@ -39,7 +39,7 @@ import pathlib
 def interactive_mode(reduced_output):
     global PROGTEXTS
     progloc   = str(pathlib.Path(__file__).parent.absolute())
-    PROGTEXTS = read_program_texts(progloc + os.path.sep + 'messages.NL.ini')
+    PROGTEXTS = dfastmi_io.read_program_texts(progloc + os.path.sep + 'messages.NL.ini')
     
     report    = open ('verslag.run', 'w')
     
@@ -138,7 +138,7 @@ def interactive_mode(reduced_output):
                 break
 
         tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 =  dfastmi_kernel.char_times(q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth)
-        nlength = dfastmi_kernel.estimate_sedimentationlength(rsigma1, rsigma2, rsigma3, nwidth)
+        nlength = dfastmi_kernel.estimate_sedimentation_length(rsigma1, rsigma2, rsigma3, nwidth)
         nQ = (not Q1 is None) + (not Q2 is None) + (not Q3 is None)
         
         if twaq:
@@ -327,8 +327,8 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
 
 def get_bool(key,dict={}):
     log_text(key,dict=dict)
-    str = sys.stdin.readline()
-    bool = str == 'j\n'
+    str = sys.stdin.readline().lower()
+    bool = str == 'j\n' || str == 'y\n'
     if bool:
         log_text('yes')
     else:
@@ -382,29 +382,11 @@ def log_text(key, file=None, dict={}, repeat=1):
                 file.write(s.format(**dict)+'\n')
 
 
-def read_program_texts(filename):
-    all_lines = open(filename, 'r').read().splitlines()
-    dict      = {}
-    str       = []
-    key       = None
-    for line in all_lines:
-        rline = line.strip()
-        if rline.startswith('[') and rline.endswith(']'):
-            if not key is None:
-                dict[key] = str
-            key = rline[1:-1]
-            str = []
-        else:
-            str.append(line)
-    dict[key] = str
-    return dict
-
-
 def program_texts(key):
-    #try:
-    str = PROGTEXTS[key]
-    #except:
-    #    str = ['No message found for '+key]
+    try:
+        str = PROGTEXTS[key]
+    except:
+        str = ['No message found for '+key]
     return str
 
 
