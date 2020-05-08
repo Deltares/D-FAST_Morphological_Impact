@@ -404,24 +404,31 @@ This module is subdivided into the following routines:
 
 # Software Maintenance
 
+Currently we are at the stage of prototyping, but the end goal of the project is to deliver a formal maintained product.
+This means that we will be following a set of best practices for software maintenance to assure the quality of the product.
+
 ## Coding Guidelines
 
 This program is implemented following PEP 8 style guide using Python 3.x.
+We'll be using type hinting and brief documentation of the functions to guide future developers with respect to the purpose of the various functions, input and output variables.
 Additional restrictions on coding style may be applied, such as Black Code Formatter.
+As the code matures from prototype to beta product and final release product, we'll be implementing increasingly formal code reviews.
 
 ## Version Control
 
 GitHub is used for software version control.
 The repository is located at https://github.com/Deltares/D-FAST_Morphological_Impact.
+We'll be creating release branches and development branches to keep the trunk and releases stable.
 
 ## Automated Building and Testing of Code
 
-An automated environment for code building and testing will be set up.
-Most likely we will use Deltares in-house facilities and tools (JIRA, TeamCity, ...).
+Automated TeamCity projects will be set up for testing the Python code, for building (and optionally signing of) binaries, and testing of the binaries.
+In this way the formal release process can be easily aligned with the other products.
 The first test files have been uploaded to GitHub alongside the source code; it is yet to be determined whether that is the most appropriate location for the full test suite given potentially large binary model simulation files and open repository access.
 
 During the development the following types of tests will be carried out.
 
+1. Unit testing at the level of functions, such as reading and writing of files, and basic testing of the algorithms.
 1. Compare the new implementation with existing sets of input and output files obtained from WAQMORF (validation legacy mode).
 1. Convert one or two sets of legacy input files to D-Flow FM like NetCDF files.
 Running D-FAST Morphological Impact in the new mode on those converted files should give identical numerical results but stored in different file format.
@@ -431,6 +438,8 @@ Running D-FAST Morphological Impact on the new files will give different results
 Running D-FAST Morphological Impact on those new unstructured model results will give different results than those obtained using the curvilinear model, but the differences are expected to be small. They will be quantified and reported.
 
 For the automated testing, unit tests and regression tests based on known input/output combinations will be used.
+These tests will be executed on the original Python code and to the degree possible on the compiled binaries as well.
+Details of the various tests implemented will be documented as the project progresses and full documentation will be included in the final project documentation.
 
 ## Automated Generation of Documentation
 
