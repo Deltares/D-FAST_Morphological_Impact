@@ -328,7 +328,7 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
 def get_bool(key,dict={}):
     log_text(key,dict=dict)
     str = sys.stdin.readline().lower()
-    bool = str == 'j\n' || str == 'y\n'
+    bool = str == 'j\n' or str == 'y\n'
     if bool:
         log_text('yes')
     else:
