@@ -34,7 +34,7 @@ from configparser import ConfigParser
 
 
 def program_version():
-    return 'PRE-ALPHA'
+    return "PRE-ALPHA"
 
 
 def main_program(input_file):
@@ -43,7 +43,7 @@ def main_program(input_file):
 
     # Reading configuration file
     config = read_config(input_file)
-    verify_config(config,input_file)
+    verify_config(config, input_file)
 
     # Running analysis
     results = run_analysis(config)
@@ -52,30 +52,30 @@ def main_program(input_file):
     write_results(results)
 
     # Finished
-    logging.info('Finished')
+    logging.info("Finished")
 
 
 def program_header():
-    logging.critical('D-FAST Morphological Impact '+program_version())
-    logging.critical('Copyright (c) 2020 Deltares.')
-    logging.critical('')
-    logging.critical('This program is distributed under the terms of the')
-    logging.critical('GNU Lesser General Public License Version 2.1; see')
-    logging.critical('the LICENSE.md file for details.')
-    logging.critical('')
-    logging.info('Source code location:')
-    logging.info('https://github.com/Deltares/D-FAST_Morphological_Impact')
-    logging.info('')
+    logging.critical("D-FAST Morphological Impact " + program_version())
+    logging.critical("Copyright (c) 2020 Deltares.")
+    logging.critical("")
+    logging.critical("This program is distributed under the terms of the")
+    logging.critical("GNU Lesser General Public License Version 2.1; see")
+    logging.critical("the LICENSE.md file for details.")
+    logging.critical("")
+    logging.info("Source code location:")
+    logging.info("https://github.com/Deltares/D-FAST_Morphological_Impact")
+    logging.info("")
 
 
 def read_config(input_file):
-    logging.info('Reading configuration file '+input_file)
+    logging.info("Reading configuration file " + input_file)
 
     # instantiate file parser
     config = ConfigParser()
 
     # open the configuration file
-    fid = open(input_file,'r')
+    fid = open(input_file, "r")
 
     # read and parse the configuration file
     config.read_file(fid)
@@ -85,79 +85,79 @@ def read_config(input_file):
     return config
 
 
-def logkeyvalue(level,key,val):
-    logging.log(level,str.format('%-30s: %s' % (key,val)))
+def logkeyvalue(level, key, val):
+    logging.log(level, str.format("%-30s: %s" % (key, val)))
 
 
-def verify_config(config,input_file):
-    logging.info('Verifying configuration file')
+def verify_config(config, input_file):
+    logging.info("Verifying configuration file")
     try:
-        filename = config['General']['File1']
-        logkeyvalue(logging.DEBUG,'Simulation without measure',filename)
+        filename = config["General"]["File1"]
+        logkeyvalue(logging.DEBUG, "Simulation without measure", filename)
     except:
-        raise SystemExit('Unable to read General\File1 from "'+input_file+'"!')
+        raise SystemExit('Unable to read General\File1 from "' + input_file + '"!')
     try:
-        filename = config['General']['File2']
-        logkeyvalue(logging.DEBUG,'Simulation with measure',filename)
+        filename = config["General"]["File2"]
+        logkeyvalue(logging.DEBUG, "Simulation with measure", filename)
     except:
-        raise SystemExit('Unable to read General\File2 from "'+input_file+'"!')
-    logging.debug('')
+        raise SystemExit('Unable to read General\File2 from "' + input_file + '"!')
+    logging.debug("")
     return
 
 
 def read_dflowfm(map_file):
-    logging.debug('Loading file "'+map_file+'"')
+    logging.debug('Loading file "' + map_file + '"')
     data = 1
     return data
 
 
 def run_analysis(config):
     # Load data
-    logging.info('Loading data')
-    data1 = read_dflowfm(config['General']['File1'])
-    data2 = read_dflowfm(config['General']['File2'])
-    logging.debug('')
+    logging.info("Loading data")
+    data1 = read_dflowfm(config["General"]["File1"])
+    data2 = read_dflowfm(config["General"]["File2"])
+    logging.debug("")
 
     # Do actual analysis
-    logging.info('Running analysis')
-    logging.debug('')
+    logging.info("Running analysis")
+    logging.debug("")
     return 0
 
 
 def write_results(results):
-    logging.info('Writing results')
-    logging.debug('')
+    logging.info("Writing results")
+    logging.debug("")
 
 
 def char_discharges(q_lvl, dq, q_threshold, q_bankfull):
-    if not q_threshold is None: # has threshold discharge
-        Q1      = q_threshold
+    if not q_threshold is None:  # has threshold discharge
+        Q1 = q_threshold
         if q_threshold < q_lvl[0]:
             if q_bankfull < q_lvl[2]:
-                Q2 = max(q_bankfull, q_threshold+dq[1])
-                Q3 = max(q_lvl[2], Q2+dq[1])
+                Q2 = max(q_bankfull, q_threshold + dq[1])
+                Q3 = max(q_lvl[2], Q2 + dq[1])
             else:
                 Q2 = q_lvl[1]
                 Q3 = q_bankfull
         elif q_threshold < q_lvl[1]:
-            Q2      = max(q_bankfull, q_threshold+dq[1])
-            Q3      = q_lvl[2]
-        else: # q_threshold >= q_lvl[1]
-            Q2      = None
+            Q2 = max(q_bankfull, q_threshold + dq[1])
+            Q3 = q_lvl[2]
+        else:  # q_threshold >= q_lvl[1]
+            Q2 = None
             if q_threshold > q_lvl[2]:
-                Q3   = min(q_threshold+dq[0], q_lvl[3])
+                Q3 = min(q_threshold + dq[0], q_lvl[3])
             else:
-                Q3   = max(q_lvl[2], q_threshold+dq[0])
-    else: # no threshold discharge
-        Q1      = q_lvl[0]
+                Q3 = max(q_lvl[2], q_threshold + dq[0])
+    else:  # no threshold discharge
+        Q1 = q_lvl[0]
         if q_bankfull < q_lvl[2]:
             Q2 = max(q_lvl[1], q_bankfull)
             Q3 = q_lvl[2]
         else:
-            Q2 = min(q_lvl[1], q_bankfull-dq[1])
+            Q2 = min(q_lvl[1], q_bankfull - dq[1])
             Q3 = q_bankfull
         if Q2 == Q3:
-           Q3 = None
+            Q3 = None
         if Q1 == Q2:
             Q2 = None
 
@@ -166,24 +166,24 @@ def char_discharges(q_lvl, dq, q_threshold, q_bankfull):
 
 def char_times(q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth):
     if q_stagnant > q_fit[0]:
-        t_stagnant = 1 - math.exp((q_fit[0]-q_stagnant)/q_fit[1])
+        t_stagnant = 1 - math.exp((q_fit[0] - q_stagnant) / q_fit[1])
     else:
         t_stagnant = 0
 
-    t1 = 1 - math.exp((q_fit[0]-Q1)/q_fit[1]) - t_stagnant
+    t1 = 1 - math.exp((q_fit[0] - Q1) / q_fit[1]) - t_stagnant
     if Q2 is None:
         t2 = 0
     else:
-        t2 = math.exp((q_fit[0]-Q1)/q_fit[1]) - math.exp((q_fit[0]-Q2)/q_fit[1])
-    t3 = max(1-t1-t2-t_stagnant, 0) # math.exp((q_fit[0]-Q2)/q_fit[1])
+        t2 = math.exp((q_fit[0] - Q1) / q_fit[1]) - math.exp((q_fit[0] - Q2) / q_fit[1])
+    t3 = max(1 - t1 - t2 - t_stagnant, 0)  # math.exp((q_fit[0]-Q2)/q_fit[1])
 
-    rsigma1 = math.exp(-500*celerity_lw*t1/nwidth)
+    rsigma1 = math.exp(-500 * celerity_lw * t1 / nwidth)
     if not Q2 is None:
-        rsigma2 = math.exp(-500*celerity_hg*t2/nwidth)
+        rsigma2 = math.exp(-500 * celerity_hg * t2 / nwidth)
     else:
         rsigma2 = 1
     if not Q3 is None:
-        rsigma3 = math.exp(-500*celerity_hg*t3/nwidth)
+        rsigma3 = math.exp(-500 * celerity_hg * t3 / nwidth)
     else:
         rsigma3 = 1
 
@@ -191,54 +191,72 @@ def char_times(q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth):
 
 
 def estimate_sedimentation_length(rsigma1, rsigma2, rsigma3, nwidth):
-    length = - math.log(rsigma1) - math.log(rsigma2) - math.log(rsigma3)
+    length = -math.log(rsigma1) - math.log(rsigma2) - math.log(rsigma3)
     return int(2 * nwidth * length)
 
 
 def dzq_from_du_and_h(u0, h0, u1, ucrit):
-    with numpy.errstate(divide='ignore', invalid='ignore'):
-        dzq = numpy.where((abs(u0)>ucrit) & (abs(u1)>ucrit) & (abs(u0)<100), h0*(u0-u1)/u0, numpy.NaN)
+    with numpy.errstate(divide="ignore", invalid="ignore"):
+        dzq = numpy.where(
+            (abs(u0) > ucrit) & (abs(u1) > ucrit) & (abs(u0) < 100),
+            h0 * (u0 - u1) / u0,
+            numpy.NaN,
+        )
     return dzq
 
 
 def main_computation(dzq1, dzq2, dzq3, tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3):
     mask = numpy.isnan(dzq1) | numpy.isnan(dzq2) | numpy.isnan(dzq3)
     sz = numpy.shape(dzq1)
-    rsigma1l = numpy.ones(sz)*rsigma1
-    rsigma2l = numpy.ones(sz)*rsigma2
-    rsigma3l = numpy.ones(sz)*rsigma3
+    rsigma1l = numpy.ones(sz) * rsigma1
+    rsigma2l = numpy.ones(sz) * rsigma2
+    rsigma3l = numpy.ones(sz) * rsigma3
     rsigma1l[mask] = 1
     rsigma2l[mask] = 1
     rsigma3l[mask] = 1
 
-    den  = 1-rsigma1l*rsigma2l*rsigma3l
+    den = 1 - rsigma1l * rsigma2l * rsigma3l
 
-    zmbb = (dzq1 * (1-rsigma1l) * rsigma2l * rsigma3l
-            + dzq2 * (1-rsigma2l) * rsigma3l
-            + dzq3 * (1-rsigma3l))
+    zmbb = (
+        dzq1 * (1 - rsigma1l) * rsigma2l * rsigma3l
+        + dzq2 * (1 - rsigma2l) * rsigma3l
+        + dzq3 * (1 - rsigma3l)
+    )
 
-    with numpy.errstate(divide='ignore', invalid='ignore'):
-        z1o  = numpy.where(den != 0,
-                           (dzq1 * (1-rsigma1l) * rsigma2l * rsigma3l
-                            + dzq2 * (1-rsigma2l) * rsigma3l
-                            + dzq3 * (1-rsigma3l)
-                           )/den,
-                           0)
+    with numpy.errstate(divide="ignore", invalid="ignore"):
+        z1o = numpy.where(
+            den != 0,
+            (
+                dzq1 * (1 - rsigma1l) * rsigma2l * rsigma3l
+                + dzq2 * (1 - rsigma2l) * rsigma3l
+                + dzq3 * (1 - rsigma3l)
+            )
+            / den,
+            0,
+        )
 
-        z2o  = numpy.where(den != 0,
-                           (dzq1 * (1-rsigma1l)
-                            + dzq2 * (1-rsigma2l) * rsigma3l * rsigma1l
-                            + dzq3 * (1-rsigma3l) * rsigma1l
-                           )/den,
-                           0)
+        z2o = numpy.where(
+            den != 0,
+            (
+                dzq1 * (1 - rsigma1l)
+                + dzq2 * (1 - rsigma2l) * rsigma3l * rsigma1l
+                + dzq3 * (1 - rsigma3l) * rsigma1l
+            )
+            / den,
+            0,
+        )
 
-        z3o  = numpy.where(den != 0,
-                           (dzq1 * (1-rsigma1l) * rsigma2l
-                            + dzq2 * (1-rsigma2l)
-                            + dzq3 * (1-rsigma3l) * rsigma1l * rsigma2l
-                           )/den,
-                           0)
+        z3o = numpy.where(
+            den != 0,
+            (
+                dzq1 * (1 - rsigma1l) * rsigma2l
+                + dzq2 * (1 - rsigma2l)
+                + dzq3 * (1 - rsigma3l) * rsigma1l * rsigma2l
+            )
+            / den,
+            0,
+        )
 
-    zgem = z1o * (t1+t3)/2 + z2o * ((t2+t1)/2+tstag) + z3o*(t3+t2)/2
+    zgem = z1o * (t1 + t3) / 2 + z2o * ((t2 + t1) / 2 + tstag) + z3o * (t3 + t2) / 2
 
     return zgem, z1o, z2o
