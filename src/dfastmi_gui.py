@@ -41,6 +41,7 @@ def create_dialog():
     dialog = {}
     
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle('fusion')
     dialog['application'] = app
     
     win = QtWidgets.QMainWindow()
