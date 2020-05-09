@@ -27,32 +27,43 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from typing import Union, Dict, List
 import numpy
 import netCDF4
 import configparser
 
 
-def read_program_texts(filename):
+def read_program_texts(filename: str):
     """Read program dialog texts"""
+    text: List[str]
+    dict: Dict[str, List[str]]
+    
     all_lines = open(filename, "r").read().splitlines()
     dict = {}
-    str = []
+    text = []
     key = None
     for line in all_lines:
         rline = line.strip()
         if rline.startswith("[") and rline.endswith("]"):
             if not key is None:
-                dict[key] = str
+                dict[key] = text
             key = rline[1:-1]
-            str = []
+            text = []
         else:
-            str.append(line)
+            text.append(line)
     dict[key] = str
     return dict
 
 
-def read_rivers(filename="rivers.ini"):
+def read_rivers(filename: str = "rivers.ini"):
     """Read the configuration file containing the listing of various branches/reaches and associated default parameter settings"""
+    branch: str
+    branches: List[str]
+    config: configparser.ConfigParser
+    i: int
+    name: str
+    rivers: Dict[str, Union[List[str],List[List[str]],List[List[float]]]]
+    
     # read the file
     config = configparser.ConfigParser()
     with open(filename, "r") as configfile:
@@ -109,8 +120,9 @@ def read_rivers(filename="rivers.ini"):
     return rivers
 
 
-def collect_values(config, branches, nreaches, nval, key):
+def collect_values(config, branches: List[str], nreaches: List[int], nval: int, key: str):
     """Read river configuration data"""
+    vals: Union[float, List[float]]
     try:
         g_val = config["Branches"][key]
     except:
@@ -144,12 +156,14 @@ def collect_values(config, branches, nreaches, nval, key):
     return allvalues
 
 
-def write_config(filename, config):
+def write_config(filename: str, config):
     """Pretty print a configParser object (configuration file) to file.
     
-    This function aligns the equal signs for all keyword/value pairs.
-    Adds two space indentation to all keyword lines.
-    Adds an empty line before the start of a new block."""
+    This function ...
+        aligns the equal signs for all keyword/value pairs.
+        adds a two space indentation to all keyword lines.
+        adds an empty line before the start of a new block.
+    """
     sections = config.sections()
     ml = 0
     for s in sections:
@@ -171,7 +185,7 @@ def write_config(filename, config):
                 configfile.write(OPTIONLINE.format(o, config[s][o]))
 
 
-def read_fm_map(filename, stdname):
+def read_fm_map(filename: str, stdname: str):
     """Read the last time step of any quantity defined at faces from a D-Flow FM map-file"""
     # open file
     rootgrp = netCDF4.Dataset(filename)
@@ -191,14 +205,14 @@ def read_fm_map(filename, stdname):
     return data
 
 
-def copy_ugrid(src, meshname, dst):
+def copy_ugrid(src, meshname: str, dst):
     """Copy UGRID mesh data from source file to destination file"""
     # if src is string, then open the file
     if isinstance(src, str):
         src = netCDF4.Dataset(src)
         srcclose = True
     else:
-        dstclose = False
+        srcclose = False
 
     # locate source mesh
     mesh = src.variables[meshname]
@@ -246,7 +260,7 @@ def copy_ugrid(src, meshname, dst):
         dst.close()
 
 
-def copy_var(src, varname, dst):
+def copy_var(src, varname: str, dst):
     """Copy a single NetCDF variable including attributes from source file to destination file. Create dimensions as necessary."""
     srcvar = src.variables[varname]
     # copy dimensions
@@ -265,7 +279,7 @@ def copy_var(src, varname, dst):
     dstvar[:] = srcvar[:]
 
 
-def ugrid_add(dstfile, varname, ldata, meshname, facedim):
+def ugrid_add(dstfile: str, varname: str, ldata, meshname: str, facedim: str):
     """Add a new variable defined at faces to an existing UGRID NetCDF file"""
     # open destination file
     dst = netCDF4.Dataset(dstfile, "a")
