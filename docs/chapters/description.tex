@@ -376,7 +376,7 @@ Met de benaderingen van \autoref{Eq9} tot \autoref{Eq10c} en de jaargemiddelde w
 \begin{table}
 \includegraphics[width=\columnwidth]{figures/Tab4_the2nd.png}
 \caption{Representatieve voortplantingssnelheden hoog- en laagwaterafvoeren Rijntakken.}
-\label{Tab4}
+\label{Tab4RT}
 \end{table}
 
 \begin{table}
@@ -443,30 +443,33 @@ z_\text{mbb} = z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigm
 \caption{Hoofdlijn definitie afvoerblokken voor de Rijntakken}
 \label{Tab7}
 \end{table}
+
+\begin{equation}
+\sigma_1 = e^{-\frac{w_l}{2 B_n} T_1}
+\end{equation}
+met $T_1 = e^{\left ( \frac{800-Q_\text{stuw}}{1280} \right )} - e^{\left ( \frac{800-Q_1}{1280} \right )}$ en $w_l$ uit \autoref{Tab4RT} (met $Q_\text{stuw} = 1500$ m\textsuperscript{3}/s in Nederrijn en Lek en $Q_\text{stuw} = 800$ m\textsuperscript{3}/s voor de andere Rijntakken)
 %
 \begin{equation}
-\sigma_1 = e^{-\frac{w_l}{2 B_n} T_1} \text{ met } T_1 = e^{\left ( \frac{800-Q_\text{stuw}}{1280} \right )} - e^{\left ( \frac{800-Q_1}{1280} \right )} \text{ en $w_l$ uit Tabel 4 (met $Q_\text{stuw} = 1500$ m\textsuperscript{3}/s in Nederrijn en Lek en $Q_\text{stuw} = 800$ m\textsuperscript{3}/s voor de andere Rijntakken)}
+\sigma_2 = e^{-\frac{w_h}{2 B_n} T_2}
 \end{equation}
 %
 \begin{equation}
-\sigma_2 = e^{-\frac{w_h}{2 B_n} T_2} \text{ met } T_2 = e^{\left ( \frac{800-Q_1}{1280} \right )} - e^{\left ( \frac{800-Q_2}{1280} \right )} \text{ en $w_h$ uit Tabel 4}
+\sigma_3 = e^{-\frac{w_h}{2 B_n} T_3}
+\end{equation}
+met $T_2 = e^{\left ( \frac{800-Q_1}{1280} \right )} - e^{\left ( \frac{800-Q_2}{1280} \right )}$ en $w_h$ uit \autoref{Tab4RT}.
+%
+\begin{equation}
+\Delta z_{1e} = -a_o \frac{q_n - q_o}{q_o}
 \end{equation}
 %
 \begin{equation}
-\sigma_3 = e^{-\frac{w_h}{2 B_n} T_3} \text{ met $w_h$ uit Tabel 4}
+\Delta z_{2e} = -a_o \frac{q_n - q_o}{q_o}
 \end{equation}
 %
 \begin{equation}
-\Delta z_{1e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_1$ uit WAQUA}
+\Delta z_{3e} = -a_o \frac{q_n - q_o}{q_o}
 \end{equation}
-%
-\begin{equation}
-\Delta z_{2e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_2$ uit WAQUA}
-\end{equation}
-%
-\begin{equation}
-\Delta z_{3e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_3$ uit WAQUA}
-\end{equation}
+bij $Q_1$, $Q_2$ en $Q_3$ uit WAQUA
 
 \begin{table}
 \includegraphics[width=\columnwidth]{figures/Tab8.png}
@@ -475,28 +478,31 @@ z_\text{mbb} = z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigm
 \end{table}
 %
 \begin{equation}
-\sigma_1 = e^{-\frac{w_l}{2 B_n} T_1} \text{ met } T_1 = e^{\left ( - \frac{Q_\text{stuw}}{300} \right )} - e^{\left ( - \frac{Q_1}{300} \right )} \text{; $Q_\text{stuw} = 100$ m\textsuperscript{3}/s en $w_l$ uit Tabel 5}
+\sigma_1 = e^{-\frac{w_l}{2 B_n} T_1}
+\end{equation}
+met $T_1 = e^{\left ( - \frac{Q_\text{stuw}}{300} \right )} - e^{\left ( - \frac{Q_1}{300} \right )}$; $Q_\text{stuw} = 100$ m\textsuperscript{3}/s en $w_l$ uit \autoref{Tab5}.
+%
+\begin{equation}
+\sigma_2 = e^{-\frac{w_h}{2 B_n} T_2}
 \end{equation}
 %
 \begin{equation}
-\sigma_2 = e^{-\frac{w_h}{2 B_n} T_2} \text{ met } T_2 = e^{\left ( - \frac{Q_1}{300} \right )} - e^{\left ( - \frac{Q_2}{300} \right )} \text{ en $w_h$ uit Tabel 5}
+\sigma_3 = e^{-\frac{w_h}{2 B_n} T_3} \text{ met $w_h$ uit \autoref{Tab8}}
+\end{equation}
+ met $T_2 = e^{\left ( - \frac{Q_1}{300} \right )} - e^{\left ( - \frac{Q_2}{300} \right )}$ en $w_h$ uit \autoref{Tab5}.
+%
+\begin{equation}
+\Delta z_{1e} = -a_o \frac{q_n - q_o}{q_o}
 \end{equation}
 %
 \begin{equation}
-\sigma_3 = e^{-\frac{w_h}{2 B_n} T_3} \text{ met $w_h$ uit Tabel 5}
+\Delta z_{2e} = -a_o \frac{q_n - q_o}{q_o}
 \end{equation}
 %
 \begin{equation}
-\Delta z_{1e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_1$ uit WAQUA}
+\Delta z_{3e} = -a_o \frac{q_n - q_o}{q_o}
 \end{equation}
-%
-\begin{equation}
-\Delta z_{2e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_2$ uit WAQUA}
-\end{equation}
-%
-\begin{equation}
-\Delta z_{3e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_3$ uit WAQUA}
-\end{equation}
+bij $Q_1$, $Q_2$ en $Q_3$ uit WAQUA.
 
 Uitgangspunten zijn:
 Bij Q=1000 m\textsuperscript{3}/s is de stroming in het zomerbed goed ontwikkeld
