@@ -275,7 +275,7 @@ Only the `Version`, `Branch`, `Reach`, `Reference` and `WithMeasure` keywords ar
 
 The WAQMORF program required that the user had extracted the cell centred velocity magnitude and water depth from the the WAQUA SDS-output files and stored in `xyz_<quantity>-zeta.00<1/2>.Q<i>` files.
 D-FAST Morphological Impact supports these files when running in legacy mode (see section on `dfastmi_cli`).
-When building on D-Flow FM simulations, D-FAST Morphological Impact reads the results directly from the NetCDF map-files.
+When building on D-Flow FM simulations, D-FAST Morphological Impact reads the results directly from the netCDF map-files.
 These files may contain multiple time steps; the final time steps will be used for the analysis.
 
 
@@ -291,7 +291,7 @@ The length and content of the report vary depending on the availability of the s
 The WAQMORF program wrote the spatial output in SIMONA BOX-file format which could be visualize when combined with the curvilinear grid of the original simulation.
 D-FAST Morphological Impact still generates such files when run in legacy mode based on WAQUA results (see the `dfastmi_cli` section).
 
-D-FAST Morphological Impact generates one UGRID NetCDF file containing the spatial results of the analysis.
+D-FAST Morphological Impact generates one UGRID netCDF file containing the spatial results of the analysis.
 The mesh information is copied from the D-Flow FM map file and the three data fields (erosion and sedimentation patterns for mean, minimum, and maximum impact) follow standardized conventions for data stored at cell centres (`face`-values) on an unstructured mesh.
 As a result the data may be visualized using a number of visualization tools such as QUICKPLOT and QGIS.
 
@@ -309,7 +309,7 @@ Each component is addressed separately in the subsections after the file descrip
 
 ### input/output module `dfastmi_io`
 
-The `dfastmi_io` module contains all file handling routines for reading configuration files, processing NetCDF input and output files, and functions to support legacy input and output formats.
+The `dfastmi_io` module contains all file handling routines for reading configuration files, processing netCDF input and output files, and functions to support legacy input and output formats.
 
 * `read_program_texts` fills a dictionary of dialog texts by reading the dialog text configuration file
 * `read_rivers` reads the rivers configuration file
@@ -318,8 +318,8 @@ The `dfastmi_io` module contains all file handling routines for reading configur
 
 * `read_fm_map` for reading data fields from the D-Flow FM map-file
 * `copy_ugrid` for copying UGRID mesh information from the D-Flow FM map-file to the spatial output file
-* `copy_var` support function for copying an individual NetCDF variable from NetCDF file to another
-* `ugrid_add` for adding a single cell centred variable to a NetCDF file containing UGRID mesh data
+* `copy_var` support function for copying an individual netCDF variable from netCDF file to another
+* `ugrid_add` for adding a single cell centred variable to a netCDF file containing UGRID mesh data
 
 * `read_waqua_xyz` for reading the xyz-files containing data exported from the WAQUA model (legacy function)
 * `write_simona_box` for writing a SIMONA BOX-file (legacy function)
@@ -430,7 +430,7 @@ During the development the following types of tests will be carried out.
 
 1. Unit testing at the level of functions, such as reading and writing of files, and basic testing of the algorithms.
 1. Compare the new implementation with existing sets of input and output files obtained from WAQMORF (validation legacy mode).
-1. Convert one or two sets of legacy input files to D-Flow FM like NetCDF files.
+1. Convert one or two sets of legacy input files to D-Flow FM like netCDF files.
 Running D-FAST Morphological Impact in the new mode on those converted files should give identical numerical results but stored in different file format.
 1. Run D-Flow FM simulations using the same curvilinear mesh as was used in WAQUA.
 Running D-FAST Morphological Impact on the new files will give different results than those obtained from the WAQUA results since a different hydrodynamic solver was used, but the differences are expected to be small. They will be quantified and reported.

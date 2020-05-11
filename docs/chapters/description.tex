@@ -95,7 +95,7 @@ Daarom wordt gesteld dat \emph{het schematiseren van het jaarlijkse afvoerverloo
 \end{table}
 
 Voor een rivier die gedurende een periode $T_\text{stuw}$ wordt gestuwd geldt dat de minimale rivierafvoer wordt afgestemd op het afvoerniveau dat de stuwen worden getrokken.
-Voor de Nederrijn geldt volgens \autoref{Fig6} dat de stuwen grofweg worden getrokken bij een Bovenrijnafvoer van 1500 m\textsuperscript{3}/s (gedurende 57\% van het jaar overschreden), en dat de tak min of meer vrij afstromend is voor Bovenrijnafvoeren groter dan 2200 m\textsuperscript{3}/s (gedurende 33\% van het jaar).
+Voor de Nederrijn geldt volgens \autoref{Fig6} dat de stuwen grofweg worden getrokken bij een Bovenrijnafvoer van 1500 m\textsuperscript{3}/s (gedurende 57 \% van het jaar overschreden), en dat de tak min of meer vrij afstromend is voor Bovenrijnafvoeren groter dan 2200 m\textsuperscript{3}/s (gedurende 33 \% van het jaar).
 
 \begin{table}
 \includegraphics[width=\columnwidth]{figures/Tab1b.png}
@@ -123,14 +123,14 @@ Voor de Nederrijn geldt volgens \autoref{Fig6} dat de stuwen grofweg worden getr
 
 Om de jaarlijkse overschrijdingsperiode van Bovenrijnafvoeren snel te kunnen schatten kan een functie worden gebruikt die is gefit op gemeten waarden uit de periode 1970-2000 (\autoref{Fig3a}).
 Het aantal dagen dat een Bovenrijnafvoer $Q_\text{Bovenrijn}$ wordt overschreden is dan
-
+%
 \begin{equation}
 \label{Eq1a}
 T_\text{overschrijdingsperiode} = 365 e^{\left ( \frac{800 -  Q_\text{Bovenrijn}}{1280} \right )}
 \end{equation}
 
 Voor de Maas, waar door afpleistering (Grensmaas) en stuwen (Zandmaas) met name de hogere afvoeren van belang zijn voor de morfologie, kan de gemiddelde overschrijdingsperiode van de afvoer bij Borgharen worden geschat met
-
+%
 \begin{equation}
 \label{Eq1b}
 T_\text{overschrijdingsperiode} = 365 e^{\left ( \frac{-  Q_\text{Borgharen}}{300} \right )}
@@ -154,10 +154,10 @@ Voor zowel het water als het sediment kan een massabalans voor de stroombaan doo
 \begin{tabular}{p{3cm}p{\textwidth-3cm}}
 water & \parbox{\textwidth-4cm}{\begin{equation}
 \pdiff{q_\text{hg}}{s} = -q_\text{uit}
-\end{equation}} \\
+\end{equation}} \label{Eq2} \\
 sedimentbalans & \parbox{\textwidth-4cm}{\begin{equation}
 \pdiff{z}{t} + \pdiff{s_\text{hg}}{s}= -q_\text{uit} = -s_\text{uit}
-\end{equation}} \\
+\end{equation}} \label{Eq3} \\
 \end{tabular}
 
 waarin
@@ -176,44 +176,48 @@ lengte
 
 De specifieke transportcapaciteit in de hoofdgeul, $s_\text{hg}$, wordt benaderd met $s_\text{hg} = m \left ( \frac{h_\text{hg}}{a} \right )^b$ met $b$ van de orde 5 (Engelund en Hansen, 1967).
 Gradi\"enten in transportcapaciteit worden dan geschreven als
-
+%
 \begin{equation}
 \pdiff{s_\text{hg}}{s} \approx b \frac{s_\text{hg}}{q_\text{hg}} \pdiff{q_\text{hg}}{s} + b \frac{s_\text{hg}}{a} \pdiff{z}{s}
+\label{Eq4}
 \end{equation}
 
-Invullen van Verg.4 in Verg.2 en 3, de massabalansen voor water en sediment levert dan
-
+Invullen van \autoref{Eq4} in \autoref{Eq2} en \autoref{Eq3}, de massabalansen voor water en sediment levert dan
+%
 \begin{equation}
 \frac{a}{b s_\text{hg}} \pdiff{z}{t} + \pdiff{z}{s} = a \frac{q_\text{uit}}{q_\text{hg}} - a \frac{s_\text{uit}}{b s_\text{hg}}
+\label{Eq5}
 \end{equation}
 
 De dynamische bodemveranderingen worden aan de bovenstroomse zijde van de maatregel opgebouwd.
 De lengte $L$ waarover dit gebeurt, komt overeen met het traject waarin de afvoer uit de hoofdgeul verdwijnt en waarin het stroombeeld in de hoofdgeul aan deze verminderde afvoer is aangepast.
 Deze lengte $L$ is dus \emph{niet} per definitie de lengte van de maatregel of de afstand tussen in- en uitstroomopening van een
 nevengeul.
-Integratie van Verg.5 over deze afstand $L$ levert dan een relaxatiemodel voor de dynamische bodemverandering ten gevolge van herinrichting $\diff{\Delta z}{t} = \frac{\Delta z_e - \Delta z}{T}$ met een morfologische tijdschaal $T \approx \frac{a L}{bs_\text{hg}}$ en een evenwichtsbodemverandering
-
+Integratie van \autoref{Eq5} over deze afstand $L$ levert dan een relaxatiemodel voor de dynamische bodemverandering ten gevolge van herinrichting $\diff{\Delta z}{t} = \frac{\Delta z_e - \Delta z}{T}$ met een morfologische tijdschaal $T \approx \frac{a L}{bs_\text{hg}}$ en een evenwichtsbodemverandering
+%
 \begin{equation}
 \Delta z_e = -a \left ( \frac{\Delta q_\text{hg}}{q_\text{hg}} + \frac{\Delta s_\text{hg}}{b s_\text{hg}} \right )
+\label{Eq6}
 \end{equation}
 
-Het relaxatiegedrag volgens Verg.5 kan ook worden gevonden in numerieke modellen (zowel 1D als 2D).
+Het relaxatiegedrag volgens \autoref{Eq5} kan ook worden gevonden in numerieke modellen (zowel 1D als 2D).
 
 Voor de afleiding van de vuistregel wordt gesteld dat de bodemverandering $\Delta z$ kan worden opgevat als de bodemverandering door een ingreep, op een afstand $L$ langs een lijn loodrecht op de stroombanen aan de bovenstroomse rand van de ingreep.
-De evenwichtswaarde $\Delta z_e$ is volgens Verg.6 afhankelijk van de oorspronkelijke waterdiepte, de relatieve verandering in specifieke afvoer en de relatieve verandering in sediment transport.
+De evenwichtswaarde $\Delta z_e$ is volgens \autoref{Eq6} afhankelijk van de oorspronkelijke waterdiepte, de relatieve verandering in specifieke afvoer en de relatieve verandering in sediment transport.
 Deze laatste term is de bijdrage van sedimentonttrekking naar de nevengeul die het effect van de verminderde hoofdgeulafvoer dempt.
 Verwaarlozing van deze relatief kleine dempende bijdrage leidt tot een conservatieve benadering.
-Voor de korte inrichtingsprojecten waar de vuistregel voor geldt zijn waterstandsveranderingen een orde kleiner dan bodemveranderingen, daarom kan met Verg.6 worden gesteld dat de evenwichtswaarde van bodemveranderingen $\Delta z_e$ gelijk is aan het produkt van waterdiepte en relatieve snelheids- of afvoerverandering.
+Voor de korte inrichtingsprojecten waar de vuistregel voor geldt zijn waterstandsveranderingen een orde kleiner dan bodemveranderingen, daarom kan met \autoref{Eq6} worden gesteld dat de evenwichtswaarde van bodemveranderingen $\Delta z_e$ gelijk is aan het produkt van waterdiepte en relatieve snelheids- of afvoerverandering.
 
 Ook voor bodemmateriaal met varierende korrelgrootte (zand en grind) kan een benaderend model worden afgeleid, als wordt aangenomen dat de mobiliteit van de verschillende fracties onderling niet wordt be\"invloed (Bijlage C uit WD nota Kennis en instrumenten Maas morfologie).
 Een dergelijke aanname is geldig bij voldoende hoge bodemschuifspanningen, zoals tijdens hoogwater.
 
 \section{Toepassing relaxatiemodel voor seizoenseffecten}
 
-Veronderstel dat de bodemligging in een periode met een relaxatiegedrag (als oplossing van model Verg.6) kan worden voorspeld volgens
-
+Veronderstel dat de bodemligging in een periode met een relaxatiegedrag (als oplossing van model \autoref{Eq6}) kan worden voorspeld volgens
+%
 \begin{equation}
 z_i = z_i (0) + [z_{ie} - z_i(0)](1 - e^{-t/T_{mi}})
+\label{Eq7}
 \end{equation}
 
 met
@@ -231,60 +235,63 @@ met
 \label{Fig5}
 \end{figure}
 
-Aan het einde van een periode met index $i$ is volgens Verg.7 het morfologisch effect bepaald met
-
+Aan het einde van een periode met index $i$ is volgens \autoref{Eq7} het morfologisch effect bepaald met
+%
 \begin{equation}
 z_{i+1}(0) = z_i (0) \sigma_i + z_{ie} (1-\sigma_i) \text{ met } \sigma_i = e^{-T_i/T_{mi}}
+\autoref{Eq8a}
 \end{equation}
 
 Als het jaarlijks verloop wordt weergegeven met drie perioden, dan kan voor elk van deze perioden worden gesteld
-
+%
 \begin{align}
-z_2(0) &= z_1 (0) \sigma_1 + z_{1e} (1-\sigma_1) \\
-z_3(0) &= z_2 (0) \sigma_2 + z_{2e} (1-\sigma_2) \\
-z_1(0) &= z_3 (0) \sigma_3 + z_{3e} (1-\sigma_3)
+z_2(0) &= z_1 (0) \sigma_1 + z_{1e} (1-\sigma_1) \label{Eq8b} \\
+z_3(0) &= z_2 (0) \sigma_2 + z_{2e} (1-\sigma_2) \label{Eq8c} \\
+z_1(0) &= z_3 (0) \sigma_3 + z_{3e} (1-\sigma_3) \label{Eq8d}
 \end{align}
 
 Hiermee kan voor de karakteristieke bodemveranderingen worden gevonden
-
+%
 \begin{align}
-z_1(0) &= \frac{z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigma_3 + z_{3e} (1-\sigma_3)}{1 - \sigma_1 \sigma_2 \sigma_3} \\
-z_2(0) &= \frac{z_{1e} (1-\sigma_1) + z_{2e} (1-\sigma_2) \sigma_3 \sigma_1 + z_{3e} (1-\sigma_3) \sigma_1}{1 - \sigma_1 \sigma_2 \sigma_3} \\
-z_3(0) &= \frac{z_{1e} (1-\sigma_1) \sigma_2 + z_{2e} (1-\sigma_2) + z_{3e} (1-\sigma_3) \sigma_1 \sigma_2}{1 - \sigma_1 \sigma_2 \sigma_3}
+z_1(0) &= \frac{z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigma_3 + z_{3e} (1-\sigma_3)}{1 - \sigma_1 \sigma_2 \sigma_3} \label{Eq8e} \\
+z_2(0) &= \frac{z_{1e} (1-\sigma_1) + z_{2e} (1-\sigma_2) \sigma_3 \sigma_1 + z_{3e} (1-\sigma_3) \sigma_1}{1 - \sigma_1 \sigma_2 \sigma_3} \label{Eq8f} \\
+z_3(0) &= \frac{z_{1e} (1-\sigma_1) \sigma_2 + z_{2e} (1-\sigma_2) + z_{3e} (1-\sigma_3) \sigma_1 \sigma_2}{1 - \sigma_1 \sigma_2 \sigma_3} \label{Eq8g}
 \end{align}
 
 Een ondergrens voor het morfologisch effect van ingrepen is dan $\min[z_1(0), z_2(0), z_3(0)]$ en een bovengrens wordt gegeven door $\max[z_1(0), z_2(0), z_3(0)]$.
 Met een verloop zoals is weergegeven in \autoref{Fig5} is de bodemverandering
 \begin{itemize}
-\item maximaal met $z_1(0)$ (Verg.8-e) na de hoogwaterperiode 3 (het derde afvoerblok uit \autoref{Tab2})
-\item minimaal met $z_2(0)$ (Verg.8-f) na de laagwaterperiode 1 (het eerste afvoerblok uit \autoref{Tab2}).
+\item maximaal met $z_1(0)$ (\autoref{Eq8e}) na de hoogwaterperiode 3 (het derde afvoerblok uit \autoref{Tab2})
+\item minimaal met $z_2(0)$ (\autoref{Eq8f}) na de laagwaterperiode 1 (het eerste afvoerblok uit \autoref{Tab2}).
 \end{itemize}
 
 De invloed van stuwprogramma's kan bijvoorbeed worden gesimuleerd door tussen het hoogwaterblok 3 en het laagwaterblok 1 een jaarlijkse periode te introduceren zonder bodemveranderingen.
 
-Behalve beide extremen kan een indruk worden gekregen van de jaargemiddelde bodemverandering door integratie van Verg.7 tot
-
+Behalve beide extremen kan een indruk worden gekregen van de jaargemiddelde bodemverandering door integratie van \autoref{Eq7} tot
+%
 \begin{equation}
 \bar{z} = \frac{\sum{z_{ie} t_i}}{\sum{t_i}} + \frac{\sum{(z_{ie}-z_i(0)) T_{mi} (\sigma_i-1)}}{\sum{t_i}}
+\label{Eq8h}
 \end{equation}
 
 Als alle bodemveranderingen na het hoogwater worden weggebaggerd kan tenslotte een indruk worden verkregen van het jaarlijkse baggerbezwaar bij gebrek aan overdiepte.
-Immers, met $z_1(0)=0$ door het baggeren is de maximale bodemverandering aan het einde van het hoogwaterseizoen met Verg.8 uit te schrijven tot het maximale baggerbezwaar
-
+Immers, met $z_1(0)=0$ door het baggeren is de maximale bodemverandering aan het einde van het hoogwaterseizoen met \autoref{Eq8a} tot \autoref{Eq8i} uit te schrijven tot het maximale baggerbezwaar
+%
 \begin{equation}
 z_\text{mbb} = z_{1e}(1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigma_3 + z_{3w} (1-\sigma_3)
+\label{Eq8i}
 \end{equation}
 
-Omdat in deze voorspelling geen rekening wordt gehouden met het sedimentaanbod van de rivier (zandvracht) kan Verg.8-i leiden tot een overschatting van de onderhoudslast.
-Verg.8-i wordt dan ook niet verder uitgewerkt.
+Omdat in deze voorspelling geen rekening wordt gehouden met het sedimentaanbod van de rivier (zandvracht) kan \autoref{Eq8i} leiden tot een overschatting van de onderhoudslast.
+\autoref{Eq8i} wordt dan ook niet verder uitgewerkt.
 
 \section{Benadering ruimtelijk karakter van bodemverandering}
 
-Met Verg.8-e is de maximale, en met Verg.8-f is de minimale bodemverandering aan de bovenstroomse rand van de ingreep vastgelegd.
+Met \autoref{Eq8e} is de maximale, en met \autoref{Eq8f} is de minimale bodemverandering aan de bovenstroomse rand van de ingreep vastgelegd.
 In de stroombaan benedenstrooms hiervan bestaat de bodemverandering uit een minimale bodemverandering $z_{1e}$ plus het deel van de hoogwateraanzanding aan de bovenstroomse rand dat tijdens laagwater stroomafwaarts verplaatst.
 Gedurende een hoogwater kan dit stroomafwaarts verplaatsend aanzandingsvolume zelfs leiden tot bodemveranderingen die tijdelijk groter
 zijn dan $z_{2e}$ maar erg waarschijnlijk is dit niet.
-Gemakshalve wordt daarom gesteld de maximale en minimale bodemverandering volgens Verg.8-e en 8-f \emph{voor elk punt in het zomerbed ter hoogte van de ingreep} geldt.
+Gemakshalve wordt daarom gesteld de maximale en minimale bodemverandering volgens \autoref{Eq8e} en \autoref{Eq8f} \emph{voor elk punt in het zomerbed ter hoogte van de ingreep} geldt.
 
 Deze benadering houdt in dat op eerst elk WAQUA rekenpunt in het zomerbed een waarde $z_{1e}$, $z_{2e}$ en $z_{3e}$ kan worden bepaald.
 Vervolgens kan met een geschatte waarde van $\sigma_1$, $\sigma_2$ en $\sigma_3$ met Verg.7-e en 7-f een inschatting voor de WAQUA rekenpunten maximale bodemverandering (aan het einde van het hoogwaterseizoen) worden gemaakt.
@@ -323,15 +330,16 @@ Deze zijn in \autoref{Tab2} en \autoref{Tab3} weergegeven.
 \end{table}
 
 Om deze empirische jaargemiddelde waarden te kunnen vertalen naar discrete waarden per afvoerblok wordt voor de vrij afstromende riviertakken de volgende benadering gebruikt.
-Voor afvoerblokken met Bovenrijnafvoeren die overwegend groter zijn dan 4.000 m\textsuperscript{3}/s (gedurende gemiddeld 8\% van het jaar) wordt een "hoogwatervoortplantingsnelheid" $w_h$ van 10 m/dag (3,65 km/jaar) gebruikt.
+Voor afvoerblokken met Bovenrijnafvoeren die overwegend groter zijn dan 4.000 m\textsuperscript{3}/s (gedurende gemiddeld 8 \% van het jaar) wordt een "hoogwatervoortplantingsnelheid" $w_h$ van 10 m/dag (3,65 km/jaar) gebruikt.
 
 Voor de afvoerblokken met Bovenrijnafvoeren die overwegend lager zijn dan 4.000 m\textsuperscript{3}/s wordt een "laagwatervoortplantingssnelheid" $w_l$ gebruikt die is berekend met de jaargemiddelde waarde $\bar{w}$ volgens
-
+%
 \begin{equation}
 w_l = \frac{\bar{w} - 0,082 \cdot 365}{0,918}
+\label{Eq9}
 \end{equation}
 
-De benadering met Verg.8 geldt echter alleen voor de vrijstromende Rijntakken, en dus bijvoorbeeld niet voor de Nederrijn, waar bij lage Bovenrijnafvoeren de stuwen gesloten blijven (\autoref{Fig6}).
+De benadering met \autoref{Eq9} geldt echter alleen voor de vrijstromende Rijntakken, en dus bijvoorbeeld niet voor de Nederrijn, waar bij lage Bovenrijnafvoeren de stuwen gesloten blijven (\autoref{Fig6}).
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{figures/Fig6.png}
@@ -339,28 +347,31 @@ De benadering met Verg.8 geldt echter alleen voor de vrijstromende Rijntakken, e
 \label{Fig6}
 \end{figure}
 
-Voor de Nederrijn geldt volgens \autoref{Fig6} dat de stuwen grofweg worden getrokken bij een Bovenrijnafvoer van 1500 m\textsuperscript{3}/s (57\% van het jaar overschreden), en dat de tak min of meer vrij afstromend is voor Bovenrijnafvoeren groter dan 2200 m\textsuperscript{3}/s (gedurende 33\% van het jaar). Voor de karakteristieke laagwatervoortplantingssnelheid wordt daarom verondersteld $\bar{w} = 0,082 w_h + (0,918 - 0,33) w_l$ zodat met $w_h = 3,65$ km/jaar wordt gevonden
-
+Voor de Nederrijn geldt volgens \autoref{Fig6} dat de stuwen grofweg worden getrokken bij een Bovenrijnafvoer van 1500 m\textsuperscript{3}/s (57 \% van het jaar overschreden), en dat de tak min of meer vrij afstromend is voor Bovenrijnafvoeren groter dan 2200 m\textsuperscript{3}/s (gedurende 33 \% van het jaar). Voor de karakteristieke laagwatervoortplantingssnelheid wordt daarom verondersteld $\bar{w} = 0,082 w_h + (0,918 - 0,33) w_l$ zodat met $w_h = 3,65$ km/jaar wordt gevonden
+%
 \begin{equation}
 w_l = \frac{\bar{w} - 0,082 \cdot 3,65}{0,918 - 0,33}
+\label{Eq10a}
 \end{equation}
 
 Voor de Maas wordt de volgende benadering toegepast.
-Aangenomen wordt dat de Maasstuwen gemiddeld 10 dagen per jaar (3\% van de tijd) getrokken zijn, zodat de verplaatsingsnelheid kan worden geschat met
-
+Aangenomen wordt dat de Maasstuwen gemiddeld 10 dagen per jaar (3 \% van de tijd) getrokken zijn, zodat de verplaatsingsnelheid kan worden geschat met
+%
 \begin{equation}
 w_h = \frac{\bar{w}}{0,03}
+\label{10b}
 \end{equation}
 
 
 Voor de Grensmaas tenslotte, geldt dat de pleisterlaag op de rivierbodem pas bij afvoeren groter dan 1000 m\textsuperscript{3}/s, gemiddeld gedurende 4 dagen per jaar, mobiel wordt.
 De verplaatsingsnelheid wordt dan geschat met
-
+%
 \begin{equation}
 w_h = \frac{\bar{w}}{0,01}
+\label{Eq10c}
 \end{equation}
 
-Met de benaderingen van Verg.9 en 10 en de jaargemiddelde waarden uit \autoref{Tab2} en \autoref{Tab3} wordt een schatting gevonden van de voortplantingssnelheden tijdens het hoog- en laagwaterseizoen.
+Met de benaderingen van \autoref{Eq9} tot \autoref{Eq10c} en de jaargemiddelde waarden uit \autoref{Tab2} en \autoref{Tab3} wordt een schatting gevonden van de voortplantingssnelheden tijdens het hoog- en laagwaterseizoen.
 
 \begin{table}
 \includegraphics[width=\columnwidth]{figures/Tab4_the2nd.png}
@@ -397,22 +408,27 @@ Met de benaderingen van Verg.9 en 10 en de jaargemiddelde waarden uit \autoref{T
 
 \begin{itemize}
 \item maximale waarde \unitbrackets{m} aan het einde van het hoogwaterseizoen
+%
 \begin{equation}
 z_1(0) = \frac{z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigma_3 + z_{3e} (1-\sigma_3)}{1 - \sigma_1 \sigma_2 \sigma_3}
 \end{equation}
 \item minimale waarde \unitbrackets{m} aan het einde van het laagwaterseizoen
+%
 \begin{equation}
 z_2(0) = \frac{z_{1e} (1-\sigma_1) + z_{2e} (1-\sigma_2) \sigma_3 \sigma_1 + z_{3e} (1-\sigma_3) \sigma_1}{1 - \sigma_1 \sigma_2 \sigma_3}
 \end{equation}
 \item tussenwaarde \unitbrackets{m} aan het einde van de overgang van laag- naar hoogwater
+%
 \begin{equation}
 z_3(0) = \frac{z_{1e} (1-\sigma_1) \sigma_2 + z_{2e} (1-\sigma_2) + z_{3e} (1-\sigma_3) \sigma_1 \sigma_2}{1 - \sigma_1 \sigma_2 \sigma_3}
 \end{equation}
 \item jaargemiddelde waarde \unitbrackets{m}
+%
 \begin{equation}
 z_m = T_1 z_1(0) + T_2 z_2(0) + T_3 z_3(0)
 \end{equation}
 \item een maximaal jaarlijks baggerbezwaar (zonder rekening te houden met overdiepten)
+%
 \begin{equation}
 z_\text{mbb} = z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigma_3 + z_{3e} (1-\sigma_3)
 \end{equation}
@@ -427,27 +443,27 @@ z_\text{mbb} = z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigm
 \caption{Hoofdlijn definitie afvoerblokken voor de Rijntakken}
 \label{Tab7}
 \end{table}
-
+%
 \begin{equation}
 \sigma_1 = e^{-\frac{w_l}{2 B_n} T_1} \text{ met } T_1 = e^{\left ( \frac{800-Q_\text{stuw}}{1280} \right )} - e^{\left ( \frac{800-Q_1}{1280} \right )} \text{ en $w_l$ uit Tabel 4 (met $Q_\text{stuw} = 1500$ m\textsuperscript{3}/s in Nederrijn en Lek en $Q_\text{stuw} = 800$ m\textsuperscript{3}/s voor de andere Rijntakken)}
 \end{equation}
-
+%
 \begin{equation}
 \sigma_2 = e^{-\frac{w_h}{2 B_n} T_2} \text{ met } T_2 = e^{\left ( \frac{800-Q_1}{1280} \right )} - e^{\left ( \frac{800-Q_2}{1280} \right )} \text{ en $w_h$ uit Tabel 4}
 \end{equation}
-
+%
 \begin{equation}
 \sigma_3 = e^{-\frac{w_h}{2 B_n} T_3} \text{ met $w_h$ uit Tabel 4}
 \end{equation}
-
+%
 \begin{equation}
 \Delta z_{1e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_1$ uit WAQUA}
 \end{equation}
-
+%
 \begin{equation}
 \Delta z_{2e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_2$ uit WAQUA}
 \end{equation}
-
+%
 \begin{equation}
 \Delta z_{3e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_3$ uit WAQUA}
 \end{equation}
@@ -457,27 +473,27 @@ z_\text{mbb} = z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigm
 \caption{Hoofdlijn definitie afvoerblokken voor de Maas}
 \label{Tab8}
 \end{table}
-
+%
 \begin{equation}
 \sigma_1 = e^{-\frac{w_l}{2 B_n} T_1} \text{ met } T_1 = e^{\left ( - \frac{Q_\text{stuw}}{300} \right )} - e^{\left ( - \frac{Q_1}{300} \right )} \text{; $Q_\text{stuw} = 100$ m\textsuperscript{3}/s en $w_l$ uit Tabel 5}
 \end{equation}
-
+%
 \begin{equation}
 \sigma_2 = e^{-\frac{w_h}{2 B_n} T_2} \text{ met } T_2 = e^{\left ( - \frac{Q_1}{300} \right )} - e^{\left ( - \frac{Q_2}{300} \right )} \text{ en $w_h$ uit Tabel 5}
 \end{equation}
-
+%
 \begin{equation}
 \sigma_3 = e^{-\frac{w_h}{2 B_n} T_3} \text{ met $w_h$ uit Tabel 5}
 \end{equation}
-
+%
 \begin{equation}
 \Delta z_{1e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_1$ uit WAQUA}
 \end{equation}
-
+%
 \begin{equation}
 \Delta z_{2e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_2$ uit WAQUA}
 \end{equation}
-
+%
 \begin{equation}
 \Delta z_{3e} = -a_o \frac{q_n - q_o}{q_o} \text{ bij $Q_3$ uit WAQUA}
 \end{equation}
@@ -490,7 +506,7 @@ Bij Q=2000 m\textsuperscript{3}/s is de stroming in het zomer- en winterbed goed
 
 Bij wijze van test is met Sobek de invloed van een uiterwaardverruiming met nevengeul in de Waal (km 900-905) gesimuleerd.
 De nevengeul is in een 1D Rijntakkenmodel geschematiseerd als een lokale onttrekking van afvoer aan de totale rivierafvoer.
-Deze onttrekking bedraagt tot 4000 m\textsuperscript{3}/s 3\% van de rivierafvoer, daarna neemt de onttrekking lineair toe tot 10\% bij 7000 m\textsuperscript{3}/s en blijft dit vervolgens voor nog hogere afvoeren.
+Deze onttrekking bedraagt tot 4000 m\textsuperscript{3}/s 3 \% van de rivierafvoer, daarna neemt de onttrekking lineair toe tot 10 \% bij 7000 m\textsuperscript{3}/s en blijft dit vervolgens voor nog hogere afvoeren.
 Het effect op de hoofdgeul-afvoer is voor een aantal karakteristieke profielen weergegeven in \autoref{Fig7}.
 De verandering in hoofdgeulafvoer die door de nevengeulen is opgewekt heeft niet het geschetste verloop van de verandering in totale rivierafvoer.
 Immers, de nevengeul verlaagt ook bij lagere hoogwaterafvoeren de waterstand.
@@ -504,8 +520,8 @@ Hierdoor neemt bij een aantal profielen de \emph{afvoer door de hoofdgeul} niet 
 
 \subsubsection*{Stap 1) Karakteriseer maatregel}
 
-De nevengeul onttrekt 3\% van de totale afvoer voor Bovenrijnafvoeren tot 4000 m\textsuperscript{3}/s.
-Daarna neemt de onttrekking lineair toe tot 10\% bij 7000 m\textsuperscript{3}/s.
+De nevengeul onttrekt 3 \% van de totale afvoer voor Bovenrijnafvoeren tot 4000 m\textsuperscript{3}/s.
+Daarna neemt de onttrekking lineair toe tot 10 \% bij 7000 m\textsuperscript{3}/s.
 Er is geen sprake van een drempelafvoer als ondergrens voor de onttrekking.
 De nevengeul is tot de rand gevuld bij een Bovenrijnafvoer van 4000 m\textsuperscript{3}/s.
 
@@ -525,7 +541,7 @@ Hiermee kan de relatieve duur van elk blok worden bepaald volgens
 \subsubsection*{Stap 3) Evenwichtswaarde bodemverandering}
 
 Voor de drie karakteristieke afvoeren is uit de Sobek resultaten voor elk relevant dwarsprofiel de evenwichtsbodemverandering bepaald volgens
-
+%
 \begin{equation}
 \Delta z_{ie} = -a_o \frac{Q_{\text{hoofdgeul},n} - Q_{\text{hoofdgeul},o}}{Q_{\text{hoofdgeul},o}}
 \end{equation}
@@ -546,7 +562,7 @@ De normaalbreedte ter plekke van de nevengeul is 260 m.
 De voortplantingsnelheid voor lage afvoeren bedraagt 900 m/jaar.
 Voor hoge afvoeren is dit 3650 m/jaar.
 Per blok kan dan worden bepaald
-
+%
 \begin{align}
 \sigma_1 &= e^{-\frac{w_l}{2B_n}T_1} = e^{-\frac{900}{2 \cdot 260} 0,84} = 0,18 \\
 \sigma_2 &= e^{-\frac{w_l}{2B_n}T_2} = e^{-\frac{3650}{2 \cdot 260} 0,09} = 0,73 \\
@@ -556,21 +572,21 @@ Per blok kan dan worden bepaald
 \subsubsection*{Stap 5) Berekenen karakteristieke bodemverandering per rekenpunt in het zomerbed.}
 
 Met de evenwichtswaarden uit stap 3 en de tijdsfactoren uit stap 4 kunnen de karakteristieke bodemveranderingen worden berekend volgens
-
+%
 \begin{align}
 z_1(0) &= [z_{1e} (1-\sigma_1) \sigma_2 \sigma_3 + z_{2e} (1-\sigma_2) \sigma_3 + z_{3e} (1-\sigma_3)]/(1 - \sigma_1 \sigma_2 \sigma_3) \\
 z_2(0) &= [z_{1e} (1-\sigma_1) + z_{2e} (1-\sigma_2) \sigma_3 \sigma_1 + z_{3e} (1-\sigma_3) \sigma_1]/(1 - \sigma_1 \sigma_2 \sigma_3)
 \end{align}
 
 Ter illustratie is aanvullend aan het plan van aanpak ook de derde karakteristieke bodemverandering bepaald met
-
+%
 \begin{equation}
 z_3(0) = [z_{1e} (1-\sigma_1) \sigma_2 + z_{2e} (1-\sigma_2) + z_{3e} (1-\sigma_3) \sigma_1 \sigma_2]/(1 - \sigma_1 \sigma_2 \sigma_3)
 \end{equation}
 
 Bijvoorbeeld voor dwarsprofiel km 901 geldt $\Delta z_{1e}=0,20$ m; $\Delta z_{2e}=0,23$ m; $\Delta z_{3e}=0,61$ m.
 Invullen in de beide bovenstaande vergelijkingen levert dan voor km 901
-
+%
 \begin{align}
 z_1(0) &= \tfrac{0,20 \cdot (1-0,18) \cdot 0,73 \cdot 0,78 + 0,23 \cdot (1-0,73) \cdot 0,78 + 0,61 \cdot (1-0,78)}{1 - 0,18 \cdot 0,73 \cdot 0,78} = 0,31 \\
 z_2(0) &= \tfrac{0,20 \cdot (1-0,18) + 0,23 \cdot (1-0,73) \cdot 0,78 \cdot 0,18 + 0,61 \cdot (1-0,78) \cdot 0,18}{1 - 0,18 \cdot 0,73 \cdot 0,78} = 0,22 \\
@@ -580,9 +596,9 @@ z_3(0) &= \tfrac{0,20 \cdot (1-0,18) \cdot 0,73 + 0,23 \cdot (1-0,73) + 0,61 \cd
 \subsubsection*{Stap 6) Presenteren bodemveranderingen}
 
 Het langsprofiel van karakteristieke bodemveranderingen is samen met de door Sobek berekende waarden weergegeven in \autoref{Fig9}.
-De $z_1(0)$ waarde (de grootste karakteristieke bodemverandering na perioden van grote afvoer) komt in dit geval over een met een berekende bodemverandering die gedurende 98\% van de tijd wordt onderschreden.
-De $z_2(0)$ waarde (de karakteristieke bodemverandering na perioden van lagere afvoer) komt in dit geval overeen met een berekende bodemverandering die gedurende 50\% van de tijd wordt onderschreden.
-De $z_3(0)$ waarde wijkt in dit geval nauwelijks af van $z_2(0)$, en ligt wat hoger dan de berekende 2\% onderschreden waarde.
+De $z_1(0)$ waarde (de grootste karakteristieke bodemverandering na perioden van grote afvoer) komt in dit geval over een met een berekende bodemverandering die gedurende 98 \% van de tijd wordt onderschreden.
+De $z_2(0)$ waarde (de karakteristieke bodemverandering na perioden van lagere afvoer) komt in dit geval overeen met een berekende bodemverandering die gedurende 50 \% van de tijd wordt onderschreden.
+De $z_3(0)$ waarde wijkt in dit geval nauwelijks af van $z_2(0)$, en ligt wat hoger dan de berekende 2 \% onderschreden waarde.
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{figures/Fig9.png}
@@ -594,7 +610,7 @@ De $z_3(0)$ waarde wijkt in dit geval nauwelijks af van $z_2(0)$, en ligt wat ho
 
 De tweede test is een nevengeul langs de Lek, tussen km 930 en km 935.
 Ook deze nevengeul is geschematiseerd als een lokale onttrekking van afvoer aan de totale rivier.
-Deze onttrekking is opnieuw tot 4000 m\textsuperscript{3}/s 3\% van de rivierafvoer, daarna neemt de onttrekking weer lineair toe tot 10\% bij 7000 m\textsuperscript{3}/s en blijft dit vervolgens voor nog hogere afvoeren.
+Deze onttrekking is opnieuw tot 4000 m\textsuperscript{3}/s 3 \% van de rivierafvoer, daarna neemt de onttrekking weer lineair toe tot 10 \% bij 7000 m\textsuperscript{3}/s en blijft dit vervolgens voor nog hogere afvoeren.
 Het effect op de hoofdgeulafvoer is voor een aantal karakteristieke profielen weergegeven in \autoref{Fig10}.
 
 \begin{figure}
@@ -605,8 +621,8 @@ Het effect op de hoofdgeulafvoer is voor een aantal karakteristieke profielen we
 
 \subsubsection*{Stap 1) Karakteriseer maatregel}
 
-De nevengeul onttrekt 3\% van de totale afvoer voor Bovenrijnafvoeren tot 4000 m\textsuperscript{3}/s.
-Daarna neemt de onttrekking lineair toe tot 10\% bij 7000 m\textsuperscript{3}/s.
+De nevengeul onttrekt 3 \% van de totale afvoer voor Bovenrijnafvoeren tot 4000 m\textsuperscript{3}/s.
+Daarna neemt de onttrekking lineair toe tot 10 \% bij 7000 m\textsuperscript{3}/s.
 Er is geen sprake van een drempelafvoer als ondergrens voor de onttrekking.
 De nevengeul is tot de rand gevuld bij een Bovenrijnafvoer van 4000 m\textsuperscript{3}/s.
 
@@ -626,7 +642,7 @@ Hiermee kan de relatieve duur van elk blok worden bepaald volgens
 \subsubsection*{Stap 3) Evenwichtswaarde bodemverandering}
 
 Voor de drie karakteristieke afvoeren is uit de Sobek resultaten voor elk relevant dwarsprofiel de evenwichtsbodemverandering bepaald volgens
-
+%
 \begin{equation}
 \Delta z_{ie} = -a_o \frac{Q_{\text{hoofdgeul},n} - Q_{\text{hoofdgeul},o}}{Q_{\text{hoofdgeul},o}}
 \end{equation}
@@ -646,7 +662,7 @@ De gevonden evenwichtswaarden zijn weergegeven in \autoref{Fig11}.
 De normaalbreedte ter plekke van de nevengeul is ongeveer 140 m.
 De voortplantingsnelheid voor lage afvoeren (met gesloten stuwen) bedraagt 0 km/jaar.
 Voor hoge afvoeren is dit 3120 m/jaar. Per blok kan dan worden bepaald
-
+%
 \begin{align}
 \sigma_1 &= e^{-\frac{w_l}{2B_n}T_1} = e^{-\frac{0}{2 \cdot 140} 0,42} = 1,00 \\
 \sigma_2 &= e^{-\frac{w_l}{2B_n}T_2} = e^{-\frac{3120}{2 \cdot 140} 0,50} = 0,004 \\
@@ -658,14 +674,14 @@ Voor hoge afvoeren is dit 3120 m/jaar. Per blok kan dan worden bepaald
 Met de evenwichtswaarden uit stap 3 en de tijdsfactoren uit stap 4 kunnen de karakteristieke bodemveranderingen worden berekend.
 Bijvoorbeeld voor dwarsprofiel km 930,5 geldt $\Delta z_{1e}=1,08$ m; $\Delta z_{2e}=0,08$ m; $\Delta z_{3e}=0,26$ m.
 Invullen in de beide bovenstaande vergelijkingen levert dan bijvoorbeeld voor km 930,5
-
+%
 \begin{align}
 z_1(0) &= \tfrac{1,08 \cdot (1-1,00) \cdot 0,004 \cdot 0,40 + 0,08 \cdot (1-0,004) \cdot 0,40 + 0,26 \cdot (1-0,40)}{1 - 1,00 \cdot 0,004 \cdot 0,40} = 0,20\\
 z_2(0) &= \tfrac{1,08 \cdot (1-1,00) + 0,08 \cdot (1-0,004) \cdot 0,40 \cdot 1,00 + 0,26 \cdot (1-0,40) \cdot 1,00}{1 - 1,00 \cdot 0,004 \cdot 0,40} = 0,20
 \end{align}
 
 Ter illustratie is aanvullend aan het plan van aanpak ook de derde karakteristieke bodemverandering bepaald met
-
+%
 \begin{equation}
 z_3(0) = \tfrac{1,08 \cdot (1-1,00) \cdot 0,004 + 0,08 \cdot (1-0,004) + 0,26 \cdot (1-0,40) \cdot 1,00 \cdot 0,004}{1 - 1,00 \cdot 0,004 \cdot 0,40} = 0,08
 \end{equation}
@@ -674,8 +690,8 @@ z_3(0) = \tfrac{1,08 \cdot (1-1,00) \cdot 0,004 + 0,08 \cdot (1-0,004) + 0,26 \c
 
 Het langsprofiel van karakteristieke bodemveranderingen is samen met de door Sobek berekende waarden weergegeven in \autoref{Fig12}.
 De $z_1(0)$ waarde, de bodemverandering na perioden van grote afvoer komt in dit geval overeen met de $z_2(0)$ waarde, de karakteristieke bodemverandering na perioden van lagere afvoer.
-De $z_2(0)$ waarde komt opnieuw overeen met een berekende bodemverandering die gedurende 50\% van de tijd wordt onderschreden.
-De $z_3(0)$ waarde komt in dit geval overeen met de berekende 2\% waarde.
+De $z_2(0)$ waarde komt opnieuw overeen met een berekende bodemverandering die gedurende 50 \% van de tijd wordt onderschreden.
+De $z_3(0)$ waarde komt in dit geval overeen met de berekende 2 \% waarde.
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{figures/Fig12.png}
