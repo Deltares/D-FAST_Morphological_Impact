@@ -22,7 +22,6 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="dfastmi.py" />
     <Compile Include="dfastmi_cli.py" />
     <Compile Include="dfastmi_io.py" />
     <Compile Include="dfastmi_kernel.py" />

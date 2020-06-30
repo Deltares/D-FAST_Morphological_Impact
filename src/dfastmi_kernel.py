@@ -27,106 +27,12 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-import logging
 import math
 import numpy
-from configparser import ConfigParser
 
 
 def program_version():
     return "PRE-ALPHA"
-
-
-def main_program(input_file):
-    # Report program name and version
-    program_header()
-
-    # Reading configuration file
-    config = read_config(input_file)
-    verify_config(config, input_file)
-
-    # Running analysis
-    results = run_analysis(config)
-
-    # Writing results
-    write_results(results)
-
-    # Finished
-    logging.info("Finished")
-
-
-def program_header():
-    logging.critical("D-FAST Morphological Impact " + program_version())
-    logging.critical("Copyright (c) 2020 Deltares.")
-    logging.critical("")
-    logging.critical("This program is distributed under the terms of the")
-    logging.critical("GNU Lesser General Public License Version 2.1; see")
-    logging.critical("the LICENSE.md file for details.")
-    logging.critical("")
-    logging.info("Source code location:")
-    logging.info("https://github.com/Deltares/D-FAST_Morphological_Impact")
-    logging.info("")
-
-
-def read_config(input_file):
-    logging.info("Reading configuration file " + input_file)
-
-    # instantiate file parser
-    config = ConfigParser()
-
-    # open the configuration file
-    fid = open(input_file, "r")
-
-    # read and parse the configuration file
-    config.read_file(fid)
-
-    # close the configuration file
-    fid.close()
-    return config
-
-
-def logkeyvalue(level, key, val):
-    logging.log(level, str.format("%-30s: %s" % (key, val)))
-
-
-def verify_config(config, input_file):
-    logging.info("Verifying configuration file")
-    try:
-        filename = config["General"]["File1"]
-        logkeyvalue(logging.DEBUG, "Simulation without measure", filename)
-    except:
-        raise SystemExit('Unable to read General\File1 from "' + input_file + '"!')
-    try:
-        filename = config["General"]["File2"]
-        logkeyvalue(logging.DEBUG, "Simulation with measure", filename)
-    except:
-        raise SystemExit('Unable to read General\File2 from "' + input_file + '"!')
-    logging.debug("")
-    return
-
-
-def read_dflowfm(map_file):
-    logging.debug('Loading file "' + map_file + '"')
-    data = 1
-    return data
-
-
-def run_analysis(config):
-    # Load data
-    logging.info("Loading data")
-    data1 = read_dflowfm(config["General"]["File1"])
-    data2 = read_dflowfm(config["General"]["File2"])
-    logging.debug("")
-
-    # Do actual analysis
-    logging.info("Running analysis")
-    logging.debug("")
-    return 0
-
-
-def write_results(results):
-    logging.info("Writing results")
-    logging.debug("")
 
 
 def char_discharges(q_lvl, dq, q_threshold, q_bankfull):
