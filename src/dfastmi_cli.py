@@ -51,35 +51,35 @@ def interactive_mode(reduced_output):
     version = dfastmi_kernel.program_version()
 
     log_text("header", dict={"version": version})
-    tdum = get_bool("confirm")
+    tdum = interactive_get_bool("confirm")
 
     log_text("limits")
     log_text("qblocks")
     tdum = False
     while not tdum:
         log_text("query_input-available")
-        twaq = get_bool("confirm_or")
+        havefiles = interactive_get_bool("confirm_or")
 
         log_text("---")
-        if twaq:
+        if havefiles:
             log_text("results_with_input")
         else:
             log_text("results_without_input")
         log_text("---")
-        tdum = get_bool("confirm_or_restart")
+        tdum = interactive_get_bool("confirm_or_restart")
 
     log_text("header", dict={"version": version}, file=report)
     log_text("limits", file=report)
     log_text("===", file=report)
-    if twaq:
+    if havefiles:
         log_text("results_with_input", file=report)
     else:
         log_text("results_without_input", file=report)
 
     alldone = False
     while not alldone:
-        ibranch = get_item("branch", branches)
-        ireach = get_item("reach", reaches[ibranch])
+        ibranch = interactive_get_item("branch", branches)
+        ireach = interactive_get_item("reach", reaches[ibranch])
         log_text("---")
         branch = branches[ibranch]
         reach = reaches[ibranch][ireach]
@@ -99,7 +99,7 @@ def interactive_mode(reduced_output):
 
         log_text("reach", dict={"reach": reach})
         log_text("---")
-        alldone = get_bool("confirm_location")
+        alldone = interactive_get_bool("confirm_location")
         if not alldone:
             continue
 
@@ -111,19 +111,19 @@ def interactive_mode(reduced_output):
                 "query_flowing_above_qmin",
                 dict={"border": q_location, "qmin": int(q_min)},
             )
-        tdrem = get_bool("confirm_or")
+        tdrem = interactive_get_bool("confirm_or")
         if tdrem:
             q_threshold = None
         else:
-            q_threshold = get_float("query_qthreshold", dict={"border": q_location})
+            q_threshold = interactive_get_float("query_qthreshold", dict={"border": q_location})
 
         if q_threshold is None or q_threshold < q_border:
             log_text("query_flowing", dict={"qborder": int(q_border)})
-            tdum = get_bool("confirm_or")
+            tdum = interactive_get_bool("confirm_or")
             if tdum:
                 q_bankfull = q_border
             else:
-                q_bankfull = get_float("query_qbankfull")
+                q_bankfull = interactive_get_float("query_qbankfull")
         else:
             q_bankfull = 0
 
@@ -149,16 +149,16 @@ def interactive_mode(reduced_output):
         nlength = dfastmi_kernel.estimate_sedimentation_length(
             rsigma1, rsigma2, rsigma3, nwidth
         )
-        nQ = (not Q1 is None) + (not Q2 is None) + (not Q3 is None)
+        nQ = countQ([Q1, Q2, Q3])
 
-        if twaq:
+        if havefiles:
             # determine critical flow velocity
             ucritMin = 0.01
             log_text("", repeat=3)
             log_text("default_ucrit", dict={"uc": ucrit, "reach": reach})
-            tdum = get_bool("confirm_or")
+            tdum = interactive_get_bool("confirm_or")
             if not tdum:
-                ucrit = get_float("query_ucrit")
+                ucrit = interactive_get_float("query_ucrit")
                 if ucrit < ucritMin:
                     log_text("ucrit_too_low", dict={"uc": ucritMin})
                     log_text("ucrit_too_low", dict={"uc": ucritMin}, file=report)
@@ -197,7 +197,7 @@ def interactive_mode(reduced_output):
             log_text("")
             log_text("length_estimate", dict={"nlength": nlength})
             log_text("length_estimate", dict={"nlength": nlength}, file=report)
-            tdum = get_bool("confirm_to_close")
+            tdum = interactive_get_bool("confirm_to_close")
             alldone = True
         else:
             log_text("---")
@@ -214,84 +214,9 @@ def interactive_mode(reduced_output):
             log_text("length_estimate", dict={"nlength": nlength})
             log_text("---")
             log_text("canclose")
-            alldone = get_bool("confirm_or_repeat")
+            alldone = interactive_get_bool("confirm_or_repeat")
             if alldone:
-                log_text("", file=report)
-                log_text("reach", dict={"reach": reach}, file=report)
-                log_text("", file=report)
-                if not q_threshold is None:
-                    log_text(
-                        "report_qthreshold",
-                        dict={"q": q_threshold, "border": q_location},
-                        file=report,
-                    )
-                log_text(
-                    "report_qbankfull",
-                    dict={"q": q_threshold, "border": q_location},
-                    file=report,
-                )
-                log_text("", file=report)
-                if q_stagnant > q_fit[0]:
-                    log_text(
-                        "closed_barriers", dict={"ndays": int(tstag * 365)}, file=report
-                    )
-                    log_text("", file=report)
-                log_text(
-                    "char_discharge",
-                    dict={"n": 1, "q": Q1, "border": q_location},
-                    file=report,
-                )
-                log_text(
-                    "char_period", dict={"n": 1, "ndays": int(t1 * 365)}, file=report
-                )
-                log_text("", file=report)
-                if not Q2 is None:
-                    log_text(
-                        "char_discharge",
-                        dict={"n": 2, "q": Q2, "border": q_location},
-                        file=report,
-                    )
-                    log_text(
-                        "char_period",
-                        dict={"n": 2, "ndays": int(t2 * 365)},
-                        file=report,
-                    )
-                    log_text("", file=report)
-                if not Q3 is None:
-                    log_text(
-                        "char_discharge",
-                        dict={"n": 3, "q": Q3, "border": q_location},
-                        file=report,
-                    )
-                    log_text(
-                        "char_period",
-                        dict={"n": 3, "ndays": int(t3 * 365)},
-                        file=report,
-                    )
-                    log_text("---", file=report)
-                if nQ == 1:
-                    log_text("need_single_input", dict={"reach": reach}, file=report)
-                else:
-                    log_text(
-                        "need_multiple_input",
-                        dict={"reach": reach, "numq": nQ},
-                        file=report,
-                    )
-                if not Q1 is None:
-                    log_text(
-                        "lowwater", dict={"q": Q1, "border": q_location}, file=report
-                    )
-                if not Q2 is None:
-                    log_text(
-                        "transition", dict={"q": Q2, "border": q_location}, file=report
-                    )
-                if not Q3 is None:
-                    log_text(
-                        "highwater", dict={"q": Q3, "border": q_location}, file=report
-                    )
-                log_text("---", file=report)
-                log_text("length_estimate", dict={"nlength": nlength}, file=report)
-                log_text("prepare_input", file=report)
+                write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, qfit, [Q1, Q2, Q3], [t1, t2, t3], nlength)
             else:
                 log_text("", repeat=10)
                 log_text("===", file=report)
@@ -299,15 +224,19 @@ def interactive_mode(reduced_output):
     log_text("end")
     log_text("end", file=report)
     report.close()
+    
+    
+def countQ(Q):
+    return sum([not q is None for q in Q])
 
 
 def check_discharge(i, Q, pname="dummy", Qp=0):
     log_text("")
     log_text("input_avail", dict={"i": i, "q": Q})
-    tdum = get_bool("confirm_or")
+    tdum = interactive_get_bool("confirm_or")
     if not tdum:
         while True:
-            Q = get_float("query_qavail", dict={"i": i})
+            Q = interactive_get_float("query_qavail", dict={"i": i})
             if Q is None:
                 break
             elif Q < Qp:
@@ -384,7 +313,7 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
         return dzq
 
 
-def get_bool(key, dict={}):
+def interactive_get_bool(key, dict={}):
     log_text(key, dict=dict)
     str = sys.stdin.readline().lower()
     bool = str == "j\n" or str == "y\n"
@@ -395,7 +324,7 @@ def get_bool(key, dict={}):
     return bool
 
 
-def get_int(key, dict={}):
+def interactive_get_int(key, dict={}):
     log_text(key, dict=dict)
     str = sys.stdin.readline()
     logging.info(str)
@@ -406,7 +335,7 @@ def get_int(key, dict={}):
     return val
 
 
-def get_float(key, dict={}):
+def interactive_get_float(key, dict={}):
     log_text(key, dict=dict)
     str = sys.stdin.readline()
     logging.info(str)
@@ -417,14 +346,14 @@ def get_float(key, dict={}):
     return val
 
 
-def get_item(type, list):
+def interactive_get_item(type, list):
     i = 0
     nitems = len(list)
     while i < 1 or i > nitems:
         log_text("query_" + type + "_header")
         for i in range(nitems):
             log_text("query_list", dict={"item": list[i], "index": i + 1})
-        i = get_int("query_" + type)
+        i = interactive_get_int("query_" + type)
         if i is None:
             return None
     return i - 1
@@ -449,8 +378,66 @@ def program_texts(key):
     return str
 
 
+def write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, qfit, Q, t, nlength):
+     log_text("", file=report)
+     log_text("reach", dict={"reach": reach}, file=report)
+     log_text("", file=report)
+     if not q_threshold is None:
+         log_text(
+             "report_qthreshold",
+             dict={"q": q_threshold, "border": q_location},
+             file=report,
+         )
+     log_text(
+         "report_qbankfull",
+         dict={"q": q_bankfull, "border": q_location},
+         file=report,
+     )
+     log_text("", file=report)
+     if q_stagnant > q_fit[0]:
+         log_text(
+             "closed_barriers", dict={"ndays": int(tstag * 365)}, file=report
+         )
+         log_text("", file=report)
+     for i in range(3):
+         if not Q[i] is None:
+             log_text(
+                 "char_discharge",
+                 dict={"n": i+1, "q": Q[i], "border": q_location},
+                 file=report,
+             )
+             log_text(
+                 "char_period", dict={"n": i+1, "ndays": int(t[i] * 365)}, file=report
+             )
+             if i < 2:
+                 log_text("", file=report)
+             else:
+                 log_text("---", file=report)
+     nQ = countQ(Q)
+     if nQ == 1:
+         log_text("need_single_input", dict={"reach": reach}, file=report)
+     else:
+         log_text(
+             "need_multiple_input",
+             dict={"reach": reach, "numq": nQ},
+             file=report,
+         )
+     for i in range(3):
+         if not Q[i] is None:
+             log_text(
+                 stagename(i), dict={"q": Q[i], "border": q_location}, file=report
+             )
+     log_text("---", file=report)
+     log_text("length_estimate", dict={"nlength": nlength}, file=report)
+     log_text("prepare_input", file=report)
+
+
+def stagename(i):
+    stagenames = ["lowwater", "transition", "highwater"]
+    return stagenames[i]
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="D-FAST Morphological Change.")
+    parser = argparse.ArgumentParser(description="D-FAST Morphological Impact.")
     parser.add_argument("--reduced_output", dest="reduced_output", action="store_true")
     parser.set_defaults(reduced_output=False)
     args = parser.parse_args()

@@ -365,11 +365,12 @@ def menu_about_qt():
     QtWidgets.QApplication.aboutQt()
 
 
-global rivers
-global dialog
-progloc = str(pathlib.Path(__file__).parent.absolute())
-dialog = create_dialog()
-rivers = dfastmi_io.read_rivers(progloc + os.path.sep + "rivers.ini")
-dialog["branch"].addItems(rivers["branches"])
-dialog["reach"].addItems(rivers["reaches"][0])
-activate_dialog(dialog)
+if __name__ == "__main__":
+    global rivers
+    global dialog
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    dialog = create_dialog()
+    rivers = dfastmi_io.read_rivers(progloc + os.path.sep + "rivers.ini")
+    dialog["branch"].addItems(rivers["branches"])
+    dialog["reach"].addItems(rivers["reaches"][0])
+    activate_dialog(dialog)

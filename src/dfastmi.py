@@ -34,7 +34,7 @@ import dfastmi_kernel
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="D-FAST Morphological Change.")
+    parser = argparse.ArgumentParser(description="D-FAST Morphological Impact.")
     parser.add_argument(
         "-i",
         "--inputfile",
