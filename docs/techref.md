@@ -165,7 +165,7 @@ Please note that every line is used as is, so don't add indentations or blank li
 Most blocks may contain any number of lines, but some blocks may only contain a single line.
 Some data blocks may contain one or more Python-style placeholders used for inserting values.
 
-### Example
+**Example**
 
 The following excerpt of the default `messages.NL.cfg` dialog text file shows the string definition for 5 identifiers, namely '' (the identifier for an empty line), 'header', 'confirm', 'confirm_or' and 'confirm_or_restart'.
 The header string contains one placeholder, namely `{version}` for the the version number.
@@ -273,7 +273,7 @@ Only the `Version`, `Branch`, `Reach`, `Reference` and `WithMeasure` keywords ar
 
 ### simulation result files
 
-The WAQMORF program required that the user had extracted the cell centred velocity magnitude and water depth from the the WAQUA SDS-output files and stored in `xyz_<quantity>-zeta.00<1/2>.Q<i>` files.
+The WAQMORF program required that the user had extracted the cell centred velocity magnitude and water depth from the WAQUA SDS-output files and stored in `xyz_<quantity>-zeta.00<1/2>.Q<i>` files.
 D-FAST Morphological Impact supports these files when running in legacy mode (see section on `dfastmi_cli`).
 When building on D-Flow FM simulations, D-FAST Morphological Impact reads the results directly from the netCDF map-files.
 These files may contain multiple time steps; the final time steps will be used for the analysis.
