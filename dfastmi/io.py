@@ -33,10 +33,11 @@ import netCDF4
 import configparser
 
 
-def read_program_texts(filename: str):
-    """Read program dialog texts"""
+def load_program_texts(filename: str):
+    """Load program dialog texts and store for access"""
     text: List[str]
     dict: Dict[str, List[str]]
+    global PROGTEXTS
     
     all_lines = open(filename, "r").read().splitlines()
     dict = {}
@@ -53,8 +54,16 @@ def read_program_texts(filename: str):
             text.append(line)
     if key in dict.keys():
         raise Exception('Duplicate entry for "{}" in "{}".'.format(key,filename))
-    dict[key] = str
-    return dict
+    dict[key] = text
+    PROGTEXTS = dict
+
+
+def program_texts(key):
+    try:
+        str = PROGTEXTS[key]
+    except:
+        str = ["No message found for " + key]
+    return str
 
 
 def read_rivers(filename: str = "rivers.ini"):

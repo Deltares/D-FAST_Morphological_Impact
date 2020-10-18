@@ -29,8 +29,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
-import dfastmi_io
-import dfastmi_kernel
+import dfastmi.io
+import dfastmi.kernel
 import pathlib
 import sys
 import os
@@ -38,7 +38,13 @@ import configparser
 from functools import partial
 
 
+def gui_text(key):
+    cstr = dfastmi.io.program_texts("gui_" + key)
+    return cstr[0]
+
 def create_dialog():
+    global rivers
+    global dialog
     dialog = {}
 
     app = QtWidgets.QApplication(sys.argv)
@@ -52,19 +58,19 @@ def create_dialog():
 
     menubar = win.menuBar()
 
-    menu = menubar.addMenu("&Bestand")
-    item = menu.addAction("&Laden")
+    menu = menubar.addMenu(gui_text("File"))
+    item = menu.addAction(gui_text("Load"))
     item.triggered.connect(load_configuration)
-    item = menu.addAction("&Opslaan")
+    item = menu.addAction(gui_text("Save"))
     item.triggered.connect(save_configuration)
     menu.addSeparator()
-    item = menu.addAction("&Afsluiten")
+    item = menu.addAction(gui_text("Close"))
     item.triggered.connect(close_dialog)
 
-    menu = menubar.addMenu("&Hulp")
-    item = menu.addAction("Versie")
+    menu = menubar.addMenu(gui_text("Help"))
+    item = menu.addAction(gui_text("Version"))
     item.triggered.connect(menu_about_self)
-    item = menu.addAction("Over Qt")
+    item = menu.addAction(gui_text("AboutQt"))
     item.triggered.connect(menu_about_qt)
 
     centralWidget = QtWidgets.QWidget()
@@ -73,87 +79,87 @@ def create_dialog():
 
     branch = QtWidgets.QComboBox(win)
     branch.currentIndexChanged.connect(updated_branch)
-    branch.setToolTip("In welke tak ligt het project?")
+    branch.setToolTip(gui_text("branch_tooltip"))
     dialog["branch"] = branch
-    layout.addRow("Tak", branch)
+    layout.addRow(gui_text("branch"), branch)
 
     reach = QtWidgets.QComboBox(win)
     reach.currentIndexChanged.connect(updated_reach)
-    reach.setToolTip("In welk rivierstuk ligt het project?")
+    reach.setToolTip(gui_text("reach_tooltip"))
     dialog["reach"] = reach
-    layout.addRow("Stuk", reach)
+    layout.addRow(gui_text("reach"), reach)
 
-    qloc = QtWidgets.QLabel("Lobith", win)
-    qloc.setToolTip("De locatie waar de debieten voor deze tak gedefinieerd zijn ...")
+    qloc = QtWidgets.QLabel("", win)
+    qloc.setToolTip(gui_text("qloc"))
     dialog["qloc"] = qloc
-    layout.addRow("Q Loc", qloc)
+    layout.addRow(gui_text("qloc"), qloc)
 
     # stroomvoerend bij getrokken stuwen?
     # stroomvoerend vanaf qmin?
     qmin = QtWidgets.QLineEdit(win)
     qmin.setValidator(PyQt5.QtGui.QDoubleValidator())
     qmin.editingFinished.connect(updated_qmin_or_qbf)
-    qmin.setToolTip("De maatregel wordt stroomvoerend bij afvoeren [m3/s] vanaf ...")
+    qmin.setToolTip(gui_text("qmin_tooltip"))
     dialog["qmin"] = qmin
-    layout.addRow("Q Min", qmin)
+    layout.addRow(gui_text("qmin"), qmin)
 
     # bankvullend vanaf qbank?
     qbf = QtWidgets.QLineEdit(win)
     qbf.setValidator(PyQt5.QtGui.QDoubleValidator())
     qbf.editingFinished.connect(updated_qmin_or_qbf)
-    qbf.setToolTip(
-        "De afvoer door de maatregel is bankvullend bij een rivierafvoer [m3/s] van ..."
-    )
+    qbf.setToolTip(gui_text("qbf_tooltip"))
     dialog["qbf"] = qbf
-    layout.addRow("Q Bankfull", qbf)
+    layout.addRow(gui_text("qbf"), qbf)
 
     q1 = QtWidgets.QLabel(win)
-    q1.setToolTip("De afvoer [m3/s] van het laagwaterblok ...")
+    q1.setToolTip(gui_text("q1_tooltip"))
     dialog["q1"] = q1
-    layout.addRow("Q1", q1)
+    layout.addRow(gui_text("q1"), q1)
     q1file1 = QtWidgets.QLineEdit(win)
     dialog["q1file1"] = q1file1
-    layout.addRow("Q1 Bestand Referentie", openFileLayout(win, q1file1, "q1file1"))
+    layout.addRow(gui_text("q1_reference"), openFileLayout(win, q1file1, "q1file1"))
     q1file2 = QtWidgets.QLineEdit(win)
     dialog["q1file2"] = q1file2
-    layout.addRow("Q1 Bestand Ingreep", openFileLayout(win, q1file2, "q1file2"))
+    layout.addRow(gui_text("q1_measure"), openFileLayout(win, q1file2, "q1file2"))
 
     q2 = QtWidgets.QLabel(win)
-    q2.setToolTip("De afvoer [m3/s] van het overgangsblok ...")
+    q2.setToolTip(gui_text("q2_tooltip"))
     dialog["q2"] = q2
-    layout.addRow("Q2", q2)
+    layout.addRow(gui_text("q2"), q2)
     q2file1 = QtWidgets.QLineEdit(win)
     dialog["q2file1"] = q2file1
-    layout.addRow("Q2 Bestand Referentie", openFileLayout(win, q2file1, "q2file1"))
+    layout.addRow(gui_text("q2_reference"), openFileLayout(win, q2file1, "q2file1"))
     q2file2 = QtWidgets.QLineEdit(win)
     dialog["q2file2"] = q2file2
-    layout.addRow("Q2 Bestand Ingreep", openFileLayout(win, q2file2, "q2file2"))
+    layout.addRow(gui_text("q2_measure"), openFileLayout(win, q2file2, "q2file2"))
 
     q3 = QtWidgets.QLabel(win)
-    q3.setToolTip("De afvoer [m3/s] van het hoogwaterblok ...")
+    q3.setToolTip(gui_text("q3_tooltip"))
     dialog["q3"] = q3
-    layout.addRow("Q3", q3)
+    layout.addRow(gui_text("q3"), q3)
     q3file1 = QtWidgets.QLineEdit(win)
     dialog["q3file1"] = q3file1
-    layout.addRow("Q3 Bestand Referentie", openFileLayout(win, q3file1, "q3file1"))
+    layout.addRow(gui_text("q3_reference"), openFileLayout(win, q3file1, "q3file1"))
     q3file2 = QtWidgets.QLineEdit(win)
     dialog["q3file2"] = q3file2
-    layout.addRow("Q3 Bestand Ingreep", openFileLayout(win, q3file2, "q3file2"))
+    layout.addRow(gui_text("q3_measure"), openFileLayout(win, q3file2, "q3file2"))
 
     # default UCrit acceptable?
     ucrit = QtWidgets.QLineEdit(win)
     ucrit.setValidator(PyQt5.QtGui.QDoubleValidator())
+    ucrit.setToolTip(gui_text("ucrit_tooltip"))
     dialog["ucrit"] = ucrit
-    layout.addRow("Ucrit", ucrit)
+    layout.addRow(gui_text("ucrit"), ucrit)
 
     # show the impact length
     nlength = QtWidgets.QLabel(win)
+    nlength.setToolTip(gui_text("length_tooltip"))
     dialog["nlength"] = nlength
-    layout.addRow("Lengte", nlength)
+    layout.addRow(gui_text("length"), nlength)
 
-    run = QtWidgets.QPushButton("Run", win)
+    run = QtWidgets.QPushButton(gui_text("action_run"), win)
     run.clicked.connect(run_analysis)
-    done = QtWidgets.QPushButton("Sluit Programma", win)
+    done = QtWidgets.QPushButton(gui_text("action_close"), win)
     done.clicked.connect(close_dialog)
     rundone = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
     rundone.setContentsMargins(0, 0, 0, 0)
@@ -198,29 +204,29 @@ def update_qvalues():
     try:
         qmin = float(dialog["qmin"].text())
     except:
-        showError("Onjuiste waarde voor Q Min")
+        showError(gui_text("error_qmin"))
         dialog["qmin"].setFocus()
 
     try:
         qbf = float(dialog["qbf"].text())
     except:
-        showError("Onjuiste waarde voor Q Bankfull")
+        showError(gui_text("error_qbf"))
         dialog["qbf"].setFocus()
 
     try:
         qlevels = rivers["qlevels"][ibranch][ireach]
         dq = rivers["dq"][ibranch][ireach]
-        Q1, Q2, Q3 = dfastmi_kernel.char_discharges(qlevels, dq, qmin, qbf)
+        Q1, Q2, Q3 = dfastmi.kernel.char_discharges(qlevels, dq, qmin, qbf)
 
         qfit = rivers["qfit"][ibranch][ireach]
         qstagnant = rivers["qstagnant"][ibranch][ireach]
         celerity_hg = rivers["proprate_high"][ibranch][ireach]
         celerity_lw = rivers["proprate_low"][ibranch][ireach]
         nwidth = rivers["normal_width"][ibranch][ireach]
-        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi_kernel.char_times(
+        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi.kernel.char_times(
             qfit, qstagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth
         )
-        nlength = dfastmi_kernel.estimate_sedimentation_length(
+        nlength = dfastmi.kernel.estimate_sedimentation_length(
             rsigma1, rsigma2, rsigma3, nwidth
         )
         dialog["nlength"].setText(str(nlength))
@@ -242,7 +248,8 @@ def openFileLayout(win, myWidget, key):
     gridly.setContentsMargins(0, 0, 0, 0)
     gridly.addWidget(myWidget, 0, 0)
 
-    openFile = QtWidgets.QPushButton(PyQt5.QtGui.QIcon("open.png"), "", win)
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    openFile = QtWidgets.QPushButton(PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win)
     openFile.clicked.connect(partial(selectFile, key))
     gridly.addWidget(openFile, 0, 2)
 
@@ -251,25 +258,26 @@ def openFileLayout(win, myWidget, key):
 
 def selectFile(key):
     fil = QtWidgets.QFileDialog.getOpenFileName(
-        caption="Select D-Flow FM Map File", filter="D-Flow FM Map Files (*map.nc)"
+        caption=gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
     )
     if fil[0] != "":
         dialog[key].setText(fil[0])
 
 
 def run_analysis():
-    showError("Not yet implemented!")
+    showError(gui_text("not_yet_implemented"))
 
 
 def close_dialog():
     dialog["window"].close()
 
 
-def load_configuration():
-    fil = QtWidgets.QFileDialog.getOpenFileName(
-        caption="Select Configuration File", filter="Config Files (*.cfg)"
-    )
-    filename = fil[0]
+def load_configuration(filename = None):
+    if filename is None:
+        fil = QtWidgets.QFileDialog.getOpenFileName(
+            caption=gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
+        )
+        filename = fil[0]
     if filename == "":
         return
 
@@ -321,7 +329,7 @@ def showError(message):
 
 def save_configuration():
     fil = QtWidgets.QFileDialog.getSaveFileName(
-        caption="Save Configuration As", filter="Config Files (*.cfg)"
+        caption=gui_text("save_cfg_as"), filter="Config Files (*.cfg)"
     )
     filename = fil[0]
     if filename == "":
@@ -340,23 +348,21 @@ def save_configuration():
     config["Q1"]["Reference"] = dialog["q1file1"].text()
     config["Q1"]["WithMeasure"] = dialog["q1file2"].text()
     config.add_section("Q2")
-    config["Q2"]["Reference"] = dialog["q1file1"].text()
-    config["Q2"]["WithMeasure"] = dialog["q1file2"].text()
+    config["Q2"]["Reference"] = dialog["q2file1"].text()
+    config["Q2"]["WithMeasure"] = dialog["q2file2"].text()
     config.add_section("Q3")
-    config["Q3"]["Reference"] = dialog["q1file1"].text()
-    config["Q3"]["WithMeasure"] = dialog["q1file2"].text()
-    dfastmi_io.write_config(filename, config)
+    config["Q3"]["Reference"] = dialog["q3file1"].text()
+    config["Q3"]["WithMeasure"] = dialog["q3file2"].text()
+    dfastmi.io.write_config(filename, config)
 
 
 def menu_about_self():
     msg = QtWidgets.QMessageBox()
     msg.setIcon(QtWidgets.QMessageBox.Information)
-    msg.setText("D-FAST Morphological Impact " + dfastmi_kernel.program_version())
+    msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
     msg.setInformativeText("Copyright (c) 2020 Deltares.")
-    msg.setDetailedText(
-        "This program is distributed under the terms of the\nGNU Lesser General Public License Version 2.1; see\nthe LICENSE.md file for details."
-    )
-    msg.setWindowTitle("About ...")
+    msg.setDetailedText(gui_text("license"))
+    msg.setWindowTitle(gui_text("about"))
     msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
     msg.exec_()
 
@@ -364,13 +370,14 @@ def menu_about_self():
 def menu_about_qt():
     QtWidgets.QApplication.aboutQt()
 
-
-if __name__ == "__main__":
+def main(config):
     global rivers
     global dialog
-    progloc = str(pathlib.Path(__file__).parent.absolute())
     dialog = create_dialog()
-    rivers = dfastmi_io.read_rivers(progloc + os.path.sep + "rivers.ini")
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    rivers = dfastmi.io.read_rivers(progloc + os.path.sep + "rivers.ini")
     dialog["branch"].addItems(rivers["branches"])
     dialog["reach"].addItems(rivers["reaches"][0])
+    if not config is None:
+        load_configuration(config)
     activate_dialog(dialog)

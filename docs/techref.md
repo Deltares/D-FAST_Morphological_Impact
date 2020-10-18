@@ -273,7 +273,7 @@ Only the `Version`, `Branch`, `Reach`, `Reference` and `WithMeasure` keywords ar
 
 ### simulation result files
 
-The WAQMORF program required that the user had extracted the cell centred velocity magnitude and water depth from the WAQUA SDS-output files and stored in `xyz_<quantity>-zeta.00<1/2>.Q<i>` files.
+The WAQMORF program required that the user had extracted the cell centred velocity magnitude and water depth from the the WAQUA SDS-output files and stored in `xyz_<quantity>-zeta.00<1/2>.Q<i>` files.
 D-FAST Morphological Impact supports these files when running in legacy mode (see section on `dfastmi_cli`).
 When building on D-Flow FM simulations, D-FAST Morphological Impact reads the results directly from the netCDF map-files.
 These files may contain multiple time steps; the final time steps will be used for the analysis.

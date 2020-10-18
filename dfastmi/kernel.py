@@ -31,10 +31,6 @@ import math
 import numpy
 
 
-def program_version():
-    return "PRE-ALPHA"
-
-
 def char_discharges(q_lvl, dq, q_threshold, q_bankfull):
     if not q_threshold is None:  # has threshold discharge
         Q1 = q_threshold

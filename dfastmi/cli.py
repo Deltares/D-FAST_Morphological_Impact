@@ -32,23 +32,24 @@ import argparse
 import sys
 import os
 import numpy
-import dfastmi_io
-import dfastmi_kernel
+import dfastmi.gui
+import dfastmi.io
+import dfastmi.kernel
 import pathlib
 
 
 def interactive_mode(reduced_output):
-    global PROGTEXTS
-    progloc = str(pathlib.Path(__file__).parent.absolute())
-    PROGTEXTS = dfastmi_io.read_program_texts(progloc + os.path.sep + "messages.NL.ini")
+    if reduced_output:
+        log_text("reduce_output")
 
     report = open("verslag.run", "w")
 
-    rivers = dfastmi_io.read_rivers(progloc + os.path.sep + "rivers.ini")
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    rivers = dfastmi.io.read_rivers(progloc + os.path.sep + "rivers.ini")
     branches = rivers["branches"]
     reaches = rivers["reaches"]
-    stages = program_texts("stage_descriptions")
-    version = dfastmi_kernel.program_version()
+    stages = dfastmi.io.program_texts("stage_descriptions")
+    version = dfastmi.__version__
 
     log_text("header", dict={"version": version})
     tdum = interactive_get_bool("confirm")
@@ -127,7 +128,7 @@ def interactive_mode(reduced_output):
         else:
             q_bankfull = 0
 
-        Q1, Q2, Q3 = dfastmi_kernel.char_discharges(
+        Q1, Q2, Q3 = dfastmi.kernel.char_discharges(
             q_levels, dq, q_threshold, q_bankfull
         )
 
@@ -143,10 +144,10 @@ def interactive_mode(reduced_output):
             if Q3 is None:
                 break
 
-        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi_kernel.char_times(
+        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi.kernel.char_times(
             q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth
         )
-        nlength = dfastmi_kernel.estimate_sedimentation_length(
+        nlength = dfastmi.kernel.estimate_sedimentation_length(
             rsigma1, rsigma2, rsigma3, nwidth
         )
         nQ = countQ([Q1, Q2, Q3])
@@ -186,13 +187,13 @@ def interactive_mode(reduced_output):
             else:
                 dzq3 = 0
             log_text("char_bed_changes")
-            data_zgem, data_z1o, data_z2o = dfastmi_kernel.main_computation(
+            data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
                 dzq1, dzq2, dzq3, tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3
             )
 
-            dfastmi_io.write_simona_box("jaargem.out", data_zgem, firstm, firstn)
-            dfastmi_io.write_simona_box("maxmorf.out", data_z1o, firstm, firstn)
-            dfastmi_io.write_simona_box("minmorf.out", data_z2o, firstm, firstn)
+            dfastmi.io.write_simona_box("jaargem.out", data_zgem, firstm, firstn)
+            dfastmi.io.write_simona_box("maxmorf.out", data_z1o, firstm, firstn)
+            dfastmi.io.write_simona_box("minmorf.out", data_z2o, firstm, firstn)
 
             log_text("")
             log_text("length_estimate", dict={"nlength": nlength})
@@ -259,7 +260,7 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
     log_text("---")
     log_text("")
 
-    discriptions = program_texts("file_descriptions")
+    discriptions = dfastmi.io.program_texts("file_descriptions")
     quantities = ["velocity-zeta.001", "waterdepth-zeta.001", "velocity-zeta.002"]
     files = []
     for i in range(3):
@@ -275,12 +276,12 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
         log_text("")
 
     log_text("input_xyz_read", dict={"stage": stage})
-    u0temp = dfastmi_io.read_waqua_xyz(files[0], cols=(2, 3, 4))
+    u0temp = dfastmi.io.read_waqua_xyz(files[0], cols=(2, 3, 4))
     m = u0temp[:, 1].astype(int) - 1
     n = u0temp[:, 2].astype(int) - 1
     u0temp = u0temp[:, 0]
-    h0temp = dfastmi_io.read_waqua_xyz(files[1])
-    u1temp = dfastmi_io.read_waqua_xyz(files[2])
+    h0temp = dfastmi.io.read_waqua_xyz(files[1])
+    u1temp = dfastmi.io.read_waqua_xyz(files[2])
 
     if reduced_output:
         firstm = min(m)
@@ -305,7 +306,7 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
     h0 = h0.reshape(sz)
     u1 = u1.reshape(sz)
 
-    dzq = dfastmi_kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+    dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
     log_text("---")
     if nargout == 3:
         return dzq, firstm, firstn
@@ -360,7 +361,7 @@ def interactive_get_item(type, list):
 
 
 def log_text(key, file=None, dict={}, repeat=1):
-    str = program_texts(key)
+    str = dfastmi.io.program_texts(key)
     for r in range(repeat):
         if file is None:
             for s in str:
@@ -368,14 +369,6 @@ def log_text(key, file=None, dict={}, repeat=1):
         else:
             for s in str:
                 file.write(s.format(**dict) + "\n")
-
-
-def program_texts(key):
-    try:
-        str = PROGTEXTS[key]
-    except:
-        str = ["No message found for " + key]
-    return str
 
 
 def write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, qfit, Q, t, nlength):
@@ -436,22 +429,53 @@ def stagename(i):
     stagenames = ["lowwater", "transition", "highwater"]
     return stagenames[i]
 
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="D-FAST Morphological Impact.")
-    parser.add_argument("--reduced_output", dest="reduced_output", action="store_true")
-    parser.set_defaults(reduced_output=False)
+    parser = argparse.ArgumentParser(description = "D-FAST Morphological Impact.")
+    parser.add_argument("--language", help = "display language 'NL' or 'UK' (UK is default)")
+    parser.set_defaults(language = "UK")
+    parser.add_argument("--mode", help = "run mode 'BATCH', 'CLI' or 'GUI' (GUI is default)")
+    parser.set_defaults(mode = "GUI")
+    parser.add_argument("--config", help = "name of configuration file (required for BATCH mode)")
+    parser.set_defaults(config = None)
+    parser.add_argument("--reduced_output", help = "write reduced M/N range (structured model only)", action = "store_true")
+    parser.set_defaults(reduced_output = False)
     args = parser.parse_args()
 
     reduced_output = args.__dict__["reduced_output"]
-    return reduced_output
+    language = args.__dict__["language"].upper()
+    runmode = args.__dict__["mode"].upper()
+    config = args.__dict__["config"]
+    if language not in ["NL","UK"]:
+        raise Exception(
+            'Incorrect language "{}" specified. Should read "NL" or "UK".'.format(language)
+        )
+    return reduced_output, language, runmode, config
 
 
 if __name__ == "__main__":
-    reduced_output = parse_arguments()
+    reduced_output, language, runmode, config = parse_arguments()
 
     logging.basicConfig(level="INFO", format="%(message)s")
 
-    if reduced_output:
-        logging.info("option 'reduce_output' is active.")
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    try:
+        dfastmi.io.load_program_texts(progloc + os.path.sep + "messages." + language + ".ini")
+    except:
+        if language=="NL":
+            logging.info("Het taalbestand 'messages." + language + ".ini' kan niet worden geladen.")
+        else:
+            logging.info("Unable to load language file 'messages." + language + ".ini'")
 
-    interactive_mode(reduced_output)
+    if runmode == "BATCH":
+        batch_mode(config)
+    elif runmode == "CLI":
+        if not config is None:
+            logging.info("Ingoring configuration file.")
+        interactive_mode(reduced_output)
+    elif runmode == "GUI":
+        dfastmi.gui.main(config)
+    else:
+        raise Exception(
+	    'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(language)
+        )
