@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
+import dfastmi.cli
 import dfastmi.io
 import dfastmi.kernel
 import pathlib
@@ -41,6 +42,7 @@ from functools import partial
 def gui_text(key):
     cstr = dfastmi.io.program_texts("gui_" + key)
     return cstr[0]
+
 
 def create_dialog():
     global rivers
@@ -60,9 +62,9 @@ def create_dialog():
 
     menu = menubar.addMenu(gui_text("File"))
     item = menu.addAction(gui_text("Load"))
-    item.triggered.connect(load_configuration)
+    item.triggered.connect(menu_load_configuration)
     item = menu.addAction(gui_text("Save"))
-    item.triggered.connect(save_configuration)
+    item.triggered.connect(menu_save_configuration)
     menu.addSeparator()
     item = menu.addAction(gui_text("Close"))
     item.triggered.connect(close_dialog)
@@ -77,6 +79,14 @@ def create_dialog():
     layout = QtWidgets.QFormLayout(centralWidget)
     win.setCentralWidget(centralWidget)
 
+    mode = QtWidgets.QComboBox(win)
+    mode.addItems(["WAQUA export","D-Flow FM map"])
+    mode.setCurrentIndex(1)
+    mode.currentIndexChanged.connect(updated_mode)
+    mode.setToolTip(gui_text("mode_tooltip"))
+    dialog["mode"] = mode
+    layout.addRow(gui_text("mode"), mode)
+    
     branch = QtWidgets.QComboBox(win)
     branch.currentIndexChanged.connect(updated_branch)
     branch.setToolTip(gui_text("branch_tooltip"))
@@ -111,38 +121,28 @@ def create_dialog():
     dialog["qbf"] = qbf
     layout.addRow(gui_text("qbf"), qbf)
 
-    q1 = QtWidgets.QLabel(win)
-    q1.setToolTip(gui_text("q1_tooltip"))
-    dialog["q1"] = q1
-    layout.addRow(gui_text("q1"), q1)
-    q1file1 = QtWidgets.QLineEdit(win)
-    dialog["q1file1"] = q1file1
-    layout.addRow(gui_text("q1_reference"), openFileLayout(win, q1file1, "q1file1"))
-    q1file2 = QtWidgets.QLineEdit(win)
-    dialog["q1file2"] = q1file2
-    layout.addRow(gui_text("q1_measure"), openFileLayout(win, q1file2, "q1file2"))
+    for q in range(3):
+        qstr = "q{}".format(q+1)
 
-    q2 = QtWidgets.QLabel(win)
-    q2.setToolTip(gui_text("q2_tooltip"))
-    dialog["q2"] = q2
-    layout.addRow(gui_text("q2"), q2)
-    q2file1 = QtWidgets.QLineEdit(win)
-    dialog["q2file1"] = q2file1
-    layout.addRow(gui_text("q2_reference"), openFileLayout(win, q2file1, "q2file1"))
-    q2file2 = QtWidgets.QLineEdit(win)
-    dialog["q2file2"] = q2file2
-    layout.addRow(gui_text("q2_measure"), openFileLayout(win, q2file2, "q2file2"))
+        q1 = QtWidgets.QLineEdit(win)
+        q1.setValidator(PyQt5.QtGui.QDoubleValidator())
+        q1.setToolTip(gui_text(qstr + "_tooltip"))
+        q1txt = QtWidgets.QLabel(gui_text(qstr), win)
+        dialog[qstr] = q1
+        dialog[qstr + "_txt"] = q1txt
+        layout.addRow(q1txt, q1)
+        
+        q1file1 = QtWidgets.QLineEdit(win)
+        q1f1txt = QtWidgets.QLabel(gui_text(qstr + "_reference"), win)
+        dialog[qstr + "file1"] = q1file1
+        dialog[qstr + "file1_txt"] = q1f1txt
+        layout.addRow(q1f1txt, openFileLayout(win, q1file1, qstr + "file1"))
 
-    q3 = QtWidgets.QLabel(win)
-    q3.setToolTip(gui_text("q3_tooltip"))
-    dialog["q3"] = q3
-    layout.addRow(gui_text("q3"), q3)
-    q3file1 = QtWidgets.QLineEdit(win)
-    dialog["q3file1"] = q3file1
-    layout.addRow(gui_text("q3_reference"), openFileLayout(win, q3file1, "q3file1"))
-    q3file2 = QtWidgets.QLineEdit(win)
-    dialog["q3file2"] = q3file2
-    layout.addRow(gui_text("q3_measure"), openFileLayout(win, q3file2, "q3file2"))
+        q1file2 = QtWidgets.QLineEdit(win)
+        q1f2txt = QtWidgets.QLabel(gui_text(qstr + "_measure"), win)
+        dialog[qstr + "file2"] = q1file2
+        dialog[qstr + "file2_txt"] = q1f2txt
+        layout.addRow(q1f2txt, openFileLayout(win, q1file2, qstr + "file2"))
 
     # default UCrit acceptable?
     ucrit = QtWidgets.QLineEdit(win)
@@ -175,6 +175,17 @@ def activate_dialog(dialog):
     win = dialog["window"]
     win.show()
     sys.exit(app.exec_())
+
+
+def updated_mode(imode):
+    # enable file selection if imode == 1 (D-Flow FM map)
+    DFlowFM = imode==1
+    for q in range(3):
+        for f in range(2):
+            qstr = "q{}file{}".format(q+1, f+1)
+            dialog[qstr].setEnabled(DFlowFM)
+            dialog[qstr + "_txt"].setEnabled(DFlowFM)
+            dialog[qstr + "_openfile"].setEnabled(DFlowFM)
 
 
 def updated_branch(ibranch):
@@ -236,10 +247,14 @@ def update_qvalues():
         Q3 = None
         dialog["nlength"].setText("---")
 
+    DFlowFM = dialog["mode"].currentIndex() == 1
     for iq, Q in {"q1": Q1, "q2": Q2, "q3": Q3}.items():
+        
         dialog[iq].setText(str(Q))
-        dialog[iq + "file1"].setEnabled(not Q is None)
-        dialog[iq + "file2"].setEnabled(not Q is None)
+        dialog[iq].setEnabled(not Q is None)
+        if DFlowFM:
+           dialog[iq + "file1"].setEnabled(not Q is None)
+           dialog[iq + "file2"].setEnabled(not Q is None)
 
 
 def openFileLayout(win, myWidget, key):
@@ -251,6 +266,7 @@ def openFileLayout(win, myWidget, key):
     progloc = str(pathlib.Path(__file__).parent.absolute())
     openFile = QtWidgets.QPushButton(PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win)
     openFile.clicked.connect(partial(selectFile, key))
+    dialog[key + "_openfile"] = openFile
     gridly.addWidget(openFile, 0, 2)
 
     return parent
@@ -262,10 +278,6 @@ def selectFile(key):
     )
     if fil[0] != "":
         dialog[key].setText(fil[0])
-
-
-def run_analysis():
-    showError(gui_text("not_yet_implemented"))
 
 
 def close_dialog():
@@ -281,41 +293,47 @@ def load_configuration(filename = None):
     if filename == "":
         return
 
-    config = configparser.ConfigParser()
-    with open(filename, "r") as configfile:
-        config.read_file(configfile)
     try:
-        version = config["General"]["Version"]
+        config = dfastmi.cli.load_configuration_file(filename)
     except:
-        showError("No version information in the file!")
+        showError(sys.exc_info()[1])
         return
-    if version == "1.0":
-        section = config["General"]
-        dialog["branch"].setCurrentText(section["Branch"])
-        ibranch = dialog["branch"].currentIndex()
-        dialog["reach"].setCurrentText(section["Reach"])
-        ireach = dialog["reach"].currentIndex()
-        dialog["qmin"].setText(
-            section.get("Qmin", str(rivers["qmin"][ibranch][ireach]))
-        )
-        dialog["qbf"].setText(
-            section.get("Qbankfull", str(rivers["qbankfull"][ibranch][ireach]))
-        )
-        dialog["ucrit"].setText(
-            section.get("Ucrit", str(rivers["ucritical"][ibranch][ireach]))
-        )
-        for iQ in ["Q1", "Q2", "Q3"]:
-            iq = iQ.lower()
-            if config.has_section(iQ):
-                section = config[iQ]
-                dialog[iq + "file1"].setText(section.get("Reference", ""))
-                dialog[iq + "file2"].setText(section.get("WithMeasure", ""))
-            else:
-                dialog[iq + "file1"].setText("")
-                dialog[iq + "file2"].setText("")
-        update_qvalues()
-    else:
-        showError("Unsupported version number {} in the file!".format(version))
+
+    section = config["General"]
+    try:
+        dialog["mode"].setCurrentText(section["Mode"])
+    except:
+        dialog["mode"].setCurrentIndex(1)
+    dialog["branch"].setCurrentText(section["Branch"])
+    ibranch = dialog["branch"].currentIndex()
+    dialog["reach"].setCurrentText(section["Reach"])
+    ireach = dialog["reach"].currentIndex()
+    dialog["qmin"].setText(
+        section.get("Qmin", str(rivers["qmin"][ibranch][ireach]))
+    )
+    dialog["qbf"].setText(
+        section.get("Qbankfull", str(rivers["qbankfull"][ibranch][ireach]))
+    )
+    dialog["ucrit"].setText(
+        section.get("Ucrit", str(rivers["ucritical"][ibranch][ireach]))
+    )
+
+    update_qvalues()
+    for iQ in ["Q1", "Q2", "Q3"]:
+        iq = iQ.lower()
+        if config.has_section(iQ):
+            section = config[iQ]
+            # discharge
+            dialog[iq].setText(section.get("Discharge", ""))
+            dialog[iq + "file1"].setText(section.get("Reference", ""))
+            dialog[iq + "file2"].setText(section.get("WithMeasure", ""))
+        else:
+            dialog[iq + "file1"].setText("")
+            dialog[iq + "file2"].setText("")
+
+
+def menu_load_configuration(checked):
+    load_configuration()
 
 
 def showError(message):
@@ -327,7 +345,34 @@ def showError(message):
     msg.exec_()
 
 
-def save_configuration():
+def get_configuration():
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.add_section("General")
+    config["General"]["Version"] = "1.0"
+    config["General"]["Branch"] = dialog["branch"].currentText()
+    config["General"]["Reach"] = dialog["reach"].currentText()
+    config["General"]["Mode"] = dialog["mode"].currentText()
+    config["General"]["Qmin"] = dialog["qmin"].text()
+    config["General"]["Qbankfull"] = dialog["qbf"].text()
+    config["General"]["Ucrit"] = dialog["ucrit"].text()
+    
+    DFlowFM = dialog["mode"].currentIndex() == 1
+    for q in range(3):
+        qstr = "q{}".format(q + 1)
+        qval = dialog[qstr].text()
+        if not qval == "None":
+            QSTR = qstr.upper()
+            config.add_section(QSTR)
+            config[QSTR]["Discharge"] = qval
+            if DFlowFM:
+                config[QSTR]["Reference"]   = dialog[qstr + "file1"].text()
+                config[QSTR]["WithMeasure"] = dialog[qstr + "file2"].text()
+
+    return config
+
+
+def menu_save_configuration(checked):
     fil = QtWidgets.QFileDialog.getSaveFileName(
         caption=gui_text("save_cfg_as"), filter="Config Files (*.cfg)"
     )
@@ -335,25 +380,13 @@ def save_configuration():
     if filename == "":
         return
 
-    config = configparser.ConfigParser()
-    config.optionxform = str
-    config.add_section("General")
-    config["General"]["Version"] = "1.0"
-    config["General"]["Branch"] = dialog["branch"].currentText()
-    config["General"]["Reach"] = dialog["reach"].currentText()
-    config["General"]["Qmin"] = dialog["qmin"].text()
-    config["General"]["Qbankfull"] = dialog["qbf"].text()
-    config["General"]["Ucrit"] = dialog["ucrit"].text()
-    config.add_section("Q1")
-    config["Q1"]["Reference"] = dialog["q1file1"].text()
-    config["Q1"]["WithMeasure"] = dialog["q1file2"].text()
-    config.add_section("Q2")
-    config["Q2"]["Reference"] = dialog["q2file1"].text()
-    config["Q2"]["WithMeasure"] = dialog["q2file2"].text()
-    config.add_section("Q3")
-    config["Q3"]["Reference"] = dialog["q3file1"].text()
-    config["Q3"]["WithMeasure"] = dialog["q3file2"].text()
-    dfastmi.io.write_config(filename, config)
+    config = get_configuration()
+    dfastmi.cli.save_configuration_file(filename, config)
+
+
+def run_analysis():
+    config = get_configuration()
+    dfastmi.cli.batch_mode_core(rivers, False, config)
 
 
 def menu_about_self():
@@ -370,14 +403,17 @@ def menu_about_self():
 def menu_about_qt():
     QtWidgets.QApplication.aboutQt()
 
-def main(config):
+
+def main(rivers_configuration, config):
     global rivers
     global dialog
+    
+    rivers = rivers_configuration
     dialog = create_dialog()
-    progloc = str(pathlib.Path(__file__).parent.absolute())
-    rivers = dfastmi.io.read_rivers(progloc + os.path.sep + "rivers.ini")
     dialog["branch"].addItems(rivers["branches"])
     dialog["reach"].addItems(rivers["reaches"][0])
+    
     if not config is None:
         load_configuration(config)
+    
     activate_dialog(dialog)
