@@ -196,24 +196,74 @@ def write_config(filename: str, config):
                 configfile.write(OPTIONLINE.format(o, config[s][o]))
 
 
-def read_fm_map(filename: str, stdname: str):
+def read_fm_map(filename: str, varname: str, location: str = "face"):
     """Read the last time step of any quantity defined at faces from a D-Flow FM map-file"""
     # open file
     rootgrp = netCDF4.Dataset(filename)
-    # locate variable
-    var = rootgrp.get_variables_by_attributes(standard_name=stdname, location="face")
-    if len(var) != 1:
+    # locate 2d mesh variable
+    mesh2d = rootgrp.get_variables_by_attributes(cf_role = "mesh_topology", topology_dimension = 2)
+    if len(mesh2d) != 1:
         raise Exception(
-            'Expected one variable for "{}", but obtained {}.', stdname, len(var)
+            'Currently only one 2D mesh supported ... this file contains {} 2D meshes.'.format(len(mesh2d))
         )
-    var = var[0]
+    meshname = mesh2d[0].name
+    start_index = 0
+    if varname == "x":
+        crdnames = mesh2d[0].getncattr(location+"_coordinates").split()
+        for n in crdnames:
+            stdname = rootgrp.variables[n].standard_name
+            if stdname == "projection_x_coordinate" or stdname == "longitude":
+                var = rootgrp.variables[n]
+                break
+    elif varname == "y":
+        crdnames = mesh2d[0].getncattr(location+"_coordinates").split()
+        for n in crdnames:
+            stdname = rootgrp.variables[n].standard_name
+            if stdname == "projection_y_coordinate" or stdname == "latitude":
+                var = rootgrp.variables[n]
+                break
+    elif varname[-12:] == "connectivity":
+        varname = mesh2d[0].getncattr(varname)
+        var = rootgrp.variables[varname]
+        if "start_index" in var.ncattrs():
+            start_index = var.getncattr("start_index")
+    else:
+        var = rootgrp.get_variables_by_attributes(standard_name = varname, mesh = meshname, location = location)
+        if len(var) == 0:
+            var = rootgrp.get_variables_by_attributes(long_name = varname, mesh = meshname, location = location)
+        if len(var) != 1:
+            raise Exception(
+                'Expected one variable for "{}", but obtained {}.'.format(varname, len(var))
+            )
+        var = var[0]
     dims = var.dimensions
-    # assume first dimension is 'time', and obtain last time step
-    data = var[-1, :]
+    if var.get_dims()[0].isunlimited():
+        # assume that time dimension is unlimited and is the first dimension
+        # slice to obtain last time step
+        data = var[-1, :]
+    else:
+        data = var[...] - start_index
     # close file
     rootgrp.close()
     # return data
     return data
+
+
+def get_mesh_and_facedim_names(filename):
+    # open file
+    rootgrp = netCDF4.Dataset(filename)
+    # locate 2d mesh variable
+    mesh2d = rootgrp.get_variables_by_attributes(cf_role = "mesh_topology", topology_dimension = 2)
+    if len(mesh2d) != 1:
+        raise Exception(
+            'Currently only one 2D mesh supported ... this file contains {} 2D meshes.'.format(len(mesh2d))
+    )
+    #
+    facenodeconnect_varname = mesh2d[0].face_node_connectivity
+    fnc = rootgrp.get_variables_by_attributes(name = facenodeconnect_varname)[0]
+    # default
+    facedim = fnc.dimensions[0]
+    return mesh2d[0].name, facedim
 
 
 def copy_ugrid(src, meshname: str, dst):
@@ -290,7 +340,7 @@ def copy_var(src, varname: str, dst):
     dstvar[:] = srcvar[:]
 
 
-def ugrid_add(dstfile: str, varname: str, ldata, meshname: str, facedim: str):
+def ugrid_add(dstfile: str, varname: str, ldata, meshname: str, facedim: str, long_name: str = "None", units: str = "None"):
     """Add a new variable defined at faces to an existing UGRID NetCDF file"""
     # open destination file
     dst = netCDF4.Dataset(dstfile, "a")
@@ -300,6 +350,10 @@ def ugrid_add(dstfile: str, varname: str, ldata, meshname: str, facedim: str):
     var = dst.createVariable(varname, "f8", (facedim,))
     var.mesh = meshname
     var.location = "face"
+    if long_name != "None":
+        var.long_name = long_name
+    if units != "None":
+        var.units = units
     var[:] = ldata[:]
     # close destination file
     dst.close()

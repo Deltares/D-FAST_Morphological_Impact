@@ -124,19 +124,19 @@ def interactive_get_discharges(rivers, ibranch, ireach):
     else:
         q_bankfull = 0
 
-    Q1, Q2, Q3 = dfastmi.kernel.char_discharges(
+    Q = dfastmi.kernel.char_discharges(
         q_levels, dq, q_threshold, q_bankfull
     )
 
     all_q = False
-    Q1 = check_discharge(1, Q1)
-    if not Q1 is None and not Q2 is None:
-        Q2 = check_discharge(2, Q2, stages[0], Q1)
-        if not Q2 is None and not Q3 is None:
-            Q3 = check_discharge(3, Q3, stages[1], Q2)
-            if not Q3 is None:
+    Q[0] = check_discharge(1, Q[0])
+    if not Q[0] is None and not Q[1] is None:
+        Q[1] = check_discharge(2, Q[1], stages[0], Q[0])
+        if not Q[1] is None and not Q[2] is None:
+            Q[2] = check_discharge(3, Q[2], stages[1], Q[1])
+            if not Q[2] is None:
                 all_q = True
-    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q1, Q2, Q3
+    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
 
 
 def batch_get_discharges(rivers, ibranch, ireach, config):
@@ -160,79 +160,139 @@ def batch_get_discharges(rivers, ibranch, ireach, config):
     else:
         q_bankfull = 0
 
-    Q1, Q2, Q3 = dfastmi.kernel.char_discharges(
+    Q = dfastmi.kernel.char_discharges(
         q_levels, dq, q_threshold, q_bankfull
     )
 
-    if not Q1 is None:
-        Q1 = float(config["Q1"]["Discharge"])
-    if not Q2 is None:
-        Q2 = float(config["Q2"]["Discharge"])
-    if not Q3 is None:
-        Q3 = float(config["Q3"]["Discharge"])
+    if not Q[0] is None:
+        Q[0] = float(config["Q1"]["Discharge"])
+    if not Q[1] is None:
+        Q[1] = float(config["Q2"]["Discharge"])
+    if not Q[2] is None:
+        Q[2] = float(config["Q3"]["Discharge"])
     all_q = True
-    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q1, Q2, Q3
+    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
 
 
-def analyse_and_report(report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q1, Q2, Q3, t1, t2, t3, nlength, ucrit):
+def get_filenames(mode, config = None):
+    if mode == 0:
+        filenames = []
+    else:
+        j = 0
+        filenames = [""]*6
+        for i in range(3):
+            QSTR = "Q{}".format(i + 1)
+            if QSTR in config:
+                filenames[j] = config[QSTR]["Reference"]
+                j += 1
+                filenames[j] = config[QSTR]["WithMeasure"]
+                j += 1
+            else:
+                j += 2
+    return filenames
+
+
+def analyse_and_report(mode, display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames):
+   if mode == 0:
+       return analyse_and_report_waqua(display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit)
+   else:
+       return analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames)
+
+
+def analyse_and_report_waqua(display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit):
     missing_data = False
-    if not Q1 is None:
+    if not Q[0] is None:
         dzq1, firstm, firstn = get_values(
-            1, Q1, ucrit, report, reduced_output, nargout=3
+            1, Q[0], ucrit, display, report, reduced_output, nargout=3
         )
         if dzq1 is None:
             missing_data = True
     else:
         dzq1 = 0
-    if not missing_data and not Q2 is None:
-        dzq2 = get_values(2, Q2, ucrit, report, reduced_output)
+    if not missing_data and not Q[1] is None:
+        dzq2 = get_values(2, Q[1], ucrit, display, report, reduced_output)
         if dzq2 is None:
             missing_data = True
     else:
         dzq2 = 0
-    if not missing_data and not Q3 is None:
-        dzq3 = get_values(3, Q3, ucrit, report, reduced_output)
+    if not missing_data and not Q[2] is None:
+        dzq3 = get_values(3, Q[2], ucrit, display, report, reduced_output)
         if dzq3 is None:
             missing_data = True
     else:
         dzq3 = 0
     
     if not missing_data:
-        log_text("char_bed_changes")
+        if display:
+            log_text("char_bed_changes")
         data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
-            dzq1, dzq2, dzq3, tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3
+            dzq1, dzq2, dzq3, tstag, T, rsigma
         )
 
         dfastmi.io.write_simona_box(getfilename("avgdzb.out"), data_zgem, firstm, firstn)
         dfastmi.io.write_simona_box(getfilename("maxdzb.out"), data_z1o, firstm, firstn)
         dfastmi.io.write_simona_box(getfilename("mindzb.out"), data_z2o, firstm, firstn)
 
-        log_text("")
-        log_text("length_estimate", dict={"nlength": nlength})
-        log_text("length_estimate", dict={"nlength": nlength}, file = report)
-        tdum = interactive_get_bool("confirm_to_close")
     return missing_data
 
 
-def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q1, Q2, Q3, t1, t2, t3, nlength):
+def analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames):
+    missing_data = False
+    if not Q[0] is None:
+        dzq1 = get_values_fm(1, Q[0], ucrit, report, filenames[0:2])
+        if dzq1 is None:
+            missing_data = True
+    else:
+        dzq1 = 0
+    if not missing_data and not Q[1] is None:
+        dzq2 = get_values_fm(2, Q[1], ucrit, report, filenames[2:4])
+        if dzq2 is None:
+            missing_data = True
+    else:
+        dzq2 = 0
+    if not missing_data and not Q[2] is None:
+        dzq3 = get_values_fm(3, Q[2], ucrit, report, filenames[4:6])
+        if dzq3 is None:
+            missing_data = True
+    else:
+        dzq3 = 0
+    
+    if not missing_data:
+        if display:
+            log_text("char_bed_changes")
+        data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
+            dzq1, dzq2, dzq3, tstag, T, rsigma
+        )
+
+        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(filenames[0])
+        dst = getfilename("netcdf.out")
+        dfastmi.io.copy_ugrid(filenames[0], meshname, dst)
+        dfastmi.io.ugrid_add(dst, "avgdzb", data_zgem, meshname, facedim, long_name = "year-averaged change without dredging", units = "m")
+        dfastmi.io.ugrid_add(dst, "maxdzb", data_z1o , meshname, facedim, long_name = "maximum change after flood without dredging", units = "m")
+        dfastmi.io.ugrid_add(dst, "mindzb", data_z2o , meshname, facedim, long_name = "minimum change after low flow without dredging", units = "m")
+
+    return missing_data
+
+
+def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, nlength):
     log_text("---")
-    nQ = countQ([Q1, Q2, Q3])
+    nQ = countQ(Q)
     if nQ == 1:
         log_text("need_single_input", dict={"reach": reach})
     else:
         log_text("need_multiple_input", dict={"reach": reach, "numq": nQ})
-    if not Q1 is None:
-        log_text("lowwater", dict={"border": q_location, "q": Q1})
-    if not Q2 is None:
-        log_text("transition", dict={"border": q_location, "q": Q2})
-    if not Q3 is None:
-        log_text("highwater", dict={"border": q_location, "q": Q3})
+    if not Q[0] is None:
+        log_text("lowwater", dict={"border": q_location, "q": Q[0]})
+    if not Q[1] is None:
+        log_text("transition", dict={"border": q_location, "q": Q[1]})
+    if not Q[2] is None:
+        log_text("highwater", dict={"border": q_location, "q": Q[2]})
     log_text("length_estimate", dict={"nlength": nlength})
     log_text("---")
     log_text("canclose")
     alldone = interactive_get_bool("confirm_or_repeat")
     if alldone:
-        write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, [Q1, Q2, Q3], [t1, t2, t3], nlength)
+        write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, nlength)
     else:
         log_text("", repeat=10)
         log_text("===", file = report)
@@ -255,7 +315,7 @@ def interactive_mode(rivers, reduced_output):
         while ibranch is None:
             ibranch, ireach = interactive_get_location(rivers)
         
-        all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q1, Q2, Q3 = interactive_get_discharges(rivers, ibranch, ireach)
+        all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q = interactive_get_discharges(rivers, ibranch, ireach)
         if not all_q:
             break
         
@@ -263,11 +323,11 @@ def interactive_mode(rivers, reduced_output):
         celerity_lw = rivers["proprate_low"][ibranch][ireach]
         nwidth = rivers["normal_width"][ibranch][ireach]
 
-        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi.kernel.char_times(
-            q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth
+        tstag, T, rsigma = dfastmi.kernel.char_times(
+            q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
         )
         nlength = dfastmi.kernel.estimate_sedimentation_length(
-            rsigma1, rsigma2, rsigma3, nwidth
+            rsigma, nwidth
         )
 
         reach = rivers["reaches"][ibranch][ireach]
@@ -286,10 +346,16 @@ def interactive_mode(rivers, reduced_output):
                     ucrit = ucritMin
 
             log_text("", repeat=19)
-            missing_data = analyse_and_report(report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q1, Q2, Q3, t1, t2, t3, nlength, ucrit)
+            filenames = get_filenames(0)
+            missing_data = analyse_and_report(0, True, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames)
+            if not missing_data:
+                log_text("")
+                log_text("length_estimate", dict={"nlength": nlength})
+                log_text("length_estimate", dict={"nlength": nlength}, file = report)
+                tdum = interactive_get_bool("confirm_to_close")
             alldone = True
         else:
-            alldone = write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q1, Q2, Q3, t1, t2, t3, nlength)
+            alldone = write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, nlength)
 
     log_text("end")
     log_text("end", file = report)
@@ -303,39 +369,49 @@ def batch_mode_core(rivers, reduced_output, config):
     log_text("header", dict={"version": version}, file = report)
     log_text("limits", file = report)
     log_text("===", file = report)
-    log_text("results_with_input", file = report, dict={"avgdzb": getfilename("avgdzb.out"), "maxdzb": getfilename("maxdzb.out"), "mindzb": getfilename("mindzb.out")})
 
     branch = config["General"]["Branch"]
     try:
         ibranch = rivers["branches"].index(branch)
     except:
-        raise("{} is not a valid branch!".format(branch))
-    
-    reach = config["General"]["Reach"]
-    try:
-        ireach = rivers["reaches"][ibranch].index(reach)
-    except:
-        raise("{} is not a valid reach!".format(reach))
+        log_text("invalid_branch", dict={"branch": branch}, file = report)
+        failed = True
+    else:
+        reach = config["General"]["Reach"]
+        try:
+            ireach = rivers["reaches"][ibranch].index(reach)
+        except:
+            log_text("invalid_reach", dict={"reach": reach, "branch": branch}, file = report)
+            failed = True
+        else:
+            all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q = batch_get_discharges(rivers, ibranch, ireach, config)
 
-    all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q1, Q2, Q3 = batch_get_discharges(rivers, ibranch, ireach, config)
+            celerity_hg = rivers["proprate_high"][ibranch][ireach]
+            celerity_lw = rivers["proprate_low"][ibranch][ireach]
+            nwidth = rivers["normal_width"][ibranch][ireach]
 
-    celerity_hg = rivers["proprate_high"][ibranch][ireach]
-    celerity_lw = rivers["proprate_low"][ibranch][ireach]
-    nwidth = rivers["normal_width"][ibranch][ireach]
+            tstag, T, rsigma = dfastmi.kernel.char_times(
+                q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
+            )
+            nlength = dfastmi.kernel.estimate_sedimentation_length(
+                rsigma, nwidth
+            )
 
-    tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi.kernel.char_times(
-        q_fit, q_stagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth
-    )
-    nlength = dfastmi.kernel.estimate_sedimentation_length(
-        rsigma1, rsigma2, rsigma3, nwidth
-    )
-
-    reach = rivers["reaches"][ibranch][ireach]
-    ucrit = rivers["ucritical"][ibranch][ireach]
-    missing_data = analyse_and_report(report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q1, Q2, Q3, t1, t2, t3, nlength, ucrit)
+            reach = rivers["reaches"][ibranch][ireach]
+            ucrit = rivers["ucritical"][ibranch][ireach]
+            if config["General"]["Mode"] == "WAQUA export":
+                mode = 0
+                log_text("results_with_input_waqua", file = report, dict={"avgdzb": getfilename("avgdzb.out"), "maxdzb": getfilename("maxdzb.out"), "mindzb": getfilename("mindzb.out")})
+            else:
+                mode = 1
+                log_text("results_with_input_dflowfm", file = report, dict={"netcdf": getfilename("netcdf.out")})
+            filenames = get_filenames(mode, config)
+            failed = analyse_and_report(mode, False, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames)
+            log_text("length_estimate", dict={"nlength": nlength}, file = report)
 
     log_text("end", file = report)
     report.close()
+    return failed
 
 
 def batch_mode(rivers, reduced_output, config_file):
@@ -377,31 +453,38 @@ def check_discharge(i, Q, pname="dummy", Qp=0):
     return Q
 
 
-def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
+def get_values(stage, q, ucrit, display, report, reduced_output, nargout=1):
     cblok = str(stage)
-    log_text("input_xyz", dict={"stage": stage, "q": q})
-    log_text("---")
-    log_text("")
+    if display:
+        log_text("input_xyz", dict={"stage": stage, "q": q})
+        log_text("---")
+        log_text("")
 
     discriptions = dfastmi.io.program_texts("file_descriptions")
     quantities = ["velocity-zeta.001", "waterdepth-zeta.001", "velocity-zeta.002"]
     files = []
     for i in range(3):
-        log_text("input_xyz_name", dict={"name": discriptions[i]})
+        if display:
+            log_text("input_xyz_name", dict={"name": discriptions[i]})
         cifil = "xyz_" + quantities[i] + ".Q" + cblok + ".xyz"
-        logging.info(cifil)
+        if display:
+            logging.info(cifil)
         if not os.path.isfile(cifil):
             log_text("file_not_found", dict={"name": cifil}, file = report)
+            log_text("end_program", file = report)
             if nargout == 3:
                 return None, None, None
             else:
                 return None
         else:
-            log_text("input_xyz_found", dict={"name": cifil})
+            if display:
+                log_text("input_xyz_found", dict={"name": cifil})
         files.extend([cifil])
-        log_text("")
+        if display:
+            log_text("")
 
-    log_text("input_xyz_read", dict={"stage": stage})
+    if display:
+        log_text("input_xyz_read", dict={"stage": stage})
     u0temp = dfastmi.io.read_waqua_xyz(files[0], cols=(2, 3, 4))
     m = u0temp[:, 1].astype(int) - 1
     n = u0temp[:, 2].astype(int) - 1
@@ -438,6 +521,38 @@ def get_values(stage, q, ucrit, report, reduced_output, nargout=1):
         return dzq, firstm, firstn
     else:
         return dzq
+
+
+def get_values_fm(stage, q, ucrit, report, filenames):
+    cblok = str(stage)
+
+    # reference file
+    if filenames[0] == "":
+        log_text("no_file_specified", dict={"q": q}, file = report)
+        log_text("end_program", file = report)
+        return None
+    elif not os.path.isfile(filenames[0]):
+        log_text("file_not_found", dict={"name": filenames[0]}, file = report)
+        log_text("end_program", file = report)
+        return None
+    else:
+        u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+        v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+        u0 = numpy.sqrt(u**2 + v**2)
+        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface")
+
+    # with measure
+    if not os.path.isfile(filenames[1]):
+        log_text("file_not_found", dict={"name": filenames[1]}, file = report)
+        log_text("end_program", file = report)
+        return None
+    else:
+        u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
+        v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
+        u1 = numpy.sqrt(u**2 + v**2)
+
+    dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+    return dzq
 
 
 def interactive_get_bool(key, dict={}):
@@ -596,9 +711,9 @@ def relative_path(rootdir, file):
     if file == "":
         return file
     else:
-        rootdir = os.path.dirname(rootfile)
         try:
-            return os.path.relpath(file, rootdir)
+            rfile = os.path.relpath(file, rootdir) 
+            return rfile
         except:
             return file
 
@@ -610,7 +725,7 @@ def config_to_relative_paths(filename, config):
         if QSTR in config:
             if "Reference" in config[QSTR]:
                 config[QSTR]["Reference"] = relative_path(rootdir, config[QSTR]["Reference"])
-            if "WithMeasures" in config[QSTR]:
+            if "WithMeasure" in config[QSTR]:
                 config[QSTR]["WithMeasure"] = relative_path(rootdir, config[QSTR]["WithMeasure"])
     return config
 

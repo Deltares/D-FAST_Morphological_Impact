@@ -39,9 +39,10 @@ import configparser
 from functools import partial
 
 
-def gui_text(key):
-    cstr = dfastmi.io.program_texts("gui_" + key)
-    return cstr[0]
+def gui_text(key, prefix = "gui_", dict = {}):
+    cstr = dfastmi.io.program_texts(prefix + key)
+    str = cstr[0].format(**dict)
+    return str
 
 
 def create_dialog():
@@ -227,34 +228,31 @@ def update_qvalues():
     try:
         qlevels = rivers["qlevels"][ibranch][ireach]
         dq = rivers["dq"][ibranch][ireach]
-        Q1, Q2, Q3 = dfastmi.kernel.char_discharges(qlevels, dq, qmin, qbf)
+        Q = dfastmi.kernel.char_discharges(qlevels, dq, qmin, qbf)
 
         qfit = rivers["qfit"][ibranch][ireach]
         qstagnant = rivers["qstagnant"][ibranch][ireach]
         celerity_hg = rivers["proprate_high"][ibranch][ireach]
         celerity_lw = rivers["proprate_low"][ibranch][ireach]
         nwidth = rivers["normal_width"][ibranch][ireach]
-        tstag, t1, t2, t3, rsigma1, rsigma2, rsigma3 = dfastmi.kernel.char_times(
-            qfit, qstagnant, Q1, Q2, Q3, celerity_hg, celerity_lw, nwidth
+        tstag, T, rsigma = dfastmi.kernel.char_times(
+            qfit, qstagnant, Q, celerity_hg, celerity_lw, nwidth
         )
         nlength = dfastmi.kernel.estimate_sedimentation_length(
-            rsigma1, rsigma2, rsigma3, nwidth
+            rsigma, nwidth
         )
         dialog["nlength"].setText(str(nlength))
     except:
-        Q1 = None
-        Q2 = None
-        Q3 = None
+        Q = [None]*3
         dialog["nlength"].setText("---")
 
     DFlowFM = dialog["mode"].currentIndex() == 1
-    for iq, Q in {"q1": Q1, "q2": Q2, "q3": Q3}.items():
-        
-        dialog[iq].setText(str(Q))
-        dialog[iq].setEnabled(not Q is None)
+    for iq, q in {"q1": Q[0], "q2": Q[1], "q3": Q[2]}.items():
+        dialog[iq].setText(str(q))
+        dialog[iq].setEnabled(not q is None)
         if DFlowFM:
-           dialog[iq + "file1"].setEnabled(not Q is None)
-           dialog[iq + "file2"].setEnabled(not Q is None)
+           dialog[iq + "file1"].setEnabled(not q is None)
+           dialog[iq + "file2"].setEnabled(not q is None)
 
 
 def openFileLayout(win, myWidget, key):
@@ -287,7 +285,7 @@ def close_dialog():
 def load_configuration(filename = None):
     if filename is None:
         fil = QtWidgets.QFileDialog.getOpenFileName(
-            caption=gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
+            caption = gui_text("select_cfg_file"), filter = "Config Files (*.cfg)"
         )
         filename = fil[0]
     if filename == "":
@@ -296,7 +294,7 @@ def load_configuration(filename = None):
     try:
         config = dfastmi.cli.load_configuration_file(filename)
     except:
-        showError(sys.exc_info()[1])
+        showError(gui_text("file_not_found", prefix = "", dict = {"name": filename}))
         return
 
     section = config["General"]
@@ -334,6 +332,15 @@ def load_configuration(filename = None):
 
 def menu_load_configuration(checked):
     load_configuration()
+
+
+def showMessage(message):
+    msg = QtWidgets.QMessageBox()
+    msg.setIcon(QtWidgets.QMessageBox.Information)
+    msg.setText(message)
+    msg.setWindowTitle("Error")
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.exec_()
 
 
 def showError(message):
@@ -386,7 +393,11 @@ def menu_save_configuration(checked):
 
 def run_analysis():
     config = get_configuration()
-    dfastmi.cli.batch_mode_core(rivers, False, config)
+    failed = dfastmi.cli.batch_mode_core(rivers, False, config)
+    if failed:
+        showError(gui_text("error_during_analysis", dict={"report": dfastmi.cli.getfilename("report.out")}))
+    else:
+        showMessage(gui_text("end_of_analysis", dict={"report": dfastmi.cli.getfilename("report.out")}))
 
 
 def menu_about_self():
