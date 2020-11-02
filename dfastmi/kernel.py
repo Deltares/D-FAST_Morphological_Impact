@@ -77,7 +77,7 @@ def char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth):
     if Q[1] is None:
         T[1] = 0
     else:
-        T[2] = math.exp((q_fit[0] - Q[0]) / q_fit[1]) - math.exp((q_fit[0] - Q[1]) / q_fit[1])
+        T[1] = math.exp((q_fit[0] - Q[0]) / q_fit[1]) - math.exp((q_fit[0] - Q[1]) / q_fit[1])
     T[2] = max(1 - T[0] - T[1] - t_stagnant, 0)  # math.exp((q_fit[0] - Q[1])/q_fit[1])
 
     rsigma = [1]*3
@@ -86,6 +86,11 @@ def char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth):
         rsigma[1] = math.exp(-500 * celerity_hg * T[1] / nwidth)
     if not Q[2] is None:
         rsigma[2] = math.exp(-500 * celerity_hg * T[2] / nwidth)
+
+    t_stagnant = int(365*t_stagnant)
+    T[0] = int(365*T[0])
+    T[1] = int(365*T[1])
+    T[2] = max(365 - T[0] - T[1] - t_stagnant, 0)
 
     return t_stagnant, T, rsigma
 

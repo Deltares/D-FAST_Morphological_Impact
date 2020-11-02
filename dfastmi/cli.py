@@ -50,11 +50,11 @@ def interactive_mode_opening(version, report):
     tdum = False
     while not tdum:
         log_text("query_input-available")
-        havefiles = interactive_get_bool("confirm_or")
+        have_files = interactive_get_bool("confirm_or")
 
         log_text("---")
-        if havefiles:
-            log_text("results_with_input", dict={"avgdzb": getfilename("avgdzb.out"), "maxdzb": getfilename("maxdzb.out"), "mindzb": getfilename("mindzb.out")})
+        if have_files:
+            log_text("results_with_input_waqua", dict={"avgdzb": getfilename("avgdzb.out"), "maxdzb": getfilename("maxdzb.out"), "mindzb": getfilename("mindzb.out")})
         else:
             log_text("results_without_input")
         log_text("---")
@@ -63,11 +63,11 @@ def interactive_mode_opening(version, report):
     log_text("header", dict={"version": version}, file = report)
     log_text("limits", file = report)
     log_text("===", file = report)
-    if havefiles:
+    if have_files:
         log_text("results_with_input", file = report, dict={"avgdzb": getfilename("avgdzb.out"), "maxdzb": getfilename("maxdzb.out"), "mindzb": getfilename("mindzb.out")})
     else:
         log_text("results_without_input", file = report)
-    return havefiles
+    return have_files
 
 
 def interactive_get_location(rivers):
@@ -89,7 +89,7 @@ def interactive_get_location(rivers):
         return None, None
 
 
-def interactive_get_discharges(rivers, ibranch, ireach):
+def interactive_get_discharges(rivers, ibranch, ireach, have_files):
     stages = dfastmi.io.program_texts("stage_descriptions")
 
     q_location = rivers["qlocations"][ibranch]
@@ -129,13 +129,14 @@ def interactive_get_discharges(rivers, ibranch, ireach):
     )
 
     all_q = False
-    Q[0] = check_discharge(1, Q[0])
-    if not Q[0] is None and not Q[1] is None:
-        Q[1] = check_discharge(2, Q[1], stages[0], Q[0])
-        if not Q[1] is None and not Q[2] is None:
-            Q[2] = check_discharge(3, Q[2], stages[1], Q[1])
-            if not Q[2] is None:
-                all_q = True
+    if have_files:
+        Q[0] = check_discharge(1, Q[0])
+        if not Q[0] is None and not Q[1] is None:
+            Q[1] = check_discharge(2, Q[1], stages[0], Q[0])
+            if not Q[1] is None and not Q[2] is None:
+                Q[2] = check_discharge(3, Q[2], stages[1], Q[1])
+                if not Q[2] is None:
+                    all_q = True
     return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
 
 
@@ -274,7 +275,7 @@ def analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, 
     return missing_data
 
 
-def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, nlength):
+def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, nlength):
     log_text("---")
     nQ = countQ(Q)
     if nQ == 1:
@@ -290,14 +291,14 @@ def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tsta
     log_text("length_estimate", dict={"nlength": nlength})
     log_text("---")
     log_text("canclose")
-    alldone = interactive_get_bool("confirm_or_repeat")
-    if alldone:
-        write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, nlength)
+    all_done = interactive_get_bool("confirm_or_repeat")
+    if all_done:
+        write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, nlength)
     else:
         log_text("", repeat=10)
         log_text("===", file = report)
         log_text("repeat_input", file = report)
-    return alldone
+    return all_done
 
 
 def interactive_mode(rivers, reduced_output):
@@ -307,16 +308,16 @@ def interactive_mode(rivers, reduced_output):
     report = open(getfilename("report.out"), "w")
     
     version = dfastmi.__version__
-    havefiles = interactive_mode_opening(version, report)
+    have_files = interactive_mode_opening(version, report)
 
-    alldone = False
-    while not alldone:
+    all_done = False
+    while not all_done:
         ibranch = None
         while ibranch is None:
             ibranch, ireach = interactive_get_location(rivers)
         
-        all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q = interactive_get_discharges(rivers, ibranch, ireach)
-        if not all_q:
+        all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q = interactive_get_discharges(rivers, ibranch, ireach, have_files)
+        if have_files and not all_q:
             break
         
         celerity_hg = rivers["proprate_high"][ibranch][ireach]
@@ -331,7 +332,7 @@ def interactive_mode(rivers, reduced_output):
         )
 
         reach = rivers["reaches"][ibranch][ireach]
-        if havefiles:
+        if have_files:
             # determine critical flow velocity
             ucrit = rivers["ucritical"][ibranch][ireach]
             ucritMin = 0.01
@@ -353,9 +354,9 @@ def interactive_mode(rivers, reduced_output):
                 log_text("length_estimate", dict={"nlength": nlength})
                 log_text("length_estimate", dict={"nlength": nlength}, file = report)
                 tdum = interactive_get_bool("confirm_to_close")
-            alldone = True
+            all_done = True
         else:
-            alldone = write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, nlength)
+            all_done = write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, nlength)
 
     log_text("end")
     log_text("end", file = report)
@@ -612,7 +613,7 @@ def log_text(key, file=None, dict={}, repeat=1):
                 file.write(s.format(**dict) + "\n")
 
 
-def write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, t, nlength):
+def write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, t, nlength):
      log_text("", file = report)
      log_text("reach", dict={"reach": reach}, file = report)
      log_text("", file = report)
@@ -630,7 +631,7 @@ def write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fi
      log_text("", file = report)
      if q_stagnant > q_fit[0]:
          log_text(
-             "closed_barriers", dict={"ndays": int(tstag * 365)}, file = report
+             "closed_barriers", dict={"ndays": tstag}, file = report
          )
          log_text("", file = report)
      for i in range(3):
@@ -641,7 +642,7 @@ def write_report(report, reach, q_location, q_threshold, q_bankfull, tstag, q_fi
                  file = report,
              )
              log_text(
-                 "char_period", dict={"n": i+1, "ndays": int(t[i] * 365)}, file = report
+                 "char_period", dict={"n": i+1, "ndays": t[i]}, file = report
              )
              if i < 2:
                  log_text("", file = report)
