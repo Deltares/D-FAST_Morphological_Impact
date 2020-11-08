@@ -27,6 +27,8 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from typing import Optional
+
 import logging
 import argparse
 import sys
@@ -38,7 +40,31 @@ import dfastmi.io
 import pathlib
 
 
-def parse_arguments():
+def parse_arguments() -> (bool, str, str, Optional[str]):
+    """
+    Parse the command line arguments.
+    
+    Arguments
+    ---------
+    None
+    
+    Raises
+    ------
+    Exception
+        If invalid language is specified.
+    
+    Returns
+    -------
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
+    language : str
+        Language identifier ("NL" or "UK").
+    runmode : str
+        Specification of the run mode ("BATCH", "CLI" or "GUI")
+    config_name : Optional[str]
+        Name of the configuration file (optional).
+    """
     parser = argparse.ArgumentParser(description = "D-FAST Morphological Impact.")
     parser.add_argument("--language", help = "display language 'NL' or 'UK' (UK is default)")
     parser.set_defaults(language = "UK")
@@ -89,5 +115,5 @@ if __name__ == "__main__":
             dfastmi.gui.main(rivers, config)
         else:
             raise Exception(
-                'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(language)
+                'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(runmode)
             )

@@ -27,6 +27,10 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from typing import Optional, List, Dict, Any
+from dfastmi.io import RiversObject, DFastMIConfig
+from dfastmi.kernel import QRuns
+
 import logging
 import sys
 import os
@@ -36,12 +40,44 @@ import dfastmi.kernel
 import configparser
 
 
-def getfilename(key):
+def getfilename(key: str) -> str:
+    """
+    Query the global dictionary of texts for a file name.
+    
+    The file name entries in the global dictionary have a prefix "filename_"
+    which will be added to the key by this routine.
+    
+    Arguments
+    ---------
+    key : str
+        The key string used to query the dictionary.
+        
+    Results
+    -------
+    filename : str
+        File name.
+    """
     filename = dfastmi.io.program_texts("filename_" + key)[0]
     return filename
 
 
-def interactive_mode_opening(version, report):
+def interactive_mode_opening(version: str, report) -> bool:
+    """
+    Interactive mode opening.
+    
+    Arguments
+    ---------
+    version : str
+        Version string.
+    report
+        
+    
+    Returns
+    -------
+    have_files : bool
+        Flag indicating whether the user specified that the simulation results
+        are available or not.
+    """
     log_text("header", dict={"version": version})
     tdum = interactive_get_bool("confirm")
 
@@ -70,7 +106,22 @@ def interactive_mode_opening(version, report):
     return have_files
 
 
-def interactive_get_location(rivers):
+def interactive_get_location(rivers: RiversObject) -> (Optional[int], Optional[int]):
+    """
+    Ask the user interactively for the branch and reach.
+    
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+        
+    Returns
+    -------
+    ibranch : Optional[int]
+        Number of selected branch (None if user cancels).
+    ireach : Optional[int]
+        Number of selected reach (None if user cancels).
+    """
     branches = rivers["branches"]
     reaches = rivers["reaches"]
 
@@ -89,11 +140,35 @@ def interactive_get_location(rivers):
         return None, None
 
 
-def interactive_get_discharges(rivers, ibranch, ireach, have_files):
+def interactive_get_discharges(rivers: RiversObject, ibranch: int, ireach: int, have_files: bool):
+    """
+    Get the simulation discharges in interactive mode.
+    
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    ibranch : int
+        Number of selected branch.
+    ireach : int
+        Number of selected reach.
+    have_files : bool
+        flag to indicate whether user specified that simulation results are
+        available.
+        
+    Results
+    -------
+    all_q : bool
+    q_location : int
+    q_threshold : int
+    q_bankfull : int
+    q_fit : 
+    q_stagnant : int
+    Q : QRuns
+    """
     stages = dfastmi.io.program_texts("stage_descriptions")
 
     q_location = rivers["qlocations"][ibranch]
-    q_border = rivers["qbankfull"][ibranch][ireach]
     q_stagnant = rivers["qstagnant"][ibranch][ireach]
     q_min = rivers["qmin"][ibranch][ireach]
     q_fit = rivers["qfit"][ibranch][ireach]
@@ -114,11 +189,11 @@ def interactive_get_discharges(rivers, ibranch, ireach, have_files):
     else:
         q_threshold = interactive_get_float("query_qthreshold", dict={"border": q_location})
 
-    if q_threshold is None or q_threshold < q_border:
-        log_text("query_flowing", dict={"qborder": int(q_border)})
+    if q_threshold is None or q_threshold < q_levels[1]:
+        log_text("query_flowing", dict={"qborder": int(q_levels[1])})
         tdum = interactive_get_bool("confirm_or")
         if tdum:
-            q_bankfull = q_border
+            q_bankfull = q_levels[1]
         else:
             q_bankfull = interactive_get_float("query_qbankfull")
     else:
@@ -140,11 +215,33 @@ def interactive_get_discharges(rivers, ibranch, ireach, have_files):
     return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
 
 
-def batch_get_discharges(rivers, ibranch, ireach, config):
+def batch_get_discharges(rivers: RiversObject, ibranch: int, ireach: int, config):
+    """
+    Get the simulation discharges in batch mode (no user interaction).
+    
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    ibranch : int
+        Number of selected branch.
+    ireach : int
+        Number of selected reach.
+    config
+        
+    Results
+    -------
+    all_q : bool
+    q_location : int
+    q_threshold : int
+    q_bankfull : int
+    q_fit : 
+    q_stagnant : int
+    Q : QRuns
+    """
     stages = dfastmi.io.program_texts("stage_descriptions")
 
     q_location = rivers["qlocations"][ibranch]
-    q_border = rivers["qbankfull"][ibranch][ireach]
     q_stagnant = rivers["qstagnant"][ibranch][ireach]
     q_fit = rivers["qfit"][ibranch][ireach]
     q_levels = rivers["qlevels"][ibranch][ireach]
@@ -156,7 +253,7 @@ def batch_get_discharges(rivers, ibranch, ireach, config):
     except:
         q_threshold = None
 
-    if q_threshold is None or q_threshold < q_border:
+    if q_threshold is None or q_threshold < q_levels[1]:
         q_bankfull = float(config["General"]["Qbankfull"])
     else:
         q_bankfull = 0
@@ -175,8 +272,23 @@ def batch_get_discharges(rivers, ibranch, ireach, config):
     return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
 
 
-def get_filenames(mode, config = None):
-    if mode == 0:
+def get_filenames(imode: int, config: Optional[DFastMIConfig] = None) -> List[str]:
+    """
+    Extract the list of six file names from the configuration.
+    
+    Arguments
+    ---------
+    imode : int
+        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+    config : Optional[DFastMIConfig]
+        The variable containing the configuration (may be None for imode = 0).
+        
+    Returns
+    -------
+    filenames : List[str]
+        List of six strings representing the D-Flow FM file names.
+    """
+    if imode == 0:
         filenames = []
     else:
         j = 0
@@ -193,17 +305,100 @@ def get_filenames(mode, config = None):
     return filenames
 
 
-def analyse_and_report(mode, display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames):
-   if mode == 0:
-       return analyse_and_report_waqua(display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit)
-   else:
-       return analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames)
+def analyse_and_report(imode: int, display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames):
+    """
+    Perform analysis for any model.
+    
+    Depending on the mode select the appropriate analysis runner.
+    
+    Arguments
+    ---------
+    imode : int
+        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+    display :
+        ...
+    report :
+        ...
+    reach : str
+        Name of the reach.
+    q_location : str
+        Name of the location at which the discharge is 
+    q_threshold : float
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
+    tstag : int
+        Number of days that the river is stagnant.
+    q_fit : 
+        TODO
+    Q : QRuns
+        List of (at most) three characteristic discharges.
+    T :
+        Number of days represented by each characteristic discharge.
+    rsigma : 
+        ...
+    nlength : int
+        ...
+    ucrit : float
+        Critical flow velocity [m/s].
+        
+    Returns
+    -------
+    missing_data : bool
+        Flag indicating whether analysis couldn't be carried out due to missing
+        data.
+    """
+    if imode == 0:
+        return analyse_and_report_waqua(display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit)
+    else:
+        return analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames)
 
 
 def analyse_and_report_waqua(display, report, reduced_output, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit):
+    """
+    Perform analysis based on WAQUA data.
+    
+    Read data from samples files exported from WAQUA simulations, perform
+    analysis and write the results to three SIMONA boxfiles.
+    
+    Arguments
+    ---------
+    display :
+        ...
+    report :
+        ...
+    reach : str
+        Name of the reach.
+    q_location : str
+        Name of the location at which the discharge is 
+    q_threshold : float
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
+    tstag : int
+        Number of days that the river is stagnant.
+    q_fit : 
+        TODO
+    Q : QRuns
+        List of (at most) three characteristic discharges.
+    T :
+        Number of days represented by each characteristic discharge.
+    rsigma : 
+        ...
+    nlength : int
+        ...
+    ucrit : float
+        Critical flow velocity [m/s].
+        
+    Returns
+    -------
+    missing_data : bool
+        Flag indicating whether analysis couldn't be carried out due to missing
+        data.
+    """
     missing_data = False
     if not Q[0] is None:
-        dzq1, firstm, firstn = get_values(
+        dzq1, firstm, firstn = get_values_waqua3(
             1, Q[0], ucrit, display, report, reduced_output, nargout=3
         )
         if dzq1 is None:
@@ -211,13 +406,13 @@ def analyse_and_report_waqua(display, report, reduced_output, reach, q_location,
     else:
         dzq1 = 0
     if not missing_data and not Q[1] is None:
-        dzq2 = get_values(2, Q[1], ucrit, display, report, reduced_output)
+        dzq2 = get_values_waqua1(2, Q[1], ucrit, display, report, reduced_output)
         if dzq2 is None:
             missing_data = True
     else:
         dzq2 = 0
     if not missing_data and not Q[2] is None:
-        dzq3 = get_values(3, Q[2], ucrit, display, report, reduced_output)
+        dzq3 = get_values_waqua1(3, Q[2], ucrit, display, report, reduced_output)
         if dzq3 is None:
             missing_data = True
     else:
@@ -238,6 +433,49 @@ def analyse_and_report_waqua(display, report, reduced_output, reach, q_location,
 
 
 def analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, q_bankfull, tstag, q_fit, Q, T, rsigma, nlength, ucrit, filenames):
+    """
+    Perform analysis based on D-Flow FM data.
+    
+    Read data from D-Flow FM output files, perform analysis and write the results
+    to a netCDF UGRID file similar to D-Flow FM.
+    
+    Arguments
+    ---------
+    display :
+        ...
+    report :
+        ...
+    reach : str
+        Name of the reach.
+    q_location : str
+        Name of the location at which the discharge is 
+    q_threshold : float
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
+    tstag : int
+        Number of days that the river is stagnant.
+    q_fit : 
+        TODO
+    Q : QRuns
+        List of (at most) three characteristic discharges.
+    T :
+        Number of days represented by each characteristic discharge.
+    rsigma : 
+        ...
+    nlength : int
+        ...
+    ucrit : float
+        Critical flow velocity [m/s].
+    filenames : ...
+        ...
+        
+    Returns
+    -------
+    missing_data : bool
+        Flag indicating whether analysis couldn't be carried out due to missing
+        data.
+    """
     missing_data = False
     if not Q[0] is None:
         dzq1 = get_values_fm(1, Q[0], ucrit, report, filenames[0:2])
@@ -275,7 +513,38 @@ def analyse_and_report_dflowfm(display, report, reach, q_location, q_threshold, 
     return missing_data
 
 
-def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, nlength):
+def write_report_nodata(report, reach: str, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, nlength) -> bool:
+    """
+    Write the screen log and report file if simulation input is not yet available.
+    
+    Arguments
+    ---------
+    report : 
+    reach : str
+        Name of the reach.
+    q_location : str
+        Name of the location at which the discharge is 
+    q_threshold : float
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
+    q_stagnant : float
+        River discharge below which the flow is stagnant.
+    tstag : int
+        Number of days that the river is stagnant.
+    q_fit : 
+        TODO
+    Q : QRuns
+        List of (at most) three characteristic discharges.
+    T :
+        Number of days represented by each characteristic discharge.
+    nlength : int
+    
+    Returns
+    -------
+    all_done : bool
+        ...
+    """
     log_text("---")
     nQ = countQ(Q)
     if nQ == 1:
@@ -301,7 +570,20 @@ def write_report_nodata(report, reach, q_location, q_threshold, q_bankfull, q_st
     return all_done
 
 
-def interactive_mode(rivers, reduced_output):
+def interactive_mode(rivers: RiversObject, reduced_output: bool) -> None:
+    """
+    Run the analysis in interactive mode.
+    
+    The interactive mode works only for WAQUA simulations.
+    
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
+    """
     if reduced_output:
         log_text("reduce_output")
 
@@ -363,7 +645,25 @@ def interactive_mode(rivers, reduced_output):
     report.close()
 
 
-def batch_mode_core(rivers, reduced_output, config):
+def batch_mode_core(rivers: RiversObject, reduced_output: bool, config: DFastMIConfig) -> bool:
+    """
+    Run the analysis for a given configuration in batch mode.
+    
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
+    config : DFastMIConfig
+        Configuration of the analysis to be run.
+        
+    Return
+    ------
+    success : bool
+        Flag indicating whether the analysis could be completed successfully.
+    """
     report = open(getfilename("report.out"), "w")
 
     version = dfastmi.__version__
@@ -415,7 +715,22 @@ def batch_mode_core(rivers, reduced_output, config):
     return failed
 
 
-def batch_mode(rivers, reduced_output, config_file):
+def batch_mode(rivers: RiversObject, reduced_output: bool, config_file: str) -> None:
+    """
+    Run the program in batch mode.
+    
+    Load the configuration file and run the analysis.
+    
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
+    config_file
+        Name of the configuration file.
+    """
     if reduced_output:
         log_text("reduce_output")
     
@@ -427,11 +742,43 @@ def batch_mode(rivers, reduced_output, config_file):
         batch_mode_core(rivers, reduced_output, config_file)
 
 
-def countQ(Q):
+def countQ(Q: QRuns) -> int:
+    """
+    Count the number of non-empty discharges.
+    
+    Arguments
+    ---------
+    Q : 
+         Characteristic discharges.
+    
+    Returns
+    -------
+    n : int
+    	Number of non-empty discharges.
+    """
     return sum([not q is None for q in Q])
 
 
-def check_discharge(i, Q, pname="dummy", Qp=0):
+def check_discharge(i: int, Q: float, pname: str = "dummy", Qp: float = 0) -> float:
+    """
+    Interactively request discharge for which simulation results are available.
+    
+    Arguments
+    ---------
+    i : int
+        Discharge level (1, 2 or 3).
+    Q : float
+        Proposed discharge.
+    pname : str
+        Name of previous discharge level.
+    Qp : float
+        Previous discharge.
+
+    Returns
+    -------
+    Q : float
+        Final discharge.
+    """
     log_text("")
     log_text("input_avail", dict={"i": i, "q": Q})
     tdum = interactive_get_bool("confirm_or")
@@ -454,7 +801,62 @@ def check_discharge(i, Q, pname="dummy", Qp=0):
     return Q
 
 
-def get_values(stage, q, ucrit, display, report, reduced_output, nargout=1):
+def get_values_waqua1(stage: int, q: float, ucrit: float, display: bool, report, reduced_output: bool):
+    """
+    Read data files exported from WAQUA for the specified stage, and return dzq.
+    
+    Arguments
+    ---------
+    stage : int
+        Discharge level (1, 2 or 3).
+    q : float
+        Discharge value.
+    ucrit : float
+        Critical flow velocity.
+    display : bool
+        Flag indicating text output to stdout.
+    report :
+        Report file.
+    reduced_output : bool
+        Flag indicating whether output should be reduced.
+
+    Returns
+    -------
+    dzq : 
+        Array containing ....
+    """
+    dzq, firstm, firstn = get_values_waqua3(stage, q, ucrit, display, report, reduced_output)
+    return dzq
+
+
+def get_values_waqua3(stage: int, q: float, ucrit: float, display: bool, report, reduced_output: bool):
+    """
+    Read data files exported from WAQUA for the specified stage, and return dzq and minimum M and N.
+    
+    Arguments
+    ---------
+    stage : int
+        Discharge level (1, 2 or 3).
+    q : float
+        Discharge value.
+    ucrit : float
+        Critical flow velocity.
+    display : bool
+        Flag indicating text output to stdout.
+    report :
+        Report file.
+    reduced_output : bool
+        Flag indicating whether output should be reduced.
+        
+    Returns
+    -------
+    dzq : 
+        Array containing ....
+    firstm : int
+        Minimum M index read (0 if reduced_output is False).
+    firstn : int
+        Minimum N index read (0 if reduced_output is False).
+    """
     cblok = str(stage)
     if display:
         log_text("input_xyz", dict={"stage": stage, "q": q})
@@ -473,10 +875,7 @@ def get_values(stage, q, ucrit, display, report, reduced_output, nargout=1):
         if not os.path.isfile(cifil):
             log_text("file_not_found", dict={"name": cifil}, file = report)
             log_text("end_program", file = report)
-            if nargout == 3:
-                return None, None, None
-            else:
-                return None
+            return None, None, None
         else:
             if display:
                 log_text("input_xyz_found", dict={"name": cifil})
@@ -518,13 +917,31 @@ def get_values(stage, q, ucrit, display, report, reduced_output, nargout=1):
 
     dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
     log_text("---")
-    if nargout == 3:
-        return dzq, firstm, firstn
-    else:
-        return dzq
+    return dzq, firstm, firstn
 
 
-def get_values_fm(stage, q, ucrit, report, filenames):
+def get_values_fm(stage: int, q: float, ucrit: float, report, filenames: ):
+    """
+    Read D-Flow FM data files for the specified stage, and return dzq.
+    
+    Arguments
+    ---------
+    stage : int
+        Discharge level (1, 2 or 3).
+    q : float
+        Discharge value.
+    ucrit : float
+        Critical flow velocity.
+    report :
+        Report file.
+    filenames : Tuple[str, str]
+        Names of the reference simulation file and file with the implemented measure.
+        
+    Returns
+    -------
+    dzq : 
+        Array containing ....
+    """
     cblok = str(stage)
 
     # reference file
@@ -556,7 +973,22 @@ def get_values_fm(stage, q, ucrit, report, filenames):
     return dzq
 
 
-def interactive_get_bool(key, dict={}):
+def interactive_get_bool(key: str, dict: Dict[str, Any] = {}) -> bool:
+    """
+    Interactively get a boolean from the user.
+    
+    Arguments
+    ---------
+    key : str
+        The key for the text to show to the user.
+    dict : Dict[str, Any]
+        A dictionary used for placeholder expansions (default empty).
+        
+    Returns
+    -------
+    val : bool
+        The boolean entered by the user (True if the user entered "j" or "y", False otherwise).
+    """
     log_text(key, dict=dict)
     str = sys.stdin.readline().lower()
     bool = str == "j\n" or str == "y\n"
@@ -567,7 +999,22 @@ def interactive_get_bool(key, dict={}):
     return bool
 
 
-def interactive_get_int(key, dict={}):
+def interactive_get_int(key: str, dict: Dict[str, Any] = {}) -> Optional[int]:
+    """
+    Interactively get an integer from the user.
+    
+    Arguments
+    ---------
+    key : str
+        The key for the text to show to the user.
+    dict : Dict[str, Any]
+        A dictionary used for placeholder expansions (default empty).
+        
+    Returns
+    -------
+    val : Optional[int]
+        The integer entered by the user (None if the string entered by the user can't be converted to an integer).
+    """
     log_text(key, dict=dict)
     str = sys.stdin.readline()
     logging.info(str)
@@ -578,7 +1025,22 @@ def interactive_get_int(key, dict={}):
     return val
 
 
-def interactive_get_float(key, dict={}):
+def interactive_get_float(key: str, dict: Dict[str, Any] = {}) -> float:
+    """
+    Interactively get a floating point value from the user.
+    
+    Arguments
+    ---------
+    key : str
+        The key for the text to show to the user.
+    dict : Dict[str, Any]
+        A dictionary used for placeholder expansions (default empty).
+        
+    Returns
+    -------
+    val : Optional[float]
+        The floating point value entered by the user (None if the string entered by the user can't be converted to a floating point value).
+    """
     log_text(key, dict=dict)
     str = sys.stdin.readline()
     logging.info(str)
@@ -589,7 +1051,22 @@ def interactive_get_float(key, dict={}):
     return val
 
 
-def interactive_get_item(type, list):
+def interactive_get_item(type: str, list) -> Optional[int]:
+    """
+    Interactively get an item from the user.
+    
+    Arguments
+    ---------
+    type : str
+        The type of the items to select from.
+    list : List[str]
+        A list of items.
+        
+    Returns
+    -------
+    val : Optional[int]
+        The integer index of the item selected by the user (None if interactive_get_int returns None).
+    """
     i = 0
     nitems = len(list)
     while i < 1 or i > nitems:
@@ -602,7 +1079,25 @@ def interactive_get_item(type, list):
     return i - 1
 
 
-def log_text(key, file=None, dict={}, repeat=1):
+def log_text(key: str, file=None, dict: Dict[str, Any] = {}, repeat: int = 1) -> None:
+    """
+    Write a text to standard out or file.
+    
+    Arguments
+    ---------
+    key : str
+        The key for the text to show to the user.
+    file : Optional[]
+        The file to write to (None for writing to standard out).
+    dict : Dict[str, Any]
+        A dictionary used for placeholder expansions (default empty).
+    repeat : int
+        The number of times that the same text should be repeated (default 1).
+        
+    Returns
+    -------
+    None
+    """
     str = dfastmi.io.program_texts(key)
     for r in range(repeat):
         if file is None:
@@ -613,61 +1108,108 @@ def log_text(key, file=None, dict={}, repeat=1):
                 file.write(s.format(**dict) + "\n")
 
 
-def write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, t, nlength):
-     log_text("", file = report)
-     log_text("reach", dict={"reach": reach}, file = report)
-     log_text("", file = report)
-     if not q_threshold is None:
-         log_text(
-             "report_qthreshold",
-             dict={"q": q_threshold, "border": q_location},
-             file = report,
-         )
-     log_text(
-         "report_qbankfull",
-         dict={"q": q_bankfull, "border": q_location},
-         file = report,
-     )
-     log_text("", file = report)
-     if q_stagnant > q_fit[0]:
-         log_text(
-             "closed_barriers", dict={"ndays": tstag}, file = report
-         )
-         log_text("", file = report)
-     for i in range(3):
-         if not Q[i] is None:
-             log_text(
-                 "char_discharge",
-                 dict={"n": i+1, "q": Q[i], "border": q_location},
-                 file = report,
-             )
-             log_text(
-                 "char_period", dict={"n": i+1, "ndays": t[i]}, file = report
-             )
-             if i < 2:
-                 log_text("", file = report)
-             else:
-                 log_text("---", file = report)
-     nQ = countQ(Q)
-     if nQ == 1:
-         log_text("need_single_input", dict={"reach": reach}, file = report)
-     else:
-         log_text(
-             "need_multiple_input",
-             dict={"reach": reach, "numq": nQ},
-             file = report,
-         )
-     for i in range(3):
-         if not Q[i] is None:
-             log_text(
-                 stagename(i), dict={"q": Q[i], "border": q_location}, file = report
-             )
-     log_text("---", file = report)
-     log_text("length_estimate", dict={"nlength": nlength}, file = report)
-     log_text("prepare_input", file = report)
+def write_report(report, reach: str, q_location: str, q_threshold: Optional[float], q_bankfull: float, q_stagnant: float, tstag: int, q_fit: Tuple[float, float], Q: Tuple[float, float, float], t: Tuple[int, int, int], nlength: float) -> None:
+    """
+    Write the analysis report to file.
+    
+    Arguments
+    ---------
+    report : 
+        Report file.
+    reach : str
+        The name of the selected reach.
+    q_location : str
+        The name of the discharge location.
+    q_threshold : Optional[float]
+        The discharge below which the measure is not flow-carrying (None if always flowing above 1000 m3/s or when barriers are opened).
+    q_bankull : float
+        The discharge at which the measure is bankfull.
+    q_stagnant : float
+        The discharge below which flow velocity is negligible.
+    tstag : int
+        The number of days during which the flow velocity is negligible.
+    q_fit : Tuple[float, float]
+        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
+    Q : Tuple[float, float, float]
+        A tuple of 3 discharges for which simulation results are (expected to be) available.
+    t : Tuple[int, int, int]
+        A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
+    nlength : float
+        The expected yearly impacted length.
+        
+    Returns
+    -------
+    None
+    """
+    log_text("", file = report)
+    log_text("reach", dict={"reach": reach}, file = report)
+    log_text("", file = report)
+    if not q_threshold is None:
+        log_text(
+            "report_qthreshold",
+            dict={"q": q_threshold, "border": q_location},
+            file = report,
+        )
+    log_text(
+        "report_qbankfull",
+        dict={"q": q_bankfull, "border": q_location},
+        file = report,
+    )
+    log_text("", file = report)
+    if q_stagnant > q_fit[0]:
+        log_text(
+            "closed_barriers", dict={"ndays": tstag}, file = report
+        )
+        log_text("", file = report)
+    for i in range(3):
+        if not Q[i] is None:
+            log_text(
+                "char_discharge",
+                dict={"n": i+1, "q": Q[i], "border": q_location},
+                file = report,
+            )
+            log_text(
+                "char_period", dict={"n": i+1, "ndays": t[i]}, file = report
+            )
+            if i < 2:
+                log_text("", file = report)
+            else:
+                log_text("---", file = report)
+    nQ = countQ(Q)
+    if nQ == 1:
+        log_text("need_single_input", dict={"reach": reach}, file = report)
+    else:
+        log_text(
+            "need_multiple_input",
+            dict={"reach": reach, "numq": nQ},
+            file = report,
+        )
+    for i in range(3):
+        if not Q[i] is None:
+            log_text(
+                stagename(i), dict={"q": Q[i], "border": q_location}, file = report
+            )
+    log_text("---", file = report)
+    log_text("length_estimate", dict={"nlength": nlength}, file = report)
+    log_text("prepare_input", file = report)
 
 
-def absolute_path(rootdir, file):
+def absolute_path(rootdir: str, file: str) -> str:
+    """
+    Convert a relative path to an absolute path.
+    
+    Arguments
+    ---------
+    rootdir : str
+        Any relative paths should be given relative to this location.
+    file : str
+        A relative or absolute location.
+        
+    Returns
+    -------
+    afile : str
+        An absolute location.
+    """
     if file == "":
         return file
     else:
@@ -677,7 +1219,22 @@ def absolute_path(rootdir, file):
             return file
 
 
-def config_to_absolute_paths(filename, config):
+def config_to_absolute_paths(filename: str, config: configparser.ConfigParser) -> configparser.ConfigParser:
+    """
+    Convert a configuration object to contain absolute paths (for editing).
+    
+    Arguments
+    ---------
+    filename : str
+        The name of the file: all relative paths in the configuration will be assumed relative to this.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with absolute or relative paths.
+    
+    Returns
+    -------
+    aconfig : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
+    """
     rootdir = os.path.dirname(filename)
     for q in range(3):
         QSTR = "Q{}".format(q + 1)
@@ -689,7 +1246,26 @@ def config_to_absolute_paths(filename, config):
     return config
 
 
-def load_configuration_file(filename = None):
+def load_configuration_file(filename: str) -> configparser.ConfigParser:
+    """
+    Open a configuration file and return a configuration object with absolute paths.
+    
+    Arguments
+    ---------
+    filename : str
+        The name of the file: all relative paths in the configuration will be assumed relative to this.
+    
+    Raises
+    ------
+    Exception
+        If the configuration file does not include version information.
+        If the version number in the configuration file is not equal to 1.0.
+    
+    Returns
+    -------
+    aconfig : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
+    """
     config = configparser.ConfigParser()
     with open(filename, "r") as configfile:
         config.read_file(configfile)
@@ -708,7 +1284,22 @@ def load_configuration_file(filename = None):
     return config_to_absolute_paths(filename, config)
 
 
-def relative_path(rootdir, file):
+def relative_path(rootdir: str, file: str) -> str:
+    """
+    Convert an absolute path to a relative path.
+    
+    Arguments
+    ---------
+    rootdir : str
+        Any relative paths will be given relative to this location.
+    file : str
+        An absolute location.
+        
+    Returns
+    -------
+    rfile : str
+        An absolute or relative location (relative only if it's on the same drive as rootdir).
+    """
     if file == "":
         return file
     else:
@@ -719,7 +1310,22 @@ def relative_path(rootdir, file):
             return file
 
 
-def config_to_relative_paths(filename, config):
+def config_to_relative_paths(filename: str, config: configparser.ConfigParser) -> configparser.ConfigParser:
+    """
+    Convert a configuration object to contain relative paths (for saving).
+    
+    Arguments
+    ---------
+    filename : str
+        The name of the file: all paths will be defined relative to this.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
+    
+    Returns
+    -------
+    rconfig : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
+    """
     rootdir = os.path.dirname(filename)
     for q in range(3):
         QSTR = "Q{}".format(q + 1)
@@ -732,10 +1338,37 @@ def config_to_relative_paths(filename, config):
 
 
 def save_configuration_file(filename: str, config):
+    """
+    Convert a configuration to relative paths and save to file.
+    
+    Arguments
+    ---------
+    filename : str
+        The name of the configuration file to be saved.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis to be saved.
+    
+    Returns
+    -------
+    None
+    """
     config = config_to_relative_paths(filename, config)
     dfastmi.io.write_config(filename, config)
 
 
-def stagename(i):
+def stagename(i: int) -> str:
+    """
+    Code name of the discharge level.
+    
+    Arguments
+    ---------
+    i : int
+        Integer level specification.
+    
+    Returns
+    -------
+    name : str
+        Name of the discharge level.
+    """
     stagenames = ["lowwater", "transition", "highwater"]
     return stagenames[i]

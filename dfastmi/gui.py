@@ -27,6 +27,9 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from typing import Dict, Any, Optional
+from dfastmi.io import RiversObject
+
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
 import dfastmi.cli
@@ -38,14 +41,51 @@ import os
 import configparser
 from functools import partial
 
+DialogObject = Dict[str, PyQt5.QtCore.QObject]
 
-def gui_text(key, prefix = "gui_", dict = {}):
+rivers: RiversObject
+dialog: DialogObject
+
+def gui_text(key: str, prefix: str = "gui_", dict: Dict[str, Any] = {}):
+    """
+    Query the global dictionary of texts for a single string in the GUI.
+    
+    This routine concatenates the prefix and the key to query the global
+    dictionary of texts. It selects the first line of the text obtained and
+    expands and placeholders in the string using the optional dictionary
+    provided.
+    
+    Arguments
+    ---------
+    key : str
+        The key string used to query the dictionary (extended with prefix).
+    prefix : str
+        The prefix used in combination with the key (default "gui_").
+    dict : Dict[str, Any]
+        A dictionary used for placeholder expansions (default empty).
+        
+    Returns
+    -------
+        The first line of the text in the dictionary expanded with the keys.
+    """
     cstr = dfastmi.io.program_texts(prefix + key)
     str = cstr[0].format(**dict)
     return str
 
 
-def create_dialog():
+def create_dialog() -> DialogObject:
+    """
+    Construct the D-FAST Morphological Impact user interface.
+    
+    Arguments
+    ---------
+    None
+    
+    Returns
+    -------
+    dialog: DialogObject
+        A dictionary giving access to the QtWidgets by name.
+    """
     global rivers
     global dialog
     dialog = {}
@@ -107,20 +147,33 @@ def create_dialog():
 
     # stroomvoerend bij getrokken stuwen?
     # stroomvoerend vanaf qmin?
-    qmin = QtWidgets.QLineEdit(win)
-    qmin.setValidator(PyQt5.QtGui.QDoubleValidator())
-    qmin.editingFinished.connect(updated_qmin_or_qbf)
-    qmin.setToolTip(gui_text("qmin_tooltip"))
+    qmin = QtWidgets.QCheckBox("", win)
+    qmin.setToolTip(gui_text("qmin1_tooltip"))
+    qmin.setChecked(True)
+    qmin.stateChanged.connect(update_qvalues)
+    qmintxt = QtWidgets.QLabel(gui_text("qmin1"), win)
     dialog["qmin"] = qmin
-    layout.addRow(gui_text("qmin"), qmin)
+    dialog["qmin_txt"] = qmintxt
+    layout.addRow(qmintxt, qmin)
+
+    qthr = QtWidgets.QLineEdit(win)
+    qthr.setValidator(PyQt5.QtGui.QDoubleValidator())
+    qthr.editingFinished.connect(update_qvalues)
+    qthr.setToolTip(gui_text("qthr_tooltip"))
+    qthrtxt = QtWidgets.QLabel(gui_text("qthr"), win)
+    dialog["qthr"] = qthr
+    dialog["qthr_txt"] = qthrtxt
+    layout.addRow(qthrtxt, qthr)
 
     # bankvullend vanaf qbank?
     qbf = QtWidgets.QLineEdit(win)
     qbf.setValidator(PyQt5.QtGui.QDoubleValidator())
-    qbf.editingFinished.connect(updated_qmin_or_qbf)
+    qbf.editingFinished.connect(update_qvalues)
     qbf.setToolTip(gui_text("qbf_tooltip"))
+    qbftxt = QtWidgets.QLabel(gui_text("qbf"), win)
     dialog["qbf"] = qbf
-    layout.addRow(gui_text("qbf"), qbf)
+    dialog["qbf_txt"] = qbftxt
+    layout.addRow(qbftxt, qbf)
 
     for q in range(3):
         qstr = "q{}".format(q+1)
@@ -171,14 +224,34 @@ def create_dialog():
     return dialog
 
 
-def activate_dialog(dialog):
+def activate_dialog(dialog: DialogObject) -> None:
+    """
+    Activate the user interface and run the program.
+    
+    Arguments
+    ---------
+    dialog : DialogObject
+        A dictionary giving access to the QtWidgets by name.
+    """
     app = dialog["application"]
     win = dialog["window"]
     win.show()
     sys.exit(app.exec_())
 
 
-def updated_mode(imode):
+def updated_mode(imode: int) -> None:
+    """
+    Adjust the GUI for updated run mode selection.
+    
+    When in WAQUA mode (imode = 0) the file names are predefined and the user
+    doesn't have to specify anything. When in D-Flow FM mode (imode = 1) the
+    user has to specify the names of the six D-Flow FM map files.   
+    
+    Arguments
+    ---------
+    imode : int
+        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+    """
     # enable file selection if imode == 1 (D-Flow FM map)
     DFlowFM = imode==1
     for q in range(3):
@@ -189,7 +262,15 @@ def updated_mode(imode):
             dialog[qstr + "_openfile"].setEnabled(DFlowFM)
 
 
-def updated_branch(ibranch):
+def updated_branch(ibranch: int) -> None:
+    """
+    Adjust the GUI for updated branch selection.
+    
+    Arguments
+    ---------
+    ibranch : int
+        Newly selected branch number.
+    """
     reach = dialog["reach"]
     reach.clear()
     reach.addItems(rivers["reaches"][ibranch])
@@ -197,46 +278,90 @@ def updated_branch(ibranch):
     dialog["qloc"].setText(rivers["qlocations"][ibranch])
 
 
-def updated_reach(ireach):
+def updated_reach(ireach: int) -> None:
+    """
+    Adjust the GUI for updated reach selection.
+    
+    Arguments
+    ---------
+    ireach : int
+        Newly selected reach number.
+    """
     ibranch = dialog["branch"].currentIndex()
-    dialog["qmin"].setText(str(rivers["qmin"][ibranch][ireach]))
+    
+    dialog["qthr"].setText(str(rivers["qmin"][ibranch][ireach]))
     dialog["qbf"].setText(str(rivers["qbankfull"][ibranch][ireach]))
     dialog["ucrit"].setText(str(rivers["ucritical"][ibranch][ireach]))
     update_qvalues()
 
 
-def updated_qmin_or_qbf():
-    update_qvalues()
-
-
-def update_qvalues():
+def update_qvalues() -> None:
+    """
+    Adjust the GUI for updated characteristic discharges.
+    
+    Arguments
+    ---------
+    None
+    """
     ibranch = dialog["branch"].currentIndex()
     ireach = dialog["reach"].currentIndex()
+    if ireach < 0:
+        return
+
+    q_location = rivers["qlocations"][ibranch]
+    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    q_min = rivers["qmin"][ibranch][ireach]
+    q_fit = rivers["qfit"][ibranch][ireach]
+    q_levels = rivers["qlevels"][ibranch][ireach]
+    
+    if q_stagnant > q_fit[0]:
+        dialog["qmin"].setToolTip(gui_text("qmin1_tooltip"))
+        dialog["qmin_txt"].setText(gui_text("qmin1"))
+    else:
+        dialog["qmin"].setToolTip(gui_text("qmin2_tooltip", dict={"border": q_location, "qmin": int(q_min)}))
+        dialog["qmin_txt"].setText(gui_text("qmin2", dict={"qmin": int(q_min)}))
+        
+    qthrEnabled = not dialog["qmin"].isChecked()
+    dialog["qthr"].setEnabled(qthrEnabled)
+    dialog["qthr_txt"].setEnabled(qthrEnabled)
+    if not qthrEnabled:
+        dialog["qthr"].setText(str(q_levels[0]))
+
+    if dialog["qthr"].isEnabled():
+        try:
+            q_threshold = float(dialog["qthr"].text())
+        except:
+            showError(gui_text("error_qthr"))
+            dialog["qthr"].setFocus()
+            return
+    else:
+        q_threshold = None
+    
+    if q_threshold is None or q_threshold < q_levels[1]:
+        dialog["qbf"].setEnabled(True)
+        dialog["qbf_txt"].setEnabled(True)
+        
+        try:
+            q_bankfull = float(dialog["qbf"].text())
+        except:
+            showError(gui_text("error_qbf"))
+            dialog["qbf"].setFocus()
+            return
+    else:
+        dialog["qbf"].setEnabled(False)
+        dialog["qbf_txt"].setEnabled(False)
+        
+        q_bankfull = 0
 
     try:
-        qmin = float(dialog["qmin"].text())
-    except:
-        showError(gui_text("error_qmin"))
-        dialog["qmin"].setFocus()
-
-    try:
-        qbf = float(dialog["qbf"].text())
-    except:
-        showError(gui_text("error_qbf"))
-        dialog["qbf"].setFocus()
-
-    try:
-        qlevels = rivers["qlevels"][ibranch][ireach]
         dq = rivers["dq"][ibranch][ireach]
-        Q = dfastmi.kernel.char_discharges(qlevels, dq, qmin, qbf)
+        Q = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-        qfit = rivers["qfit"][ibranch][ireach]
-        qstagnant = rivers["qstagnant"][ibranch][ireach]
         celerity_hg = rivers["proprate_high"][ibranch][ireach]
         celerity_lw = rivers["proprate_low"][ibranch][ireach]
         nwidth = rivers["normal_width"][ibranch][ireach]
         tstag, T, rsigma = dfastmi.kernel.char_times(
-            qfit, qstagnant, Q, celerity_hg, celerity_lw, nwidth
+            q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
         )
         nlength = dfastmi.kernel.estimate_sedimentation_length(
             rsigma, nwidth
@@ -255,7 +380,19 @@ def update_qvalues():
            dialog[iq + "file2"].setEnabled(not q is None)
 
 
-def openFileLayout(win, myWidget, key):
+def openFileLayout(win, myWidget, key: str):
+    """
+    Add an open line to the dialog. TODO
+    
+    Arguments
+    ---------
+    win
+        Main window of the dialog.
+    myWidget
+        Line edit widget to display the file name.
+    key : str
+        Base name of the Widgets on this file.
+    """
     parent = QtWidgets.QWidget()
     gridly = QtWidgets.QGridLayout(parent)
     gridly.setContentsMargins(0, 0, 0, 0)
@@ -270,7 +407,15 @@ def openFileLayout(win, myWidget, key):
     return parent
 
 
-def selectFile(key):
+def selectFile(key: str) -> None:
+    """
+    Select a D-Flow FM Map file and show in the GUI.
+    
+    Arguments
+    ---------
+    key : str
+        Name of the field for which to select the file.
+    """
     fil = QtWidgets.QFileDialog.getOpenFileName(
         caption=gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
     )
@@ -278,19 +423,29 @@ def selectFile(key):
         dialog[key].setText(fil[0])
 
 
-def close_dialog():
+def close_dialog() -> None:
+    """
+    Close the dialog and program.
+    
+    Arguments
+    ---------
+    None
+    """
     dialog["window"].close()
 
 
-def load_configuration(filename = None):
-    if filename is None:
-        fil = QtWidgets.QFileDialog.getOpenFileName(
-            caption = gui_text("select_cfg_file"), filter = "Config Files (*.cfg)"
-        )
-        filename = fil[0]
-    if filename == "":
-        return
-
+def load_configuration(filename: str) -> None:
+    """
+    Open a configuration file and update the GUI accordingly.
+    
+    This routines opens the specified configuration file and updates the GUI
+    to reflect it contents.
+    
+    Arguments
+    ---------
+    filename : str
+        Name of the configuration file to be opened.
+    """
     try:
         config = dfastmi.cli.load_configuration_file(filename)
     except:
@@ -306,9 +461,14 @@ def load_configuration(filename = None):
     ibranch = dialog["branch"].currentIndex()
     dialog["reach"].setCurrentText(section["Reach"])
     ireach = dialog["reach"].currentIndex()
-    dialog["qmin"].setText(
-        section.get("Qmin", str(rivers["qmin"][ibranch][ireach]))
-    )
+
+    if section.get("Qthreshold") is None: 
+        dialog["qmin"].setChecked(True)
+        update_qvalues()
+    else:
+        dialog["qmin"].setChecked(False)
+        dialog["qthr"].setText(section.get("Qthreshold"))
+
     dialog["qbf"].setText(
         section.get("Qbankfull", str(rivers["qbankfull"][ibranch][ireach]))
     )
@@ -331,19 +491,50 @@ def load_configuration(filename = None):
 
 
 def menu_load_configuration(checked):
-    load_configuration()
+    """
+    Ask for a configuration file name and update GUI based on its content.
+    
+    Arguments
+    ---------
+    checked
+        Dummy argument indicating whether menu item has been checked.
+    """
+    fil = QtWidgets.QFileDialog.getOpenFileName(
+        caption = gui_text("select_cfg_file"), filter = "Config Files (*.cfg)"
+    )
+    filename = fil[0]
+    if filename == "":
+        return
+    else:
+        load_configuration(filename)
 
 
-def showMessage(message):
+def showMessage(message: str):
+    """
+    Display an information message box with specified string.
+    
+    Arguments
+    ---------
+    message : str
+        Text to be displayed in the message box.
+    """
     msg = QtWidgets.QMessageBox()
     msg.setIcon(QtWidgets.QMessageBox.Information)
     msg.setText(message)
-    msg.setWindowTitle("Error")
+    msg.setWindowTitle("Information")
     msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
     msg.exec_()
 
 
 def showError(message):
+    """
+    Display an error message box with specified string.
+    
+    Arguments
+    ---------
+    message : str
+        Text to be displayed in the message box.
+    """
     msg = QtWidgets.QMessageBox()
     msg.setIcon(QtWidgets.QMessageBox.Critical)
     msg.setText(message)
@@ -353,6 +544,18 @@ def showError(message):
 
 
 def get_configuration():
+    """
+    Extract a configuration from the GUI.
+    
+    Arguments
+    ---------
+    None
+    
+    Returns
+    -------
+    config
+        Configuration TODO.
+    """
     config = configparser.ConfigParser()
     config.optionxform = str
     config.add_section("General")
@@ -360,8 +563,10 @@ def get_configuration():
     config["General"]["Branch"] = dialog["branch"].currentText()
     config["General"]["Reach"] = dialog["reach"].currentText()
     config["General"]["Mode"] = dialog["mode"].currentText()
-    config["General"]["Qmin"] = dialog["qmin"].text()
-    config["General"]["Qbankfull"] = dialog["qbf"].text()
+    if not dialog["qmin"].isChecked():
+        config["General"]["Qthreshold"] = dialog["qthr"].text()
+    if dialog["qbf"].isEnabled():
+        config["General"]["Qbankfull"] = dialog["qbf"].text()
     config["General"]["Ucrit"] = dialog["ucrit"].text()
     
     DFlowFM = dialog["mode"].currentIndex() == 1
@@ -379,7 +584,15 @@ def get_configuration():
     return config
 
 
-def menu_save_configuration(checked):
+def menu_save_configuration(checked) -> None:
+    """
+    Ask for a configuration file name and save GUI selection to that file.
+    
+    Arguments
+    ---------
+    checked
+        Dummy argument indicating whether menu item has been checked.
+    """
     fil = QtWidgets.QFileDialog.getSaveFileName(
         caption=gui_text("save_cfg_as"), filter="Config Files (*.cfg)"
     )
@@ -391,7 +604,14 @@ def menu_save_configuration(checked):
     dfastmi.cli.save_configuration_file(filename, config)
 
 
-def run_analysis():
+def run_analysis() -> None:
+    """
+    Run the D-FAST Morphological Impact analysis based on settings in the GUI.
+    
+    Arguments
+    ---------
+    None
+    """
     config = get_configuration()
     failed = dfastmi.cli.batch_mode_core(rivers, False, config)
     if failed:
@@ -400,7 +620,14 @@ def run_analysis():
         showMessage(gui_text("end_of_analysis", dict={"report": dfastmi.cli.getfilename("report.out")}))
 
 
-def menu_about_self():
+def menu_about_self() -> None:
+    """
+    Show the about dialog for D-FAST Morpholoiglcal Impact.
+    
+    Arguments
+    ---------
+    None
+    """
     msg = QtWidgets.QMessageBox()
     msg.setIcon(QtWidgets.QMessageBox.Information)
     msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
@@ -411,11 +638,28 @@ def menu_about_self():
     msg.exec_()
 
 
-def menu_about_qt():
+def menu_about_qt() -> None:
+    """
+    Show the about dialog for Qt.
+    
+    Arguments
+    ---------
+    None
+    """
     QtWidgets.QApplication.aboutQt()
 
 
-def main(rivers_configuration, config):
+def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> None:
+    """
+    Start the program for selected river system and optional configuration.
+    
+    Arguments
+    ---------
+    rivers_configuration : RiversObject
+        A dictionary containing the river data.
+    config : Optional[str]
+        Optional name of configuration file.
+    """
     global rivers
     global dialog
     
