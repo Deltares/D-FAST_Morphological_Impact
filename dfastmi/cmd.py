@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import logging
 import argparse
@@ -40,19 +40,19 @@ import dfastmi.io
 import pathlib
 
 
-def parse_arguments() -> (bool, str, str, Optional[str]):
+def parse_arguments() -> Tuple[bool, str, str, Optional[str]]:
     """
     Parse the command line arguments.
-    
+
     Arguments
     ---------
     None
-    
+
     Raises
     ------
     Exception
         If invalid language is specified.
-    
+
     Returns
     -------
     reduced_output : bool
@@ -65,24 +65,36 @@ def parse_arguments() -> (bool, str, str, Optional[str]):
     config_name : Optional[str]
         Name of the configuration file (optional).
     """
-    parser = argparse.ArgumentParser(description = "D-FAST Morphological Impact.")
-    parser.add_argument("--language", help = "display language 'NL' or 'UK' (UK is default)")
-    parser.set_defaults(language = "UK")
-    parser.add_argument("--mode", help = "run mode 'BATCH', 'CLI' or 'GUI' (GUI is default)")
-    parser.set_defaults(mode = "GUI")
-    parser.add_argument("--config", help = "name of configuration file (required for BATCH mode)")
-    parser.set_defaults(config = None)
-    parser.add_argument("--reduced_output", help = "write reduced M/N range (structured model only)", action = "store_true")
-    parser.set_defaults(reduced_output = False)
+    parser = argparse.ArgumentParser(description="D-FAST Morphological Impact.")
+    parser.add_argument(
+        "--language", help="display language 'NL' or 'UK' (UK is default)"
+    )
+    parser.set_defaults(language="UK")
+    parser.add_argument(
+        "--mode", help="run mode 'BATCH', 'CLI' or 'GUI' (GUI is default)"
+    )
+    parser.set_defaults(mode="GUI")
+    parser.add_argument(
+        "--config", help="name of configuration file (required for BATCH mode)"
+    )
+    parser.set_defaults(config=None)
+    parser.add_argument(
+        "--reduced_output",
+        help="write reduced M/N range (structured model only)",
+        action="store_true",
+    )
+    parser.set_defaults(reduced_output=False)
     args = parser.parse_args()
 
     reduced_output = args.__dict__["reduced_output"]
     language = args.__dict__["language"].upper()
     runmode = args.__dict__["mode"].upper()
     config = args.__dict__["config"]
-    if language not in ["NL","UK"]:
+    if language not in ["NL", "UK"]:
         raise Exception(
-            'Incorrect language "{}" specified. Should read "NL" or "UK".'.format(language)
+            'Incorrect language "{}" specified. Should read "NL" or "UK".'.format(
+                language
+            )
         )
     return reduced_output, language, runmode, config
 
@@ -94,10 +106,16 @@ if __name__ == "__main__":
 
     progloc = str(pathlib.Path(__file__).parent.absolute())
     try:
-        dfastmi.io.load_program_texts(progloc + os.path.sep + "messages." + language + ".ini")
+        dfastmi.io.load_program_texts(
+            progloc + os.path.sep + "messages." + language + ".ini"
+        )
     except:
-        if language=="NL":
-            logging.info("Het taalbestand 'messages." + language + ".ini' kan niet worden geladen.")
+        if language == "NL":
+            logging.info(
+                "Het taalbestand 'messages."
+                + language
+                + ".ini' kan niet worden geladen."
+            )
         else:
             logging.info("Unable to load language file 'messages." + language + ".ini'")
     else:
@@ -115,5 +133,7 @@ if __name__ == "__main__":
             dfastmi.gui.main(rivers, config)
         else:
             raise Exception(
-                'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(runmode)
+                'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(
+                    runmode
+                )
             )

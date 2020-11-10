@@ -36,13 +36,15 @@ import numpy
 
 QLevels = Tuple[float, float, float, float]
 QChange = Tuple[float, float]
-QRuns = Tuple[float, Optional[float], float]
+QRuns = Tuple[Optional[float], Optional[float], Optional[float]]
 
 
-def char_discharges(q_levels: QLevels, dq: QChange, q_threshold: Optional[float], q_bankfull: float) -> QRuns:
+def char_discharges(
+    q_levels: QLevels, dq: QChange, q_threshold: Optional[float], q_bankfull: float
+) -> QRuns:
     """
     This routine determines the discharges needed for the analysis.
-    
+
     Arguments
     ---------
     q_levels : QLevels
@@ -53,12 +55,16 @@ def char_discharges(q_levels: QLevels, dq: QChange, q_threshold: Optional[float]
         Optional threshold discharge at which measure starts to flow.
     q_bankfull : float
         Discharge at which measure is bankfull.
-    
+
     Returns
     -------
     Q : QRuns
         A tuple of 3 discharges for which simulations should be run (can later be adjusted by the user)
     """
+    Q1: Optional[float]
+    Q2: Optional[float]
+    Q3: Optional[float]
+
     if q_threshold is None:  # no threshold discharge
         Q1 = q_levels[0]
         if q_bankfull < q_levels[2]:
@@ -88,18 +94,25 @@ def char_discharges(q_levels: QLevels, dq: QChange, q_threshold: Optional[float]
             if Q3 <= Q1:
                 Q3 = None
 
-    return [Q1, Q2, Q3]
+    return (Q1, Q2, Q3)
 
 
-def char_times(q_fit: Tuple[float, float], q_stagnant: float, Q: QRuns, celerity_hg: float, celerity_lw: float, nwidth: float) -> (int, Tuple[int,int,int], Tuple[float, float, float]):
+def char_times(
+    q_fit: Tuple[float, float],
+    q_stagnant: float,
+    Q: QRuns,
+    celerity_hg: float,
+    celerity_lw: float,
+    nwidth: float,
+) -> Tuple[int, Tuple[int, int, int], Tuple[float, float, float]]:
     """
     This routine determines the characteric times and rsigma.
-    
+
     This routine computes:
     * the duration t_stagnant of the stagnant period
     * the duration T[0:2] of the three discharge Q[0:2] periods
     * the rsigma[0:2] of the three discharge Q[0:2] periods
-    
+
     NOTE: the duration variables are initially defined as fraction of the year,
     but they are converted to number of days before returning.
 
@@ -117,7 +130,7 @@ def char_times(q_fit: Tuple[float, float], q_stagnant: float, Q: QRuns, celerity
         Bed celerity during low flow period (from rivers configuration file).
     nwidth : float
         Normal river width (from rivers configuration file).
-        
+
     Returns
     -------
     t_stagnant : int
@@ -125,64 +138,72 @@ def char_times(q_fit: Tuple[float, float], q_stagnant: float, Q: QRuns, celerity
     T : Tuple[int,int,int]
         A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
     rsigma : Tuple[float, float, float]
-        A tuple of 3 values.
+        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
     if q_stagnant > q_fit[0]:
         t_stagnant_yr = 1 - math.exp((q_fit[0] - q_stagnant) / q_fit[1])
     else:
         t_stagnant_yr = 0
 
-    T_yr = [0]*3
-    T_yr[0] = 1 - math.exp((q_fit[0] - Q[0]) / q_fit[1]) - t_stagnant_yr
-    if Q[1] is None:
+    T_yr = [0.0] * 3
+    if Q[0] is None:
+        T_yr[0] = 0
+    else:
+        T_yr[0] = 1 - math.exp((q_fit[0] - Q[0]) / q_fit[1]) - t_stagnant_yr
+    if Q[1] is None or Q[0] is None:
         T_yr[1] = 0
     else:
-        T_yr[1] = math.exp((q_fit[0] - Q[0]) / q_fit[1]) - math.exp((q_fit[0] - Q[1]) / q_fit[1])
-    T_yr[2] = max(1 - T_yr[0] - T_yr[1] - t_stagnant_yr, 0)  # equivalent: math.exp((q_fit[0] - Q[1])/q_fit[1])
+        T_yr[1] = math.exp((q_fit[0] - Q[0]) / q_fit[1]) - math.exp(
+            (q_fit[0] - Q[1]) / q_fit[1]
+        )
+    T_yr[2] = max(1 - T_yr[0] - T_yr[1] - t_stagnant_yr, 0)
 
-    rsigma = [1]*3
-    rsigma[0] = math.exp(-500 * celerity_lw * T_yr[0] / nwidth)
+    rsigma0 = math.exp(-500 * celerity_lw * T_yr[0] / nwidth)
     if not Q[1] is None:
-        rsigma[1] = math.exp(-500 * celerity_hg * T_yr[1] / nwidth)
+        rsigma1 = math.exp(-500 * celerity_hg * T_yr[1] / nwidth)
     if not Q[2] is None:
-        rsigma[2] = math.exp(-500 * celerity_hg * T_yr[2] / nwidth)
+        rsigma2 = math.exp(-500 * celerity_hg * T_yr[2] / nwidth)
+    rsigma = (rsigma0, rsigma1, rsigma2)
 
     # convert fractional year to integer days
     # to be consistent with WAQMORF, we use int conversion rounding down
     # and hence T[2] is recomputed to match 365 days total.
     t_stagnant = int(365 * t_stagnant_yr)
-    T = [0]*3
-    T[0] = int(365 * T_yr[0])
-    T[1] = int(365 * T_yr[1])
-    T[2] = max(365 - T[0] - T[1] - t_stagnant, 0)
+    T0 = int(365 * T_yr[0])
+    T1 = int(365 * T_yr[1])
+    T = (T0, T1, max(365 - T0 - T1 - t_stagnant, 0))
 
     return t_stagnant, T, rsigma
 
 
-def estimate_sedimentation_length(rsigma: Tuple[float, float, float], nwidth: float) -> int:
+def estimate_sedimentation_length(
+    rsigma: Tuple[float, float, float], nwidth: float
+) -> int:
     """
     This routine computes the sedimentation length in metres.
-    
+
     Arguments
     ---------
     rsigma : Tuple[float, float, float]
-        A tuple of 3 values.
+        Relaxation factors of the 3 discharge periods.
     nwidth : float
         Normal river width (from rivers configuration file).
-    
+
     Returns
     -------
     L : float
         The expected yearly impacted length.
     """
-    length = - sum(math.log(r) for r in rsigma)
+    length = -sum(math.log(r) for r in rsigma)
     return int(2 * nwidth * length)
 
 
-def dzq_from_du_and_h(u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float) -> numpy.ndarray:
+def dzq_from_du_and_h(
+    u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float
+) -> numpy.ndarray:
     """
     This routine computes dzq from the velocity change and water depth.
-    
+
     Arguments
     ---------
     u0 : numpy.ndarray
@@ -193,11 +214,11 @@ def dzq_from_du_and_h(u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, u
         Array containing the flow velocities in the simulation with the measure.
     ucrit : float
         Critical flow velocity below which no change is expected.
-        
+
     Returns
     -------
     dzq : numpy.ndarray
-        Array containing the effect of the measure: h*(u1 - u)/u0.
+        Array containing the equilibrium bed level change: h*(u0 - u1)/u0.
     """
     with numpy.errstate(divide="ignore", invalid="ignore"):
         dzq = numpy.where(
@@ -208,25 +229,32 @@ def dzq_from_du_and_h(u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, u
     return dzq
 
 
-def main_computation(dzq1: numpy.ndarray, dzq2: numpy.ndarray, dzq3: numpy.ndarray, t_stagnant: int, T: Tuple[int,int,int], rsigma: Tuple[float, float, float]) -> (numpy.ndarray, numpy.ndarray, numpy.ndarray):
+def main_computation(
+    dzq1: numpy.ndarray,
+    dzq2: numpy.ndarray,
+    dzq3: numpy.ndarray,
+    t_stagnant: int,
+    T: Tuple[int, int, int],
+    rsigma: Tuple[float, float, float],
+) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     """
     This routine computes the bed level changes.
-    
+
     Arguments
     ---------
     dzq1 : numpy.ndarray
-        Array containing the effect of the lowest discharge.
+        Array containing the equilibrium bed level change of the lowest discharge.
     dzq2 : numpy.ndarray
-        Array containing the effect of the middle discharge.
+        Array containing the equilibrium bed level change of the middle discharge.
     dzq3 : numpy.ndarray
-        Array containing the effect of the highest discharge.
+        Array containing the equilibrium bed level change of the highest discharge.
     t_stagnant : int
         Number of days during which flow velocity is considered negligible.
     T : Tuple[int, int, int]
         A tuple of 3 values each representing the number of days during which the three discharges are valid.
     rsigma : Tuple[float, float, float]
         A tuple of 3 rsigma values.
-    
+
     Returns
     -------
     zgem : numpy.ndarray
@@ -287,6 +315,10 @@ def main_computation(dzq1: numpy.ndarray, dzq2: numpy.ndarray, dzq3: numpy.ndarr
             0,
         )
 
-    zgem = z1o * (T[0] + T[2]) / 2 + z2o * ((T[1] + T[0]) / 2 + t_stagnant) + z3o * (T[2] + T[1]) / 2
+    zgem = (
+        z1o * (T[0] + T[2]) / 2
+        + z2o * ((T[1] + T[0]) / 2 + t_stagnant)
+        + z3o * (T[2] + T[1]) / 2
+    )
 
     return zgem, z1o, z2o

@@ -27,14 +27,30 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Tuple, Any, List, Union, Dict
+from typing import Tuple, Any, List, Union, Dict, Optional, TypedDict
+
 import numpy
 import netCDF4
 import configparser
+import os
 
-DFastMIConfig = Any
 DataField = List[List[Union[float, List[float]]]]
-RiversObject = Dict[str, Union[List[str],List[List[str]],List[List[float]]]]
+# RiversObject = Dict[str, Union[int, List[str], List[List[str]], DataField]]
+class RiversObject(TypedDict, total=False):
+    branches: List[str]
+    reaches: List[List[str]]
+    qlocations: List[str]
+    proprate_high: List[List[float]]
+    proprate_low: List[List[float]]
+    normal_width: List[List[float]]
+    ucritical: List[List[float]]
+    qbankfull: List[List[float]]
+    qstagnant: List[List[float]]
+    qmin: List[List[float]]
+    qfit: List[List[Tuple[float, float]]]
+    qlevels: List[List[Tuple[float, float, float, float]]]
+    dq: List[List[Tuple[float, float]]]
+
 
 PROGTEXTS: Dict[str, List[str]]
 
@@ -42,13 +58,13 @@ PROGTEXTS: Dict[str, List[str]]
 def load_program_texts(filename: str) -> None:
     """
     Load texts from configuration file, and store globally for access.
-    
+
     This routine reads the text file "filename", and detects the keywords
     indicated by lines starting with [ and ending with ]. The content is
     placed in a global dictionary PROGTEXTS which may be queried using the
     routine "program_texts". These routines are used to implement multi-
     language support.
-    
+
     Parameters
     ----------
     filename : str
@@ -56,9 +72,9 @@ def load_program_texts(filename: str) -> None:
     """
     text: List[str]
     dict: Dict[str, List[str]]
-    
+
     global PROGTEXTS
-    
+
     all_lines = open(filename, "r").read().splitlines()
     dict = {}
     text = []
@@ -73,24 +89,25 @@ def load_program_texts(filename: str) -> None:
         else:
             text.append(line)
     if key in dict.keys():
-        raise Exception('Duplicate entry for "{}" in "{}".'.format(key,filename))
-    dict[key] = text
+        raise Exception('Duplicate entry for "{}" in "{}".'.format(key, filename))
+    if not key is None:
+        dict[key] = text
     PROGTEXTS = dict
 
 
 def program_texts(key: str) -> List[str]:
     """
     Query the global dictionary of texts via a string key.
-    
+
     Query the global dictionary PROGTEXTS by means of a string key and return
     the list of strings contained in the dictionary. If the dictionary doesn't
     include the key, a default string is returned.
-    
+
     Parameters
     ----------
     key : str
         The key string used to query the dictionary.
-    
+
     Returns
     -------
     text : List[str]
@@ -98,9 +115,9 @@ def program_texts(key: str) -> List[str]:
         for the key. If the key isn't available in the dictionary, the routine
         returns the default string "No message found for <key>"
     """
-    
+
     global PROGTEXTS
-    
+
     try:
         str = PROGTEXTS[key]
     except:
@@ -111,15 +128,15 @@ def program_texts(key: str) -> List[str]:
 def read_rivers(filename: str = "rivers.ini") -> RiversObject:
     """
     Read a configuration file containing the river data.
-    
+
     Read the configuration file containing the listing of various branches/reaches
     and their associated default parameter settings.
-    
+
     Parameters
     ----------
     filename : str
         The name of the river configuration file (default "rivers.ini").
-        
+
     Returns
     -------
     river_config : RiversObject
@@ -131,7 +148,7 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
     i: int
     name: str
     rivers: RiversObject
-    
+
     # read the file
     config = configparser.ConfigParser()
     with open(filename, "r") as configfile:
@@ -175,26 +192,31 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
     # collect the values for all other quantities
     nreaches = [len(x) for x in allreaches]
-    rivers["proprate_high"] = collect_values(config, branches, nreaches, 1, "PrHigh")
-    rivers["proprate_low"] = collect_values(config, branches, nreaches, 1, "PrLow")
-    rivers["normal_width"] = collect_values(config, branches, nreaches, 1, "NWidth")
-    rivers["ucritical"] = collect_values(config, branches, nreaches, 1, "UCrit")
-    rivers["qbankfull"] = collect_values(config, branches, nreaches, 1, "QBankfull")
-    rivers["qstagnant"] = collect_values(config, branches, nreaches, 1, "QStagnant")
-    rivers["qmin"] = collect_values(config, branches, nreaches, 1, "QMin")
-    rivers["qfit"] = collect_values(config, branches, nreaches, 2, "QFit")
-    rivers["qlevels"] = collect_values(config, branches, nreaches, 4, "QLevels")
-    rivers["dq"] = collect_values(config, branches, nreaches, 2, "dQ")
+    rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
+    rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
+    rivers["normal_width"] = collect_values1(config, branches, nreaches, "NWidth")
+    rivers["ucritical"] = collect_values1(config, branches, nreaches, "UCrit")
+    rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
+    rivers["qstagnant"] = collect_values1(config, branches, nreaches, "QStagnant")
+    rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
+    rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
+    rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
+    rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
 
     return rivers
 
 
-def collect_values(config: configparser.ConfigParser, branches: List[str], nreaches: List[int], nval: int, key: str) -> DataField:
+def collect_values1(
+    config: configparser.ConfigParser,
+    branches: List[str],
+    nreaches: List[int],
+    key: str,
+) -> List[List[float]]:
     """
     Collect river parameter data from river configuration object.
-    
-    This routines collect
-    
+
+    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
+
     Arguments
     ---------
     config : configparser.ConfigParser
@@ -203,28 +225,25 @@ def collect_values(config: configparser.ConfigParser, branches: List[str], nreac
         The list of river branches. The length of this list is nBranches.
     nreaches : List[int]
         The number of reaches per river branch. The length of this list is nBranches.
-    nval : int
-        The number of floats to read per reach.
     key : str
         The name of the parameter for which the values are to be retrieved.
-    
+
     Raises
     ------
     Exception
         If the number of values read from the file doesn't match the number
         of values specified by the input argument nval.
-    
+
     Returns
     -------
     data : DataField
         A list of lists. Each list contains per reach within the corresponding
         branch one float or a list of floats depending on input argument nval.
     """
-    vals: Union[float, List[float]]
     try:
         g_val = config["Branches"][key]
     except:
-        g_val = None
+        g_val = ""
     all_values = []
     for ib in range(len(branches)):
         branch = branches[ib]
@@ -239,35 +258,160 @@ def collect_values(config: configparser.ConfigParser, branches: List[str], nreac
                 val = config[branch][key + stri]
             except:
                 val = b_val
-            if nval == 1:
-                vals = float(val)
-            else:
-                vals = [float(x) for x in val.split()]
-                if len(vals) != nval:
-                    raise Exception(
-                        'Incorrect number of values read from "{}". Need {} values.',
-                        val,
-                        nval,
-                    )
-            values_per_branch.extend([vals])
-        all_values.extend([values_per_branch])
+            vals = tuple(float(x) for x in val.split())
+            if len(vals) != 1:
+                raise Exception(
+                    'Incorrect number of values read from "{}". Need {} values.',
+                    val,
+                    1,
+                )
+            values_per_branch.append(vals[0])
+        all_values.append(values_per_branch)
     return all_values
 
 
-def write_config(filename: str, config: DFastMIConfig) -> None:
+def collect_values2(
+    config: configparser.ConfigParser,
+    branches: List[str],
+    nreaches: List[int],
+    key: str,
+) -> List[List[Tuple[float, float]]]:
+    """
+    Collect river parameter data from river configuration object.
+
+    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        The dictionary containing river data.
+    branches : List[str]
+        The list of river branches. The length of this list is nBranches.
+    nreaches : List[int]
+        The number of reaches per river branch. The length of this list is nBranches.
+    key : str
+        The name of the parameter for which the values are to be retrieved.
+
+    Raises
+    ------
+    Exception
+        If the number of values read from the file doesn't match the number
+        of values specified by the input argument nval.
+
+    Returns
+    -------
+    data : DataField
+        A list of lists. Each list contains per reach within the corresponding
+        branch one float or a list of floats depending on input argument nval.
+    """
+    try:
+        g_val = config["Branches"][key]
+    except:
+        g_val = ""
+    all_values = []
+    for ib in range(len(branches)):
+        branch = branches[ib]
+        try:
+            b_val = config[branch][key]
+        except:
+            b_val = g_val
+        values_per_branch = []
+        for i in range(nreaches[ib]):
+            stri = str(i + 1)
+            try:
+                val = config[branch][key + stri]
+            except:
+                val = b_val
+            vals = tuple(float(x) for x in val.split())
+            if len(vals) != 2:
+                raise Exception(
+                    'Incorrect number of values read from "{}". Need {} values.',
+                    val,
+                    2,
+                )
+            values_per_branch.append((vals[0], vals[1]))
+        all_values.append(values_per_branch)
+    return all_values
+
+
+def collect_values4(
+    config: configparser.ConfigParser,
+    branches: List[str],
+    nreaches: List[int],
+    key: str,
+) -> List[List[Tuple[float, float, float, float]]]:
+    """
+    Collect river parameter data from river configuration object.
+
+    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        The dictionary containing river data.
+    branches : List[str]
+        The list of river branches. The length of this list is nBranches.
+    nreaches : List[int]
+        The number of reaches per river branch. The length of this list is nBranches.
+    key : str
+        The name of the parameter for which the values are to be retrieved.
+
+    Raises
+    ------
+    Exception
+        If the number of values read from the file doesn't match the number
+        of values specified by the input argument nval.
+
+    Returns
+    -------
+    data : DataField
+        A list of lists. Each list contains per reach within the corresponding
+        branch one float or a list of floats depending on input argument nval.
+    """
+    vals: Union[float, Tuple[float, ...]]
+    try:
+        g_val = config["Branches"][key]
+    except:
+        g_val = ""
+    all_values = []
+    for ib in range(len(branches)):
+        branch = branches[ib]
+        try:
+            b_val = config[branch][key]
+        except:
+            b_val = g_val
+        values_per_branch = []
+        for i in range(nreaches[ib]):
+            stri = str(i + 1)
+            try:
+                val = config[branch][key + stri]
+            except:
+                val = b_val
+            vals = tuple(float(x) for x in val.split())
+            if len(vals) != 4:
+                raise Exception(
+                    'Incorrect number of values read from "{}". Need {} values.',
+                    val,
+                    4,
+                )
+            values_per_branch.append((vals[0], vals[1], vals[2], vals[3]))
+        all_values.append(values_per_branch)
+    return all_values
+
+
+def write_config(filename: str, config: configparser.ConfigParser) -> None:
     """Pretty print a configParser object (configuration file) to file.
-    
+
     This function ...
         aligns the equal signs for all keyword/value pairs.
         adds a two space indentation to all keyword lines.
         adds an empty line before the start of a new block.
-        
+
     Parameters
     ----------
     filename : str
-        Name of the file to be written.
-        
-    config : DFastMIConfig
+        Name of the configuration file to be written.
+    config : configparser.ConfigParser
         The variable containing the configuration.
     """
     sections = config.sections()
@@ -291,10 +435,10 @@ def write_config(filename: str, config: DFastMIConfig) -> None:
                 configfile.write(OPTIONLINE.format(o, config[s][o]))
 
 
-def read_fm_map(filename: str, varname: str, location: str = "face") -> str:
+def read_fm_map(filename: str, varname: str, location: str = "face") -> numpy.ndarray:
     """
     Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
-    
+
     Arguments
     ---------
     filename : str
@@ -304,7 +448,7 @@ def read_fm_map(filename: str, varname: str, location: str = "face") -> str:
     location : str
         Name of the stagger location at which the data should be located
         (default is "face")
-        
+
     Raises
     ------
     Exception
@@ -319,55 +463,65 @@ def read_fm_map(filename: str, varname: str, location: str = "face") -> str:
     """
     # open file
     rootgrp = netCDF4.Dataset(filename)
-    
+
     # locate 2d mesh variable
-    mesh2d = rootgrp.get_variables_by_attributes(cf_role = "mesh_topology", topology_dimension = 2)
+    mesh2d = rootgrp.get_variables_by_attributes(
+        cf_role="mesh_topology", topology_dimension=2
+    )
     if len(mesh2d) != 1:
         raise Exception(
-            'Currently only one 2D mesh supported ... this file contains {} 2D meshes.'.format(len(mesh2d))
+            "Currently only one 2D mesh supported ... this file contains {} 2D meshes.".format(
+                len(mesh2d)
+            )
         )
     meshname = mesh2d[0].name
-    
+
     # define a default start_index
     start_index = 0
-    
+
     # locate the requested variable ... start with some special cases
     if varname == "x":
         # the x-coordinate or longitude
-        crdnames = mesh2d[0].getncattr(location+"_coordinates").split()
+        crdnames = mesh2d[0].getncattr(location + "_coordinates").split()
         for n in crdnames:
             stdname = rootgrp.variables[n].standard_name
             if stdname == "projection_x_coordinate" or stdname == "longitude":
                 var = rootgrp.variables[n]
                 break
-                
+
     elif varname == "y":
         # the y-coordinate or latitude
-        crdnames = mesh2d[0].getncattr(location+"_coordinates").split()
+        crdnames = mesh2d[0].getncattr(location + "_coordinates").split()
         for n in crdnames:
             stdname = rootgrp.variables[n].standard_name
             if stdname == "projection_y_coordinate" or stdname == "latitude":
                 var = rootgrp.variables[n]
                 break
-                
+
     elif varname[-12:] == "connectivity":
         # a mesh connectivity variable with corrected index
         varname = mesh2d[0].getncattr(varname)
         var = rootgrp.variables[varname]
         if "start_index" in var.ncattrs():
             start_index = var.getncattr("start_index")
-            
+
     else:
         # find any other variable by standard_name or long_name
-        var = rootgrp.get_variables_by_attributes(standard_name = varname, mesh = meshname, location = location)
+        var = rootgrp.get_variables_by_attributes(
+            standard_name=varname, mesh=meshname, location=location
+        )
         if len(var) == 0:
-            var = rootgrp.get_variables_by_attributes(long_name = varname, mesh = meshname, location = location)
+            var = rootgrp.get_variables_by_attributes(
+                long_name=varname, mesh=meshname, location=location
+            )
         if len(var) != 1:
             raise Exception(
-                'Expected one variable for "{}", but obtained {}.'.format(varname, len(var))
+                'Expected one variable for "{}", but obtained {}.'.format(
+                    varname, len(var)
+                )
             )
         var = var[0]
-    
+
     # read data checking for time dimension
     dims = var.dimensions
     if var.get_dims()[0].isunlimited():
@@ -376,10 +530,10 @@ def read_fm_map(filename: str, varname: str, location: str = "face") -> str:
         data = var[-1, :]
     else:
         data = var[...] - start_index
-    
+
     # close file
     rootgrp.close()
-    
+
     # return data
     return data
 
@@ -387,17 +541,17 @@ def read_fm_map(filename: str, varname: str, location: str = "face") -> str:
 def get_mesh_and_facedim_names(filename: str) -> Tuple[str, str]:
     """
     Obtain the names of 2D mesh and face dimension from netCDF UGRID file.
-    
+
     Arguments
     ---------
     filename : str
         Name of the netCDF file.
-    
+
     Raises
     ------
     Exception
         If there is not one mesh in the netCDF file.
-    
+
     Returns
     -------
     tuple : Tuple[str, str]
@@ -406,18 +560,22 @@ def get_mesh_and_facedim_names(filename: str) -> Tuple[str, str]:
     """
     # open file
     rootgrp = netCDF4.Dataset(filename)
-    
+
     # locate 2d mesh variable
-    mesh2d = rootgrp.get_variables_by_attributes(cf_role = "mesh_topology", topology_dimension = 2)
+    mesh2d = rootgrp.get_variables_by_attributes(
+        cf_role="mesh_topology", topology_dimension=2
+    )
     if len(mesh2d) != 1:
         raise Exception(
-            'Currently only one 2D mesh supported ... this file contains {} 2D meshes.'.format(len(mesh2d))
-    )
-    
+            "Currently only one 2D mesh supported ... this file contains {} 2D meshes.".format(
+                len(mesh2d)
+            )
+        )
+
     #
     facenodeconnect_varname = mesh2d[0].face_node_connectivity
-    fnc = rootgrp.get_variables_by_attributes(name = facenodeconnect_varname)[0]
-    
+    fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
+
     # default
     facedim = fnc.dimensions[0]
     return mesh2d[0].name, facedim
@@ -429,7 +587,7 @@ def copy_ugrid(src: netCDF4.Dataset, meshname: str, dst: netCDF4.Dataset):
 
     Copy UGRID mesh data (mesh variable, all attributes, all variables that the
     UGRID attributes depend on) from source file to destination file.
-    
+
     Arguments
     ---------
     src : UNION[str, netCDF4.Dataset]
@@ -499,7 +657,7 @@ def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
 
     Copy a single netCDF variable including all attributes from source file to
     destination file. Create dimensions as necessary.
-    
+
     Arguments
     ---------
     src : netCDF4.Dataset
@@ -509,9 +667,9 @@ def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
     dst : netCDF4.Dataset
         Dataset object representing the destination file.
     """
-    # locate the 
+    # locate the
     srcvar = src.variables[varname]
-    
+
     # copy dimensions
     for name in srcvar.dimensions:
         dimension = src.dimensions[name]
@@ -528,10 +686,18 @@ def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
     dstvar[:] = srcvar[:]
 
 
-def ugrid_add(dstfile: str, varname: str, ldata: numpy.array, meshname: str, facedim: str, long_name: str = "None", units: str = "None") -> None:
+def ugrid_add(
+    dstfile: str,
+    varname: str,
+    ldata: numpy.array,
+    meshname: str,
+    facedim: str,
+    long_name: str = "None",
+    units: str = "None",
+) -> None:
     """
     Add a new variable defined at faces to an existing UGRID netCDF file
-    
+
     Arguments
     ---------
     dstfile : str
@@ -552,10 +718,10 @@ def ugrid_add(dstfile: str, varname: str, ldata: numpy.array, meshname: str, fac
     """
     # open destination file
     dst = netCDF4.Dataset(dstfile, "a")
-    
+
     # check if face dimension exists
     dim = dst.dimensions[facedim]
-    
+
     # add variable and write data
     var = dst.createVariable(varname, "f8", (facedim,))
     var.mesh = meshname
@@ -565,22 +731,22 @@ def ugrid_add(dstfile: str, varname: str, ldata: numpy.array, meshname: str, fac
     if units != "None":
         var.units = units
     var[:] = ldata[:]
-    
+
     # close destination file
     dst.close()
 
 
-def read_waqua_xyz(filename: str, cols: Tuple[int] = (2)) -> numpy.ndarray:
+def read_waqua_xyz(filename: str, cols: Tuple[int, ...] = (2,)) -> numpy.ndarray:
     """
     Read data columns from a SIMONA XYZ file.
-    
+
     Arguments
     ---------
     filename : str
         Name of file to be read.
     cols : Tuple[int]
         List of column numbers for which to return the data.
-        
+
     Returns
     -------
     data : numpy.ndarray
@@ -590,10 +756,12 @@ def read_waqua_xyz(filename: str, cols: Tuple[int] = (2)) -> numpy.ndarray:
     return data
 
 
-def write_simona_box(filename: str, rdata: numpy.ndarray, firstm: int, firstn: int) -> None:
+def write_simona_box(
+    filename: str, rdata: numpy.ndarray, firstm: int, firstn: int
+) -> None:
     """
     Write a SIMONA BOX file.
-    
+
     Arguments
     ---------
     filename : str
@@ -607,7 +775,7 @@ def write_simona_box(filename: str, rdata: numpy.ndarray, firstm: int, firstn: i
     """
     # open the data file
     boxfile = open(filename, "w")
-    
+
     # get shape and prepare block header; data will be written in blocks of 10
     # N-lines
     shp = numpy.shape(rdata)
@@ -615,7 +783,7 @@ def write_simona_box(filename: str, rdata: numpy.ndarray, firstm: int, firstn: i
     nmax = shp[1]
     boxheader = "      BOX MNMN=({m1:4d},{n1:5d},{m2:5d},{n2:5d}), VARIABLE_VAL=\n"
     nstep = 10
-    
+
     # Loop over all N-blocks and write data to file
     for j in range(firstn, nmax, nstep):
         k = min(nmax, j + nstep)
@@ -627,3 +795,54 @@ def write_simona_box(filename: str, rdata: numpy.ndarray, firstm: int, firstn: i
 
     # close the file
     boxfile.close()
+
+
+def absolute_path(rootdir: str, file: str) -> str:
+    """
+    Convert a relative path to an absolute path.
+
+    Arguments
+    ---------
+    rootdir : str
+        Any relative paths should be given relative to this location.
+    file : str
+        A relative or absolute location.
+
+    Returns
+    -------
+    afile : str
+        An absolute location.
+    """
+    if file == "":
+        return file
+    else:
+        try:
+            return os.path.normpath(os.path.join(rootdir, file))
+        except:
+            return file
+
+
+def relative_path(rootdir: str, file: str) -> str:
+    """
+    Convert an absolute path to a relative path.
+
+    Arguments
+    ---------
+    rootdir : str
+        Any relative paths will be given relative to this location.
+    file : str
+        An absolute location.
+
+    Returns
+    -------
+    rfile : str
+        An absolute or relative location (relative only if it's on the same drive as rootdir).
+    """
+    if file == "":
+        return file
+    else:
+        try:
+            rfile = os.path.relpath(file, rootdir)
+            return rfile
+        except:
+            return file

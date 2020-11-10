@@ -32,6 +32,8 @@ are registered trademarks of Stichting Deltares, and remain the property of
 Stichting Deltares. All rights reserved.
 """
 
-__version__ = '0.1.0'
+from typing import List, Any
 
-__all__ = []
+__version__ = "2.0.0"
+
+__all__: List[Any] = []
