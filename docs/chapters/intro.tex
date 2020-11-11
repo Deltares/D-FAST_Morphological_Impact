@@ -1,77 +1,85 @@
 \chapter{Introduction}
 
-Beste collega,
+This manual describes \dfastmi which provides a first estimate of the bed level changes to be anticipated in the main channel due to the implementation of local measures outside the main channel.
+The program implements the rule of thumb by \citep{Sieben2008} which is only valid for the estimation of the effect of individual measures (at most one flood plain section in length).
+It assumes a seasonal discharge variation that can be represented by means of three stages (normal/low flow, flood flow, and transitional flow) and it adopts a pragmatic approach to the spatial structure.
+Bed level changes outside the immediate vicinity of influence of the measure are ignored in this analysis.
+The bed level changes are indicative for the effects over a sufficiently long cycle of high and low flow seasons.
 
-In deze memo wordt een methodiek beschreven waarmee een eerste inschatting kan worden gemaakt van bodemveranderingen in het zomerbed als gevolg van lokale ingrepen buiten het zomerbed.
+The typical analysis cycle consists of the following steps:
 
-De vuistregel in dit memorandum heeft slechts betrekking op afzonderlijke effecten van lokale ingrepen (maximaal een enkele uiterwaard lang), met een seizoensvariatie in drie karakteristieke afvoersituaties (gewone afvoer, hoogwater en een overgang er tussen), en met een pragmatische inschatting van de ruimtelijke structuur.
-
-Bodemveranderingen buiten het directe invloedsgebied van de maatregel blijven bij deze vuistregel buiten beschouwing.
-De bodemveranderingen zijn een indicatie van effecten indien er een voldoende lange cyclus van hoog- en laagwaterseizoenen zou optreden.
-
-De vuistregel is uitgewerkt tot \dfastmi dat als volgt gebruikt kan worden
-
-\begin{itemize}
-\item Met \dfastmi wordt een inschatting gemaakt van de voor de morfologie benodigde WAQUA berekeningen.
-\dfastmi geeft hiervoor de bijbehorende afvoeren op.
-
-\item Voor de stationaire afvoeren zoals bij Stap 1 geadviseerd door \dfastmi worden het plan en de referentie doorgerekend waarna waterdiepten en stroomsnelheden via WAQVIEQ in export files zijn opgeslagen.
-
-\item Met de exportfiles als invoer voor \dfastmi (Stap 2) wordt vervolgens met \dfastmi een inschatting gemaakt van i) jaargemiddelde bodemverandering; ii) maximale bodemverandering (einde hoogwaterseizoen) en iii) minimale bodemverandering (einde laagwaterseizoen).
-Indien bij de WAQUA berekenningen is afgeweken van de bij Stap 1 geadviseerde afvoeren, dan in \dfastmi de juiste afvoer opgeven.
-\end{itemize}
-
-De methode levert een indicatie van grootte en plaats van bodemveranderingen, maar kan een nauwkeuriger simulatie met numerieke modellen voor riviermorfologie niet altijd vervangen.
-Het doel van de vuistregel is dus een eenvoudige en eenduidige eerste beoordeling om onnodige analyses te voorkomen of om kritische effecten juist tijdig te signaleren en nauwkeuriger analyses te motiveren.
-
-Het gebruik van de resultaten, de geschatte bodemveranderingen, wordt beschreven in het rivierkundig beoordelingskader.
-
-Tenslotte. Een evaluatie van de vuistregel is gerapporteerd in "Verificatie WAQmorf Vergelijking resultaten WAQmorf en Delft2D en advies gebruik vuistregel", HKV PR1720.10, Oktober 2009.
-Hierin wordt het volgende opgemerkt.
-
-\begin{itemize}
-
-\item Op basis van de vergelijking van WAQmorf en Delft2D resultaten voor 2 casestudies kan geconcludeerd worden dat \dfastmi een betrouwbaar en robuust beeld kan geven van bodemveranderingen in het zomerbed.
-De vuistregel dient dan wel toegepast te worden voor situaties waarvoor deze is bedoeld en de gebruiker dient zich bewust te zijn van de aannames in- en beperkingen van de vuistregel en welke gevolgen deze hebben op de berekende bodemveranderingen.
-
-\item Als de met WAQmorf geschatte bodemveranderingen kritisch zijn voor scheepvaart en/of veiligheid, of als een ingreep buiten het toepassingsgebied van WAQmorf valt, volstaat toepassing van WAQmorf niet.
-Er is dan, in overleg met de rivierbeheerder, nader onderzoek met Delft2D en/of Sobek noodzakelijk.
-
-\item WAQmorf is het meest geschikt voor de bepaling van morfologische effecten in het zomerbed ten gevolge van een rivierverruimende ingreep die
 \begin{enumerate}
-\item over een beperkte lengte de stroming in de hoofdgeul be\"invloedt en
-\item relatief weinig water onttrekt aan de hoofdgeul.
-\end{enumerate}
-Voor ingrepen die hiervan afwijken dient de gebruiker de resultaten met zorg te interpreteren en zich bewust te zijn van de aannames en beperkingen van WAQmorf.
+\item Use \dfastmi to determine the steady-state hydrodynamic simulations that will provide the necessary input for the morphological impact analysis.
+\dfastmi provides the discharge values for those conditions.
 
-\item WAQmorf kan worden toegepast voor verschillende typen rivierverruimende ingrepen.
-Het gaat er vooral om dat het stroomvoerende karakter van een ingreep goed geschematiseerd kan worden in maximaal 3 afvoerblokken.
+\item For the discharges obtained in step 1, steady-state simulations will be run using WAQUA or \dflowfm for both the reference situation and the scenario with only the measure to be evaluated implemented.
+All simulations need to be carried out using the same mesh and the same hydrodynamic model.
+In case of WAQUA simulations the result files need to be processed before continuing with step 3.
 
-\item De vuistregel is naar verwachting ook toe te passen voor riviertrajecten met sterk(er) gegradeerd bodemmateriaal.
+\item Using the (processed) simulation results of step 2, \dfastmi determines an estimate of the
+\begin{itemize}
+\item year-averaged bed level changes,
+\item maximum bed level changes (representative for the end of flood season) and
+\item minimum bed level changes (representative for the end of low flow season).
 \end{itemize}
+The \dfastmi analysis can be adjusted for any deviations between the discharges proposed by \dfastmi in step 1 and the actual simulated discharges in step 2.
+\end{enumerate}
 
-Tot slot wordt hier een deel van de standaard-tekst herhaald die bij elke toepassing is te vinden in de bijbehorende file verslag.run.
+The methodology provides an indication of magnitude and location of the bed level changes, but can't always replace a complete morphodynamic simulation.
+The purpose of the rule of thumb is to provide a simple and consistent first estimate to avoid unnecessary morphodynamic simulations or to identify critical aspects in the design of the measure early on and to underpin the need for more extensive analysis.
 
-Dit programma is de "WAQUA vuistregel" voor het schatten van lokale morfologische effecten door een lokale ingreep (zie RWS-WD memo WAQUA vuistregel 20-10-08).
-Het is een inschatting van evenwichtsbodemveranderingen in het zomerbed die als gevolg van een ingreep en zonder aangepast beheer na lange tijd ontstaan.
-Dit betreft het effect op de bodem in [m]:
+The appropriate use of the results -- the estimated bed level changes -- for the Dutch rivers is described in the ``rivierkundig beoordelingskader''.
+\dfastmi is the second implementation of the rule of thumb.
+It replaces the initial implementation (\texttt{WAQMORF}) which could only perform the analysis using WAQUA simulations.
+An evaluation of the rule of thumb \citep{Paarlberg2009} states the following
 
 \begin{itemize}
-\item jaargemiddeld zonder baggeren
-\item maximaal (na hoogwater) zonder baggeren
-\item minimaal (na laagwater) zonder baggeren
+
+\item Based on a comparison of the tool and Delft3D results for 2 case studies it's concluded that the rule of thumb can provide a reliable and robust indication of the bed level changes in the main channel.
+However, the rule of thumb should only be applied in those cases for which it is intended and the user should be aware of the assumptions and restrictions of the method and understand the effect that those have on the computed bed level changes.
+
+\item If the estimated bed level changes are critical for navigation and/or safety, or if the measure is outside the applicability domain of the rule of thumb, then the tool is not appropriate.
+In such cases further research is needed by means of a 1D and/or 2D morphodynamic model in consultation with the river manager.
+
+\item The tool is most suited for the estimation of the morphological impact on the main channel by river-widening measures which
+\begin{enumerate}
+\item influence the main channel currents in a limited reach and
+\item withdraw only a limited amount of water from the main channel.
+\end{enumerate}
+The user should take care to analyze the results in case of measures that deviate from these conditions and to verify how the assumptions and limitations of the methodology influence the results.
+
+\item The tool can be applied for different types of river-widening measures.
+It is critical that the flow-carrying capacity of the measure is well represented by the three discharge levels.
+
+\item The rule of thumb can probably also be applied for river reaches with (more) strongly graded sediments.
 \end{itemize}
 
-Met deze bodemveranderingen kunnen knelpunten worden gesignaleerd.
-De resultaten zijn niet direkt geschikt voor het bepalen van de invloed op vaargeulonderhoud!
+Finally, we reproduce below the introductory section of the text included in every report written by the tool:
 
-De jaarlijkse sedimentvracht door de rivier bepaalt de termijn waarbinnen dit evenwichtseffect kan ontwikkelen.
+\begin{Verbatim}[frame=single, framesep=5pt]
+This program implements the "WAQUA vuistregel" for the estimation of the
+local morphological effects of a local measure (i.e. an adjustment to the
+river). See "RWS-WD memo WAQUA vuistregel 20-10-08" for details).
 
-Dit is versie 10-09-2011.
-De resultaten zijn niet geldig voor combinaties van meerdere ingrepen, of een enkele ingreep over een traject van meer dan 4 km lengte!
+It is based on an estimation of the equilibrium bed level changes in the
+main channel that would occur eventually when river maintenance would not
+be adjusted.
 
-Om \dfastmi te kunnen gebruiken dient voor de referentiesituatie en de plansituatie hetzelfde WAQUA rooster te worden gebruikt.
+The effect is expressed in [m] as:
 
-Met vriendelijke groet,
+    year-averaged bed level change without dredging
+    maximum bed level change (after flood season) without dredging
+    minimum bed level change (after low season) without dredging
 
-Arjan Sieben
+By means of these estimates bottlenecks can be identified. The results are
+not suitable for direct estimation of the impact on the maintenance of the
+navigation channel!
+
+The yearly sediment load of the river determines the period in which the
+equilibrium can be reached.
+
+This is version ....
+
+The results are not valid for a combination of multiple measures, or for a
+single measure extending over a distance more than 4 km!
+\end{Verbatim}

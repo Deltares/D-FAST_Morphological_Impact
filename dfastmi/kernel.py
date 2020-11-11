@@ -112,7 +112,7 @@ def char_times(
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
-) -> Tuple[int, Tuple[float, float, float], Tuple[float, float, float]]:
+) -> Tuple[float, Tuple[float, float, float], Tuple[float, float, float]]:
     """
     This routine determines the characteric times and rsigma.
 
@@ -141,7 +141,7 @@ def char_times(
 
     Returns
     -------
-    t_stagnant : int
+    t_stagnant : float
         Number of days during which flow velocity is considered negligible.
     T : Tuple[float, float, float]
         A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
@@ -229,7 +229,7 @@ def main_computation(
     dzq1: numpy.ndarray,
     dzq2: numpy.ndarray,
     dzq3: numpy.ndarray,
-    t_stagnant: int,
+    t_stagnant: float,
     T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
 ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
@@ -244,7 +244,7 @@ def main_computation(
         Array containing the equilibrium bed level change of the middle discharge.
     dzq3 : numpy.ndarray
         Array containing the equilibrium bed level change of the highest discharge.
-    t_stagnant : int
+    t_stagnant : float
         Number of days during which flow velocity is considered negligible.
     T : Tuple[float, float, float]
         A tuple of 3 values each representing the number of days during which the three discharges are valid.
