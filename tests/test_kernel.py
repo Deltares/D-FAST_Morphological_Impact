@@ -1,0 +1,261 @@
+import context
+import dfastmi.kernel
+import numpy
+
+import unittest
+
+class char_discharges(unittest.TestCase):
+    def test_char_discharges_01(self):
+        """
+        Testing char_discharges for Qbf = 4000 (default) - no threshold (Qmin = 1000).
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = None
+        q_bankfull = 4000
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((3000, 4000, 6000), (True, True, True)))
+
+    def test_char_discharges_02(self):
+        """
+        Testing char_discharges for Qbf < 4000 - no threshold.
+        If q_bankfull < q_lvl[1]: no change in the results.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = None
+        q_bankfull = 3500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((3000, 4000, 6000), (True, True, True)))
+
+    def test_char_discharges_03(self):
+        """
+        Testing char_discharges for 4000 < Qbf < 6000 - no threshold.
+        If q_lvl[1] < q_bankfull < q_lvl[2]: returned discharge[1] is adjusted.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = None
+        q_bankfull = 4500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((3000, 4500, 6000), (True, True, True)))
+
+    def test_char_discharges_04(self):
+        """
+        Testing char_discharges for Qbf > 6000 - no threshold.
+        If q_lvl[2] < q_bankfull: returned discharge[2] is adjusted.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = None
+        q_bankfull = 6500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((3000, 4000, 6500), (True, True, True)))
+
+    def test_char_discharges_05(self):
+        """
+        Testing char_discharges for Qbf = 3500 and Qth = 1500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 1500
+        q_bankfull = 3500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((1500, 3500, 6000), (False, True, True)))
+
+    def test_char_discharges_06(self):
+        """
+        Testing char_discharges for Qbf = 2000 and Qth = 1500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 1500
+        q_bankfull = 2000
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((1500, 2500, 6000), (False, True, True)))
+
+    def test_char_discharges_07(self):
+        """
+        Testing char_discharges for Qbf = 5500 and Qth = 1500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 1500
+        q_bankfull = 5500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((1500, 5500, 6500), (False, True, True)))
+
+    def test_char_discharges_08(self):
+        """
+        Testing char_discharges for Qbf = 6500 and Qth = 1500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 1500
+        q_bankfull = 6500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((1500, 4000, 6500), (False, True, True)))
+
+    def test_char_discharges_09(self):
+        """
+        Testing char_discharges for Qbf = 4000 and Qth = 3500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 3500
+        q_bankfull = 4000
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((3500, 4500, 6000), (False, True, True)))
+
+    def test_char_discharges_10(self):
+        """
+        Testing char_discharges for Qbf = 6500 and Qth = 3500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 3500
+        q_bankfull = 6500
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((3500, 6500, 6000), (False, True, True)))
+
+    def test_char_discharges_11(self):
+        """
+        Testing char_discharges for Qth = 4500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 4500
+        q_bankfull = 999999999999
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((4500, None, 6000), (False, False, True)))
+
+    def test_char_discharges_12(self):
+        """
+        Testing char_discharges for Qth = 5500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 5500
+        q_bankfull = 999999999999
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((5500, None, 6500), (False, False, True)))
+
+    def test_char_discharges_13(self):
+        """
+        Testing char_discharges for Qth = 6500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 6500
+        q_bankfull = 999999999999
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((6500, None, 7500), (False, False, True)))
+
+    def test_char_discharges_13(self):
+        """
+        Testing char_discharges for Qth = 9500.
+        """
+        q_lvl = (3000, 4000, 6000, 10000)
+        dq = (1000, 1000)
+        q_threshold = 9500
+        q_bankfull = 999999999999
+        self.assertEqual(dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull), ((9500, None, 10000), (False, False, True)))
+
+class char_times(unittest.TestCase):
+    def test_char_times_01(self):
+        """
+        Testing char_times for default Bovenrijn conditions.
+        """
+        q_fit = (800, 1280)
+        q_stagnant = 800
+        Q = (3000, 4000, 6000)
+        celerity_hg = 3.65
+        celerity_lw = 0.89
+        nwidth = 340
+        tstag = 0.0
+        T = (0.8207098794498814, 0.09720512192621984, 0.08208499862389877)
+        rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
+        self.assertEqual(dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth), (tstag, T, rsigma))
+
+    def test_char_times_02(self):
+        """
+        Testing char_times for default Nederrijn stuwpand Driel conditions.
+        """
+        q_fit = (800, 1280)
+        q_stagnant = 1500
+        Q = (3000, 4000, 6000)
+        celerity_hg = 3.65
+        celerity_lw = 0.80
+        nwidth = 100
+        tstag = 0.42124440138751573
+        T = (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
+        rsigma = (0.20232865227253677, 0.1696541246824568, 0.2235654146204697)
+        self.assertEqual(dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth), (tstag, T, rsigma))
+
+    def test_char_times_03(self):
+        """
+        Testing char_times for adjusted Bovenrijn conditions.
+        """
+        q_fit = (800, 1280)
+        q_stagnant = 800
+        Q = (4500, None, 6000)
+        celerity_hg = 3.65
+        celerity_lw = 0.89
+        nwidth = 340
+        tstag = 0.0
+        T = (0.9444585116689311, 0.0, 0.05554148833106887)
+        rsigma = (0.29050644338024023, 1.0, 0.7422069944312727)
+        self.assertEqual(dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth), (tstag, T, rsigma))
+
+class estimate_sedimentation_length(unittest.TestCase):
+    def test_estimate_sedimentation_length_01(self):
+        """
+        Testing char_times for default Bovenrijn conditions.
+        """
+        rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
+        nwidth = 340
+        L = 1384
+        self.assertEqual(dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth), L)
+
+class dzq_from_du_and_h(unittest.TestCase):
+    def test_dzq_from_du_and_h_01(self):
+        """
+        Testing dzq_from_du_and_h for situations not resulting in NaN.
+        """
+        u0  = numpy.array([0.5,  0.5, 1.0, 1.0,  0.5])
+        h0  = numpy.array([1.0,  1.0, 1.0, 2.0,  1.0])
+        u1  = numpy.array([0.5, -0.5, 0.5, 0.5,  1.0])
+        ucrit = 0.3
+        dzq = numpy.array([0.0,  2.0, 0.5, 1.0,  -1.0])
+        dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+        print("dzq reference: ", dzq)
+        print("dzq computed : ",dzqc)
+        self.assertTrue((dzqc == dzq).all())
+
+    def test_dzq_from_du_and_h_02(self):
+        """
+        Testing dzq_from_du_and_h for situations resulting in NaN.
+        """
+        u0  = numpy.array([0.2, 0.5, 120.0])
+        h0  = numpy.array([1.0, 1.0,   1.0])
+        u1  = numpy.array([0.5, 0.2,   0.5])
+        ucrit = 0.3
+        # dzq = all NaN
+        dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+        print("dzq computed : ",dzqc)
+        self.assertTrue(numpy.isnan(dzqc).all())
+   
+class main_computation(unittest.TestCase):
+    def test_main_computation_01(self):
+        """
+        Testing main_computation.
+        """
+        mis = numpy.NaN
+        dzq1 = numpy.array([1.0, 0.0, 0.0, 1.0, mis])
+        dzq2 = numpy.array([0.0, 1.0, 0.0, 1.0, 1.0])
+        dzq3 = numpy.array([0.0, 0.0, 1.0, 1.0, 1.0])
+        t_stagnant = 0.3
+        T = (0.1, 0.2, 0.4)
+        rsigma = (0.1, 0.2, 0.4)
+        zgem = numpy.array([0.48084677419354843, 0.33709677419354844, 0.18205645161290324, 1., 0.])
+        z1o = numpy.array([0.07258064516129033, 0.32258064516129037, 0.6048387096774194, 1., 0.])
+        z2o = numpy.array([0.9072580645161291, 0.03225806451612904, 0.06048387096774193, 1., 0.])
+        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation(dzq1, dzq2, dzq3, t_stagnant, T, rsigma)
+        print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
+        print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
+        print("z1o  reference: ", numpy.array2string(z1o, floatmode = 'unique'))
+        print("z1o  computed : ", numpy.array2string(z1oc, floatmode = 'unique'))
+        print("z2o  reference: ", numpy.array2string(z2o, floatmode = 'unique'))
+        print("z2o  computed : ", numpy.array2string(z2oc, floatmode = 'unique'))
+        self.assertTrue((zgemc == zgem).all() and (z1o == z1oc).all() and (z2o == z2oc).all())
+
+
+if __name__ == '__main__':
+    unittest.main()

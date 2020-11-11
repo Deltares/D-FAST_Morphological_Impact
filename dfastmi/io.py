@@ -261,9 +261,7 @@ def collect_values1(
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 1:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.',
-                    val,
-                    1,
+                    'Incorrect number of values read from "{}". Need {} values.'.format(val, 1)
                 )
             values_per_branch.append(vals[0])
         all_values.append(values_per_branch)
@@ -325,9 +323,7 @@ def collect_values2(
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 2:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.',
-                    val,
-                    2,
+                    'Incorrect number of values read from "{}". Need {} values.'.format(val, 2)
                 )
             values_per_branch.append((vals[0], vals[1]))
         all_values.append(values_per_branch)
@@ -390,9 +386,7 @@ def collect_values4(
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 4:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.',
-                    val,
-                    4,
+                    'Incorrect number of values read from "{}". Need {} values.'.format(val, 4)
                 )
             values_per_branch.append((vals[0], vals[1], vals[2], vals[3]))
         all_values.append(values_per_branch)
@@ -790,7 +784,7 @@ def write_simona_box(
         boxfile.write(boxheader.format(m1=firstm + 1, n1=j + 1, m2=mmax, n2=k))
         nvalues = (mmax - firstm) * (k - j)
         boxdata = ("   " + "{:12.3f}" * (k - j) + "\n") * (mmax - firstm)
-        values = tuple(rdata[:, j:k].reshape(nvalues))
+        values = tuple(rdata[firstm:mmax, j:k].reshape(nvalues))
         boxfile.write(boxdata.format(*values))
 
     # close the file

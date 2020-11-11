@@ -349,7 +349,7 @@ def update_qvalues() -> None:
 
     try:
         dq = rivers["dq"][ibranch][ireach]
-        Q = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+        Q, applyQ = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
         celerity_hg = rivers["proprate_high"][ibranch][ireach]
         celerity_lw = rivers["proprate_low"][ibranch][ireach]

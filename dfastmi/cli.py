@@ -159,8 +159,14 @@ def interactive_get_location(
 
 
 def interactive_get_discharges(
-    rivers: RiversObject, ibranch: int, ireach: int, have_files: bool
-) -> Tuple[bool, str, Optional[float], float, Tuple[float, float], float, QRuns]:
+    rivers: RiversObject,
+    ibranch: int,
+    ireach: int,
+    have_files: bool,
+    celerity_hg: float,
+    celerity_lw: float,
+    nwidth: float,
+) -> Tuple[bool, str, Optional[float], float, Tuple[float, float], float, QRuns, float, Tuple[float, float, float], Tuple[float, float, float]]:
     """
     Get the simulation discharges in interactive mode.
 
@@ -175,7 +181,13 @@ def interactive_get_discharges(
     have_files : bool
         flag to indicate whether user specified that simulation results are
         available.
-
+    celerity_hg : float
+        Bed celerity during transitional and flood periods (from rivers configuration file).
+    celerity_lw : float
+        Bed celerity during low flow period (from rivers configuration file).
+    nwidth : float
+        Normal river width (from rivers configuration file).
+        
     Results
     -------
     all_q : bool
@@ -191,6 +203,12 @@ def interactive_get_discharges(
         Discharge below which the river flow is negligible.
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
+    t_stagnant : float
+        Fraction of year during which flow velocity is considered negligible.
+    T : Tuple[float, float, float]
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
+    rsigma : Tuple[float, float, float]
+        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
     stages = dfastmi.io.program_texts("stage_descriptions")
 
@@ -231,27 +249,48 @@ def interactive_get_discharges(
     else:
         q_bankfull = 0
 
-    Q = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, applyQ = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
+    tstag, T, rsigma = dfastmi.kernel.char_times(
+        q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
+    )
+    
     QList = list(Q)
-    all_q = False
+    all_q = True
     if have_files:
-        if not QList[0] is None:
+        lastStage = None
+        if applyQ[0] and not QList[0] is None:
             QList[0] = check_discharge(1, QList[0])
-            if not QList[0] is None and not QList[1] is None:
-                QList[1] = check_discharge(2, QList[1], stages[0], QList[0])
-                if not QList[1] is None and not QList[2] is None:
-                    QList[2] = check_discharge(3, QList[2], stages[1], QList[1])
-                    if not QList[2] is None:
-                        all_q = True
+            if QList[0] is None:
+                all_q = False
+        if not all_q:
+            pass
+        elif applyQ[1] and not QList[1] is None and not QList[0] is None:
+            QList[1] = check_discharge(2, QList[1], stages[0], QList[0])
+            if QList[1] is None:
+                all_q = False
+            elif not QList[2] is None:
+                QList[2] = check_discharge(3, QList[2], stages[1], QList[1])
+                if QList[2] is None:
+                    all_q = False
+        elif applyQ[2] and not QList[2] is None and not QList[0] is None:
+            QList[2] = check_discharge(3, QList[2], stages[0], QList[0])
+            if QList[2] is None:
+                all_q = False
     Q = (QList[0], QList[1], QList[2])
 
-    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
+    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q, tstag, T, rsigma
 
 
 def batch_get_discharges(
-    rivers: RiversObject, ibranch: int, ireach: int, config: configparser.ConfigParser
-) -> Tuple[bool, str, Optional[float], float, Tuple[float, float], float, QRuns]:
+    rivers: RiversObject,
+    ibranch: int,
+    ireach: int,
+    config: configparser.ConfigParser,
+    celerity_hg: float,
+    celerity_lw: float,
+    nwidth: float,
+) -> Tuple[bool, str, Optional[float], float, Tuple[float, float], float, QRuns, float, Tuple[float, float, float], Tuple[float, float, float]]:
     """
     Get the simulation discharges in batch mode (no user interaction).
 
@@ -264,6 +303,13 @@ def batch_get_discharges(
     ireach : int
         Number of selected reach.
     config : configparser.ConfigParser
+        Configuration of the analysis to be run.
+    celerity_hg : float
+        Bed celerity during transitional and flood periods (from rivers configuration file).
+    celerity_lw : float
+        Bed celerity during low flow period (from rivers configuration file).
+    nwidth : float
+        Normal river width (from rivers configuration file).
 
     Results
     -------
@@ -281,6 +327,12 @@ def batch_get_discharges(
         Discharge below which the river flow is negligible.
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
+    t_stagnant : float
+        Fraction of year during which flow velocity is considered negligible.
+    T : Tuple[int,int,int]
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
+    rsigma : Tuple[float, float, float]
+        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
     q_threshold: Optional[float]
 
@@ -303,19 +355,22 @@ def batch_get_discharges(
     else:
         q_bankfull = 0
 
-    Q = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, applyQ = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
+    tstag, T, rsigma = dfastmi.kernel.char_times(
+        q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
+    )
+    
     QList = list(Q)
-    if not QList[0] is None:
-        QList[0] = float(config["Q1"]["Discharge"])
-    if not QList[1] is None:
-        QList[1] = float(config["Q2"]["Discharge"])
-    if not QList[2] is None:
-        QList[2] = float(config["Q3"]["Discharge"])
+    for iq in range(3):
+        if applyQ[iq]:
+            QList[iq] = float(config["Q{}".format(iq+1)]["Discharge"])
+        else:
+            QList[iq] = None
     Q = (QList[0], QList[1], QList[2])
 
     all_q = True
-    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q
+    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q, tstag, T, rsigma
 
 
 def get_filenames(
@@ -362,10 +417,10 @@ def analyse_and_report(
     q_location: str,
     q_threshold: Optional[float],
     q_bankfull: float,
-    tstag: int,
+    tstag: float,
     q_fit: Tuple[float, float],
     Q: QRuns,
-    T: Tuple[int, int, int],
+    T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
     nlength: float,
     ucrit: float,
@@ -395,14 +450,14 @@ def analyse_and_report(
         River discharge at which the measure becomes active.
     q_bankfull : float
         River discharge at which the measure is bankfull.
-    tstag : int
-        Number of days that the river is stagnant.
+    tstag : float
+        Fraction of year that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
-    T : Tuple[int, int, int]
-        Number of days represented by each characteristic discharge.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
     rsigma : Tuple[float, float, float]
         Relaxation factors of the 3 discharge periods.
     nlength : float
@@ -462,10 +517,10 @@ def analyse_and_report_waqua(
     q_location: str,
     q_threshold: Optional[float],
     q_bankfull: float,
-    tstag: int,
+    tstag: float,
     q_fit: Tuple[float, float],
     Q: QRuns,
-    T: Tuple[int, int, int],
+    T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
     nlength: float,
     ucrit: float,
@@ -493,14 +548,14 @@ def analyse_and_report_waqua(
         River discharge at which the measure becomes active.
     q_bankfull : float
         River discharge at which the measure is bankfull.
-    tstag : int
+    tstag : float
         Number of days that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
-    T : Tuple[int, int, int]
-        Number of days represented by each characteristic discharge.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
     rsigma : Tuple[float, float, float]
         Relaxation factors of the 3 discharge periods.
     nlength : float
@@ -559,10 +614,10 @@ def analyse_and_report_dflowfm(
     q_location: str,
     q_threshold: Optional[float],
     q_bankfull: float,
-    tstag: int,
+    tstag: float,
     q_fit: Tuple[float, float],
     Q: QRuns,
-    T: Tuple[int, int, int],
+    T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
     nlength: float,
     ucrit: float,
@@ -588,14 +643,14 @@ def analyse_and_report_dflowfm(
         River discharge at which the measure becomes active.
     q_bankfull : float
         River discharge at which the measure is bankfull.
-    tstag : int
-        Number of days that the river is stagnant.
+    tstag : float
+        Fraction of year that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
-    T : Tuple[int, int, int]
-        Number of days represented by each characteristic discharge.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
     rsigma : Tuple[float, float, float]
         Relaxation factors of the 3 discharge periods.
     nlength : float
@@ -679,10 +734,10 @@ def write_report_nodata(
     q_threshold: Optional[float],
     q_bankfull: float,
     q_stagnant: float,
-    tstag: int,
+    tstag: float,
     q_fit: Tuple[float, float],
     Q: QRuns,
-    T: Tuple[int, int, int],
+    T: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
     """
@@ -702,14 +757,14 @@ def write_report_nodata(
         River discharge at which the measure is bankfull.
     q_stagnant : float
         Discharge below which the river flow is negligible.
-    tstag : int
-        Number of days that the river is stagnant.
+    tstag : float
+        Fraction of year that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
-    T : Tuple[int, int, int]
-        Number of days represented by each characteristic discharge.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
     nlength : float
         The expected yearly impacted length.
 
@@ -783,6 +838,10 @@ def interactive_mode(rivers: RiversObject, reduced_output: bool) -> None:
         while ibranch is None:
             ibranch, ireach = interactive_get_location(rivers)
 
+        celerity_hg = rivers["proprate_high"][ibranch][ireach]
+        celerity_lw = rivers["proprate_low"][ibranch][ireach]
+        nwidth = rivers["normal_width"][ibranch][ireach]
+
         (
             all_q,
             q_location,
@@ -791,17 +850,13 @@ def interactive_mode(rivers: RiversObject, reduced_output: bool) -> None:
             q_fit,
             q_stagnant,
             Q,
-        ) = interactive_get_discharges(rivers, ibranch, ireach, have_files)
+            tstag,
+            T,
+            rsigma,
+        ) = interactive_get_discharges(rivers, ibranch, ireach, have_files, celerity_hg, celerity_lw, nwidth)
         if have_files and not all_q:
             break
 
-        celerity_hg = rivers["proprate_high"][ibranch][ireach]
-        celerity_lw = rivers["proprate_low"][ibranch][ireach]
-        nwidth = rivers["normal_width"][ibranch][ireach]
-
-        tstag, T, rsigma = dfastmi.kernel.char_times(
-            q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
-        )
         nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
 
         reach = rivers["reaches"][ibranch][ireach]
@@ -909,6 +964,10 @@ def batch_mode_core(
             )
             failed = True
         else:
+            celerity_hg = rivers["proprate_high"][ibranch][ireach]
+            celerity_lw = rivers["proprate_low"][ibranch][ireach]
+            nwidth = rivers["normal_width"][ibranch][ireach]
+
             (
                 all_q,
                 q_location,
@@ -917,15 +976,11 @@ def batch_mode_core(
                 q_fit,
                 q_stagnant,
                 Q,
-            ) = batch_get_discharges(rivers, ibranch, ireach, config)
+                tstag,
+                T,
+                rsigma,
+            ) = batch_get_discharges(rivers, ibranch, ireach, config, celerity_hg, celerity_lw, nwidth)
 
-            celerity_hg = rivers["proprate_high"][ibranch][ireach]
-            celerity_lw = rivers["proprate_low"][ibranch][ireach]
-            nwidth = rivers["normal_width"][ibranch][ireach]
-
-            tstag, T, rsigma = dfastmi.kernel.char_times(
-                q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
-            )
             nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
 
             reach = rivers["reaches"][ibranch][ireach]
@@ -1146,7 +1201,7 @@ def get_values_waqua3(
         if not os.path.isfile(cifil):
             log_text("file_not_found", dict={"name": cifil}, file=report)
             log_text("end_program", file=report)
-            return None, None, None
+            return numpy.array(0), 0, 0
         else:
             if display:
                 log_text("input_xyz_found", dict={"name": cifil})
@@ -1394,10 +1449,10 @@ def write_report(
     q_threshold: Optional[float],
     q_bankfull: float,
     q_stagnant: float,
-    tstag: int,
+    tstag: float,
     q_fit: Tuple[float, float],
     Q: QRuns,
-    t: Tuple[int, int, int],
+    t: Tuple[float, float, float],
     nlength: float,
 ) -> None:
     """
@@ -1417,14 +1472,14 @@ def write_report(
         The discharge at which the measure is bankfull.
     q_stagnant : float
         Discharge below which the river flow is negligible.
-    tstag : int
-        The number of days during which the flow velocity is negligible.
+    tstag : float
+        Fraction of year during which the flow velocity is negligible.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
         A tuple of 3 discharges for which simulation results are (expected to be) available.
-    t : Tuple[int, int, int]
-        A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
+    t : Tuple[float, float, float]
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
     nlength : float
         The expected yearly impacted length.
 
@@ -1448,7 +1503,7 @@ def write_report(
     )
     log_text("", file=report)
     if q_stagnant > q_fit[0]:
-        log_text("closed_barriers", dict={"ndays": tstag}, file=report)
+        log_text("closed_barriers", dict={"ndays": int(365*tstag)}, file=report)
         log_text("", file=report)
     for i in range(3):
         if not Q[i] is None:
@@ -1457,7 +1512,11 @@ def write_report(
                 dict={"n": i + 1, "q": Q[i], "border": q_location},
                 file=report,
             )
-            log_text("char_period", dict={"n": i + 1, "ndays": t[i]}, file=report)
+            if i < 2:
+                tdays = int(365 * t[i])
+            else:
+                tdays = max(0, 365 - int(365*t[0]) - int(365*t[1]) - int(365*tstag))
+            log_text("char_period", dict={"n": i + 1, "ndays": tdays}, file=report)
             if i < 2:
                 log_text("", file=report)
             else:
