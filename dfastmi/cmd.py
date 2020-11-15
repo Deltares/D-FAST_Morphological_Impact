@@ -29,7 +29,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, Tuple
 
-import logging
 import argparse
 import sys
 import os
@@ -102,8 +101,6 @@ def parse_arguments() -> Tuple[bool, str, str, Optional[str]]:
 if __name__ == "__main__":
     reduced_output, language, runmode, config = parse_arguments()
 
-    logging.basicConfig(level="INFO", format="%(message)s")
-
     progloc = str(pathlib.Path(__file__).parent.absolute())
     try:
         dfastmi.io.load_program_texts(
@@ -111,24 +108,24 @@ if __name__ == "__main__":
         )
     except:
         if language == "NL":
-            logging.info(
+            print(
                 "Het taalbestand 'messages."
                 + language
                 + ".ini' kan niet worden geladen."
             )
         else:
-            logging.info("Unable to load language file 'messages." + language + ".ini'")
+            print("Unable to load language file 'messages." + language + ".ini'")
     else:
         rivers = dfastmi.io.read_rivers(progloc + os.path.sep + "rivers.ini")
         if runmode == "BATCH":
             if config is None:
                 dfastmi.cli.log_text("missing_config")
             else:
-                dfastmi.cli.batch_mode(rivers, reduced_output, config)
+                dfastmi.batch.batch_mode(config, rivers, reduced_output)
         elif runmode == "CLI":
             if not config is None:
                 dfastmi.cli.log_text("ignoring_config")
-            dfastmi.cli.interactive_mode(rivers, reduced_output)
+            dfastmi.cli.interactive_mode(sys.stdin, rivers, reduced_output)
         elif runmode == "GUI":
             dfastmi.gui.main(rivers, config)
         else:

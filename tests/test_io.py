@@ -3,9 +3,25 @@ import dfastmi.io
 import configparser
 import os
 import numpy
+import netCDF4
 
 import pytest
 import unittest
+
+import sys
+from contextlib import contextmanager
+from io import StringIO
+
+@contextmanager
+def captured_output():
+    new_out, new_err = StringIO(), StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
 
 class load_program_texts(unittest.TestCase):
     def test_load_program_texts_01(self):
@@ -14,6 +30,62 @@ class load_program_texts(unittest.TestCase):
         """
         print("current work directory: ", os.getcwd())
         self.assertEqual(dfastmi.io.load_program_texts("dfastmi/messages.UK.ini"), None)
+
+class log_text(unittest.TestCase):
+    def test_log_text_01(self):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key)
+        outstr = out.getvalue().splitlines()
+        strref = ['Confirm using "y" ...', '']
+        self.assertEqual(outstr, strref)
+
+    def test_log_text_02(self):
+        """
+        Testing standard output of a repeated text without expansion.
+        """
+        key = ""
+        nr = 3
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key, repeat=nr)
+        outstr = out.getvalue().splitlines()
+        strref = ['', '', '']
+        self.assertEqual(outstr, strref)
+
+    def test_log_text_03(self):
+        """
+        Testing standard output of a text with expansion.
+        """
+        key = "reach"
+        dict = {"reach": "ABC"}
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key, dict=dict)
+        outstr = out.getvalue().splitlines()
+        strref = ['The measure is located on reach ABC']
+        self.assertEqual(outstr, strref)
+
+    def test_log_text_04(self):
+        """
+        Testing file output of a text with expansion.
+        """
+        key = "reach"
+        dict = {"reach": "ABC"}
+        filename = "test.log"
+        with open(filename, "w") as f:
+            dfastmi.io.log_text(key, dict=dict, file=f)
+        all_lines = open(filename, "r").read().splitlines()
+        strref = ['The measure is located on reach ABC']
+        self.assertEqual(all_lines, strref)
+
+class getfilename(unittest.TestCase):
+    def test_getfilename_01(self):
+        """
+        Testing getfilename wrapper for program_texts.
+        """
+        self.assertEqual(dfastmi.io.getfilename("report.out"), "report.txt")
 
 class program_texts(unittest.TestCase):
     def test_program_texts_01(self):
@@ -55,7 +127,7 @@ class read_rivers(unittest.TestCase):
         rivers['qlevels'] = [[(100.0, 200.0, 300.0, 400.0)], [(1000.0, 2000.0, 3000.0, 4000.0), (1000.0, 2000.0, 3000.0, 4000.0)]]
         rivers['dq'] = [[(5.0, 15.0)], [(1000.0, 1000.0), (1000.0, 1000.0)]]
         self.maxDiff = None
-        self.assertEqual(dfastmi.io.read_rivers("tests/read_rivers_test.ini"), rivers)
+        self.assertEqual(dfastmi.io.read_rivers("tests/files/read_rivers_test.ini"), rivers)
 
 class collect_values1(unittest.TestCase):
     def test_collect_values1_01(self):
@@ -207,29 +279,136 @@ class write_config(unittest.TestCase):
                          '  longkey = 3']
         self.assertEqual(all_lines, all_lines_ref)
 
-#class read_fm_map(unittest.TestCase):
-#    def test_read_fm_map_01(self):
-#        """
-#        Testing read_fm_map.
-#        """
-#        filename = "test-map.nc"
-#        varname = "var"
-#        location = "face"
-#        datac = dfastmi.io.read_fm_map(filename, varname)
-#        data = []
-#        self.assertTrue((data == datac).all())
+class read_fm_map(unittest.TestCase):
+    def test_read_fm_map_01(self):
+        """
+        Testing read_fm_map: x coordinates of the faces.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        varname = "x"
+        #location = "face"
+        datac = dfastmi.io.read_fm_map(filename, varname)
+        dataref = 41.24417604888325
+        self.assertEqual(datac[1], dataref)
 
-# get_mesh_and_facedim_names
-# copy_ugrid
-# copy_var
-# ugrid_add
+    def test_read_fm_map_02(self):
+        """
+        Testing read_fm_map: y coordinates of the edges.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        varname = "y"
+        location = "edge"
+        datac = dfastmi.io.read_fm_map(filename, varname, location)
+        dataref = 7059.853000358055
+        self.assertEqual(datac[1], dataref)
+
+    def test_read_fm_map_03(self):
+        """
+        Testing read_fm_map: face node connectivity.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        varname = "face_node_connectivity"
+        datac = dfastmi.io.read_fm_map(filename, varname)
+        dataref = 2352
+        self.assertEqual(datac[-1][1], dataref)
+
+    def test_read_fm_map_04(self):
+        """
+        Testing read_fm_map: variable by standard name.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        varname = "sea_floor_depth_below_sea_surface"
+        datac = dfastmi.io.read_fm_map(filename, varname)
+        dataref = 3.894498393076889
+        self.assertEqual(datac[1], dataref)
+
+    def test_read_fm_map_05(self):
+        """
+        Testing read_fm_map: variable by long name.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        varname = "Water level"
+        datac = dfastmi.io.read_fm_map(filename, varname)
+        dataref = 3.8871328177527262
+        self.assertEqual(datac[1], dataref)
+
+    def test_read_fm_map_06(self):
+        """
+        Testing read_fm_map: variable by long name.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        varname = "water level"
+        with self.assertRaises(Exception) as cm:
+            datac = dfastmi.io.read_fm_map(filename, varname)
+        self.assertEqual(str(cm.exception), 'Expected one variable for "water level", but obtained 0.')
+        
+class get_mesh_and_facedim_names(unittest.TestCase):
+    def test_get_mesh_and_facedim_names_01(self):
+        """
+        Testing get_mesh_and_facedim_names.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        name_and_dim = dfastmi.io.get_mesh_and_facedim_names(filename)
+        self.assertEqual(name_and_dim, ("mesh2d", "mesh2d_nFaces"))
+
+class copy_ugrid(unittest.TestCase):
+    def test_copy_ugrid_01(self):
+        """
+        Testing copy_ugrid (depends on copy_var).
+        """
+        src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        dst_filename = "test.nc"
+        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(src_filename)
+        dfastmi.io.copy_ugrid(src_filename, meshname, dst_filename)
+        #
+        varname = "face_node_connectivity"
+        datac = dfastmi.io.read_fm_map(dst_filename, varname)
+        dataref = 2352
+        self.assertEqual(datac[-1][1], dataref)
+
+
+class copy_var(unittest.TestCase):
+    def test_copy_var_01(self):
+        """
+        Testing copy_var.
+        """
+        src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        dst_filename = "test.nc"
+        #
+        with netCDF4.Dataset(src_filename) as src:
+            with netCDF4.Dataset(dst_filename, "a") as dst:
+                dfastmi.io.copy_var(src, "mesh2d_s1", dst)
+        #
+        varname = "sea_surface_height"
+        datac = dfastmi.io.read_fm_map(dst_filename, varname)
+        dataref = 3.8871328177527262
+        self.assertEqual(datac[1], dataref)
+
+class ugrid_add(unittest.TestCase):
+    def test_ugrid_add_01(self):
+        """
+        Testing ugrid_add.
+        """
+        dst_filename = "test.nc"
+        meshname = "mesh2d"
+        facedim = "mesh2d_nFaces"
+        #
+        varname = "xxx"
+        ldata = numpy.zeros((4132))
+        ldata[1] = 3.14159
+        long_name = "added_variable"
+        #
+        dfastmi.io.ugrid_add(dst_filename, varname, ldata, meshname, facedim, long_name)
+        #
+        datac = dfastmi.io.read_fm_map(dst_filename, long_name)
+        self.assertEqual(datac[1], ldata[1])
 
 class read_waqua_xyz(unittest.TestCase):
     def test_read_waqua_xyz_01(self):
         """
         Read WAQUA xyz file default column 2.
         """
-        filename = "tests/read_waqua_xyz_test.xyc"
+        filename = "tests/files/read_waqua_xyz_test.xyc"
         data = dfastmi.io.read_waqua_xyz(filename)
         datar = numpy.array([3., 6., 9., 12.])
         print("data reference: ", datar)
@@ -241,7 +420,7 @@ class read_waqua_xyz(unittest.TestCase):
         """
         Read WAQUA xyz file columns 1 and 2.
         """
-        filename = "tests/read_waqua_xyz_test.xyc"
+        filename = "tests/files/read_waqua_xyz_test.xyc"
         col = (1,2)
         data = dfastmi.io.read_waqua_xyz(filename, col)
         datar = numpy.array([[ 2., 3.], [ 5., 6.], [ 8., 9.], [11., 12.]])

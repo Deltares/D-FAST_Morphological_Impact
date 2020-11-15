@@ -1,0 +1,266 @@
+Dit programma is de "WAQUA vuistregel" voor het schatten
+van lokale morfologische effecten door een lokale ingreep
+(zie RWS-WD memo WAQUA vuistregel 20-10-08).
+
+Het is een inschatting van evenwichtsbodemveranderingen
+in het zomerbed die als gevolg van een ingreep en zonder
+aangepast beheer na lange tijd ontstaan.
+
+Dit betreft het effect op de bodem in [m]:
+
+    jaargemiddeld zonder baggeren
+    maximaal (na hoogwater) zonder baggeren
+    minimaal (na laagwater) zonder baggeren
+
+Met deze bodemveranderingen kunnen knelpunten worden
+gesignaleerd. De resultaten zijn niet direkt geschikt
+voor het bepalen van de invloed op vaargeulonderhoud!
+
+De jaarlijkse sedimentvracht door de rivier bepaalt de
+termijn waarbinnen dit evenwichtseffect kan ontwikkelen.
+
+
+Dit is versie 2.0.0.
+
+Bevestig met "j" ...
+
+j
+
+De resultaten zijn niet geldig voor combinaties van
+meerdere ingrepen, of een enkele ingreep over een
+traject van meer dan 4 km lengte!
+
+
+Om WAQMORF te kunnen gebruiken dient voor de
+referentiesituatie en de plansituatie hetzelfde
+WAQUA rooster te worden gebruikt.
+
+
+
+De waterbeweging gedurende het jaar wordt daartoe in drie
+afvoerblokken weergegeven:
+
+    blok 1 met afvoer Q1 is het laagwaterblok
+    blok 2 met afvoer Q2 is het overgangsblok
+    blok 3 met afvoer Q3 is het hoogwaterblok
+
+
+Zijn hiervan reeds WAQUA resultaten beschikbaar?
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+
+---------------------------------------------------
+
+Het resultaat van dit programma is een uitvoer van
+karakteristieke bodemveranderingen. Dit betreft
+
+    jaargemiddelde bodemverandering [m] zonder baggeren in        "jaargem.out"
+    maximale bodemverandering [m] na hoogwater zonder baggeren in "maxmorf.out"
+    minimale bodemverandering [m] na laagwater zonder baggeren in "minmorf.out"
+
+---------------------------------------------------
+
+Bevestig met "j", of begin opnieuw met "n" ...
+
+j
+In welke tak ligt het project ?
+
+
+    riviertak                                nr
+
+    Bovenrijn & Waal                         1
+
+    Pannerdensch Kanaal & Nederrijn-Lek      2
+
+    IJssel                                   3
+
+    Merwedes                                 4
+
+    Maas                                     5
+
+
+Het nummer van de relevante tak is...
+
+1
+
+In welk rivierstuk ligt het project ?
+
+
+    rivierstuk                              nr
+
+    Bovenrijn                    km  859-867 1
+
+    Boven-Waal                   km  868-886 2
+
+    Midden-Waal                  km  887-915 3
+
+    Beneden-Waal                 km  916-951 4
+
+
+Het nummer van het relevante rivierstuk is...
+
+2
+
+
+---------------------------------------------------
+
+Het projectgebied ligt in het traject Boven-Waal                   km  868-886
+
+---------------------------------------------------
+
+Bevestig met "j" of verbeter de plaatsbepaling door invoer van "n" ...
+
+j
+
+
+Met de volgende drie vragen wordt de maatregel beschreven. Als een maatregel
+de waterbeweging in de hoofdgeul op meerdere plekken beinvloedt, beantwoordt
+de vragen dan voor het maatregel-onderdeel dat naar verwachting op de vaarweg
+de meeste invloed heeft.
+
+
+Is de maatregel stroomvoerend voor alle afvoeren bij Lobith boven 1000 m3/s?
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+De meeste uiterwaarden worden stroomvoerend bij afvoeren vanaf 4000 m3/s. Is
+
+dan ook sprake van een bankvullende afvoer door de maatregel?
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+
+Zijn WAQUA resultaten met Q1 = 3000.0  m3/s beschikbaar?
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+
+Zijn WAQUA resultaten met Q2 = 4000.0  m3/s beschikbaar?
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+
+Zijn WAQUA resultaten met Q3 = 6000.0  m3/s beschikbaar?
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+
+
+
+Bij te lage stroomsnelheden vindt geen bodemverandering plaats.
+Een ondergrens hiervoor is  0.300000 m/s.
+
+Is dit voor het traject Boven-Waal                   km  868-886 een goede ondergrens?'
+
+Bevestig met "j", anders antwoord met "n" ...
+
+j
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Invoer blok 1 van de drie WAQVIEW xyz-exportbestanden bij Q=3000.0 m3/s
+
+---------------------------------------------------
+
+
+De bestandsnaam van stroomsnelheden zonder ingreep is...
+xyz_velocity-zeta.001.Q1.xyz
+Bestand "xyz_velocity-zeta.001.Q1.xyz" gevonden !
+
+De bestandsnaam van waterdiepten zonder ingreep is...
+xyz_waterdepth-zeta.001.Q1.xyz
+Bestand "xyz_waterdepth-zeta.001.Q1.xyz" gevonden !
+
+De bestandsnaam van stroomsnelheden met ingreep is...
+xyz_velocity-zeta.002.Q1.xyz
+Bestand "xyz_velocity-zeta.002.Q1.xyz" gevonden !
+
+Inlezen van de drie WAQVIEW bestanden voor blok 1 ...
+
+
+---------------------------------------------------
+
+
+Invoer blok 2 van de drie WAQVIEW xyz-exportbestanden bij Q=4000.0 m3/s
+
+---------------------------------------------------
+
+
+De bestandsnaam van stroomsnelheden zonder ingreep is...
+xyz_velocity-zeta.001.Q2.xyz
+Bestand "xyz_velocity-zeta.001.Q2.xyz" gevonden !
+
+De bestandsnaam van waterdiepten zonder ingreep is...
+xyz_waterdepth-zeta.001.Q2.xyz
+Bestand "xyz_waterdepth-zeta.001.Q2.xyz" gevonden !
+
+De bestandsnaam van stroomsnelheden met ingreep is...
+xyz_velocity-zeta.002.Q2.xyz
+Bestand "xyz_velocity-zeta.002.Q2.xyz" gevonden !
+
+Inlezen van de drie WAQVIEW bestanden voor blok 2 ...
+
+
+---------------------------------------------------
+
+
+Invoer blok 3 van de drie WAQVIEW xyz-exportbestanden bij Q=6000.0 m3/s
+
+---------------------------------------------------
+
+
+De bestandsnaam van stroomsnelheden zonder ingreep is...
+xyz_velocity-zeta.001.Q3.xyz
+Bestand "xyz_velocity-zeta.001.Q3.xyz" gevonden !
+
+De bestandsnaam van waterdiepten zonder ingreep is...
+xyz_waterdepth-zeta.001.Q3.xyz
+Bestand "xyz_waterdepth-zeta.001.Q3.xyz" gevonden !
+
+De bestandsnaam van stroomsnelheden met ingreep is...
+xyz_velocity-zeta.002.Q3.xyz
+Bestand "xyz_velocity-zeta.002.Q3.xyz" gevonden !
+
+Inlezen van de drie WAQVIEW bestanden voor blok 3 ...
+
+
+---------------------------------------------------
+
+
+Bepalen van karakteristieke bodemveranderingen...
+
+
+
+Als elke bodemverandering jaarlijks wordt verwijderd,
+dan wordt de lengte waarover dit plaatsvindt geschat
+op 1319 m vanaf de bovenstroomse rand
+van het gebied met bodemverandering.
+
+Bevestig met "j" voor afronding programma ...
+
+j
+Programma geeindigd !!!

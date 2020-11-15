@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Tuple, Any, List, Union, Dict, Optional, TypedDict
+from typing import Tuple, Any, List, Union, Dict, Optional, TypedDict, TextIO
 
 import numpy
 import netCDF4
@@ -93,6 +93,56 @@ def load_program_texts(filename: str) -> None:
     if not key is None:
         dict[key] = text
     PROGTEXTS = dict
+
+
+def log_text(key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {}, repeat: int = 1) -> None:
+    """
+    Write a text to standard out or file.
+
+    Arguments
+    ---------
+    key : str
+        The key for the text to show to the user.
+    file : Optional[TextIO]
+        The file to write to (None for writing to standard out).
+    dict : Dict[str, Any]
+        A dictionary used for placeholder expansions (default empty).
+    repeat : int
+        The number of times that the same text should be repeated (default 1).
+
+    Returns
+    -------
+    None
+    """
+    str = program_texts(key)
+    for r in range(repeat):
+        for s in str:
+            sexp = s.format(**dict)
+            if file is None:
+                print(sexp)
+            else:
+                file.write(sexp + "\n")
+
+
+def getfilename(key: str) -> str:
+    """
+    Query the global dictionary of texts for a file name.
+
+    The file name entries in the global dictionary have a prefix "filename_"
+    which will be added to the key by this routine.
+
+    Arguments
+    ---------
+    key : str
+        The key string used to query the dictionary.
+
+    Results
+    -------
+    filename : str
+        File name.
+    """
+    filename = program_texts("filename_" + key)[0]
+    return filename
 
 
 def program_texts(key: str) -> List[str]:
@@ -575,7 +625,7 @@ def get_mesh_and_facedim_names(filename: str) -> Tuple[str, str]:
     return mesh2d[0].name, facedim
 
 
-def copy_ugrid(src: netCDF4.Dataset, meshname: str, dst: netCDF4.Dataset):
+def copy_ugrid(srcname: str, meshname: str, dstname: str) -> None:
     """
     Copy UGRID mesh data from one netCDF file to another.
 
@@ -584,30 +634,20 @@ def copy_ugrid(src: netCDF4.Dataset, meshname: str, dst: netCDF4.Dataset):
 
     Arguments
     ---------
-    src : UNION[str, netCDF4.Dataset]
-        Name of source file, or dataset object representing the source file.
+    srcname : str
+        Name of source file.
     meshname : str
         Name of the UGRID mesh to be copied from source to destination.
-    dst : UNION[str, netCDF4.Dataset]
+    dstname : str
         Name of destination file, or dataset object representing the destination
         file.
     """
-    # if src is string, then open the file
-    if isinstance(src, str):
-        src = netCDF4.Dataset(src)
-        srcclose = True
-    else:
-        srcclose = False
-
+    # open source and destination files
+    src = netCDF4.Dataset(srcname)
+    dst = netCDF4.Dataset(dstname, "w", format="NETCDF4")
+    
     # locate source mesh
     mesh = src.variables[meshname]
-
-    # if dst is string, then open the file
-    if isinstance(dst, str):
-        dst = netCDF4.Dataset(dst, "w", format="NETCDF4")
-        dstclose = True
-    else:
-        dstclose = False
 
     # copy mesh variable
     copy_var(src, meshname, dst)
@@ -638,11 +678,9 @@ def copy_ugrid(src: netCDF4.Dataset, meshname: str, dst: netCDF4.Dataset):
                 for varname2 in varlist2:
                     copy_var(src, varname2, dst)
 
-    # close files if strings where provided
-    if srcclose:
-        src.close()
-    if dstclose:
-        dst.close()
+    # close files
+    src.close()
+    dst.close()
 
 
 def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
@@ -661,9 +699,11 @@ def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
     dst : netCDF4.Dataset
         Dataset object representing the destination file.
     """
-    # locate the
+    # locate the variable to be copied
+    print(varname)
     srcvar = src.variables[varname]
 
+    print(srcvar)
     # copy dimensions
     for name in srcvar.dimensions:
         dimension = src.dimensions[name]
@@ -710,6 +750,7 @@ def ugrid_add(
     units : str
         String indicating the unit ("None" if no unit attribute should be written).
     """
+    print(dstfile)
     # open destination file
     dst = netCDF4.Dataset(dstfile, "a")
 

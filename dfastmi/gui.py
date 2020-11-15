@@ -32,7 +32,7 @@ from dfastmi.io import RiversObject
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
-import dfastmi.cli
+import dfastmi.batch
 import dfastmi.io
 import dfastmi.kernel
 import pathlib
@@ -457,7 +457,7 @@ def load_configuration(filename: str) -> None:
         Name of the configuration file to be opened.
     """
     try:
-        config = dfastmi.cli.load_configuration_file(filename)
+        config = dfastmi.batch.load_configuration_file(filename)
     except:
         showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
         return
@@ -548,7 +548,7 @@ def menu_save_configuration() -> None:
     filename = fil[0]
     if filename != "":
         config = get_configuration()
-        dfastmi.cli.save_configuration_file(filename, config)
+        dfastmi.batch.save_configuration_file(filename, config)
 
 
 def get_configuration() -> configparser.ConfigParser:
@@ -601,19 +601,20 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    failed = dfastmi.cli.batch_mode_core(rivers, False, config)
+    failed = dfastmi.batch.batch_mode_core(rivers, False, config)
+    report = dfastmi.io.getfilename("report.out")
     if failed:
         showError(
             gui_text(
                 "error_during_analysis",
-                dict={"report": dfastmi.cli.getfilename("report.out")},
+                dict={"report": report},
             )
         )
     else:
         showMessage(
             gui_text(
                 "end_of_analysis",
-                dict={"report": dfastmi.cli.getfilename("report.out")},
+                dict={"report": report},
             )
         )
 

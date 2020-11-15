@@ -17,10 +17,10 @@ gesignaleerd. De resultaten zijn niet direkt geschikt
 voor het bepalen van de invloed op vaargeulonderhoud!
 
 De jaarlijkse sedimentvracht door de rivier bepaalt de
-termijn waarbinnen dit evenwichtseffect kan ontwikkelen.'
+termijn waarbinnen dit evenwichtseffect kan ontwikkelen.
 
 
-Dit is versie PRE-ALPHA.
+Dit is versie 2.0.0.
 
 
 De resultaten zijn niet geldig voor combinaties van
@@ -42,7 +42,7 @@ karakteristieke bodemveranderingen. Dit betreft
     maximale bodemverandering [m] na hoogwater zonder baggeren in "maxmorf.out"
     minimale bodemverandering [m] na laagwater zonder baggeren in "minmorf.out"
 
-Als elke bodemverandering jaarlijks wordt verwijderd, 
+Als elke bodemverandering jaarlijks wordt verwijderd,
 dan wordt de lengte waarover dit plaatsvindt geschat
 op 1319 m vanaf de bovenstroomse rand
 van het gebied met bodemverandering.
