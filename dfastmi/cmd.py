@@ -39,7 +39,7 @@ import dfastmi.io
 import pathlib
 
 
-def parse_arguments() -> Tuple[bool, str, str, Optional[str]]:
+def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
     """
     Parse the command line arguments.
 
@@ -54,29 +54,40 @@ def parse_arguments() -> Tuple[bool, str, str, Optional[str]]:
 
     Returns
     -------
-    reduced_output : bool
-        Flag to indicate whether WAQUA output should be reduced to the area of
-        interest only.
     language : str
         Language identifier ("NL" or "UK").
     runmode : str
         Specification of the run mode ("BATCH", "CLI" or "GUI")
     config_name : Optional[str]
-        Name of the configuration file (optional).
+        Name of the analysis configuration file (optional).
+    rivers_file : str
+        Name of rivers configuration file.
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
     """
     parser = argparse.ArgumentParser(description="D-FAST Morphological Impact.")
+
     parser.add_argument(
         "--language", help="display language 'NL' or 'UK' (UK is default)"
     )
     parser.set_defaults(language="UK")
+
     parser.add_argument(
         "--mode", help="run mode 'BATCH', 'CLI' or 'GUI' (GUI is default)"
     )
     parser.set_defaults(mode="GUI")
+
     parser.add_argument(
-        "--config", help="name of configuration file (required for BATCH mode)"
+        "--config", help="name of analysis configuration file (required for BATCH mode)"
     )
     parser.set_defaults(config=None)
+
+    parser.add_argument(
+        "--rivers", help="name of rivers configuration file (default 'Dutch_rivers.ini')"
+    )
+    parser.set_defaults(rivers="Dutch_rivers.ini")
+
     parser.add_argument(
         "--reduced_output",
         help="write reduced M/N range (structured model only)",
@@ -85,25 +96,27 @@ def parse_arguments() -> Tuple[bool, str, str, Optional[str]]:
     parser.set_defaults(reduced_output=False)
     args = parser.parse_args()
 
-    reduced_output = args.__dict__["reduced_output"]
     language = args.__dict__["language"].upper()
     runmode = args.__dict__["mode"].upper()
     config = args.__dict__["config"]
+    rivers_file = args.__dict__["rivers"]
+    reduced_output = args.__dict__["reduced_output"]
+
     if language not in ["NL", "UK"]:
         raise Exception(
             'Incorrect language "{}" specified. Should read "NL" or "UK".'.format(
                 language
             )
         )
-    return reduced_output, language, runmode, config
+    return language, runmode, config, rivers_file, reduced_output
 
 
 if __name__ == "__main__":
-    reduced_output, language, runmode, config = parse_arguments()
+    language, runmode, config, rivers_file, reduced_output = parse_arguments()
 
     progloc = str(pathlib.Path(__file__).parent.absolute())
     try:
-        dfastmi.io.load_program_texts(
+        dfastmi.io.load_get_text(
             progloc + os.path.sep + "messages." + language + ".ini"
         )
     except:
@@ -116,15 +129,15 @@ if __name__ == "__main__":
         else:
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
-        rivers = dfastmi.io.read_rivers(progloc + os.path.sep + "rivers.ini")
+        rivers = dfastmi.io.read_rivers(progloc + os.path.sep + rivers_file)
         if runmode == "BATCH":
             if config is None:
-                dfastmi.cli.log_text("missing_config")
+                dfastmi.io.log_text("missing_config")
             else:
                 dfastmi.batch.batch_mode(config, rivers, reduced_output)
         elif runmode == "CLI":
             if not config is None:
-                dfastmi.cli.log_text("ignoring_config")
+                dfastmi.io.log_text("ignoring_config")
             dfastmi.cli.interactive_mode(sys.stdin, rivers, reduced_output)
         elif runmode == "GUI":
             dfastmi.gui.main(rivers, config)

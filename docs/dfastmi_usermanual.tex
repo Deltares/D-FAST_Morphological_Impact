@@ -6,6 +6,7 @@
 %------------------------------------------------------------------------------
 \newcommand{\dfastmi}{\textrm{D-FAST~Morphological~Impact}\xspace}
 \newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
+\newcommand{\sobek}{\textrm{SOBEK}\xspace}
 
 \hypersetup
 {
@@ -35,7 +36,10 @@
 \deltarestitle
 %
 \include{chapters/intro}
-\include{chapters/description}
+\include{chapters/get_started}
+\include{chapters/conceptual_description}
+\include{chapters/usage}
+\include{chapters/example}
 
 %\textit{}\include{chapters_usermanual/guide}
 
@@ -43,8 +47,8 @@
 \bibliography{dfastmi}
 
 \appendix
-\chapter{Technical Reference Manual}
-\markdownInput[shiftHeadings=1]{techref.md}
+\include{chapters/file_formats}
+%\markdownInput[shiftHeadings=1]{techref.md}
 
 \pagestyle{empty}
 \cleardoublepage

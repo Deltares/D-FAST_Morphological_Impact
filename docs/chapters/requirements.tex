@@ -1,0 +1,48 @@
+\chapter{Software requirements}
+
+\section{Introduction}
+
+The purpose of \dfastmi is to provide a first estimate of the bed level changes in the main channel if local measures were to be implemented outside the main channel.
+It is based on the conceptual WAQMORF framework originally developed by \citet{Sieben2008}.
+WAQMORF was developed for the SIMONA system.
+\dfastmi implements the same functionality based on results obtained from D-Flow Flexible Mesh.
+The detailed list of requirements is given below.
+
+\section{Functional Requirements}
+
+\begin{enumerate}
+\item This program must give the same results for the same data as WAQMORF.
+\item Users must be able to run this program in batch mode from the command line.
+\item Users must be able to run the analysis based on D-Flow FM results.
+\item Users must be able to provide all data via an input file.
+\item The input file must be easy to edit for users, i.e.~a text file.
+\item The report output must be a simple text file consistent with WAQMORF.
+\item The spatial output must be easy to visualize in common software.
+
+\item The should read relevant data directly from D-Flow FM map-files instead of intermediate XYZ files as required by WAQMORF for SIMONA results.
+
+\item The input file could use the ini-format consistent with D-Flow FM input files.
+\item A simple graphical user interface could support users in process of creating the input file.
+
+\item It would be nice if the software would be more generally applicable than just the Dutch rivers.
+\item It would be nice if the software would be able to run besides Dutch also in English.
+\end{enumerate}
+
+All requirements are addressed by \dfastmi.
+
+\section{Non-functional requirements}
+
+\begin{enumerate}
+\item The performance of the tools must be similar to that of WAQMORF, i.e.~it must run within seconds.
+\item The software must be version controlled.
+\item The software must have formal testing and support.
+\item The software must run on Windows.
+\item The software must be easy to distribute.
+\item The software must have a user manual.
+\item The software must have technical documentation.
+
+\item The software should run on any common operating system.
+\item The software should be available as open source.
+\end{enumerate}
+
+All requirements are addressed by \dfastmi although the testing has been carried out on the Windows platform only.

@@ -123,7 +123,7 @@ def char_times(
 
     NOTE: the duration variables are initially defined as fraction of the year,
     but they are converted to number of days before returning.
-    
+
     Arguments
     ---------
     q_fit : Tuple[float, float]
@@ -271,11 +271,11 @@ def main_computation(
 
     den = 1 - rsigma1l * rsigma2l * rsigma3l
 
-    #zmbb = (
+    # zmbb = (
     #    dzq1 * (1 - rsigma1l) * rsigma2l * rsigma3l
     #    + dzq2 * (1 - rsigma2l) * rsigma3l
     #    + dzq3 * (1 - rsigma3l)
-    #)
+    # )
 
     with numpy.errstate(divide="ignore", invalid="ignore"):
         z1o = numpy.where(

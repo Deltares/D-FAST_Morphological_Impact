@@ -1,0 +1,268 @@
+\chapter{File formats}
+
+The software distinguishes 6 files:
+
+\begin{itemize}
+\item The \emph{rivers configuration file} defines the branches and reaches, and all parameter settings specific for the overall system, per branch or per reach.
+\item The \emph{dialog text file} defines all strings to be used in the interaction with the users (GUI, report, or error messages).
+\item The \emph{analysis configuration file} defines the settings that are relevant for a specific execution of the algorithm, i.e.~for a specific branch, reach and measure.
+\item The \emph{simulation result files} define the spatial variations in the velocities and water depths as needed by the algorithm.
+\item The \emph{report file} contains a logging of the settings and lumped results for the analysis.
+\item The \emph{spatial output file} contains the estimate of the spatial variation in the sedimentation and erosion patterns that will result from the measure (minimum, mean and maximum).
+\end{itemize}
+
+Each file type is addressed separately in the following subsections.
+
+\section{rivers configuration file}
+
+The rivers configuration file follows the common ini-file format.
+The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
+The initial version number will be \keyw{1.0}.
+
+Besides the \keyw{[General]} block version 1.0 files should only contain data blocks for the river branches (in Dutch: takken).
+The names of those blocks will be used as branch names.
+For instance, a block [My branch] will be processed as a branch called "My branch".
+The order of the branches will correspond to the order of the blocks in the file.
+The branch block defines the reaches (in Dutch: stukken) to be distinguished as well as the branch or reach specific parameter settings.
+The \keyw{[General]} block may contain default values for the 
+Further details follow below.
+
+\begin{tabular}{l|l|p{8cm}}
+Block & Keyword & Description \\ \hline
+\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0} \\
+BranchName<i> & \keyw{Reach<j>} & Name of reach <j> within branch <i> \\
+BranchName<i> & \keyw{QLocation} & Location at which discharges for branch <i> are defined \\
+\keyw{*} & \keyw{QStagnant} & Discharge \unitbrackets{m\textsuperscript{3}/s} below which main channel flow can be assumed stagnant \\
+\keyw{*} & \keyw{QMin} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which measure becomes active \\
+\keyw{*} & \keyw{QFit} & Two discharges \unitbrackets{m\textsuperscript{3}/s} used for representing the exceedance curve \\
+\keyw{*} & \keyw{QLevels} & Four characteristic discharges \unitbrackets{m\textsuperscript{3}/s} used by algorithm \\
+\keyw{*} & \keyw{dQ} & Two discharge adjustments \unitbrackets{m\textsuperscript{3}/s} used by algorithm \\
+\keyw{*} & \keyw{NWidth} & Normal width \unitbrackets{m} of main channel \\
+\keyw{*} & \keyw{PRLow} & Low flow propagation rate \unitbrackets{km/yr} \\
+\keyw{*} & \keyw{PRHigh} & High flow propagation rate \unitbrackets{km/yr} \\
+\keyw{*} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport
+\end{tabular}
+
+The second value of \keyw{QLevels} corresponds to the typical bankfull discharge.
+All keywords listed for block \keyw{*} may occur either in the \keyw{[General]} block or in one of the branch specific blocks where they may optionally be concatenated with the reach number <j>.
+Those keywords may thus occur in three flavours:
+
+\begin{enumerate}
+\item Plain keyword in block \keyw{[General]}: global default value valid for all branches
+\item Plain keyword in branch specific block: default value for that branch (overrules any global default)
+\item Keyword followed by reach number <j> in branch specific block: value valid for that reach on that branch.
+\end{enumerate}
+
+\subsubsection*{Example}
+
+The following excerpt of the default \keyw{Dutch\_rivers.ini} configuration file shows the \keyw{[General]} as well as the first part of the \keyw{[Bovenrijn \& Waal]} block for the first branch.
+It includes a global value of 0.3 for \keyw{UCrit} and 100 for \keyw{QMin}.
+The other parameters are specified at branch level and mostly uniform for the whole branch.
+Only \keyw{NWidth} and \keyw{PRLow} vary depending on the reach selected.
+
+\begin{Verbatim}
+    [General]
+        Version    = 1.0
+
+        UCrit      = 0.3
+        QMin       = 1000
+
+    [Bovenrijn & Waal]
+        QLocation  = Lobith
+        QStagnant  = 800
+        QFit       = 800  1280
+        QLevels    = 3000  4000  6000  10000
+        dQ         = 1000  1000
+        PRHigh     = 3.65
+        
+        Reach1     = Bovenrijn                    km  859-867
+        NWidth1    = 340
+        PRLow1     = 0.89
+        
+        Reach2     = Boven-Waal                   km  868-886
+        NWidth2    = 260
+        PRLow2     = 0.81
+
+        ... continued ...
+\end{Verbatim}
+
+\section{dialog text file}
+
+The dialog text file uses the block labels enclosed by square brackets of the common ini-file format, but the lines in between the blocks are treated verbatim and don't list keyword/value pairs.
+Every print statement in the program is associated with a short descriptive identifier.
+These identifiers show up in the dialog text file as the block labels.
+The text that follows the block label will be used at that location in the program.
+The order of the blocks in the file is not important.
+Please note that every line is used as is, so don't add indentations or blank lines unless you want those to show up during the program execution.
+Most blocks may contain any number of lines, but some blocks may only contain a single line in particular block that start with \keyw{gui\_} or \keyw{filename\_}.
+Some data blocks may contain one or more named placeholders, e.g. \keyw{{version}}, used for inserting values by means of the Python \keyw{format()} method.
+
+\subsubsection*{Example}
+
+The following excerpt of the default \keyw{messages.NL.cfg} dialog text file shows the string definition for 5 identifiers, namely '' (the identifier for an empty line), 'header', 'confirm', 'confirm\_or' and 'confirm\_or\_restart'.
+The header string contains one placeholder, namely \keyw{{version}} for the the version number.
+
+\begin{Verbatim}
+    []
+    
+    [header]
+    Dit programma is de "WAQUA vuistregel" voor het schatten
+    van lokale morfologische effecten door een lokale ingreep
+    (zie RWS-WD memo WAQUA vuistregel 20-10-08).
+    
+    Het is een inschatting van evenwichtsbodemveranderingen
+    in het zomerbed die als gevolg van een ingreep en zonder
+    aangepast beheer na lange tijd ontstaan.
+    
+    Dit betreft het effect op de bodem in [m]:
+    
+        jaargemiddeld zonder baggeren
+        maximaal (na hoogwater) zonder baggeren
+        minimaal (na laagwater) zonder baggeren
+    
+    Met deze bodemveranderingen kunnen knelpunten worden
+    gesignaleerd. De resultaten zijn niet direkt geschikt
+    voor het bepalen van de invloed op vaargeulonderhoud!
+    
+    De jaarlijkse sedimentvracht door de rivier bepaalt de
+    termijn waarbinnen dit evenwichtseffect kan ontwikkelen.'
+    
+    
+    Dit is versie {version}.
+    
+    [confirm]
+    Bevestig met "j" ...
+    
+    [confirm_or]
+    Bevestig met "j", anders antwoord met "n" ...
+    
+    [confirm_or_restart]
+    Bevestig met "j", of begin opnieuw met "n" ...
+    
+    ... continued ...
+\end{Verbatim}
+
+\section{analysis configuration file}
+
+The analysis configuration file follows the common ini-file format.
+The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
+The initial version number will be \keyw{1.0}.
+
+Version 1.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the measure is located.
+The specified names may be shortened, but they should uniquely identify the branch and reach amongst the names of the other branches and reaches.
+Optionally, the same block may also contain \keyw{Qmin}, \keyw{QBankfull} and \keyw{UCrit} values representative for this particular measure if they differ from those typical for the selected reach.
+These items are sufficient for a basic analysis.
+For a full spatial analysis the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without measure (reference) and with measure for the selected discharges Q1, Q2, and Q3.
+
+\begin{tabular}{l|l|p{8cm}}
+Block & Keyword & Description \\ \hline
+\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0} \\
+\keyw{General} & \keyw{Mode} & \keyw{WAQUA export} or \keyw{D-Flow FM map} (the latter is the default) \\
+\keyw{General} & \keyw{Branch} & Name of the selected branch \\
+\keyw{General} & \keyw{Reach} & Name of the selected reach \\
+\keyw{General} & \keyw{QMin} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which measure becomes active \\
+\keyw{General} & \keyw{QBankfull} & Discharge \unitbrackets{m\textsuperscript{3}/s} at which measure reaches bankfull \\
+\keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport \\
+\keyw{Q1} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the low flow simulation \\
+\keyw{Q1} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q1 \\
+\keyw{Q1} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure at Q1 \\
+\keyw{Q2} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the transitional regime \\
+\keyw{Q2} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q2 \\
+\keyw{Q2} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure at Q2 \\
+\keyw{Q3} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the high flow simulation \\
+\keyw{Q3} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q3 \\
+\keyw{Q3} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure at Q3 \\
+\end{tabular}
+
+The file names may be specified using relative or absolute paths.
+The \keyw{Reference} and \keyw{WithMeasure} keywords are *not* used when the \keyw{Mode} equals \keyw{WAQUA export}; in that case the file name are standardized as \keyw{xyz\_<quantity>-zeta.00<1/2>.Q<i>}.
+
+\subsubsection*{Example}
+
+This example shows a complete analysis configuration file for a measure in the first branch/reach of the default \keyw{Dutch\_rivers.cfg} configuration.
+It reports the default settings.
+Only the \keyw{Version}, \keyw{Branch}, \keyw{Reach}, \keyw{Reference} and \keyw{WithMeasure} keywords are required for the full analysis.
+
+\begin{Verbatim}
+    [General]
+      Version     = 1.0
+      Mode        = D-Flow FM map
+      Branch      = Bovenrijn & Waal
+      Reach       = Bovenrijn                    km  859-867
+      Qmin        = 1000.0
+      Qbankfull   = 4000.0
+      Ucrit       = 0.3
+    
+    [Q1]
+      Discharge   = 1000.0
+      Reference   = Measure42/Q1/Reference/DFM_OUTPUT_Q1/Q1_map.nc
+      WithMeasure = Measure42/Q1/Updated/DFM_OUTPUT_Q1/Q1_map.nc
+    
+    [Q2]
+      Discharge   = 4000.0
+      Reference   = Measure42/Q2/Reference/DFM_OUTPUT_Q2/Q2_map.nc
+      WithMeasure = Measure42/Q2/Updated/DFM_OUTPUT_Q2/Q2_map.nc
+    
+    [Q3]
+      Discharge   = 6000.0
+      Reference   = Measure42/Q3/Reference/DFM_OUTPUT_Q3/Q3_map.nc
+      WithMeasure = Measure42/Q3/Updated/DFM_OUTPUT_Q3/Q3_map.nc
+\end{Verbatim}
+
+\section{simulation result files}
+
+The WAQUA program writes the simulation results in a proprietary SDS file format.
+The content of these result files can't be accessed directly from Python, so they need to be exported to a more accessible file format.
+The previous WAQMORF program also required that the user extracted the cell centred velocity magnitude and water depth values from the the WAQUA SDS-output files write them to simple ASCII files with 6 columns specifying the x-coordinates, y-coordinates, the value of the quantity (labeled as z-coordinate), m-index, n-index, and cell number.
+Only the "z" values and the m- and n-indices are used by the program.
+The names of those files has been hardcoded, they should read \keyw{xyz\_<quantity>-zeta.00<1/2>.Q<i>} with the quantity name equal to 'velocity' or 'waterdepth', a 1 for the reference simulation and a 2 for the simulation with the measure implemented, and i the number of the discharge level.
+\dfastmi supports these same files; an example of such file are given below.
+In case of an anlysis based on D-Flow FM simulations, \dfastmi reads the results directly from the UGRID netCDF map-files.
+These files may contain multiple time steps; the final time steps will be used for the analysis.
+The mesh geometry is transferred from one of the simulation files to the \dfastmi results file.
+
+\subsubsection*{Example}
+
+\begin{Verbatim}
+x,y,z,m,n,id
+     197940.645,     431152.719,         0.0000,     2,     1,        11
+     197874.004,     431430.516,         0.0000,     3,     1,        12
+     197801.719,     431717.008,         0.0000,     4,     1,        13
+     197727.047,     431985.375,         0.0000,     5,     1,        14
+     197658.695,     432196.953,         0.0000,     6,     1,        15
+     197610.234,     432323.859,         0.0000,     7,     1,        16
+     197581.203,     432391.383,         0.0000,     8,     1,        17
+     197559.625,     432439.234,         0.0000,     9,     1,        18
+     197542.594,     432476.234,         0.0000,    10,     1,        19
+     197528.668,     432506.070,         0.0000,    11,     1,        20
+     197515.137,     432535.016,         0.0000,    12,     1,        21
+     197505.176,     432556.258,         0.6156,    13,     1,        22
+     197496.215,     432575.305,         0.8334,    14,     1,        23
+     197485.773,     432597.516,         0.9794,    15,     1,        24
+     197475.344,     432619.711,         1.0762,    16,     1,        25
+     197465.578,     432640.484,         1.1305,    17,     1,        26
+     197456.320,     432660.203,         1.1674,    18,     1,        27
+     197447.242,     432679.563,         1.2085,    19,     1,        28
+     197438.004,     432699.258,         1.2506,    20,     1,        29
+     197428.273,     432720.000,         1.2913,    21,     1,        30
+     197417.879,     432742.133,         1.3212,    22,     1,        31 
+
+... continued ...
+\end{Verbatim}
+
+
+\section{report file}
+
+\dfastmi will write a report of the analysis.
+This report file is a simple text file consistent with the earlier reports written by WAQMORF.
+The length and content of the report vary depending on the availability of the simulation result files and the language selected.
+
+
+\section{spatial output file}
+
+The WAQMORF program wrote the spatial output in SIMONA BOX-file format which could be visualize when combined with the curvilinear grid of the original simulation.
+\dfastmi still generates such files when run based on WAQUA results.
+
+\dfastmi generates one UGRID netCDF file containing the spatial results of the analysis.
+The mesh information is copied from the D-Flow FM map file and the three data fields (erosion and sedimentation patterns for mean, minimum, and maximum impact) follow standardized conventions for data stored at cell centres (\keyw{face}-values) on an unstructured mesh.
+As a result the data may be visualized using a number of visualization tools such as QUICKPLOT and QGIS.

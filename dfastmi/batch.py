@@ -87,7 +87,7 @@ def batch_mode_core(
     success : bool
         Flag indicating whether the analysis could be completed successfully.
     """
-    report = open(dfastmi.io.getfilename("report.out"), "w")
+    report = open(dfastmi.io.get_filename("report.out"), "w")
 
     version = dfastmi.__version__
     dfastmi.io.log_text("header", dict={"version": version}, file=report)
@@ -125,7 +125,9 @@ def batch_mode_core(
                 tstag,
                 T,
                 rsigma,
-            ) = batch_get_discharges(rivers, ibranch, ireach, config, celerity_hg, celerity_lw, nwidth)
+            ) = batch_get_discharges(
+                rivers, ibranch, ireach, config, celerity_hg, celerity_lw, nwidth
+            )
 
             nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
 
@@ -137,9 +139,9 @@ def batch_mode_core(
                     "results_with_input_waqua",
                     file=report,
                     dict={
-                        "avgdzb": dfastmi.io.getfilename("avgdzb.out"),
-                        "maxdzb": dfastmi.io.getfilename("maxdzb.out"),
-                        "mindzb": dfastmi.io.getfilename("mindzb.out"),
+                        "avgdzb": dfastmi.io.get_filename("avgdzb.out"),
+                        "maxdzb": dfastmi.io.get_filename("maxdzb.out"),
+                        "mindzb": dfastmi.io.get_filename("mindzb.out"),
                     },
                 )
             else:
@@ -147,7 +149,7 @@ def batch_mode_core(
                 dfastmi.io.log_text(
                     "results_with_input_dflowfm",
                     file=report,
-                    dict={"netcdf": dfastmi.io.getfilename("netcdf.out")},
+                    dict={"netcdf": dfastmi.io.get_filename("netcdf.out")},
                 )
             filenames = get_filenames(mode, config)
             failed = analyse_and_report(
@@ -168,7 +170,9 @@ def batch_mode_core(
                 ucrit,
                 filenames,
             )
-            dfastmi.io.log_text("length_estimate", dict={"nlength": nlength}, file=report)
+            dfastmi.io.log_text(
+                "length_estimate", dict={"nlength": nlength}, file=report
+            )
 
     dfastmi.io.log_text("end", file=report)
     report.close()
@@ -200,7 +204,18 @@ def batch_get_discharges(
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
-) -> Tuple[bool, str, Optional[float], float, Tuple[float, float], float, QRuns, float, Tuple[float, float, float], Tuple[float, float, float]]:
+) -> Tuple[
+    bool,
+    str,
+    Optional[float],
+    float,
+    Tuple[float, float],
+    float,
+    QRuns,
+    float,
+    Tuple[float, float, float],
+    Tuple[float, float, float],
+]:
     """
     Get the simulation discharges in batch mode (no user interaction).
 
@@ -246,7 +261,7 @@ def batch_get_discharges(
     """
     q_threshold: Optional[float]
 
-    stages = dfastmi.io.program_texts("stage_descriptions")
+    stages = dfastmi.io.get_text("stage_descriptions")
 
     q_location = rivers["qlocations"][ibranch]
     q_stagnant = rivers["qstagnant"][ibranch][ireach]
@@ -256,7 +271,7 @@ def batch_get_discharges(
 
     q_min = rivers["qmin"][ibranch][ireach]
     try:
-        q_threshold = float(config["General"]["Qmin"])
+        q_threshold = float(config["General"]["Qthreshold"])
     except:
         q_threshold = None
 
@@ -270,17 +285,28 @@ def batch_get_discharges(
     tstag, T, rsigma = dfastmi.kernel.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
     )
-    
+
     QList = list(Q)
     for iq in range(3):
         if applyQ[iq]:
-            QList[iq] = float(config["Q{}".format(iq+1)]["Discharge"])
+            QList[iq] = float(config["Q{}".format(iq + 1)]["Discharge"])
         else:
             QList[iq] = None
     Q = (QList[0], QList[1], QList[2])
 
     all_q = True
-    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q, tstag, T, rsigma
+    return (
+        all_q,
+        q_location,
+        q_threshold,
+        q_bankfull,
+        q_fit,
+        q_stagnant,
+        Q,
+        tstag,
+        T,
+        rsigma,
+    )
 
 
 def get_filenames(
@@ -509,10 +535,14 @@ def analyse_and_report_waqua(
         )
 
         dfastmi.io.write_simona_box(
-            dfastmi.io.getfilename("avgdzb.out"), data_zgem, firstm, firstn
+            dfastmi.io.get_filename("avgdzb.out"), data_zgem, firstm, firstn
         )
-        dfastmi.io.write_simona_box(dfastmi.io.getfilename("maxdzb.out"), data_z1o, firstm, firstn)
-        dfastmi.io.write_simona_box(dfastmi.io.getfilename("mindzb.out"), data_z2o, firstm, firstn)
+        dfastmi.io.write_simona_box(
+            dfastmi.io.get_filename("maxdzb.out"), data_z1o, firstm, firstn
+        )
+        dfastmi.io.write_simona_box(
+            dfastmi.io.get_filename("mindzb.out"), data_z2o, firstm, firstn
+        )
 
     return missing_data
 
@@ -604,7 +634,7 @@ def analyse_and_report_dflowfm(
         )
 
         meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(filenames[0])
-        dst = dfastmi.io.getfilename("netcdf.out")
+        dst = dfastmi.io.get_filename("netcdf.out")
         dfastmi.io.copy_ugrid(filenames[0], meshname, dst)
         dfastmi.io.ugrid_add(
             dst,
@@ -707,7 +737,7 @@ def get_values_waqua3(
         dfastmi.io.log_text("---")
         dfastmi.io.log_text("")
 
-    discriptions = dfastmi.io.program_texts("file_descriptions")
+    discriptions = dfastmi.io.get_text("file_descriptions")
     quantities = ["velocity-zeta.001", "waterdepth-zeta.001", "velocity-zeta.002"]
     files = []
     for i in range(3):
@@ -881,7 +911,9 @@ def write_report(
     )
     dfastmi.io.log_text("", file=report)
     if q_stagnant > q_fit[0]:
-        dfastmi.io.log_text("closed_barriers", dict={"ndays": int(365*tstag)}, file=report)
+        dfastmi.io.log_text(
+            "closed_barriers", dict={"ndays": int(365 * tstag)}, file=report
+        )
         dfastmi.io.log_text("", file=report)
     for i in range(3):
         if not Q[i] is None:
@@ -893,8 +925,12 @@ def write_report(
             if i < 2:
                 tdays = int(365 * t[i])
             else:
-                tdays = max(0, 365 - int(365*t[0]) - int(365*t[1]) - int(365*tstag))
-            dfastmi.io.log_text("char_period", dict={"n": i + 1, "ndays": tdays}, file=report)
+                tdays = max(
+                    0, 365 - int(365 * t[0]) - int(365 * t[1]) - int(365 * tstag)
+                )
+            dfastmi.io.log_text(
+                "char_period", dict={"n": i + 1, "ndays": tdays}, file=report
+            )
             if i < 2:
                 dfastmi.io.log_text("", file=report)
             else:
@@ -910,7 +946,9 @@ def write_report(
         )
     for i in range(3):
         if not Q[i] is None:
-            dfastmi.io.log_text(stagename(i), dict={"q": Q[i], "border": q_location}, file=report)
+            dfastmi.io.log_text(
+                stagename(i), dict={"q": Q[i], "border": q_location}, file=report
+            )
     dfastmi.io.log_text("---", file=report)
     dfastmi.io.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     dfastmi.io.log_text("prepare_input", file=report)

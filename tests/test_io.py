@@ -23,13 +23,13 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class load_program_texts(unittest.TestCase):
-    def test_load_program_texts_01(self):
+class load_get_text(unittest.TestCase):
+    def test_load_get_text_01(self):
         """
-        Testing load_program_texts.
+        Testing load_get_text.
         """
         print("current work directory: ", os.getcwd())
-        self.assertEqual(dfastmi.io.load_program_texts("dfastmi/messages.UK.ini"), None)
+        self.assertEqual(dfastmi.io.load_get_text("dfastmi/messages.UK.ini"), None)
 
 class log_text(unittest.TestCase):
     def test_log_text_01(self):
@@ -80,31 +80,31 @@ class log_text(unittest.TestCase):
         strref = ['The measure is located on reach ABC']
         self.assertEqual(all_lines, strref)
 
-class getfilename(unittest.TestCase):
-    def test_getfilename_01(self):
+class get_filename(unittest.TestCase):
+    def test_get_filename_01(self):
         """
-        Testing getfilename wrapper for program_texts.
+        Testing get_filename wrapper for get_text.
         """
-        self.assertEqual(dfastmi.io.getfilename("report.out"), "report.txt")
+        self.assertEqual(dfastmi.io.get_filename("report.out"), "report.txt")
 
-class program_texts(unittest.TestCase):
-    def test_program_texts_01(self):
+class get_text(unittest.TestCase):
+    def test_get_text_01(self):
         """
-        Testing program_texts: key not found.
+        Testing get_text: key not found.
         """
-        self.assertEqual(dfastmi.io.program_texts("@"), ["No message found for @"])
+        self.assertEqual(dfastmi.io.get_text("@"), ["No message found for @"])
 
-    def test_program_texts_02(self):
+    def test_get_text_02(self):
         """
-        Testing program_texts: empty line key.
+        Testing get_text: empty line key.
         """
-        self.assertEqual(dfastmi.io.program_texts(""), [""])
+        self.assertEqual(dfastmi.io.get_text(""), [""])
 
-    def test_program_texts_03(self):
+    def test_get_text_03(self):
         """
-        Testing program_texts: "confirm" key.
+        Testing get_text: "confirm" key.
         """
-        self.assertEqual(dfastmi.io.program_texts("confirm"), ['Confirm using "y" ...',''])
+        self.assertEqual(dfastmi.io.get_text("confirm"), ['Confirm using "y" ...',''])
 
 class read_rivers(unittest.TestCase):
     def test_read_rivers_01(self):
@@ -135,8 +135,8 @@ class collect_values1(unittest.TestCase):
         Testing sucessful collect_values1 call.
         """
         config = configparser.ConfigParser()
-        config.add_section("Branches")
-        config["Branches"]["A"] = "0.0"
+        config.add_section("General")
+        config["General"]["A"] = "0.0"
         config.add_section("Branch1")
         config["Branch1"]["A"] = "1.0"
         config["Branch1"]["A1"] = "2.0"
@@ -155,8 +155,8 @@ class collect_values1(unittest.TestCase):
         Testing collect_values1 raising an Exception.
         """
         config = configparser.ConfigParser()
-        config.add_section("Branches")
-        config["Branches"]["A"] = "0.0 0.1"
+        config.add_section("General")
+        config["General"]["A"] = "0.0 0.1"
         config.add_section("Branch1")
         config["Branch1"]["A"] = "1.0"
         config["Branch1"]["A1"] = "2.0"
@@ -176,8 +176,8 @@ class collect_values2(unittest.TestCase):
         Testing successful collect_values2 call.
         """
         config = configparser.ConfigParser()
-        config.add_section("Branches")
-        config["Branches"]["A"] = "0.0 0.0"
+        config.add_section("General")
+        config["General"]["A"] = "0.0 0.0"
         config.add_section("Branch1")
         config["Branch1"]["A"] = "1.0 0.1"
         config["Branch1"]["A1"] = "2.0 0.2"
@@ -196,8 +196,8 @@ class collect_values2(unittest.TestCase):
         Testing collect_values2 raising an Exception.
         """
         config = configparser.ConfigParser()
-        config.add_section("Branches")
-        config["Branches"]["A"] = "0.0 0.0"
+        config.add_section("General")
+        config["General"]["A"] = "0.0 0.0"
         config.add_section("Branch1")
         config["Branch1"]["A"] = "1.0"
         config["Branch1"]["A1"] = "2.0 0.2"
@@ -217,8 +217,8 @@ class collect_values4(unittest.TestCase):
         Testing collect_values4.
         """
         config = configparser.ConfigParser()
-        config.add_section("Branches")
-        config["Branches"]["A"] = "0.0 0.0 0.0 0.1"
+        config.add_section("General")
+        config["General"]["A"] = "0.0 0.0 0.0 0.1"
         config.add_section("Branch1")
         config["Branch1"]["A"] = "1.0 0.1 0.0 0.01"
         config["Branch1"]["A1"] = "2.0 0.2 0.02 0.0"
@@ -237,8 +237,8 @@ class collect_values4(unittest.TestCase):
         Testing collect_values4 raising an Exception.
         """
         config = configparser.ConfigParser()
-        config.add_section("Branches")
-        config["Branches"]["A"] = "0.0 0.0 0.0 0.1"
+        config.add_section("General")
+        config["General"]["A"] = "0.0 0.0 0.0 0.1"
         config.add_section("Branch1")
         config["Branch1"]["A"] = "1.0 0.1 0.0 0.01"
         config["Branch1"]["A1"] = "2.0 0.2 0.02 0.0"

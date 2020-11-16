@@ -25,8 +25,8 @@ class batch_mode(unittest.TestCase):
         """
         Testing batch_mode: missing configuration file.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/rivers.ini")
+        dfastmi.io.load_get_text("dfastmi/messages.NL.ini")
+        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         with captured_output() as (out, err):
             dfastmi.batch.batch_mode("config.cfg", rivers, False)
         outstr = out.getvalue().splitlines()
@@ -40,8 +40,8 @@ class batch_mode(unittest.TestCase):
         """
         Testing batch_mode: missing configuration file.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/rivers.ini")
+        dfastmi.io.load_get_text("dfastmi/messages.NL.ini")
+        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
@@ -77,8 +77,8 @@ class batch_mode(unittest.TestCase):
         """
         Testing batch_mode: missing configuration file.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/rivers.ini")
+        dfastmi.io.load_get_text("dfastmi/messages.UK.ini")
+        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:

@@ -10,41 +10,34 @@
 {
     pdfauthor   = {Deltares},
     pdftitle    = {\dfastmi},
-    pdfkeywords = {Deltares Design Document \dfastmi}
+    pdfkeywords = {Technical Reference \dfastmi}
 }
 
-%------------------------------------------------------------------------------
-%
-
-%\makeindex
-
-%------------------------------------------------------------------------------
-%
 \begin{document}
 %\pagestyle{empty}
 %\includepdf[pages=1, offset=72 -70]{cover/d-fast-morphological-impact.pdf} % links-rechts past precies
 %\cleardoublepage
-\title{\dfastmi}
+\title{D-FAST\\ Morphological Impact}
 \subtitle{}
-\manualtype{Design Document}
+\manualtype{Technical Reference Manual}
 \version{1.0}
 
 \author{Bert Jagers}
 
 \deltarestitle
-%
+
 \include{chapters/intro_tech}
-%\include{chapters/description}
 
-\markdownInput{techref.md}
-%\textit{}\include{chapters_usermanual/guide}
+\include{chapters/requirements}
+\include{chapters/code_structure}
+\include{chapters/software_maintenance}
+%\markdownInput{techref.md}
 
-%\nonumchapter{References}
-%\bibliography{../common/deltares_manual}
+\nonumchapter{References}
+\bibliography{dfastmi}
 
-%\appendix
-
-%\include{chapters_usermanual/appmdufile}
+\appendix
+\include{chapters/file_formats}
 
 %\pagestyle{empty}
 %\cleardoublepage

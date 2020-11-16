@@ -58,7 +58,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     if reduced_output:
         dfastmi.io.log_text("reduce_output")
 
-    report = open(dfastmi.io.getfilename("report.out"), "w")
+    report = open(dfastmi.io.get_filename("report.out"), "w")
 
     version = dfastmi.__version__
     have_files = interactive_mode_opening(src, version, report)
@@ -84,7 +84,9 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             tstag,
             T,
             rsigma,
-        ) = interactive_get_discharges(src, rivers, ibranch, ireach, have_files, celerity_hg, celerity_lw, nwidth)
+        ) = interactive_get_discharges(
+            src, rivers, ibranch, ireach, have_files, celerity_hg, celerity_lw, nwidth
+        )
         if have_files and not all_q:
             break
 
@@ -102,7 +104,9 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 ucrit = interactive_get_float(src, "query_ucrit")
                 if ucrit < ucritMin:
                     dfastmi.io.log_text("ucrit_too_low", dict={"uc": ucritMin})
-                    dfastmi.io.log_text("ucrit_too_low", dict={"uc": ucritMin}, file=report)
+                    dfastmi.io.log_text(
+                        "ucrit_too_low", dict={"uc": ucritMin}, file=report
+                    )
                     ucrit = ucritMin
 
             dfastmi.io.log_text("", repeat=19)
@@ -128,11 +132,14 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             if not missing_data:
                 dfastmi.io.log_text("")
                 dfastmi.io.log_text("length_estimate", dict={"nlength": nlength})
-                dfastmi.io.log_text("length_estimate", dict={"nlength": nlength}, file=report)
+                dfastmi.io.log_text(
+                    "length_estimate", dict={"nlength": nlength}, file=report
+                )
                 tdum = interactive_get_bool(src, "confirm_to_close")
             all_done = True
         else:
             all_done = write_report_nodata(
+                src,
                 report,
                 reach,
                 q_location,
@@ -185,9 +192,9 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
             dfastmi.io.log_text(
                 "results_with_input_waqua",
                 dict={
-                    "avgdzb": dfastmi.io.getfilename("avgdzb.out"),
-                    "maxdzb": dfastmi.io.getfilename("maxdzb.out"),
-                    "mindzb": dfastmi.io.getfilename("mindzb.out"),
+                    "avgdzb": dfastmi.io.get_filename("avgdzb.out"),
+                    "maxdzb": dfastmi.io.get_filename("maxdzb.out"),
+                    "mindzb": dfastmi.io.get_filename("mindzb.out"),
                 },
             )
         else:
@@ -203,9 +210,9 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
             "results_with_input_waqua",
             file=report,
             dict={
-                "avgdzb": dfastmi.io.getfilename("avgdzb.out"),
-                "maxdzb": dfastmi.io.getfilename("maxdzb.out"),
-                "mindzb": dfastmi.io.getfilename("mindzb.out"),
+                "avgdzb": dfastmi.io.get_filename("avgdzb.out"),
+                "maxdzb": dfastmi.io.get_filename("maxdzb.out"),
+                "mindzb": dfastmi.io.get_filename("mindzb.out"),
             },
         )
     else:
@@ -262,7 +269,18 @@ def interactive_get_discharges(
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
-) -> Tuple[bool, str, Optional[float], float, Tuple[float, float], float, QRuns, float, Tuple[float, float, float], Tuple[float, float, float]]:
+) -> Tuple[
+    bool,
+    str,
+    Optional[float],
+    float,
+    Tuple[float, float],
+    float,
+    QRuns,
+    float,
+    Tuple[float, float, float],
+    Tuple[float, float, float],
+]:
     """
     Get the simulation discharges in interactive mode.
 
@@ -285,7 +303,7 @@ def interactive_get_discharges(
         Bed celerity during low flow period (from rivers configuration file).
     nwidth : float
         Normal river width (from rivers configuration file).
-        
+
     Results
     -------
     all_q : bool
@@ -308,7 +326,7 @@ def interactive_get_discharges(
     rsigma : Tuple[float, float, float]
         A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
-    stages = dfastmi.io.program_texts("stage_descriptions")
+    stages = dfastmi.io.get_text("stage_descriptions")
 
     q_location = rivers["qlocations"][ibranch]
     q_stagnant = rivers["qstagnant"][ibranch][ireach]
@@ -352,7 +370,7 @@ def interactive_get_discharges(
     tstag, T, rsigma = dfastmi.kernel.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
     )
-    
+
     QList = list(Q)
     all_q = True
     if have_files:
@@ -364,23 +382,41 @@ def interactive_get_discharges(
         if not all_q:
             pass
         elif applyQ[1] and not QList[1] is None and not QList[0] is None:
-            QList[1] = interactive_check_discharge(src, 2, QList[1], stages[0], QList[0])
+            QList[1] = interactive_check_discharge(
+                src, 2, QList[1], stages[0], QList[0]
+            )
             if QList[1] is None:
                 all_q = False
             elif not QList[2] is None:
-                QList[2] = interactive_check_discharge(src, 3, QList[2], stages[1], QList[1])
+                QList[2] = interactive_check_discharge(
+                    src, 3, QList[2], stages[1], QList[1]
+                )
                 if QList[2] is None:
                     all_q = False
         elif applyQ[2] and not QList[2] is None and not QList[0] is None:
-            QList[2] = interactive_check_discharge(src, 3, QList[2], stages[0], QList[0])
+            QList[2] = interactive_check_discharge(
+                src, 3, QList[2], stages[0], QList[0]
+            )
             if QList[2] is None:
                 all_q = False
     Q = (QList[0], QList[1], QList[2])
 
-    return all_q, q_location, q_threshold, q_bankfull, q_fit, q_stagnant, Q, tstag, T, rsigma
+    return (
+        all_q,
+        q_location,
+        q_threshold,
+        q_bankfull,
+        q_fit,
+        q_stagnant,
+        Q,
+        tstag,
+        T,
+        rsigma,
+    )
 
 
 def write_report_nodata(
+    src: TextIO,
     report: TextIO,
     reach: str,
     q_location: str,
@@ -398,6 +434,8 @@ def write_report_nodata(
 
     Arguments
     ---------
+    src : TextIO
+        Source to read from (typically sys.stdin)
     report : TextIO
         Text stream for log file.
     reach : str
@@ -424,7 +462,7 @@ def write_report_nodata(
     Returns
     -------
     all_done : bool
-        ...
+        Flag indicating whether the program should be closed.
     """
     dfastmi.io.log_text("---")
     nQ = dfastmi.batch.countQ(Q)
@@ -539,7 +577,9 @@ def interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bo
     return bool
 
 
-def interactive_get_int(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> Optional[int]:
+def interactive_get_int(
+    src: TextIO, key: str, dict: Dict[str, Any] = {}
+) -> Optional[int]:
     """
     Interactively get an integer from the user.
 
@@ -569,7 +609,9 @@ def interactive_get_int(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> Opt
     return val
 
 
-def interactive_get_float(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> Optional[float]:
+def interactive_get_float(
+    src: TextIO, key: str, dict: Dict[str, Any] = {}
+) -> Optional[float]:
     """
     Interactively get a floating point value from the user.
 

@@ -1,0 +1,109 @@
+\chapter{Software maintenance}
+
+\section{Coding guidelines}
+
+This program has been implemented following the Python PEP 8 style guide using Python 3.8.
+The code has been documented using standard Python docstrings and type hinting.
+For the static type checker \emph{mypy} is used.
+
+\begin{Verbatim}
+    > pip install mypy
+    > mypy dfastbe
+\end{Verbatim}
+
+Variables associated with NumPy, netCDF4 and PyQt5 are not yet properly type checked.
+
+\begin{Verbatim}[fontsize=\tiny]
+> mypy dfastmi
+dfastmi\kernel.py:35: error: Skipping analyzing 'numpy': found module but no type hints or library stubs
+dfastmi\io.py:32: error: Skipping analyzing 'numpy': found module but no type hints or library stubs
+dfastmi\io.py:33: error: Skipping analyzing 'netCDF4': found module but no type hints or library stubs
+dfastmi\batch.py:36: error: Skipping analyzing 'numpy': found module but no type hints or library stubs
+dfastmi\batch.py:36: note: See https://mypy.readthedocs.io/en/latest/running_mypy.html#missing-imports
+dfastmi\gui.py:33: error: Skipping analyzing 'PyQt5': found module but no type hints or library stubs
+dfastmi\gui.py:34: error: Skipping analyzing 'PyQt5.QtGui': found module but no type hints or library stubs
+dfastmi\gui.py:491: error: Cannot assign to a method
+dfastmi\gui.py:491: error: Incompatible types in assignment (expression has type "Type[str]", variable has type "Callable[[str], str]")
+dfastmi\cli.py:35: error: Skipping analyzing 'numpy': found module but no type hints or library stubs
+dfastmi\cmd.py:35: error: Skipping analyzing 'numpy': found module but no type hints or library stubs
+Found 10 errors in 6 files (checked 8 source files)
+\end{Verbatim}
+
+The final two errors report (\keyw{dfastmi\\gui.py:491}) are caused by a statement to switch the configparser to case sensitive mode while creating the data structure to be saved to file; most likely the data type is not properly set in the configparser definition.
+The code works conforms to the configparser documentation and works properly as is.
+
+A consistent coding style is enforced by means of the \emph{Black Code Formatter}.
+
+\begin{Verbatim}
+    > pip install black
+    > black dfastmi
+\end{Verbatim}
+
+\section{Version control}
+
+GitHub is used for software version control.
+The repository is located at \href{https://github.com/Deltares/D-FAST_Morphological_Impact}.
+Since \dfastmi builds on WAQMORF, the initial release of the new Python product is labeled as version 2.0.0.
+
+\section{Automated building of code}
+
+An automated TeamCity project will be set up for building and signing of binaries.
+This is ongoing work; the build steps are currently run locally.
+The Nuitka compiler is used to build a binary by means of the following command
+
+\begin{Verbatim}
+python -m nuitka --verbose --standalone --python-flag=no_site
+    --plugin-enable=numpy --plugin-enable=qt-plugins --include-module=dfastmi.io
+    --include-module=dfastmi.kernel --include-module=netCDF4
+    --include-module=netCDF4.utils --include-module=cftime dfastmi/cmd.py
+\end{Verbatim}
+
+This creates a binary called \keyw{cmd.exe} which is subsequently renamed to \keyw{dfastmi.exe}.
+
+\section{Automated building and testing of code}
+
+Automated TeamCity projects will be set up for testing the Python code, for building (and optionally signing of) binaries, and testing of the binaries.
+In this way the formal release process can be easily aligned with the other products.
+This is ongoing work; the test and build steps are currently run locally
+
+\begin{Verbatim}[fontsize=\tiny]
+=============================================== test session starts ================================================
+platform win32 -- Python 3.8.2, pytest-6.1.2, py-1.9.0, pluggy-0.13.1
+rootdir: D:\checkouts\D-FAST\D-FAST_Morphological_Impact
+collected 65 items
+
+tests\test_batch.py ...                                                                                       [  4%]
+tests\test_cli.py ..                                                                                          [  7%]
+tests\test_io.py ........................................                                                     [ 69%]
+tests\test_kernel.py ....................                                                                     [100%]
+
+================================================ 65 passed in 1.43s ================================================
+\end{Verbatim}
+
+The results of the software is verified by means of
+
+\begin{itemize}
+\item Unit testing at the level of functions, such as reading and writing of files, and basic testing of the algorithms.
+All functions included in \keyw{io.py} and \keyw{kernel.py} are covered by unit tests.
+These tests are carried out by means of the \keyw{pytest} framework.
+\item Regression tests have been set up to verify that the results of the command line interactive mode (with redirected standard in input for files coming from WAQUA) and the batch mode (with configuration file input for files coming from either WAQUA or D-Flow FM) remain unchanged under further code developments.
+\end{itemize}
+
+For the regression tests four sets of input files have been selected:
+
+\begin{enumerate}
+\item One set of legacy input files coming from WAQUA.
+Running \dfastmi on those converted files gives identical results in the same file format as WAQMORF.
+\item Those WAQUA results have been converted to a set of D-Flow FM like netCDF files.
+Running \dfastmi on those converted files gives identical numerical results but stored in the new netCDF file format.
+\item For the same case a set of D-Flow FM simulations was carried out using the same curvilinear mesh as was used in WAQUA.
+Since the D-Flow FM results differ from those obtained from WAQUA, the results of \dfastmi are also slightly different.
+However, the geometry of this set uses basically the same geometry as the first two sets.
+\item Finally, also a set of D-Flow FM simulations using a new unstructured mesh was carried for the same case.
+In this case both the geometry and simulation results differ, the \dfastmi are hence also slightly different.
+\end{enumerate}
+
+\section{Automated Generation of Documentation}
+
+The documentation has been written in a combination of LaTeX and markdown files which are maintained in the GitHub repository alongside the source code.
+The PDF version of the user manual and this technical reference manual are generated automatically as part of the daily cycle of building all manuals on the Deltares TeamCity server.

@@ -3,8 +3,8 @@ Type=TeXnicCenterProjectInformation
 Version=4
 
 [ProjectInfo]
-MainFile=dfastmi_designdoc.tex
-UseBibTeX=0
+MainFile=dfastmi_techref.tex
+UseBibTeX=1
 UseMakeIndex=0
 ActiveProfile=LaTeX ⇨ PDF
 ProjectLanguage=en

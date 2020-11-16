@@ -67,7 +67,7 @@ def gui_text(key: str, prefix: str = "gui_", dict: Dict[str, Any] = {}):
     -------
         The first line of the text in the dictionary expanded with the keys.
     """
-    cstr = dfastmi.io.program_texts(prefix + key)
+    cstr = dfastmi.io.get_text(prefix + key)
     str = cstr[0].format(**dict)
     return str
 
@@ -349,7 +349,9 @@ def update_qvalues() -> None:
 
     try:
         dq = rivers["dq"][ibranch][ireach]
-        Q, applyQ = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+        Q, applyQ = dfastmi.kernel.char_discharges(
+            q_levels, dq, q_threshold, q_bankfull
+        )
 
         celerity_hg = rivers["proprate_high"][ibranch][ireach]
         celerity_lw = rivers["proprate_low"][ibranch][ireach]
@@ -370,51 +372,6 @@ def update_qvalues() -> None:
         if DFlowFM:
             dialog[iq + "file1"].setEnabled(not q is None)
             dialog[iq + "file2"].setEnabled(not q is None)
-
-
-def openFileLayout(win, myWidget, key: str):
-    """
-    Add an open line to the dialog. TODO
-
-    Arguments
-    ---------
-    win
-        Main window of the dialog.
-    myWidget
-        Line edit widget to display the file name.
-    key : str
-        Base name of the Widgets on this file.
-    """
-    parent = QtWidgets.QWidget()
-    gridly = QtWidgets.QGridLayout(parent)
-    gridly.setContentsMargins(0, 0, 0, 0)
-    gridly.addWidget(myWidget, 0, 0)
-
-    progloc = str(pathlib.Path(__file__).parent.absolute())
-    openFile = QtWidgets.QPushButton(
-        PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
-    )
-    openFile.clicked.connect(partial(selectFile, key))
-    dialog[key + "_openfile"] = openFile
-    gridly.addWidget(openFile, 0, 2)
-
-    return parent
-
-
-def selectFile(key: str) -> None:
-    """
-    Select a D-Flow FM Map file and show in the GUI.
-
-    Arguments
-    ---------
-    key : str
-        Name of the field for which to select the file.
-    """
-    fil = QtWidgets.QFileDialog.getOpenFileName(
-        caption=gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
-    )
-    if fil[0] != "":
-        dialog[key].setText(fil[0])
 
 
 def close_dialog() -> None:
@@ -500,40 +457,6 @@ def load_configuration(filename: str) -> None:
             dialog[iq + "file2"].setText("")
 
 
-def showMessage(message: str) -> None:
-    """
-    Display an information message box with specified string.
-
-    Arguments
-    ---------
-    message : str
-        Text to be displayed in the message box.
-    """
-    msg = QtWidgets.QMessageBox()
-    msg.setIcon(QtWidgets.QMessageBox.Information)
-    msg.setText(message)
-    msg.setWindowTitle("Information")
-    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.exec_()
-
-
-def showError(message: str) -> None:
-    """
-    Display an error message box with specified string.
-
-    Arguments
-    ---------
-    message : str
-        Text to be displayed in the message box.
-    """
-    msg = QtWidgets.QMessageBox()
-    msg.setIcon(QtWidgets.QMessageBox.Critical)
-    msg.setText(message)
-    msg.setWindowTitle("Error")
-    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.exec_()
-
-
 def menu_save_configuration() -> None:
     """
     Ask for a configuration file name and save GUI selection to that file.
@@ -602,7 +525,7 @@ def run_analysis() -> None:
     """
     config = get_configuration()
     failed = dfastmi.batch.batch_mode_core(rivers, False, config)
-    report = dfastmi.io.getfilename("report.out")
+    report = dfastmi.io.get_filename("report.out")
     if failed:
         showError(
             gui_text(
@@ -671,3 +594,82 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
         load_configuration(config)
 
     activate_dialog()
+
+
+def openFileLayout(win, myWidget, key: str):
+    """
+    Add an open line to the dialog. TODO
+
+    Arguments
+    ---------
+    win
+        Main window of the dialog.
+    myWidget
+        Line edit widget to display the file name.
+    key : str
+        Base name of the Widgets on this file.
+    """
+    parent = QtWidgets.QWidget()
+    gridly = QtWidgets.QGridLayout(parent)
+    gridly.setContentsMargins(0, 0, 0, 0)
+    gridly.addWidget(myWidget, 0, 0)
+
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    openFile = QtWidgets.QPushButton(
+        PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
+    )
+    openFile.clicked.connect(partial(selectFile, key))
+    dialog[key + "_openfile"] = openFile
+    gridly.addWidget(openFile, 0, 2)
+
+    return parent
+
+
+def selectFile(key: str) -> None:
+    """
+    Select a D-Flow FM Map file and show in the GUI.
+
+    Arguments
+    ---------
+    key : str
+        Name of the field for which to select the file.
+    """
+    fil = QtWidgets.QFileDialog.getOpenFileName(
+        caption=gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
+    )
+    if fil[0] != "":
+        dialog[key].setText(fil[0])
+
+
+def showMessage(message: str) -> None:
+    """
+    Display an information message box with specified string.
+
+    Arguments
+    ---------
+    message : str
+        Text to be displayed in the message box.
+    """
+    msg = QtWidgets.QMessageBox()
+    msg.setIcon(QtWidgets.QMessageBox.Information)
+    msg.setText(message)
+    msg.setWindowTitle("Information")
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.exec_()
+
+
+def showError(message: str) -> None:
+    """
+    Display an error message box with specified string.
+
+    Arguments
+    ---------
+    message : str
+        Text to be displayed in the message box.
+    """
+    msg = QtWidgets.QMessageBox()
+    msg.setIcon(QtWidgets.QMessageBox.Critical)
+    msg.setText(message)
+    msg.setWindowTitle("Error")
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.exec_()

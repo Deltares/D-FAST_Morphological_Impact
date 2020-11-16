@@ -55,14 +55,14 @@ class RiversObject(TypedDict, total=False):
 PROGTEXTS: Dict[str, List[str]]
 
 
-def load_program_texts(filename: str) -> None:
+def load_get_text(filename: str) -> None:
     """
     Load texts from configuration file, and store globally for access.
 
     This routine reads the text file "filename", and detects the keywords
     indicated by lines starting with [ and ending with ]. The content is
     placed in a global dictionary PROGTEXTS which may be queried using the
-    routine "program_texts". These routines are used to implement multi-
+    routine "get_text". These routines are used to implement multi-
     language support.
 
     Parameters
@@ -95,7 +95,9 @@ def load_program_texts(filename: str) -> None:
     PROGTEXTS = dict
 
 
-def log_text(key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {}, repeat: int = 1) -> None:
+def log_text(
+    key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {}, repeat: int = 1
+) -> None:
     """
     Write a text to standard out or file.
 
@@ -114,7 +116,7 @@ def log_text(key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {},
     -------
     None
     """
-    str = program_texts(key)
+    str = get_text(key)
     for r in range(repeat):
         for s in str:
             sexp = s.format(**dict)
@@ -124,7 +126,7 @@ def log_text(key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {},
                 file.write(sexp + "\n")
 
 
-def getfilename(key: str) -> str:
+def get_filename(key: str) -> str:
     """
     Query the global dictionary of texts for a file name.
 
@@ -141,11 +143,11 @@ def getfilename(key: str) -> str:
     filename : str
         File name.
     """
-    filename = program_texts("filename_" + key)[0]
+    filename = get_text("filename_" + key)[0]
     return filename
 
 
-def program_texts(key: str) -> List[str]:
+def get_text(key: str) -> List[str]:
     """
     Query the global dictionary of texts via a string key.
 
@@ -208,16 +210,9 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
     rivers = {}
 
     # parse branches
-    branches = []
-    i = 0
-    while True:
-        i = i + 1
-        name = "Name" + str(i)
-        try:
-            branch = config["Branches"][name]
-            branches.extend([branch])
-        except:
-            break
+    branches = [k for k in config.keys()]
+    branches.remove('DEFAULT')
+    branches.remove('General')
     rivers["branches"] = branches
 
     # parse reaches and discharge locations
@@ -291,7 +286,7 @@ def collect_values1(
         branch one float or a list of floats depending on input argument nval.
     """
     try:
-        g_val = config["Branches"][key]
+        g_val = config["General"][key]
     except:
         g_val = ""
     all_values = []
@@ -311,7 +306,9 @@ def collect_values1(
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 1:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(val, 1)
+                    'Incorrect number of values read from "{}". Need {} values.'.format(
+                        val, 1
+                    )
                 )
             values_per_branch.append(vals[0])
         all_values.append(values_per_branch)
@@ -353,7 +350,7 @@ def collect_values2(
         branch one float or a list of floats depending on input argument nval.
     """
     try:
-        g_val = config["Branches"][key]
+        g_val = config["General"][key]
     except:
         g_val = ""
     all_values = []
@@ -373,7 +370,9 @@ def collect_values2(
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 2:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(val, 2)
+                    'Incorrect number of values read from "{}". Need {} values.'.format(
+                        val, 2
+                    )
                 )
             values_per_branch.append((vals[0], vals[1]))
         all_values.append(values_per_branch)
@@ -416,7 +415,7 @@ def collect_values4(
     """
     vals: Union[float, Tuple[float, ...]]
     try:
-        g_val = config["Branches"][key]
+        g_val = config["General"][key]
     except:
         g_val = ""
     all_values = []
@@ -436,7 +435,9 @@ def collect_values4(
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 4:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(val, 4)
+                    'Incorrect number of values read from "{}". Need {} values.'.format(
+                        val, 4
+                    )
                 )
             values_per_branch.append((vals[0], vals[1], vals[2], vals[3]))
         all_values.append(values_per_branch)
@@ -645,7 +646,7 @@ def copy_ugrid(srcname: str, meshname: str, dstname: str) -> None:
     # open source and destination files
     src = netCDF4.Dataset(srcname)
     dst = netCDF4.Dataset(dstname, "w", format="NETCDF4")
-    
+
     # locate source mesh
     mesh = src.variables[meshname]
 
