@@ -55,7 +55,7 @@ class RiversObject(TypedDict, total=False):
 PROGTEXTS: Dict[str, List[str]]
 
 
-def load_get_text(filename: str) -> None:
+def load_program_texts(filename: str) -> None:
     """
     Load texts from configuration file, and store globally for access.
 

@@ -24,7 +24,7 @@ class interactive_mode(unittest.TestCase):
         """
         Testing interactive_mode in Dutch.
         """
-        dfastmi.io.load_get_text("dfastmi/messages.NL.ini")
+        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
         rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
@@ -63,7 +63,7 @@ class interactive_mode(unittest.TestCase):
         """
         Testing interactive_mode in English.
         """
-        dfastmi.io.load_get_text("dfastmi/messages.UK.ini")
+        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
         rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"

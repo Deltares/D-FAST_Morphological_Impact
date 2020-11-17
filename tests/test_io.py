@@ -23,13 +23,13 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class load_get_text(unittest.TestCase):
-    def test_load_get_text_01(self):
+class load_program_texts(unittest.TestCase):
+    def test_load_program_texts_01(self):
         """
-        Testing load_get_text.
+        Testing load_program_texts.
         """
         print("current work directory: ", os.getcwd())
-        self.assertEqual(dfastmi.io.load_get_text("dfastmi/messages.UK.ini"), None)
+        self.assertEqual(dfastmi.io.load_program_texts("dfastmi/messages.UK.ini"), None)
 
 class log_text(unittest.TestCase):
     def test_log_text_01(self):

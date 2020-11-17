@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     progloc = str(pathlib.Path(__file__).parent.absolute())
     try:
-        dfastmi.io.load_get_text(
+        dfastmi.io.load_program_texts(
             progloc + os.path.sep + "messages." + language + ".ini"
         )
     except:
