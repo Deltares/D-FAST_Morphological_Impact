@@ -452,8 +452,8 @@ def write_config(filename: str, config: configparser.ConfigParser) -> None:
         adds a two space indentation to all keyword lines.
         adds an empty line before the start of a new block.
 
-    Parameters
-    ----------
+    Arguments
+    ---------
     filename : str
         Name of the configuration file to be written.
     config : configparser.ConfigParser
@@ -701,10 +701,8 @@ def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
         Dataset object representing the destination file.
     """
     # locate the variable to be copied
-    print(varname)
     srcvar = src.variables[varname]
 
-    print(srcvar)
     # copy dimensions
     for name in srcvar.dimensions:
         dimension = src.dimensions[name]
@@ -751,7 +749,6 @@ def ugrid_add(
     units : str
         String indicating the unit ("None" if no unit attribute should be written).
     """
-    print(dstfile)
     # open destination file
     dst = netCDF4.Dataset(dstfile, "a")
 
