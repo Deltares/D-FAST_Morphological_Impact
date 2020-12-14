@@ -3,8 +3,6 @@ import dfastmi.batch
 import dfastmi.io
 import os
 
-import unittest
-
 import sys
 from contextlib import contextmanager
 from io import StringIO
@@ -20,7 +18,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class batch_mode(unittest.TestCase):
+class Test_batch_mode():
     def test_batch_mode_00(self):
         """
         Testing batch_mode: missing configuration file.
@@ -34,7 +32,7 @@ class batch_mode(unittest.TestCase):
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
-        self.assertEqual(outstr, ["[Errno 2] No such file or directory: 'config.cfg'"])
+        assert outstr == ["[Errno 2] No such file or directory: 'config.cfg'"]
 
     def test_batch_mode_01(self):
         """
@@ -55,23 +53,23 @@ class batch_mode(unittest.TestCase):
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
-        self.assertEqual(outstr, [])
+        assert outstr == []
         #
         result = open(tstdir + os.sep + "verslag.run", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_verslag.run", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "jaargem.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "maxmorf.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "minmorf.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
 
     def test_batch_mode_02(self):
         """
@@ -92,23 +90,20 @@ class batch_mode(unittest.TestCase):
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
-        self.assertEqual(outstr, [])
+        assert outstr == []
         #
         result = open(tstdir + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "yearavg_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "max_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
-        self.assertEqual(result, refstr)
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "min_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
-        self.assertEqual(result, refstr)
-
-if __name__ == '__main__':
-    unittest.main()
+        assert result == refstr

@@ -510,19 +510,19 @@ def analyse_and_report_waqua(
         dzq1, firstm, firstn = get_values_waqua3(
             1, Q[0], ucrit, display, report, reduced_output
         )
-        if dzq1 is None:
+        if dzq1.size == 0:
             missing_data = True
     else:
         dzq1 = 0
     if not missing_data and not Q[1] is None:
         dzq2 = get_values_waqua1(2, Q[1], ucrit, display, report, reduced_output)
-        if dzq2 is None:
+        if dzq2.size == 0:
             missing_data = True
     else:
         dzq2 = 0
     if not missing_data and not Q[2] is None:
         dzq3 = get_values_waqua1(3, Q[2], ucrit, display, report, reduced_output)
-        if dzq3 is None:
+        if dzq3.size == 0:
             missing_data = True
     else:
         dzq3 = 0
@@ -747,9 +747,10 @@ def get_values_waqua3(
         if display:
             print(cifil)
         if not os.path.isfile(cifil):
+            dfastmi.io.log_text("file_not_found", dict={"name": cifil})
             dfastmi.io.log_text("file_not_found", dict={"name": cifil}, file=report)
             dfastmi.io.log_text("end_program", file=report)
-            return numpy.array(0), 0, 0
+            return numpy.array([]), 0, 0
         else:
             if display:
                 dfastmi.io.log_text("input_xyz_found", dict={"name": cifil})
@@ -905,9 +906,7 @@ def write_report(
             file=report,
         )
     dfastmi.io.log_text(
-        "report_qbankfull",
-        dict={"q": q_bankfull, "border": q_location},
-        file=report,
+        "report_qbankfull", dict={"q": q_bankfull, "border": q_location}, file=report,
     )
     dfastmi.io.log_text("", file=report)
     if q_stagnant > q_fit[0]:
@@ -940,9 +939,7 @@ def write_report(
         dfastmi.io.log_text("need_single_input", dict={"reach": reach}, file=report)
     else:
         dfastmi.io.log_text(
-            "need_multiple_input",
-            dict={"reach": reach, "numq": nQ},
-            file=report,
+            "need_multiple_input", dict={"reach": reach, "numq": nQ}, file=report,
         )
     for i in range(3):
         if not Q[i] is None:

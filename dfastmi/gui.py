@@ -39,6 +39,7 @@ import pathlib
 import sys
 import os
 import configparser
+import subprocess
 from functools import partial
 
 rivers: RiversObject
@@ -104,6 +105,9 @@ def create_dialog() -> None:
     item.triggered.connect(close_dialog)
 
     menu = menubar.addMenu(gui_text("Help"))
+    item = menu.addAction(gui_text("Manual"))
+    item.triggered.connect(menu_open_manual)
+    menu.addSeparator()
     item = menu.addAction(gui_text("Version"))
     item.triggered.connect(menu_about_self)
     item = menu.addAction(gui_text("AboutQt"))
@@ -416,7 +420,8 @@ def load_configuration(filename: str) -> None:
     try:
         config = dfastmi.batch.load_configuration_file(filename)
     except:
-        showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
+        if filename != "dfastmi.cfg":
+            showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
         return
 
     section = config["General"]
@@ -527,19 +532,9 @@ def run_analysis() -> None:
     failed = dfastmi.batch.batch_mode_core(rivers, False, config)
     report = dfastmi.io.get_filename("report.out")
     if failed:
-        showError(
-            gui_text(
-                "error_during_analysis",
-                dict={"report": report},
-            )
-        )
+        showError(gui_text("error_during_analysis", dict={"report": report},))
     else:
-        showMessage(
-            gui_text(
-                "end_of_analysis",
-                dict={"report": report},
-            )
-        )
+        showMessage(gui_text("end_of_analysis", dict={"report": report},))
 
 
 def menu_about_self() -> None:
@@ -569,6 +564,19 @@ def menu_about_qt() -> None:
     None
     """
     QtWidgets.QApplication.aboutQt()
+
+
+def menu_open_manual():
+    """
+    Open the user manual.
+
+    Arguments
+    ---------
+    None
+    """
+    progloc = dfastmi.io.get_progloc()
+    filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
+    subprocess.Popen(filename, shell=True)
 
 
 def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> None:

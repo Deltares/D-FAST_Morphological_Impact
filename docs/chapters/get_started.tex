@@ -16,11 +16,11 @@ The program runs by default in the gui mode; other run modes can be selected via
 \begin{tabular}{l|l|p{8cm}}
 short & long & description \\ \hline
 \keyw{-h} & \keyw{--help} & show help text and exit \\
- & \keyw{--rivers} & name of river configuration file (default: \keyw{Dutch\_rivers.ini}) \\
- & \keyw{--language} & language selection: \keyw{NL} or \keyw{UK} (default: \keyw{UK}) \\
- & \keyw{--mode} & run mode \keyw{batch}, \keyw{cli} or \keyw{gui} (default: \keyw{gui} \\
- & \keyw{--config} & name of analysis configuration file \\
- & \keyw{--reduced\_output} & write reduced SIMONA BOX files (applies to legacy cli mode only) \\
+ & \keyw{-{}-rivers} & name of river configuration file (default: \keyw{Dutch\_rivers.ini}) \\
+ & \keyw{-{}-language} & language selection: \keyw{NL} or \keyw{UK} (default: \keyw{UK}) \\
+ & \keyw{-{}-mode} & run mode \keyw{batch}, \keyw{cli} or \keyw{gui} (default: \keyw{gui} \\
+ & \keyw{-{}-config} & name of analysis configuration file \\
+ & \keyw{-{}-reduced\_output} & write reduced SIMONA BOX files (applies to legacy cli mode only) \\
 \end{tabular}
 
 By default the program runs for the Dutch Rhine and Meuse river branches, but a different river configuration can be provided by means of the \keyw{--rivers} command line switch; this option is supported by all run modes.
@@ -48,7 +48,7 @@ Dutch: \keyw{dfastmi\_resultaten.nc}
 
 The following sections describe the three options.
 
-\section{batch mode}
+\section{Running in batch mode}
 
 The batch mode runs an analysis using either WAQUA or \dflowfm results without user interaction.
 The program should be started with the run mode set to \keyw{batch} and a configuration file specified on the command line as follows
@@ -62,7 +62,7 @@ Please note that the language does not only affect the text in the report, but a
 The content of the configuration file is described in Appendix X; it can be generated using either a text editor or \dfastmi running in gui mode.
 The \keyw{--reduced\_output} option for smaller SIMONA BOX file output is currently not supported in this run mode.
 
-\section{cli mode}
+\section{Running in interactive command line mode}
 
 The cli mode runs an interactive command line analysis using WAQUA results; this run mode does not support \dflowfm files.
 The program should be started with the run mode set to \keyw{cli} on the command line as follows
@@ -84,7 +84,7 @@ In this case each line in the file \file{myfile.in} should contain the appropria
 This run mode is included for backward compatibility and comparison with its predecessor WAQMORF.
 We recommend to use either the gui mode or the batch mode instead.
 
-\section{gui mode}
+\section{Running in gui mode}
 
 This is the default mode for the program, so no command line argument needed.
 It supports analysis using either WAQUA or \dflowfm results.
@@ -102,7 +102,7 @@ The \keyw{--reduced\_output} option for smaller SIMONA BOX file output is curren
 
 \begin{figure}
 \center
-\includegraphics[width=12cm]{main_dialog.png}
+\includegraphics[width=12cm]{figures/main_dialog.png}
 \caption{Example of the main dialog}
 \end{figure}
 
@@ -137,3 +137,20 @@ When the user has selected to run the analysis based on \dflowfm results, the co
 The last input item for the analysis is the critical flow velocity \unitbrackets{m/s} for sediment transport.
 The resulting impacted length \unitbrackets{m} was already mentioned above.
 Finally, we find at the bottom of the dialog a button to run the analysis in the folder from which the program was started, and a button to end the program.
+
+\section{Running from Python source code}
+\dfastmi can also be run directly from the Python source code.
+In that case the program can be started from the command prompt as
+
+\begin{Verbatim}
+python -m dfastmi ...options...
+\end{Verbatim}
+
+or from within a running Python environment as
+
+\begin{Verbatim}
+import dfastmi.cmd
+dfastmi.cmd.run()
+\end{Verbatim}
+
+where optionally the \command{language} (default \command{UK}), \command{runmode} (default \command{GUI}), \command{configfile} (default \command{dfastmi.cfg}), \command{rivers\_file} (default \command{Dutch\_rivers.ini}) and \command{reduced\_output} (default false) can be specified as arguments.

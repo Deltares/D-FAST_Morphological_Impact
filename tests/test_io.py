@@ -6,7 +6,6 @@ import numpy
 import netCDF4
 
 import pytest
-import unittest
 
 import sys
 from contextlib import contextmanager
@@ -23,15 +22,15 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class load_program_texts(unittest.TestCase):
+class Test_load_program_texts():
     def test_load_program_texts_01(self):
         """
         Testing load_program_texts.
         """
         print("current work directory: ", os.getcwd())
-        self.assertEqual(dfastmi.io.load_program_texts("dfastmi/messages.UK.ini"), None)
+        assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None
 
-class log_text(unittest.TestCase):
+class Test_log_text():
     def test_log_text_01(self):
         """
         Testing standard output of a single text without expansion.
@@ -41,7 +40,7 @@ class log_text(unittest.TestCase):
             dfastmi.io.log_text(key)
         outstr = out.getvalue().splitlines()
         strref = ['Confirm using "y" ...', '']
-        self.assertEqual(outstr, strref)
+        assert outstr == strref
 
     def test_log_text_02(self):
         """
@@ -53,7 +52,7 @@ class log_text(unittest.TestCase):
             dfastmi.io.log_text(key, repeat=nr)
         outstr = out.getvalue().splitlines()
         strref = ['', '', '']
-        self.assertEqual(outstr, strref)
+        assert outstr == strref
 
     def test_log_text_03(self):
         """
@@ -65,7 +64,7 @@ class log_text(unittest.TestCase):
             dfastmi.io.log_text(key, dict=dict)
         outstr = out.getvalue().splitlines()
         strref = ['The measure is located on reach ABC']
-        self.assertEqual(outstr, strref)
+        assert outstr == strref
 
     def test_log_text_04(self):
         """
@@ -78,35 +77,35 @@ class log_text(unittest.TestCase):
             dfastmi.io.log_text(key, dict=dict, file=f)
         all_lines = open(filename, "r").read().splitlines()
         strref = ['The measure is located on reach ABC']
-        self.assertEqual(all_lines, strref)
+        assert all_lines == strref
 
-class get_filename(unittest.TestCase):
+class Test_get_filename():
     def test_get_filename_01(self):
         """
         Testing get_filename wrapper for get_text.
         """
-        self.assertEqual(dfastmi.io.get_filename("report.out"), "report.txt")
+        assert dfastmi.io.get_filename("report.out") == "report.txt"
 
-class get_text(unittest.TestCase):
+class Test_get_text():
     def test_get_text_01(self):
         """
         Testing get_text: key not found.
         """
-        self.assertEqual(dfastmi.io.get_text("@"), ["No message found for @"])
+        assert dfastmi.io.get_text("@") == ["No message found for @"]
 
     def test_get_text_02(self):
         """
         Testing get_text: empty line key.
         """
-        self.assertEqual(dfastmi.io.get_text(""), [""])
+        assert dfastmi.io.get_text("") == [""]
 
     def test_get_text_03(self):
         """
         Testing get_text: "confirm" key.
         """
-        self.assertEqual(dfastmi.io.get_text("confirm"), ['Confirm using "y" ...',''])
+        assert dfastmi.io.get_text("confirm") == ['Confirm using "y" ...','']
 
-class read_rivers(unittest.TestCase):
+class Test_read_rivers():
     def test_read_rivers_01(self):
         """
         Testing read_rivers, collect_values1, collect_values2 and collect_values4.
@@ -127,9 +126,9 @@ class read_rivers(unittest.TestCase):
         rivers['qlevels'] = [[(100.0, 200.0, 300.0, 400.0)], [(1000.0, 2000.0, 3000.0, 4000.0), (1000.0, 2000.0, 3000.0, 4000.0)]]
         rivers['dq'] = [[(5.0, 15.0)], [(1000.0, 1000.0), (1000.0, 1000.0)]]
         self.maxDiff = None
-        self.assertEqual(dfastmi.io.read_rivers("tests/files/read_rivers_test.ini"), rivers)
+        assert dfastmi.io.read_rivers("tests/files/read_rivers_test.ini") == rivers
 
-class collect_values1(unittest.TestCase):
+class Test_collect_values1():
     def test_collect_values1_01(self):
         """
         Testing sucessful collect_values1 call.
@@ -148,7 +147,7 @@ class collect_values1(unittest.TestCase):
         key = "A"
         data = [[2.0, 1.0], [3.0, 0.0, 4.0]]
         self.maxDiff = None
-        self.assertEqual(dfastmi.io.collect_values1(config, branches, nreaches, key), data)
+        assert dfastmi.io.collect_values1(config, branches, nreaches, key) == data
 
     def test_collect_values1_02(self):
         """
@@ -166,11 +165,11 @@ class collect_values1(unittest.TestCase):
         branches = ["Branch1", "Branch2"]
         nreaches = [2, 3]
         key = "A"
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values1(config, branches, nreaches, key)
-        self.assertEqual(str(cm.exception), 'Incorrect number of values read from "0.0 0.1". Need 1 values.')
+        assert str(cm.value) == 'Incorrect number of values read from "0.0 0.1". Need 1 values.'
 
-class collect_values2(unittest.TestCase):
+class Test_collect_values2():
     def test_collect_values2_01(self):
         """
         Testing successful collect_values2 call.
@@ -189,7 +188,7 @@ class collect_values2(unittest.TestCase):
         key = "A"
         data = [[(2.0, 0.2), (1.0, 0.1)], [(3.0, 0.3), (0.0, 0.0), (4.0, 0.4)]]
         self.maxDiff = None
-        self.assertEqual(dfastmi.io.collect_values2(config, branches, nreaches, key), data)
+        assert dfastmi.io.collect_values2(config, branches, nreaches, key) == data
 
     def test_collect_values2_02(self):
         """
@@ -207,11 +206,11 @@ class collect_values2(unittest.TestCase):
         branches = ["Branch1", "Branch2"]
         nreaches = [2, 3]
         key = "A"
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values2(config, branches, nreaches, key)
-        self.assertEqual(str(cm.exception), 'Incorrect number of values read from "1.0". Need 2 values.')
+        assert str(cm.value) == 'Incorrect number of values read from "1.0". Need 2 values.'
 
-class collect_values4(unittest.TestCase):
+class Test_collect_values4():
     def test_collect_values4_01(self):
         """
         Testing collect_values4.
@@ -230,7 +229,7 @@ class collect_values4(unittest.TestCase):
         key = "A"
         data = [[(2.0, 0.2, 0.02, 0.0), (1.0, 0.1, 0.0, 0.01)], [(3.0, 0.3, -0.03, 0.0), (0.0, 0.0, 0.0, 0.1), (4.0, 0.4, 0.0, -0.04)]]
         self.maxDiff = None
-        self.assertEqual(dfastmi.io.collect_values4(config, branches, nreaches, key), data)
+        assert dfastmi.io.collect_values4(config, branches, nreaches, key) == data
 
     def test_collect_values4_02(self):
         """
@@ -248,11 +247,11 @@ class collect_values4(unittest.TestCase):
         branches = ["Branch1", "Branch2"]
         nreaches = [2, 3]
         key = "A"
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values4(config, branches, nreaches, key)
-        self.assertEqual(str(cm.exception), 'Incorrect number of values read from "4.0 0.4 -0.04". Need 4 values.')
+        assert str(cm.value) == 'Incorrect number of values read from "4.0 0.4 -0.04". Need 4 values.'
 
-class write_config(unittest.TestCase):
+class Test_write_config():
     def test_write_config_01(self):
         """
         Testing write_config.
@@ -277,9 +276,9 @@ class write_config(unittest.TestCase):
                          '',
                          '[Group 3]',
                          '  longkey = 3']
-        self.assertEqual(all_lines, all_lines_ref)
+        assert all_lines == all_lines_ref
 
-class read_fm_map(unittest.TestCase):
+class Test_read_fm_map():
     def test_read_fm_map_01(self):
         """
         Testing read_fm_map: x coordinates of the faces.
@@ -289,7 +288,7 @@ class read_fm_map(unittest.TestCase):
         #location = "face"
         datac = dfastmi.io.read_fm_map(filename, varname)
         dataref = 41.24417604888325
-        self.assertEqual(datac[1], dataref)
+        assert datac[1] == dataref
 
     def test_read_fm_map_02(self):
         """
@@ -300,7 +299,7 @@ class read_fm_map(unittest.TestCase):
         location = "edge"
         datac = dfastmi.io.read_fm_map(filename, varname, location)
         dataref = 7059.853000358055
-        self.assertEqual(datac[1], dataref)
+        assert datac[1] == dataref
 
     def test_read_fm_map_03(self):
         """
@@ -310,7 +309,7 @@ class read_fm_map(unittest.TestCase):
         varname = "face_node_connectivity"
         datac = dfastmi.io.read_fm_map(filename, varname)
         dataref = 2352
-        self.assertEqual(datac[-1][1], dataref)
+        assert datac[-1][1] == dataref
 
     def test_read_fm_map_04(self):
         """
@@ -320,7 +319,7 @@ class read_fm_map(unittest.TestCase):
         varname = "sea_floor_depth_below_sea_surface"
         datac = dfastmi.io.read_fm_map(filename, varname)
         dataref = 3.894498393076889
-        self.assertEqual(datac[1], dataref)
+        assert datac[1] == dataref
 
     def test_read_fm_map_05(self):
         """
@@ -330,7 +329,7 @@ class read_fm_map(unittest.TestCase):
         varname = "Water level"
         datac = dfastmi.io.read_fm_map(filename, varname)
         dataref = 3.8871328177527262
-        self.assertEqual(datac[1], dataref)
+        assert datac[1] == dataref
 
     def test_read_fm_map_06(self):
         """
@@ -338,20 +337,20 @@ class read_fm_map(unittest.TestCase):
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(Exception) as cm:
             datac = dfastmi.io.read_fm_map(filename, varname)
-        self.assertEqual(str(cm.exception), 'Expected one variable for "water level", but obtained 0.')
+        assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
         
-class get_mesh_and_facedim_names(unittest.TestCase):
+class Test_get_mesh_and_facedim_names():
     def test_get_mesh_and_facedim_names_01(self):
         """
         Testing get_mesh_and_facedim_names.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         name_and_dim = dfastmi.io.get_mesh_and_facedim_names(filename)
-        self.assertEqual(name_and_dim, ("mesh2d", "mesh2d_nFaces"))
+        assert name_and_dim == ("mesh2d", "mesh2d_nFaces")
 
-class copy_ugrid(unittest.TestCase):
+class Test_copy_ugrid():
     def test_copy_ugrid_01(self):
         """
         Testing copy_ugrid (depends on copy_var).
@@ -364,10 +363,10 @@ class copy_ugrid(unittest.TestCase):
         varname = "face_node_connectivity"
         datac = dfastmi.io.read_fm_map(dst_filename, varname)
         dataref = 2352
-        self.assertEqual(datac[-1][1], dataref)
+        assert datac[-1][1] == dataref
 
 
-class copy_var(unittest.TestCase):
+class Test_copy_var():
     def test_copy_var_01(self):
         """
         Testing copy_var.
@@ -382,9 +381,9 @@ class copy_var(unittest.TestCase):
         varname = "sea_surface_height"
         datac = dfastmi.io.read_fm_map(dst_filename, varname)
         dataref = 3.8871328177527262
-        self.assertEqual(datac[1], dataref)
+        assert datac[1] == dataref
 
-class ugrid_add(unittest.TestCase):
+class Test_ugrid_add():
     def test_ugrid_add_01(self):
         """
         Testing ugrid_add.
@@ -401,9 +400,9 @@ class ugrid_add(unittest.TestCase):
         dfastmi.io.ugrid_add(dst_filename, varname, ldata, meshname, facedim, long_name)
         #
         datac = dfastmi.io.read_fm_map(dst_filename, long_name)
-        self.assertEqual(datac[1], ldata[1])
+        assert datac[1] == ldata[1]
 
-class read_waqua_xyz(unittest.TestCase):
+class Test_read_waqua_xyz():
     def test_read_waqua_xyz_01(self):
         """
         Read WAQUA xyz file default column 2.
@@ -413,8 +412,8 @@ class read_waqua_xyz(unittest.TestCase):
         datar = numpy.array([3., 6., 9., 12.])
         print("data reference: ", datar)
         print("data read     : ", data)
-        self.assertEqual(numpy.shape(data), (4,))
-        self.assertTrue((data == datar).all())
+        assert numpy.shape(data) == (4,)
+        assert (data == datar).all() == True
 
     def test_read_waqua_xyz_02(self):
         """
@@ -426,10 +425,10 @@ class read_waqua_xyz(unittest.TestCase):
         datar = numpy.array([[ 2., 3.], [ 5., 6.], [ 8., 9.], [11., 12.]])
         print("data reference: ", datar)
         print("data read     : ", data)
-        self.assertEqual(numpy.shape(data), (4,2))
-        self.assertTrue((data == datar).all())
+        assert numpy.shape(data) == (4,2)
+        assert (data == datar).all() == True
 
-class write_simona_box(unittest.TestCase):
+class Test_write_simona_box():
     def test_write_simona_box_01(self):
         """
         Write small SIMONA BOX file.
@@ -444,7 +443,7 @@ class write_simona_box(unittest.TestCase):
                          '          1.000       2.000       3.000',
                          '          4.000       5.000       6.000',
                          '          7.000       8.000       9.000']
-        self.assertEqual(all_lines, all_lines_ref)
+        assert all_lines == all_lines_ref
 
     def test_write_simona_box_02(self):
         """
@@ -460,7 +459,7 @@ class write_simona_box(unittest.TestCase):
                          '          1.000       2.000       3.000',
                          '          4.000       5.000       6.000',
                          '          7.000       8.000       9.000']
-        self.assertEqual(all_lines, all_lines_ref)
+        assert all_lines == all_lines_ref
 
     def test_write_simona_box_03(self):
         """
@@ -477,9 +476,9 @@ class write_simona_box(unittest.TestCase):
         all_lines_ref.extend(['      BOX MNMN=(   1,   11,   15,   15), VARIABLE_VAL='])
         all_lines_ref.extend(['          0.000       0.000       0.000       0.000       0.000']*15)
         self.maxDiff = None
-        self.assertEqual(all_lines, all_lines_ref)
+        assert all_lines == all_lines_ref
 
-class absolute_path(unittest.TestCase):
+class Test_absolute_path():
     def test_absolute_path_01(self):
         """
         Convert absolute path into relative path using relative_path (Windows).
@@ -487,7 +486,7 @@ class absolute_path(unittest.TestCase):
         rootdir = "d:" + os.sep + "some" + os.sep + "dir"
         afile = "d:" + os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
-        self.assertEqual(dfastmi.io.absolute_path(rootdir, rfile), afile)
+        assert dfastmi.io.absolute_path(rootdir, rfile) == afile
 
     def test_absolute_path_02(self):
         """
@@ -495,7 +494,7 @@ class absolute_path(unittest.TestCase):
         """
         rootdir = "d:" + os.sep + "some" + os.sep + "dir"
         file = ""
-        self.assertEqual(dfastmi.io.absolute_path(rootdir, file), file)
+        assert dfastmi.io.absolute_path(rootdir, file) == file
 
     def test_absolute_path_03(self):
         """
@@ -503,7 +502,7 @@ class absolute_path(unittest.TestCase):
         """
         rootdir = "d:" + os.sep + "some" + os.sep + "dir"
         file = "e:" + os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
-        self.assertEqual(dfastmi.io.absolute_path(rootdir, file), file)
+        assert dfastmi.io.absolute_path(rootdir, file) == file
 
     def test_absolute_path_04(self):
         """
@@ -512,9 +511,9 @@ class absolute_path(unittest.TestCase):
         rootdir = os.sep + "some" + os.sep + "dir"
         afile = os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
-        self.assertEqual(dfastmi.io.absolute_path(rootdir, rfile), afile)
+        assert dfastmi.io.absolute_path(rootdir, rfile) == afile
 
-class relative_path(unittest.TestCase):
+class Test_relative_path():
     def test_relative_path_01(self):
         """
         Convert absolute path into relative path using relative_path (Windows).
@@ -522,7 +521,7 @@ class relative_path(unittest.TestCase):
         rootdir = "d:" + os.sep + "some" + os.sep + "dir"
         afile = "d:" + os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
-        self.assertEqual(dfastmi.io.relative_path(rootdir, afile), rfile)
+        assert dfastmi.io.relative_path(rootdir, afile) == rfile
 
     def test_relative_path_02(self):
         """
@@ -530,7 +529,7 @@ class relative_path(unittest.TestCase):
         """
         rootdir = "d:" + os.sep + "some" + os.sep + "dir"
         file = ""
-        self.assertEqual(dfastmi.io.relative_path(rootdir, file), file)
+        assert dfastmi.io.relative_path(rootdir, file) == file
 
     def test_relative_path_03(self):
         """
@@ -538,7 +537,7 @@ class relative_path(unittest.TestCase):
         """
         rootdir = "d:" + os.sep + "some" + os.sep + "dir"
         file = "e:" + os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
-        self.assertEqual(dfastmi.io.relative_path(rootdir, file), file)
+        assert dfastmi.io.relative_path(rootdir, file) == file
 
     def test_relative_path_04(self):
         """
@@ -547,4 +546,4 @@ class relative_path(unittest.TestCase):
         rootdir = os.sep + "some" + os.sep + "dir"
         afile = os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
-        self.assertEqual(dfastmi.io.relative_path(rootdir, afile), rfile)
+        assert dfastmi.io.relative_path(rootdir, afile) == rfile

@@ -221,8 +221,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
 
 
 def interactive_get_location(
-    src: TextIO,
-    rivers: RiversObject,
+    src: TextIO, rivers: RiversObject,
 ) -> Tuple[Optional[int], Optional[int]]:
     """
     Ask the user interactively for the branch and reach.
@@ -340,8 +339,7 @@ def interactive_get_discharges(
         dfastmi.io.log_text("query_flowing_when_barriers_open")
     else:
         dfastmi.io.log_text(
-            "query_flowing_above_qmin",
-            dict={"border": q_location, "qmin": int(q_min)},
+            "query_flowing_above_qmin", dict={"border": q_location, "qmin": int(q_min)},
         )
     tdrem = interactive_get_bool(src, "confirm_or")
     if tdrem:

@@ -33,6 +33,7 @@ import numpy
 import netCDF4
 import configparser
 import os
+import pathlib
 
 DataField = List[List[Union[float, List[float]]]]
 # RiversObject = Dict[str, Union[int, List[str], List[List[str]], DataField]]
@@ -211,8 +212,8 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
     # parse branches
     branches = [k for k in config.keys()]
-    branches.remove('DEFAULT')
-    branches.remove('General')
+    branches.remove("DEFAULT")
+    branches.remove("General")
     rivers["branches"] = branches
 
     # parse reaches and discharge locations
@@ -879,3 +880,15 @@ def relative_path(rootdir: str, file: str) -> str:
             return rfile
         except:
             return file
+
+
+def get_progloc() -> str:
+    """
+    Get the location of the program.
+
+    Arguments
+    ---------
+    None
+    """
+    progloc = str(pathlib.Path(__file__).parent.absolute())
+    return progloc
