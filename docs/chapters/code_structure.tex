@@ -85,7 +85,7 @@ and the main code that triggers the parsing of the command line arguments (via \
 The \keyw{gui.py} module implements the graphical user interface version of \dfastmi.
 This module depends on the \keyw{batch}, \keyw{kernel} and \keyw{io} modules.
 It can be used to generate and edit the analysis configuration files used for evaluating a single measure.
-This run mode is triggered by calling the program using the command line argument \keyw{--mode gui} or by not specifying a \keyw{--mode} argument since this is the default run mode.
+This run mode is triggered by calling the program using the command line argument \keyw{-{}-mode gui} or by not specifying a \keyw{-{}-mode} argument since this is the default run mode.
 It supports both new and old simulation result files.
 
 \begin{figure}
@@ -125,7 +125,7 @@ This module is subdivided into the following routines:
 
 The \keyw{cli.py} module implements the legacy WAQMORF mode of running as an interactive command line program which may be used as batch mode by redirecting standard in; in this mode only result files exported from SIMONA can be used.
 This module depends on the \keyw{batch}, \keyw{kernel} and \keyw{io} modules.
-This run mode is triggered by calling the program using the command line argument \keyw{--mode cli}.
+This run mode is triggered by calling the program using the command line argument \keyw{-{}-mode cli}.
 
 \begin{itemize}
 \item \keyw{interactive\_mode} implements the overall interactive loop
@@ -143,7 +143,7 @@ This run mode is triggered by calling the program using the command line argumen
 
 The \keyw{batch.py} module executes the analysis in batch mode based on a specified analysis configuration file.
 This module depends on the \keyw{kernel} and \keyw{io} modules.
-This run mode is triggered by calling the program using the command line argument \keyw{--mode batch}.
+This run mode is triggered by calling the program using the command line argument \keyw{-{}-mode batch}.
 It supports both new and old simulation result files.
 
 \begin{itemize}

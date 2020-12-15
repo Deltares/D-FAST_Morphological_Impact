@@ -32,12 +32,12 @@ They are repeated below and for every requirement it is indicated how it is test
 This is tested by means of a number of comparison studies, and subsequently tested using regression tests.
 
 \item Users must be able to run this program in batch mode from the command line.
-This has been implemented as run mode \keyw{--mode batch}.
-The old interactive command line mode is also still available as run mode \keyw{--mode cli}.
+This has been implemented as run mode \keyw{-{}-mode batch}.
+The old interactive command line mode is also still available as run mode \keyw{-{}-mode cli}.
 The proper functioning of these options is tested by means of regression testing.
 
 \item Users must be able to run the analysis based on \dflowfm results.
-This is tested by means of regression testing using result files of \dflowfm version X.
+This is tested by means of regression testing using result files of \dflowfm version 1.2.105.67088.
 
 \item Users must be able to provide all data via an input file.
 This testing is included in the regression testing of the batch mode, and may in the future be included in the gui testing.
@@ -61,7 +61,7 @@ The netCDF UGRID data files are supported by QUICKPLOT and other post-processing
 All quantities previously read from the XYZ files is now read from the \dflowfm map.nc files (unless running in .
 
 \item A simple graphical user interface could support users in process of creating the input file.
-The graphical user interface that you get by running \dfastmi in default mode or by explicitly specifying \keyw{--mode gui} has been tested manually as described in \autoref{Sec:GuiTests}.
+The graphical user interface that you get by running \dfastmi in default mode or by explicitly specifying \keyw{-{}-mode gui} has been tested manually as described in \autoref{Sec:GuiTests}.
 
 \item It would be nice if the software would be more generally applicable than just the Dutch rivers.
 A rivers configuration file has been introduced to allow the program to be applied to other systems without recompilation.

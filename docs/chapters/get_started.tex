@@ -15,7 +15,7 @@ The program runs by default in the gui mode; other run modes can be selected via
 
 \begin{tabular}{l|l|p{8cm}}
 short & long & description \\ \hline
-\keyw{-h} & \keyw{--help} & show help text and exit \\
+\keyw{-h} & \keyw{-{}-help} & show help text and exit \\
  & \keyw{-{}-rivers} & name of river configuration file (default: \keyw{Dutch\_rivers.ini}) \\
  & \keyw{-{}-language} & language selection: \keyw{NL} or \keyw{UK} (default: \keyw{UK}) \\
  & \keyw{-{}-mode} & run mode \keyw{batch}, \keyw{cli} or \keyw{gui} (default: \keyw{gui} \\
@@ -23,7 +23,7 @@ short & long & description \\ \hline
  & \keyw{-{}-reduced\_output} & write reduced SIMONA BOX files (applies to legacy cli mode only) \\
 \end{tabular}
 
-By default the program runs for the Dutch Rhine and Meuse river branches, but a different river configuration can be provided by means of the \keyw{--rivers} command line switch; this option is supported by all run modes.
+By default the program runs for the Dutch Rhine and Meuse river branches, but a different river configuration can be provided by means of the \keyw{-{}-rivers} command line switch; this option is supported by all run modes.
 For details on the format of the river configuration file, see the appropriate section in the appendix.
 The language setting influences all texts displayed by the program in cli and gui modes as well as the texts written to the report file as well as the names of the various output files.
 The following list indicates the English and Dutch names:
@@ -57,10 +57,10 @@ The program should be started with the run mode set to \keyw{batch} and a config
 > dfastmi --mode batch --config myfile.cfg
 \end{Verbatim}
 
-You may choose to run the program in either Dutch \keyw{--language NL} or English \keyw{--language UK}; the latter is the default.
+You may choose to run the program in either Dutch \keyw{-{}-language NL} or English \keyw{-{}-language UK}; the latter is the default.
 Please note that the language does not only affect the text in the report, but also the names of the output files as indicated in the opening section of this chapter.
 The content of the configuration file is described in Appendix X; it can be generated using either a text editor or \dfastmi running in gui mode.
-The \keyw{--reduced\_output} option for smaller SIMONA BOX file output is currently not supported in this run mode.
+The \keyw{-{}-reduced\_output} option for smaller SIMONA BOX file output is currently not supported in this run mode.
 
 \section{Running in interactive command line mode}
 
@@ -71,9 +71,9 @@ The program should be started with the run mode set to \keyw{cli} on the command
 > dfastmi --mode cli
 \end{Verbatim}
 
-You may choose to run the program in either Dutch \keyw{--language NL} or English \keyw{--language UK}; the latter is the default.
+You may choose to run the program in either Dutch \keyw{-{}-language NL} or English \keyw{-{}-language UK}; the latter is the default.
 Please note that the language does not only affect the text in the report, but also the names of the output files as indicated in the opening section of this chapter.
-You may also choose to select the \keyw{--reduced\_output} option for smaller SIMONA BOX file output.
+You may also choose to select the \keyw{-{}-reduced\_output} option for smaller SIMONA BOX file output.
 Although this is an interactive run mode, you may use this mode also as a batch mode by redirecting standard input to read from file as follows
 
 \begin{Verbatim}
@@ -88,7 +88,7 @@ We recommend to use either the gui mode or the batch mode instead.
 
 This is the default mode for the program, so no command line argument needed.
 It supports analysis using either WAQUA or \dflowfm results.
-As with the other run modes, you may choose to run the program in either Dutch \keyw{--language NL} or English \keyw{--language UK}; the latter is the default.
+As with the other run modes, you may choose to run the program in either Dutch \keyw{-{}-language NL} or English \keyw{-{}-language UK}; the latter is the default.
 Please note that the language does not only affect the text in the report, but also the names of the output files as indicated in the opening section of this chapter.
 Furthermore, you may specify a configuration file to load upon start.
 For example
@@ -98,7 +98,7 @@ For example
 \end{Verbatim}
 
 runs the program in Dutch and loads the myfile.cfg configuration file into the graphical user interface.
-The \keyw{--reduced\_output} option for smaller SIMONA BOX file output is currently not supported in this run mode.
+The \keyw{-{}-reduced\_output} option for smaller SIMONA BOX file output is currently not supported in this run mode.
 
 \begin{figure}
 \center

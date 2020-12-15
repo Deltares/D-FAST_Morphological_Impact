@@ -29,6 +29,15 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, Tuple
 
+# ------------------------------------------------------------------------------
+# Needed for Nuitka compilation
+# ------------------------------------------------------------------------------
+import six
+import mkl
+import netCDF4.utils
+import cftime
+# ------------------------------------------------------------------------------
+
 import argparse
 import dfastmi.cmd
 
