@@ -185,39 +185,39 @@ We start by assuming a quasi-stationary flow pattern and an outflow of discharge
 \label{Fig4}
 \end{figure}
 
-The response of the main channel is represented here by a bed level change $\Delta z$ \unitbrackets{m} (raise or lowering) which is small relative to the local water depth.
+The response of the main channel is represented here by a bed level change $\Delta z_b$ \unitbrackets{m} (raise or lowering) which is small relative to the local water depth.
 The mass balance of the water and the sediment in the main channel can be written as
-
-\begin{tabular}{p{3cm}p{\textwidth-3cm}}
-water & \parbox{\textwidth-4cm}{\begin{equation}
-\pdiff{q_\text{mc}}{s} = -q_\text{out}
-\end{equation}} \label{Eq2} \\
-sediment & \parbox{\textwidth-4cm}{\begin{equation}
-\pdiff{z_b}{t} + \pdiff{s_\text{mc}}{s}= -q_\text{out} = -s_\text{out}
-\end{equation}} \label{Eq3} \\
-\end{tabular}
-
+%
+\begin{align}
+&\text{water} & \pdiff{q_\text{mc}}{s} = -q_\text{out} \label{Eq2} \\
+&\text{sediment} & \pdiff{z_b}{t} + \pdiff{s_\text{mc}}{s} = -s_\text{out} \label{Eq3}
+\end{align}
+%
 in which
-
+%
 \begin{symbollist}
-\item[$q_\text{mc}$] \unitbrackets{m\textsuperscript{2}/s} main channel unit discharge
-\item[$q_\text{out}$] \unitbrackets{m\textsuperscript{2}/sm} \emph{outflow of} unit discharge \emph{to} the flood plain per unit length
-\item[$s$] \unitbrackets{m} streamwise coordinate
-\item[$z_b$] \unitbrackets{m} bed level change due to measure
-\item[$s_\text{mc}$] \unitbrackets{m\textsuperscript{2}/s} main channel unit sediment transport
-\item[$s_\text{out}$] \unitbrackets{m\textsuperscript{2}/ms} \emph{outflow of} unit sediment \emph{to} the flood plan per unit length
+\item[$q_\text{mc}$] main channel unit discharge \unitbrackets{m\textsuperscript{2}/s}
+\item[$q_\text{out}$] \emph{outflow of} unit discharge \emph{to} the flood plain per unit length \unitbrackets{m\textsuperscript{2}/sm}
+\item[$s$] streamwise coordinate \unitbrackets{m}
+\item[$z_b$] bed level change due to measure \unitbrackets{m}
+\item[$s_\text{mc}$] main channel unit sediment transport \unitbrackets{m\textsuperscript{2}/s}
+\item[$s_\text{out}$] \emph{outflow of} unit sediment \emph{to} the flood plan per unit length \unitbrackets{m\textsuperscript{2}/ms}
 \end{symbollist}
 
-The unit sediment transport capacity in the main channel, $s_\text{mc}$, is approximated by $s_\text{mc} = m \left ( \frac{q_\text{mc}}{h} \right )^b$ with $h$ the water depth \unitbrackets{m} in the main channel, $m$ a calibration factor and sediment transport exponent $b$ about 5 \citep{Engelundh67}.
+The unit sediment transport capacity in the main channel, $s_\text{mc}$, is approximated by $s_\text{mc} = m \left ( q_\text{mc} / h \right )^b$ with $h$ the water depth \unitbrackets{m} in the main channel, $m$ a dimensionless calibration factor and a dimensionless sediment transport exponent $b$ about 5 \citep{Engelundh67}.
 Using this approximation the gradients in the sediment transport capacity can be written as
-
-\begin{equation}
-\pdiff{s_\text{mc}}{s} \approx b \frac{s_\text{mc}}{q_\text{mc}} \pdiff{q_\text{mc}}{s} + b \frac{s_\text{mc}}{h} \pdiff{z_b}{s}
+%
+\begin{align}
+\pdiff{s_\text{mc}}{s} &= m b \left ( \frac{q_\text{mc}}{h} \right )^{b-1} \pdiff{(q_\text{mc} / h)}{s} \\
+&= m b \left ( \frac{q_\text{mc}}{h} \right )^{b-1} \left [ \frac{1}{h} \pdiff{q_\text{mc}}{s} - \frac{q_\text{mc}}{h^2} \pdiff{h}{s} \right ] \\
+&= b \frac{s_\text{mc}}{q_\text{mc}} \pdiff{q_\text{mc}}{s} - b \frac{s_\text{mc}}{h} \pdiff{h}{s} \\
+&\approx b \frac{s_\text{mc}}{q_\text{mc}} \pdiff{q_\text{mc}}{s} + b \frac{s_\text{mc}}{h} \pdiff{z_b}{s}
 \label{Eq4}
-\end{equation}
-
-Substitution of \autoref{Eq4} in \autoref{Eq2} and \autoref{Eq3}, the mass balances for water and sediment, gives
-
+\end{align}
+%
+if we assume that the water level gradient is negligible ($\pdiff{z_w}{s} \approx 0$).
+Substitution of \autoref{Eq4} and \autoref{Eq2} into \autoref{Eq3} gives
+%
 \begin{equation}
 \frac{h}{b s_\text{mc}} \pdiff{z_b}{t} + \pdiff{z_b}{s} = h \frac{q_\text{out}}{q_\text{mc}} - h \frac{s_\text{out}}{b s_\text{mc}}
 \label{Eq5}
@@ -227,53 +227,54 @@ The dynamic bed level changes will develop starting from the upstream end of the
 The length $L$ over which this sedimentation occurs corresponds to the reach in which the main channel discharge is reduced and in which the flow pattern is adjusted by the reduced discharge.
 Hence, this length $L$ is thus \emph{not} always equal to the length of the measure or the distance between the inflow and outflow openings of a secondary channel.
 The integration of \autoref{Eq5} over this length $L$ results in a relaxation model for the dynamic bed level change due to the measure
-
+%
 \begin{equation}
-\diff{\Delta z_b}{t} = \frac{\Delta z_{b,\text{eq}} - \Delta z}{T}
+\diff{\Delta z_b}{t} = \frac{\Delta z_{b,\text{eq}} - \Delta z_b}{T}
+\label{Eq5dif}
 \end{equation}
-
-with a morphological time scale
-
+%
+with a morphological time scale \unitbrackets{s}
+%
 \begin{equation}
-T \approx \frac{h L}{b s_\text{mc}}
+T_m \approx \frac{h L}{b s_\text{mc}}
 \label{Eq5T}
 \end{equation}
-
-and an equilibrium bed level change given by
-
+%
+and an equilibrium bed level change \unitbrackets{m} given by
+%
 \begin{equation}
 \Delta z_{b,\text{eq}} = -h \left ( \frac{\Delta q_\text{mc}}{q_\text{mc}} + \frac{\Delta s_\text{mc}}{b s_\text{mc}} \right )
 \label{Eq6}
 \end{equation}
-
+%
 This relaxation behaviour can also be observed in the results of the numerical models (both 1D and 2D).
 
 The rule-of-thumb is derived by posing that the bed level change $\Delta z_b$ can be interpreted as the bed level change due to a measure over a distance $L$ along a line perpendicular to the stream line at the upstream end of the measure.
-The equilibrium value $\Delta z_{\text{eq}}$ depends according \autoref{Eq6} on the (original) water depth, the relative change in unit discharge and the relative change in the sediment transport.
+The equilibrium value $\Delta z_{b,\text{eq}}$ depends according \autoref{Eq6} on the (original) water depth, the relative change in unit discharge and the relative change in the sediment transport.
 The latter term is the result of the sediment flux into the secondary channel which dampens the effect of reduced sediment transport capacity in the main channel.
 Ignoring this relatively minor dampening term results in a more conservative estimate.
 For measures over a short distance (i.e.~for the type of measures for which the rule-of-thumb is applicable) the water level changes are an order of magnitude smaller than the bed level changes.
 Therefore, one can rewrite \autoref{Eq6} to state that the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product of the water depth and the relative change in the main channel velocity $u$ \unitbrackets{m/s}:
-
+%
 \begin{equation}
 \Delta z_{b,\text{eq}} \approx -h \left ( \frac{\Delta u}{u} \right )
-\label{Eq6}
+\label{Eq6v2}
 \end{equation}
-
+%
 A similar result can be obtained for graded bed material (sand/gravel mixtures) if it's assumed that the individual sediment fractions don't influence each other's mobility (Appendix C in \citet{Waterdienst2008}).
 Such an assumption is valid at sufficiently high bed shear stresses, such as during flood conditions.
 
 \section{The relaxation model applied to seasonal variability}
 
-The bed level development during a relaxation period can (as a solution of \autoref{Eq6}) is given by
-
+The bed level development during a relaxation period is (as a solution of \autoref{Eq5dif}) given by
+%
 \begin{equation}
 z_{b,i} = z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})
 \label{Eq7}
 \end{equation}
-
+%
 with
-
+%
 \begin{symbollist}
 \item[$z_{b,i}$] \unitbrackets{m} the morphological effect of the measure during period $i$
 \item[$z_{b,i}(0)$] \unitbrackets{m} the morphological effect at the start of period $i$
@@ -289,14 +290,14 @@ with
 \end{figure}
 
 \autoref{Eq7} implies that at the end of period $i$ (lasting for a period of $T_i$ days) the morphological effect of the measure is given by
-
+%
 \begin{equation}
 z_{b,i+1}(0) = z_{b,i} (0) \sigma_i + z_{b,i,\text{eq}} (1-\sigma_i) \text{ with } \sigma_i = e^{-T_i/T_{m,i}}
 \label{Eq8a}
 \end{equation}
 
 If the yearly hydrograph is schematized using three periods, one obtains the following set of three equations for the three periods by assuming periodicity (the final bed level of the third period equals the initial bed level of the first period)
-
+%
 \begin{align}
 z_{b,2}(0) &= z_{b,1}(0) \sigma_1 + z_{b,1,\text{eq}} (1-\sigma_1) \label{Eq8b} \\
 z_{b,3}(0) &= z_{b,2}(0) \sigma_2 + z_{b,2,\text{eq}} (1-\sigma_2) \label{Eq8c} \\
@@ -322,13 +323,21 @@ For the schematized hydrograph shown in \autoref{Fig5} the bed level change is
 
 The influence of barriers can be included by inserting a yearly period without bed level changes in between flood period 3 and low flow period 1.
 
-We can't only obtain expressions for the two extreme (minimum, maximum) values but we can also determine an expression for the year-averaged bed level change by integrating \autoref{Eq7} to
-
+We can't only obtain expressions for the two extreme (minimum, maximum) values but we can also determine an expression for the year-averaged bed level change by integrating \autoref{Eq7} per constant discharge period to
+%
+\begin{align}
+\bar{z}_{b,i} &= \frac{1}{T_i} \int_0^{T_i}{z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})}dt \\
+&= \frac{1}{T_i} \left . \left ( {z_{b,i,\text{eq}} t + [z_{b,i,\text{eq}} - z_{b,i}(0)]T_{m,i} e^{-t/T_{m,i}}} \right ) \right |_{t=0}^{t=T_i} \\
+&= z_{b,i,\text{eq}} + [z_{b,i,\text{eq}} - z_{b,i}(0)] \frac{T_{m,i}}{T_i} ( e^{-T_i/T_{m,i}} - 1 )
+\end{align}
+%
+and over all periods to
+%
 \begin{equation}
-\bar{z_b} = \frac{\sum{z_{b,i,\text{eq}} t_i}}{\sum{t_i}} + \frac{\sum{(z_{b,i,\text{eq}}-z_{b,i}(0)) T_{m,i} (\sigma_i-1)}}{\sum{t_i}}
+\bar{z}_b = \frac{\sum{z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{(z_{b,i,\text{eq}}-z_{b,i}(0)) T_{m,i} (\sigma_i-1)}}{\sum{T_i}}
 \label{Eq8h}
 \end{equation}
-
+%
 If all bed level changes are removed after the flood period by means of dredging, the yearly dredging amount can finally be estimated by ignoring any excess depth.
 After all, the maximum bed level change at the end of the flood season can with $z_{b,1}(0) = 0$ and \autoref{Eq8a} to \autoref{Eq8i} be expressed as the maximum dredging depth $z_\text{mdd}$
 
