@@ -1358,8 +1358,8 @@ def comp_dredging_volume(
         dvol1 = math.nan
     else:
         xykm = dfastmi.io.get_xykm(kmfile)
-        xy_numpy = numpy.array(xykm)[:, :2]
-        dvol1 = comp_dredging_volume1(dzgemi, areai, xni, yni, FNCi, slength, nwidth, nwbins, sbin_length)
+        xyline = numpy.array(xykm)[:, :2]
+        dvol1 = comp_dredging_volume1(dzgemi, areai, xni, yni, FNCi, xyline, slength, nwidth, nwbins, sbin_length)
     
     dvol2 = comp_dredging_volume2(dzgemi, areai, slength, nwidth)
     return dvol1, dvol2
@@ -1529,8 +1529,8 @@ def comp_dredging_volume1(
             dredge_vol = dredge_vol + dvol
             dvol = 0
 
-    xf = face_mean(xn, FNC)
-    yf = face_mean(yn, FNC)
+    #xf = face_mean(xn, FNC)
+    #yf = face_mean(yn, FNC)
     #with open("zgem.xyz", "w") as file:
     #    for i in range(len(xf)):
     #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xf[i],yf[i],dzgem[i]))
