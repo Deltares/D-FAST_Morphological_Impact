@@ -77,7 +77,8 @@ def run(
         else:
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
-        rivers = dfastmi.io.read_rivers(progloc + os.path.sep + rivers_file)
+        abs_rivers_file = dfastmi.io.absolute_path(progloc, rivers_file)
+        rivers = dfastmi.io.read_rivers(abs_rivers_file)
         if runmode == "BATCH":
             dfastmi.batch.batch_mode(configfile, rivers, reduced_output)
         elif runmode == "CLI":
