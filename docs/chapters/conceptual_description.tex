@@ -313,49 +313,31 @@ z_{b,2}(0) &= \frac{z_{b,1,\text{eq}} (1-\sigma_1) + z_{b,2,\text{eq}} (1-\sigma
 z_{b,3}(0) &= \frac{z_{b,1,\text{eq}} (1-\sigma_1) \sigma_2 + z_{b,2,\text{eq}} (1-\sigma_2) + z_{b,3,\text{eq}} (1-\sigma_3) \sigma_1 \sigma_2}{1 - \sigma_1 \sigma_2 \sigma_3} \label{Eq8g}
 \end{align}
 
-The lower bound for the morphological impact of the measure will be equal to the minimum value of $z_{b,1}(0)$, $z_{b,2}(0)$ and $z_{b,3}(0)$ and the upper bound is given by the maximum value of $z_{b,1}(0)$, $z_{b,2}(0)$, $z_{b,3}(0)$.
+The lower bound for the morphological impact of the measure will be equal to $\min[z_{b,1}(0), z_{b,2}(0), z_{b,3}(0)]$ and the upper bound is given by $\max[z_{b,1}(0), z_{b,2}(0), z_{b,3}(0)]$.
 For the schematized hydrograph shown in \autoref{Fig5} the bed level change is
 
 \begin{itemize}
-\item at its maximum after flood period 3 (the third block in \autoref{Tab2}), the corresponding bed level is $z_{b,1}(0)$ (\autoref{Eq8e}) 
-\item at its minimum after the low flow period 1 (the first block in \autoref{Tab2}), the corresponding bed level is $z_{b,2}(0)$ (\autoref{Eq8f}).
+\item maximum at $z_{b,1}(0)$ (\autoref{Eq8e}) after flood period 3 (the third block in \autoref{Tab2})
+\item minimum at $z_{b,2}(0)$ (\autoref{Eq8f}) after the low flow period 1 (the first block in \autoref{Tab2}).
 \end{itemize}
 
 The influence of barriers can be included by inserting a yearly period without bed level changes in between flood period 3 and low flow period 1.
 
-After identifying expressions for the two extreme (minimum, maximum) values, we also determine an expression for the year-averaged bed level change by integrating \autoref{Eq7} per constant discharge period to
+We can't only obtain expressions for the two extreme (minimum, maximum) values but we can also determine an expression for the year-averaged bed level change by integrating \autoref{Eq7} per constant discharge period to
 %
 \begin{align}
-\bar{z}_{b,i} &= \frac{1}{T_i} \int_0^{T_i}{z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})}dt \nonumber \\
-&= \frac{1}{T_i} \int_0^{T_i}{z_{b,i,\text{eq}} + [z_{b,i}(0) - z_{b,i,\text{eq}}]e^{-t/T_{m,i}}}dt \nonumber \\
-&= \frac{1}{T_i} \left . \left ( {z_{b,i,\text{eq}} t - [z_{b,i}(0) - z_{b,i,\text{eq}}]T_{m,i} e^{-t/T_{m,i}}} \right ) \right |_{t=0}^{t=T_i} \nonumber \\
-&= z_{b,i,\text{eq}} - [z_{b,i}(0) - z_{b,i,\text{eq}}] \frac{T_{m,i}}{T_i} ( e^{-T_i/T_{m,i}} - 1 ) \nonumber \\
-&= z_{b,i,\text{eq}} + [z_{b,i}(0) - z_{b,i,\text{eq}}] \frac{T_{m,i}}{T_i} ( 1 - \sigma_i ) \label{Eq8h_1}
+\bar{z}_{b,i} &= \frac{1}{T_i} \int_0^{T_i}{z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})}dt \\
+&= \frac{1}{T_i} \left . \left ( {z_{b,i,\text{eq}} t + [z_{b,i,\text{eq}} - z_{b,i}(0)]T_{m,i} e^{-t/T_{m,i}}} \right ) \right |_{t=0}^{t=T_i} \\
+&= z_{b,i,\text{eq}} + [z_{b,i,\text{eq}} - z_{b,i}(0)] \frac{T_{m,i}}{T_i} ( e^{-T_i/T_{m,i}} - 1 )
 \end{align}
 %
-One may notice that for a large morphological time scale $T_{m,i}$, the last term $\sigma_i - 1$ will become very small while the $T_{m,i}$ term becomes obviously large; their product will tend to $T_i$.
-Alternatively, for $T_i \ll T_{m,i}$ one can assume the transition from $z_{b,i}(0)$ to $z_{b,i+1}(0)$ to be approximately linear, which results in a much simpler expression
+and over all periods to
 %
 \begin{equation}
-\bar{z}_{b,i} \approx \frac{1}{2} [ z_{b,i+1}(0) + z_{b,i}(0) ] \label{Eq8hv2_1}
-\end{equation}
-%
-The integration over all periods results in
-%
-\begin{equation}
-\bar{z}_b = \frac{\sum{z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{[ z_{b,i}(0) - z_{b,i,\text{eq}} ] T_{m,i} ( 1 - \sigma_i )}}{\sum{T_i}}
+\bar{z}_b = \frac{\sum{z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{(z_{b,i,\text{eq}}-z_{b,i}(0)) T_{m,i} (\sigma_i-1)}}{\sum{T_i}}
 \label{Eq8h}
 \end{equation}
 %
-based on \autoref{Eq8h_1} and based on \autoref{Eq8hv2_1} we obtain
-%
-\begin{equation}
-\bar{z}_b \approx \frac{\sum [ z_{b,i+1}(0) + z_{b,i}(0) ] T_i}{2 \sum{T_i}}
-\label{Eq8hv2}
-\end{equation}
-%
-\dfastmi uses \autoref{Eq8hv2} to compute the mean bed level change.
-
 If all bed level changes are removed after the flood period by means of dredging, the yearly dredging amount can finally be estimated by ignoring any excess depth.
 After all, the maximum bed level change at the end of the flood season can with $z_{b,1}(0) = 0$ and \autoref{Eq8a} to \autoref{Eq8i} be expressed as the maximum dredging depth $z_\text{mdd}$
 

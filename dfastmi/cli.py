@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
-from dfastmi.kernel import Vector
+from dfastmi.kernel import QRuns
 
 import os
 import numpy
@@ -90,7 +90,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         if have_files and not all_q:
             break
 
-        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
 
         reach = rivers["reaches"][ibranch][ireach]
         if have_files:
@@ -110,8 +110,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                     ucrit = ucritMin
 
             dfastmi.io.log_text("", repeat=19)
-            filenames = dfastmi.batch.get_filenames(0, False)
-            old_zmin_zmax = True
+            filenames = dfastmi.batch.get_filenames(0)
             missing_data = dfastmi.batch.analyse_and_report(
                 0,
                 True,
@@ -119,14 +118,16 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 reduced_output,
                 reach,
                 q_location,
+                q_threshold,
+                q_bankfull,
                 tstag,
+                q_fit,
                 Q,
                 T,
                 rsigma,
                 nlength,
                 ucrit,
                 filenames,
-                old_zmin_zmax,
             )
             if not missing_data:
                 dfastmi.io.log_text("")
@@ -274,7 +275,7 @@ def interactive_get_discharges(
     float,
     Tuple[float, float],
     float,
-    Vector,
+    QRuns,
     float,
     Tuple[float, float, float],
     Tuple[float, float, float],
@@ -315,7 +316,7 @@ def interactive_get_discharges(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
         Discharge below which the river flow is negligible.
-    Q : Vector
+    Q : QRuns
         Tuple of (at most) three characteristic discharges.
     t_stagnant : float
         Fraction of year during which flow velocity is considered negligible.
@@ -422,7 +423,7 @@ def write_report_nodata(
     q_stagnant: float,
     tstag: float,
     q_fit: Tuple[float, float],
-    Q: Vector,
+    Q: QRuns,
     T: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
@@ -449,7 +450,7 @@ def write_report_nodata(
         Fraction of year that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    Q : Vector
+    Q : QRuns
         Tuple of (at most) three characteristic discharges.
     T : Tuple[float, float, float]
         Fraction of year represented by each characteristic discharge.

@@ -30,14 +30,13 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Tuple, List, Optional
+from typing import Tuple, Optional
 import math
 import numpy
 
 QLevels = Tuple[float, float, float, float]
 QChange = Tuple[float, float]
 QRuns = Tuple[Optional[float], Optional[float], Optional[float]]
-Vector = Tuple[float, ...]
 
 
 def char_discharges(
@@ -113,7 +112,7 @@ def char_times(
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
-) -> Tuple[float, Vector, Vector]:
+) -> Tuple[float, Tuple[float, float, float], Tuple[float, float, float]]:
     """
     This routine determines the characteric times and rsigma.
 
@@ -131,7 +130,7 @@ def char_times(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
         Discharge below which flow velocity is considered negligible (from rivers configuration file).
-    Q : Vector
+    Q : QRuns
         A tuple of 3 discharges for which simulation results are (expected to be) available.
     celerity_hg : float
         Bed celerity during transitional and flood periods (from rivers configuration file).
@@ -144,9 +143,9 @@ def char_times(
     -------
     t_stagnant : float
         Number of days during which flow velocity is considered negligible.
-    T : Vector
+    T : Tuple[float, float, float]
         A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
-    rsigma : Vector
+    rsigma : Tuple[float, float, float]
         A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
     if q_stagnant > q_fit[0]:
@@ -166,65 +165,33 @@ def char_times(
     rsigma0 = math.exp(-500 * celerity_lw * T_yr[0] / nwidth)
     rsigma1 = math.exp(-500 * celerity_hg * T_yr[1] / nwidth)
     rsigma2 = math.exp(-500 * celerity_hg * T_yr[2] / nwidth)
-    
     rsigma = (rsigma0, rsigma1, rsigma2)
+
     T = (T_yr[0], T_yr[1], T_yr[2])
 
     return t_stagnant_yr, T, rsigma
 
 
-def relax_factors(Q: Vector, T: Vector, q_stagnant: float, cel_q: Vector, cel_c: Vector, nwidth: float) -> Vector:
-    rsigma = [-1.0] * len(Q)
-    for i,q in enumerate(Q):
-         if q <= q_stagnant:
-             rsigma[i] = 1
-         else:
-             c = get_celerity(q, cel_q, cel_c)
-             rsigma[i] = math.exp(-500 * c * T[i] / nwidth)
-
-    return rsigma
-
-
-def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
-    for i in range(len(cel_q)):
-        if q < cel_q[i]:
-            if i > 0:
-                c = cel_c[i - 1] + (cel_c[i] - cel_c[i - 1]) * (q - cel_q[i - 1]) / (cel_q[i] - cel_q[i - 1])
-            else:
-                c = cel_c[0]
-            break
-    else:
-        c = cel_c[-1]
-    return c
-
-
 def estimate_sedimentation_length(
-    rsigma: Vector,
-    applyQ: Tuple[bool],
-    nwidth: float,
-) -> float:
+    rsigma: Tuple[float, float, float], nwidth: float
+) -> int:
     """
     This routine computes the sedimentation length in metres.
 
     Arguments
     ---------
-    rsigma : Vector
-        A tuple of relaxation factors, one for each period.
+    rsigma : Tuple[float, float, float]
+        Relaxation factors of the 3 discharge periods.
     nwidth : float
         Normal river width (from rivers configuration file).
 
     Returns
     -------
-    L : float
-        The expected yearly impacted sedimentation length.
+    L : int
+        The expected yearly impacted length.
     """
-    logrsig = [0] * len(rsigma)
-    for i in range(len(rsigma)):
-        if applyQ[i]:
-            logrsig[i] = math.log(rsigma[i])
-    length = -sum(logrsig)
-    
-    return 2 * nwidth * length
+    length = -sum(math.log(r) for r in rsigma)
+    return int(2 * nwidth * length)
 
 
 def dzq_from_du_and_h(
@@ -236,11 +203,11 @@ def dzq_from_du_and_h(
     Arguments
     ---------
     u0 : numpy.ndarray
-        Array containing the flow velocitiy magnitudes in the reference simulation.
+        Array containing the flow velocities in the reference simulation.
     h0 : numpy.ndarray
         Array containing the water depths (in the reference simulation).
     u1 : numpy.ndarray
-        Array containing the flow velocity magnitudes in the simulation with the measure.
+        Array containing the flow velocities in the simulation with the measure.
     ucrit : float
         Critical flow velocity below which no change is expected.
 
@@ -251,7 +218,7 @@ def dzq_from_du_and_h(
     """
     with numpy.errstate(divide="ignore", invalid="ignore"):
         dzq = numpy.where(
-            (u0 > ucrit) & (u1 > ucrit) & (u0 < 100),
+            (abs(u0) > ucrit) & (abs(u1) > ucrit) & (abs(u0) < 100),
             h0 * (u0 - u1) / u0,
             numpy.NaN,
         )
@@ -259,93 +226,95 @@ def dzq_from_du_and_h(
 
 
 def main_computation(
-    dzq: List[numpy.ndarray],
-    T: Vector,
-    rsigma: Vector,
-) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[numpy.ndarray]]:
+    dzq1: numpy.ndarray,
+    dzq2: numpy.ndarray,
+    dzq3: numpy.ndarray,
+    t_stagnant: float,
+    T: Tuple[float, float, float],
+    rsigma: Tuple[float, float, float],
+) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     """
     This routine computes the bed level changes.
-    This routine requires that dzq, T and rsigma have the same length.
-    A stagnant period can be represented by a period with rsigma = 1.
 
     Arguments
     ---------
-    dzq : List[numpy.ndarray]
-        A list of arrays containing the equilibrium bed level change for each respective discharge period.
-    T : Vector
-        A tuple of periods indicating the number of days during which each discharge applies.
-    rsigma : Vector
-        A tuple of relaxation factors, one for each period.
+    dzq1 : numpy.ndarray
+        Array containing the equilibrium bed level change of the lowest discharge.
+    dzq2 : numpy.ndarray
+        Array containing the equilibrium bed level change of the middle discharge.
+    dzq3 : numpy.ndarray
+        Array containing the equilibrium bed level change of the highest discharge.
+    t_stagnant : float
+        Number of days during which flow velocity is considered negligible.
+    T : Tuple[float, float, float]
+        A tuple of 3 values each representing the number of days during which the three discharges are valid.
+    rsigma : Tuple[float, float, float]
+        A tuple of 3 rsigma values.
 
     Returns
     -------
-    dzgem : numpy.ndarray
+    zgem : numpy.ndarray
         Yearly mean bed level change.
-    dzmax : numpy.ndarray
-        Maximum bed level change.
-    dzmin : numpy.ndarray
-        Minimum bed level change.
-    dzb   : List[numpy.ndarray]
-        List of arrays containing the bed level change at the beginning of each respective discharge period.
+    z1o : numpy.ndarray
+        Maximum bed level change (after flood period).
+    z2o : numpy.ndarray
+        Minimum bed level change (after low flow period).
     """
-    N = len(dzq)
-    # N should also equal len(T) and len(rsigma)
-    
-    for i in range(len(dzq)):
-        if i == 0:
-            mask = numpy.isnan(dzq[0])
-        else:
-            mask = mask | numpy.isnan(dzq[i])
-    
-    vsigma: List[numpy.ndarray]
-    vsigma = []
-    sz = numpy.shape(mask)
-    for i in range(N):
-        vsigma_tmp = numpy.ones(sz) * rsigma[i]
-        vsigma_tmp[mask] = 1
-        vsigma.append( vsigma_tmp )
+    mask = numpy.isnan(dzq1) | numpy.isnan(dzq2) | numpy.isnan(dzq3)
+    sz = numpy.shape(dzq1)
+    rsigma1l = numpy.ones(sz) * rsigma[0]
+    rsigma2l = numpy.ones(sz) * rsigma[1]
+    rsigma3l = numpy.ones(sz) * rsigma[2]
+    rsigma1l[mask] = 1
+    rsigma2l[mask] = 1
+    rsigma3l[mask] = 1
 
-    # compute denominator
-    for i in range(N):
-        if i == 0:
-             den = vsigma[0]
-        else:
-             den = den * vsigma[i]
-    den = 1 - den
+    den = 1 - rsigma1l * rsigma2l * rsigma3l
 
-    # compute dzb at beginning of each period
-    dzb: List[numpy.ndarray]
-    dzb = []
-    for i in range(N):
-        # compute enumerator
-        for j in range(N):
-            jr = (i + j) % N
-            dzb_tmp = dzq[jr] * (1 - vsigma[jr])
-            for k in range(j+1,N):
-                kr = (i + k) % N
-                dzb_tmp = dzb_tmp * vsigma[kr]
-            if j == 0:
-                enm = dzb_tmp
-            else:
-                enm = enm + dzb_tmp
-        
-        # divide by denominator
-        with numpy.errstate(divide="ignore", invalid="ignore"):
-            dzb.append(numpy.where(den != 0, enm / den, 0))
-        
-        # element-wise minimum and maximum
-        if i == 0:
-            dzmax = dzb[0]
-            dzmin = dzb[0]
-        else:
-            dzmax = numpy.maximum(dzmax, dzb[i])
-            dzmin = numpy.minimum(dzmin, dzb[i])
+    # zmbb = (
+    #    dzq1 * (1 - rsigma1l) * rsigma2l * rsigma3l
+    #    + dzq2 * (1 - rsigma2l) * rsigma3l
+    #    + dzq3 * (1 - rsigma3l)
+    # )
 
-    # linear average
-    for i in range(N):
-        if i == 0:
-            dzgem = dzb[0] * (T[0] + T[-1]) / 2
-        else:
-            dzgem = dzgem + dzb[i] * (T[i] + T[i-1]) / 2
-    
-    return dzgem, dzmax, dzmin, dzb
+    with numpy.errstate(divide="ignore", invalid="ignore"):
+        z1o = numpy.where(
+            den != 0,
+            (
+                dzq1 * (1 - rsigma1l) * rsigma2l * rsigma3l
+                + dzq2 * (1 - rsigma2l) * rsigma3l
+                + dzq3 * (1 - rsigma3l)
+            )
+            / den,
+            0,
+        )
+
+        z2o = numpy.where(
+            den != 0,
+            (
+                dzq1 * (1 - rsigma1l)
+                + dzq2 * (1 - rsigma2l) * rsigma3l * rsigma1l
+                + dzq3 * (1 - rsigma3l) * rsigma1l
+            )
+            / den,
+            0,
+        )
+
+        z3o = numpy.where(
+            den != 0,
+            (
+                dzq1 * (1 - rsigma1l) * rsigma2l
+                + dzq2 * (1 - rsigma2l)
+                + dzq3 * (1 - rsigma3l) * rsigma1l * rsigma2l
+            )
+            / den,
+            0,
+        )
+
+    zgem = (
+        z1o * (T[0] + T[2]) / 2
+        + z2o * ((T[1] + T[0]) / 2 + t_stagnant)
+        + z3o * (T[2] + T[1]) / 2
+    )
+
+    return zgem, z1o, z2o

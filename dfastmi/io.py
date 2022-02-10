@@ -34,16 +34,10 @@ import netCDF4
 import configparser
 import os
 import pathlib
-import pandas
-import geopandas
-import shapely
-from packaging import version
 
 DataField = List[List[Union[float, List[float]]]]
 # RiversObject = Dict[str, Union[int, List[str], List[List[str]], DataField]]
-
-class RiversObjectV1(TypedDict, total=False):
-    version: str
+class RiversObject(TypedDict, total=False):
     branches: List[str]
     reaches: List[List[str]]
     qlocations: List[str]
@@ -57,23 +51,7 @@ class RiversObjectV1(TypedDict, total=False):
     qfit: List[List[Tuple[float, float]]]
     qlevels: List[List[Tuple[float, float, float, float]]]
     dq: List[List[Tuple[float, float]]]
-    
-class RiversObjectV2(TypedDict, total=False):
-    version: str
-    branches: List[str]
-    reaches: List[List[str]]
-    qlocations: List[str]
-    normal_width: List[List[float]]
-    ucritical: List[List[float]]
-    qstagnant: List[List[float]]
-    tide: List[List[Tuple[bool]]]
-    hydro_q: List[List[Tuple[float, ...]]]
-    hydro_t: List[List[Tuple[float, ...]]]
-    tide_bc: List[List[Tuple[float, ...]]]
-    prop_q: List[List[Tuple[float, ...]]]
-    prop_c: List[List[Tuple[float, ...]]]
 
-RiversObject = Union[RiversObjectV1, RiversObjectV2]
 
 PROGTEXTS: Dict[str, List[str]]
 
@@ -119,10 +97,7 @@ def load_program_texts(filename: str) -> None:
 
 
 def log_text(
-    key: str,
-    file: Optional[TextIO] = None,
-    dict: Dict[str, Any] = {},
-    repeat: int = 1,
+    key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {}, repeat: int = 1
 ) -> None:
     """
     Write a text to standard out or file.
@@ -234,17 +209,6 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
     # initialize rivers dictionary
     rivers = {}
-    try:
-        file_version = config["General"]["Version"]
-    except:
-        raise Exception("No version information in the file {}!".format(filename))
-
-    if version.parse(file_version) == version.parse("1"):
-        rivers["version"] = "1.0"
-    elif version.parse(file_version) == version.parse("2"):
-        rivers["version"] = "2.0"
-    else:
-        raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
 
     # parse branches
     branches = [k for k in config.keys()]
@@ -274,90 +238,18 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
     # collect the values for all other quantities
     nreaches = [len(x) for x in allreaches]
+    rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
+    rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
     rivers["normal_width"] = collect_values1(config, branches, nreaches, "NWidth")
     rivers["ucritical"] = collect_values1(config, branches, nreaches, "UCrit")
+    rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
     rivers["qstagnant"] = collect_values1(config, branches, nreaches, "QStagnant")
-    
-    # read version specific records 
-    if rivers["version"] == "1.0":
-        rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
-        rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
-        rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
-        rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
-        rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
-        rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
-        rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
-        
-    elif rivers["version"] == "2.0":
-        rivers["tide"] = collect_values_logical(config, branches, nreaches, "Tide")
-        rivers["hydro_q"] = collect_valuesN(config, branches, nreaches, "HydroQ")
-        rivers["hydro_t"] = collect_valuesN(config, branches, nreaches, "HydroT")
-        rivers["tide_bc"] = collect_valuesN(config, branches, nreaches, "TideBC")
-        rivers["prop_q"] = collect_valuesN(config, branches, nreaches, "PropQ")
-        rivers["prop_c"] = collect_valuesN(config, branches, nreaches, "PropC")
-        
-        # verify consistent length of hydro_q and hydro_t
-        verify_consistent_length(rivers, "hydro_q", "hydro_t") 
-
-        # verify consistent length of hydro_q and hydro_t
-        verify_consistent_length(rivers, "hydro_q", "tide_bc", cond="tide") 
-        
-        # verify consistent length of prop_q and prop_c
-        verify_consistent_length(rivers, "prop_q", "prop_c") 
+    rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
+    rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
+    rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
+    rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
 
     return rivers
-
-
-def verify_consistent_length(
-    rivers: RiversObject,
-    key1: str,
-    key2: str,
-    cond: str = "",
-    ) -> None:
-    """
-    Verify that for each branch/reach the tuples in the two records have matching lengths.
-
-    Arguments
-    ---------
-    rivers: RiversObject
-        The dictionary containing river data.
-    key1 : str
-        The name of the first parameter for which the lengths should be compared.
-    key2 : str
-        The name of the second parameter for which the lengths should be compared.
-    cond : str
-        The name of a conditional parameter. Only perform check if it returns True.
-
-    Raises
-    ------
-    Exception
-        If the lengths of the corresponding entries in the two arrays don't match.
-
-    Returns
-    -------
-    None
-    """
-    has_cond = cond != ""
-    branches = rivers["branches"]
-    for ib in range(len(branches)):
-        reaches = rivers["reaches"][ib]
-        for i in range(len(reaches)):
-            if has_cond and not rivers[cond][ib][i]:
-                continue
-            tup1 = rivers[key1][ib][i]
-            tup2 = rivers[key2][ib][i]
-            if len(tup1) != len(tup2):
-                raise Exception(
-                    'Length of "{}" and "{}" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
-                        key1,
-                        key2,
-                        branches[ib],
-                        reaches[i],
-                        len(tup1),
-                        len(tup2),
-                    )
-                )
-    return
 
 
 def collect_values1(
@@ -369,7 +261,7 @@ def collect_values1(
     """
     Collect river parameter data from river configuration object.
 
-    This routines collects entries of type float.
+    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
 
     Arguments
     ---------
@@ -398,7 +290,6 @@ def collect_values1(
         g_val = config["General"][key]
     except:
         g_val = ""
-
     all_values = []
     for ib in range(len(branches)):
         branch = branches[ib]
@@ -406,7 +297,6 @@ def collect_values1(
             b_val = config[branch][key]
         except:
             b_val = g_val
-
         values_per_branch = []
         for i in range(nreaches[ib]):
             stri = str(i + 1)
@@ -414,74 +304,7 @@ def collect_values1(
                 val = config[branch][key + stri]
             except:
                 val = b_val
-
             vals = tuple(float(x) for x in val.split())
-            if len(vals) != 1:
-                raise Exception(
-                    'Incorrect number of values read from "{}" for reach {} on branch "{}". Need {} values.'.format(
-                        val, i+1, branch, 1
-                    )
-                )
-            values_per_branch.append(vals[0])
-
-        all_values.append(values_per_branch)
-
-    return all_values
-
-
-def collect_values_logical(
-    config: configparser.ConfigParser,
-    branches: List[str],
-    nreaches: List[int],
-    key: str,
-) -> List[List[bool]]:
-    """
-    Collect river parameter data from river configuration object.
-
-    This routines collects entries of type float.
-
-    Arguments
-    ---------
-    config : configparser.ConfigParser
-        The dictionary containing river data.
-    branches : List[str]
-        The list of river branches. The length of this list is nBranches.
-    nreaches : List[int]
-        The number of reaches per river branch. The length of this list is nBranches.
-    key : str
-        The name of the parameter for which the values are to be retrieved.
-
-    Raises
-    ------
-    Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
-
-    Returns
-    -------
-    data : DataField
-        A list of lists. Each list contains per reach within the corresponding
-        branch one float or a list of floats depending on input argument nval.
-    """
-    try:
-        g_val = config["General"][key]
-    except:
-        g_val = ""
-    all_values = []
-    for ib in range(len(branches)):
-        branch = branches[ib]
-        try:
-            b_val = config[branch][key]
-        except:
-            b_val = g_val
-        values_per_branch = []
-        for i in range(nreaches[ib]):
-            stri = str(i + 1)
-            try:
-                val = config[branch][key + stri]
-            except:
-                val = b_val
-            vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in val.split())
             if len(vals) != 1:
                 raise Exception(
                     'Incorrect number of values read from "{}". Need {} values.'.format(
@@ -502,7 +325,7 @@ def collect_values2(
     """
     Collect river parameter data from river configuration object.
 
-    This routines collects entries of type Tuple[float, float].
+    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
 
     Arguments
     ---------
@@ -566,7 +389,7 @@ def collect_values4(
     """
     Collect river parameter data from river configuration object.
 
-    This routines collects entries of type Tuple[float, float, float, float].
+    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
 
     Arguments
     ---------
@@ -622,65 +445,6 @@ def collect_values4(
     return all_values
 
 
-def collect_valuesN(
-    config: configparser.ConfigParser,
-    branches: List[str],
-    nreaches: List[int],
-    key: str,
-) -> List[List[Tuple[float, ...]]]:
-    """
-    Collect river parameter data from river configuration object.
-
-    This routines collects entries of type Tuple[float, ...]
-
-    Arguments
-    ---------
-    config : configparser.ConfigParser
-        The dictionary containing river data.
-    branches : List[str]
-        The list of river branches. The length of this list is nBranches.
-    nreaches : List[int]
-        The number of reaches per river branch. The length of this list is nBranches.
-    key : str
-        The name of the parameter for which the values are to be retrieved.
-
-    Raises
-    ------
-    Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
-
-    Returns
-    -------
-    data : DataField
-        A list of lists. Each list contains per reach within the corresponding
-        branch one float or a list of floats depending on input argument nval.
-    """
-    vals: Union[float, Tuple[float, ...]]
-    try:
-        g_val = config["General"][key]
-    except:
-        g_val = ""
-    all_values = []
-    for ib in range(len(branches)):
-        branch = branches[ib]
-        try:
-            b_val = config[branch][key]
-        except:
-            b_val = g_val
-        values_per_branch = []
-        for i in range(nreaches[ib]):
-            stri = str(i + 1)
-            try:
-                val = config[branch][key + stri]
-            except:
-                val = b_val
-            vals = tuple(float(x) for x in val.split())
-            values_per_branch.append(vals)
-        all_values.append(values_per_branch)
-    return all_values
-
-
 def write_config(filename: str, config: configparser.ConfigParser) -> None:
     """Pretty print a configParser object (configuration file) to file.
 
@@ -717,12 +481,7 @@ def write_config(filename: str, config: configparser.ConfigParser) -> None:
                 configfile.write(OPTIONLINE.format(o, config[s][o]))
 
 
-def read_fm_map(
-    filename: str,
-    varname: str,
-    location: str = "face",
-    ifld: Optional[int] = None,
-) -> numpy.ndarray:
+def read_fm_map(filename: str, varname: str, location: str = "face") -> numpy.ndarray:
     """
     Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
 
@@ -735,8 +494,6 @@ def read_fm_map(
     location : str
         Name of the stagger location at which the data should be located
         (default is "face")
-    ifld : Optional[int]
-        Time step offset index from the last time step written.
 
     Raises
     ------
@@ -815,18 +572,9 @@ def read_fm_map(
     dims = var.dimensions
     if var.get_dims()[0].isunlimited():
         # assume that time dimension is unlimited and is the first dimension
-        # slice to obtain last time step or earlier as requested
-        if ifld is None:
-            data = var[-1, :]
-        else:
-            data = var[-1-ifld, :]
+        # slice to obtain last time step
+        data = var[-1, :]
     else:
-        if not ifld is None:
-            raise Exception(
-                'Trying to access time-independent variable "{}" with time offset {}.'.format(
-                    varname, -1-ifld
-                )
-            )
         data = var[...] - start_index
 
     # close file
@@ -1144,70 +892,3 @@ def get_progloc() -> str:
     """
     progloc = str(pathlib.Path(__file__).parent.absolute())
     return progloc
-
-
-def read_xyc(
-    filename: str, ncol: int = 2
-) -> shapely.geometry.linestring.LineStringAdapter:
-    """
-    Read lines from a file.
-
-    Arguments
-    ---------
-    filename : str
-        Name of the file to be read.
-    ncol : int
-        Number of columns to be read (2 or 3)
-
-    Returns
-    -------
-    L : shapely.geometry.linestring.LineStringAdapter
-        Line strings.
-    """
-    fileroot, ext = os.path.splitext(filename)
-    if ext.lower() == ".xyc":
-        if ncol == 3:
-            colnames = ["Val", "X", "Y"]
-        else:
-            colnames = ["X", "Y"]
-        P = pandas.read_csv(
-            filename, names=colnames, skipinitialspace=True, delim_whitespace=True
-        )
-        nPnts = len(P.X)
-        x = P.X.to_numpy().reshape((nPnts, 1))
-        y = P.Y.to_numpy().reshape((nPnts, 1))
-        if ncol == 3:
-            z = P.Val.to_numpy().reshape((nPnts, 1))
-            LC = numpy.concatenate((x, y, z), axis=1)
-        else:
-            LC = numpy.concatenate((x, y), axis=1)
-        L = shapely.geometry.LineString(LC)
-    else:
-        GEO = geopandas.read_file(filename)["geometry"]
-        L = GEO[0]
-    return L
-
-
-def get_xykm(
-    kmfile: str,
-) -> shapely.geometry.linestring.LineStringAdapter:
-    """
-
-    Arguments
-    ---------
-    kmfile : str
-        Name of chainage file.
-
-    Returns
-    -------
-    xykm : shapely.geometry.linestring.LineStringAdapter
-
-    """
-    # get the chainage file
-    xykm = read_xyc(kmfile, ncol=3)
-
-    # make sure that chainage is increasing with node index
-    if xykm.coords[0][2] > xykm.coords[1][2]:
-        xykm = shapely.geometry.asLineString(xykm.coords[::-1])
-
-    return xykm

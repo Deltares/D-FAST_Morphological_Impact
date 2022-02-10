@@ -173,8 +173,8 @@ class Test_char_times():
         celerity_lw = 0.80
         nwidth = 100
         tstag = 0.42124440138751573
-        T = (0.39946547806236565, 0.09720512192621984, 0.08208499862389873, 0.42124440138751573)
-        rsigma = (0.20232865227253677, 0.1696541246824568, 0.2235654146204697, 1)
+        T = (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
+        rsigma = (0.20232865227253677, 0.1696541246824568, 0.2235654146204697)
         assert dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth) == (tstag, T, rsigma)
 
     def test_char_times_03(self):
@@ -233,58 +233,26 @@ class Test_dzq_from_du_and_h():
 class Test_main_computation():
     def test_main_computation_01(self):
         """
-        Testing main_computation with stagnant period.
+        Testing main_computation.
         """
         mis = numpy.NaN
-        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
-        dzqS = numpy.array([-1.0, -1.0, -1.0, -1.0, -1.0]) # dummy
-        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
-        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
-        t_stagnant = 0.25
-        T = (0.25, 0.25, 0.25, 0.25)
-        rsigma = (0.1, 1, 0.2, 0.4)
-
-        zgem = numpy.array([0.1844758064516129, 0.4828629032258065, 0.4828629032258065, 1., 0.])
-        z1o = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
-        z2o = numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.])
-
-        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation([dzq1, dzqS, dzq2, dzq3], T, rsigma)
-
-        print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
-        print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
-        print("z1o  reference: ", numpy.array2string(z1o, floatmode = 'unique'))
-        print("z1o  computed : ", numpy.array2string(z1oc, floatmode = 'unique'))
-        print("z2o  reference: ", numpy.array2string(z2o, floatmode = 'unique'))
-        print("z2o  computed : ", numpy.array2string(z2oc, floatmode = 'unique'))
-
-        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(z1o - z1oc) < 1e-13).all() and ((z2o - z2oc) < 1e-13).all() == True
-
-    def test_main_computation_02(self):
-        """
-        Testing main_computation without stagnant period.
-        """
-        mis = numpy.NaN
-        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
-        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
-        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
-        t_stagnant = 0.0
-        T = (0.5, 0.25, 0.25)
+        dzq1 = numpy.array([1.0, 0.0, 0.0, 1.0, mis])
+        dzq2 = numpy.array([0.0, 1.0, 0.0, 1.0, 1.0])
+        dzq3 = numpy.array([0.0, 0.0, 1.0, 1.0, 1.0])
+        t_stagnant = 0.3
+        T = (0.1, 0.2, 0.4)
         rsigma = (0.1, 0.2, 0.4)
-        
-        zgem = numpy.array([0.25252016129032256, 0.5871975806451613, 0.5871975806451613, 1., 0.])
-        z1o = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
-        z2o = numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.])
-        
-        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
-        
+        zgem = numpy.array([0.48084677419354843, 0.33709677419354844, 0.18205645161290324, 1., 0.])
+        z1o = numpy.array([0.07258064516129033, 0.32258064516129037, 0.6048387096774194, 1., 0.])
+        z2o = numpy.array([0.9072580645161291, 0.03225806451612904, 0.06048387096774193, 1., 0.])
+        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation(dzq1, dzq2, dzq3, t_stagnant, T, rsigma)
         print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
         print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
         print("z1o  reference: ", numpy.array2string(z1o, floatmode = 'unique'))
         print("z1o  computed : ", numpy.array2string(z1oc, floatmode = 'unique'))
         print("z2o  reference: ", numpy.array2string(z2o, floatmode = 'unique'))
         print("z2o  computed : ", numpy.array2string(z2oc, floatmode = 'unique'))
-
-        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(z1o - z1oc) < 1e-13).all() and ((z2o - z2oc) < 1e-13).all() == True
+        assert (zgemc == zgem).all() and (z1o == z1oc).all() and (z2o == z2oc).all() == True
 
 
 if __name__ == '__main__':

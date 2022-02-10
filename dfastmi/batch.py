@@ -29,16 +29,14 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
-from dfastmi.kernel import Vector, QRuns
+from dfastmi.kernel import QRuns
 
 import sys
 import os
-import math
 import numpy
 import dfastmi.io
 import dfastmi.kernel
 import configparser
-from packaging import version
 
 
 def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> None:
@@ -91,21 +89,11 @@ def batch_mode_core(
     """
     report = open(dfastmi.io.get_filename("report.out"), "w")
 
-    prog_version = dfastmi.__version__
-    dfastmi.io.log_text("header", dict={"version": prog_version}, file=report)
+    version = dfastmi.__version__
+    dfastmi.io.log_text("header", dict={"version": version}, file=report)
     dfastmi.io.log_text("limits", file=report)
     dfastmi.io.log_text("===", file=report)
 
-    cfg_version = config["General"]["Version"]
-    rvr_version = rivers["version"]
-    if version.parse(cfg_version) != version.parse(rvr_version):
-        raise Exception(
-            "Version number of configuration file ({}) must match version number of rivers file ({})".format(
-                cfg_version,
-                rvr_version
-            )
-        )
-    
     branch = config["General"]["Branch"]
     try:
         ibranch = rivers["branches"].index(branch)
@@ -122,53 +110,26 @@ def batch_mode_core(
             )
             failed = True
         else:
+            celerity_hg = rivers["proprate_high"][ibranch][ireach]
+            celerity_lw = rivers["proprate_low"][ibranch][ireach]
             nwidth = rivers["normal_width"][ibranch][ireach]
-            q_location = rivers["qlocations"][ibranch]
-            q_stagnant = rivers["qstagnant"][ibranch][ireach]
-            needs_tide = False
-            n_fields = 1
-            tide_bc = []
-            
-            if version.parse(cfg_version) == version.parse("1"):
-                # version 1
-                celerity_hg = rivers["proprate_high"][ibranch][ireach]
-                celerity_lw = rivers["proprate_low"][ibranch][ireach]
-                (
-                    all_q,
-                    q_threshold,
-                    q_bankfull,
-                    q_fit,
-                    Q,
-                    applyQ,
-                    tstag,
-                    T,
-                    rsigma,
-                ) = batch_get_discharges(
-                    rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
-                )
 
-            else:
-                # version 2
-                Q = rivers["hydro_q"][ibranch][ireach]
-                applyQ = (True,) * len(Q)
-                T = rivers["hydro_t"][ibranch][ireach]
-                sumT = sum(T)
-                T = tuple(t / sumT for t in T)
-                prop_q = rivers["prop_q"][ibranch][ireach]
-                prop_c = rivers["prop_c"][ibranch][ireach]
-                needs_tide = rivers["tide"][ibranch][ireach]
-                if needs_tide:
-                    tide_bc = rivers["tide_bc"][ibranch][ireach]
-                rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, prop_q, prop_c, nwidth)
-                tstag = 0
-                try:
-                    n_fields = int(config["General"]["NFields"])
-                except:
-                    n_fields = 1
-                if needs_tide and n_fields == 1:
-                    raise Exception("Unexpected combination of tides and NFields = 1!")
+            (
+                all_q,
+                q_location,
+                q_threshold,
+                q_bankfull,
+                q_fit,
+                q_stagnant,
+                Q,
+                tstag,
+                T,
+                rsigma,
+            ) = batch_get_discharges(
+                rivers, ibranch, ireach, config, celerity_hg, celerity_lw, nwidth
+            )
 
-            slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+            nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
 
             reach = rivers["reaches"][ibranch][ireach]
             ucrit = rivers["ucritical"][ibranch][ireach]
@@ -190,12 +151,7 @@ def batch_mode_core(
                     file=report,
                     dict={"netcdf": dfastmi.io.get_filename("netcdf.out")},
                 )
-            filenames = get_filenames(mode, needs_tide, config)
-            old_zmin_zmax = False
-            if "RiverKM" in config["General"]:
-                kmfile = config["General"]["RiverKM"]
-            else:
-                kmfile = ""
+            filenames = get_filenames(mode, config)
             failed = analyse_and_report(
                 mode,
                 False,
@@ -203,24 +159,17 @@ def batch_mode_core(
                 reduced_output,
                 reach,
                 q_location,
+                q_threshold,
+                q_bankfull,
                 tstag,
+                q_fit,
                 Q,
                 T,
                 rsigma,
-                slength,
-                nwidth,
+                nlength,
                 ucrit,
                 filenames,
-                kmfile,
-                needs_tide,
-                n_fields,
-                tide_bc,
-                old_zmin_zmax,
             )
-            if slength > 1:
-                nlength = int(slength)
-            else:
-                nlength = slength
             dfastmi.io.log_text(
                 "length_estimate", dict={"nlength": nlength}, file=report
             )
@@ -230,13 +179,13 @@ def batch_mode_core(
     return failed
 
 
-def countQ(Q: Vector) -> int:
+def countQ(Q: QRuns) -> int:
     """
     Count the number of non-empty discharges.
 
     Arguments
     ---------
-    Q : Vector
+    Q : QRuns
         Tuple of (at most) three characteristic discharges.
 
     Returns
@@ -252,19 +201,20 @@ def batch_get_discharges(
     ibranch: int,
     ireach: int,
     config: configparser.ConfigParser,
-    q_stagnant: float,
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
 ) -> Tuple[
     bool,
+    str,
     Optional[float],
     float,
     Tuple[float, float],
+    float,
     QRuns,
     float,
-    Vector,
-    Vector,
+    Tuple[float, float, float],
+    Tuple[float, float, float],
 ]:
     """
     Get the simulation discharges in batch mode (no user interaction).
@@ -279,38 +229,41 @@ def batch_get_discharges(
         Number of selected reach.
     config : configparser.ConfigParser
         Configuration of the analysis to be run.
-    q_stagnant : float
-        Discharge below which the river flow is negligible [m3/s].
     celerity_hg : float
-        Bed celerity during transitional and flood periods (from rivers configuration file) [m/s].
+        Bed celerity during transitional and flood periods (from rivers configuration file).
     celerity_lw : float
-        Bed celerity during low flow period (from rivers configuration file) [m/s].
+        Bed celerity during low flow period (from rivers configuration file).
     nwidth : float
-        Normal river width (from rivers configuration file) [m].
+        Normal river width (from rivers configuration file).
 
     Results
     -------
     all_q : bool
         Flag indicating whether simulation data for all discharges is available.
+    q_location : str
+        Name of the location at which the discharge is
     q_threshold : Optional[float]
-        River discharge at which the measure becomes active [m3/s].
+        River discharge at which the measure becomes active.
     q_bankfull : float
-        River discharge at which the measure is bankfull [m3/s].
+        River discharge at which the measure is bankfull.
     q_fit : Tuple[float, float]
-        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file) [m3/s].
+        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
+    q_stagnant : float
+        Discharge below which the river flow is negligible.
     Q : QRuns
-        Tuple of (at most) three characteristic discharges [m3/s].
+        Tuple of (at most) three characteristic discharges.
     t_stagnant : float
-        Fraction of year during which flow velocity is considered negligible [-].
-    T : Vector
-        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
-    rsigma : Vector
-        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+        Fraction of year during which flow velocity is considered negligible.
+    T : Tuple[int,int,int]
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
+    rsigma : Tuple[float, float, float]
+        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
     q_threshold: Optional[float]
 
     stages = dfastmi.io.get_text("stage_descriptions")
 
+    q_location = rivers["qlocations"][ibranch]
     q_stagnant = rivers["qstagnant"][ibranch][ireach]
     q_fit = rivers["qfit"][ibranch][ireach]
     q_levels = rivers["qlevels"][ibranch][ireach]
@@ -344,11 +297,12 @@ def batch_get_discharges(
     all_q = True
     return (
         all_q,
+        q_location,
         q_threshold,
         q_bankfull,
         q_fit,
+        q_stagnant,
         Q,
-        applyQ,
         tstag,
         T,
         rsigma,
@@ -356,10 +310,8 @@ def batch_get_discharges(
 
 
 def get_filenames(
-    imode: int,
-    needs_tide: bool,
-    config: Optional[configparser.ConfigParser] = None,
-) -> Dict[Any, Tuple[str,str]]:
+    imode: int, config: Optional[configparser.ConfigParser] = None
+) -> List[str]:
     """
     Extract the list of six file names from the configuration.
 
@@ -367,85 +319,29 @@ def get_filenames(
     ---------
     imode : int
         Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
     config : Optional[configparser.ConfigParser]
         The variable containing the configuration (may be None for imode = 0).
 
     Returns
     -------
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of string tuples representing the D-Flow FM file names for
-        each reference/with measure pair. The keys of the dictionary vary. They
-        can be the discharge index, discharge value or a tuple of forcing
-        conditions, such as a Discharge and Tide forcing tuple.
+    filenames : List[str]
+        List of six strings representing the D-Flow FM file names.
     """
-    filenames: Dict[Any, Tuple[str,str]]
-    filenames = {}
     if imode == 0 or config is None:
-        pass
+        filenames = []
     else:
-        if config["General"]["Version"] == "1.0":
-            for i in range(3):
-                QSTR = "Q{}".format(i + 1)
-                if QSTR in config:
-                    reference = cfg_get(config, QSTR, "Reference")
-                    measure = cfg_get(config, QSTR, "WithMeasure")
-                    filenames[i] = (reference, measure)
-        else:
-            i = 0
-            while True:
-                i = i + 1
-                CSTR = "C{}".format(i)
-                if CSTR in config:
-                    Q = float(cfg_get(config, CSTR, "Discharge"))
-                    reference = cfg_get(config, CSTR, "Reference")
-                    measure = cfg_get(config, CSTR, "WithMeasure")
-                    if needs_tide:
-                       T = int(cfg_get(config, CSTR, "TideBC"))
-                       key = (Q,T)
-                    else:
-                       key = Q
-                    filenames[key] = (reference, measure)
-                else:
-                    break
+        j = 0
+        filenames = [""] * 6
+        for i in range(3):
+            QSTR = "Q{}".format(i + 1)
+            if QSTR in config:
+                filenames[j] = config[QSTR]["Reference"]
+                j += 1
+                filenames[j] = config[QSTR]["WithMeasure"]
+                j += 1
+            else:
+                j += 2
     return filenames
-
-
-def cfg_get(config: configparser.ConfigParser, chap: str, key: str) -> str:
-    """
-    Get a single entry from the analysis configuration structure.
-    Raise clear exception message when it fails.
-
-    Arguments
-    ---------
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
-    chap : str
-        The name of the chapter in which to search for the key.
-    key : str
-        The name of the key for which to return the value.
-
-    Raises
-    ------
-    Exception
-        If the key in the chapter doesn't exist.
-
-    Returns
-    -------
-    value : str
-        The value specified for the key in the chapter.
-    """
-    try:
-         return config[chap][key]
-    except:
-        pass
-    raise Exception(
-        'Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(
-            key,
-            chap,
-        )
-    )
 
 
 def analyse_and_report(
@@ -455,19 +351,16 @@ def analyse_and_report(
     reduced_output: bool,
     reach: str,
     q_location: str,
+    q_threshold: Optional[float],
+    q_bankfull: float,
     tstag: float,
-    Q: Vector,
-    T: Vector,
-    rsigma: Vector,
-    slength: float,
-    nwidth: float,
+    q_fit: Tuple[float, float],
+    Q: QRuns,
+    T: Tuple[float, float, float],
+    rsigma: Tuple[float, float, float],
+    nlength: float,
     ucrit: float,
-    filenames: Dict[Any, Tuple[str,str]],
-    kmfile: str,
-    needs_tide: bool,
-    n_fields: int,
-    tide_bc: Vector,
-    old_zmin_zmax: bool,
+    filenames: List[str],
 ) -> bool:
     """
     Perform analysis for any model.
@@ -489,33 +382,26 @@ def analyse_and_report(
         Name of the reach.
     q_location : str
         Name of the location at which the discharge is
+    q_threshold : Optional[float]
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
     tstag : float
         Fraction of year that the river is stagnant.
-    Q : Vector
-        Array of discharges; one for each forcing condition.
-    T : Vector
-        Fraction of year represented by each forcing condition.
-    rsigma : Vector
-        Array of relaxation factors; one per forcing condition.
-    slength : float
-        The expected yearly impacted sedimentation length.
+    q_fit : Tuple[float, float]
+        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
+    Q : QRuns
+        Tuple of (at most) three characteristic discharges.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
+    rsigma : Tuple[float, float, float]
+        Relaxation factors of the 3 discharge periods.
+    nlength : float
+        The expected yearly impacted length.
     ucrit : float
         Critical flow velocity [m/s].
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of the names of the data file containing the simulation
-        results to be processed. The conditions (discharge, wave conditions,
-        ...) are the key in the dictionary. Per condition a tuple of two file
-        names is given: a reference file and a file with measure.
-    kmfile : str
-        Name of chainage file.
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-    n_fields : int
-        Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Vector
-        Array of tidal boundary condition; one per forcing condition.
-    old_zmin_zmax : bool
-        Specifies the minimum and maximum should follow old or new definition.
+    filenames : List[str]
+        List of simulation output files: 2 for each discharge - a reference file and a file with measure.
 
     Returns
     -------
@@ -530,13 +416,15 @@ def analyse_and_report(
             reduced_output,
             reach,
             q_location,
+            q_threshold,
+            q_bankfull,
             tstag,
+            q_fit,
             Q,
             T,
             rsigma,
-            slength,
+            nlength,
             ucrit,
-            old_zmin_zmax,
         )
     else:
         return analyse_and_report_dflowfm(
@@ -544,19 +432,16 @@ def analyse_and_report(
             report,
             reach,
             q_location,
+            q_threshold,
+            q_bankfull,
             tstag,
+            q_fit,
             Q,
             T,
             rsigma,
-            slength,
-            nwidth,
+            nlength,
             ucrit,
             filenames,
-            kmfile,
-            needs_tide,
-            n_fields,
-            tide_bc,
-            old_zmin_zmax,
         )
 
 
@@ -566,13 +451,15 @@ def analyse_and_report_waqua(
     reduced_output: bool,
     reach: str,
     q_location: str,
+    q_threshold: Optional[float],
+    q_bankfull: float,
     tstag: float,
-    Q: Vector,
-    T: Vector,
-    rsigma: Vector,
-    slength: float,
+    q_fit: Tuple[float, float],
+    Q: QRuns,
+    T: Tuple[float, float, float],
+    rsigma: Tuple[float, float, float],
+    nlength: float,
     ucrit: float,
-    old_zmin_zmax: bool
 ) -> bool:
     """
     Perform analysis based on WAQUA data.
@@ -593,20 +480,24 @@ def analyse_and_report_waqua(
         Name of the reach.
     q_location : str
         Name of the location at which the discharge is
+    q_threshold : Optional[float]
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
     tstag : float
         Number of days that the river is stagnant.
-    Q : Vector
-        Array of discharges; one for each forcing condition.
-    T : Vector
-        Fraction of year represented by each forcing condition.
-    rsigma : Vector
-        Array of relaxation factors; one per forcing condition.
-    slength : float
-        The expected yearly impacted sedimentation length.
+    q_fit : Tuple[float, float]
+        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
+    Q : QRuns
+        Tuple of (at most) three characteristic discharges.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
+    rsigma : Tuple[float, float, float]
+        Relaxation factors of the 3 discharge periods.
+    nlength : float
+        The expected yearly impacted length.
     ucrit : float
         Critical flow velocity [m/s].
-    old_zmin_zmax : bool
-        Specifies the minimum and maximum should follow old or new definition.
 
     Returns
     -------
@@ -615,49 +506,42 @@ def analyse_and_report_waqua(
         data.
     """
     missing_data = False
-    first_discharge = True
-    
-    dzq = [None] * len(Q)
-    for i in range(3):
-        if not missing_data and not Q[i] is None:
-            if first_discharge:
-                dzq[i], firstm, firstn = get_values_waqua3(
-                    i+1, Q[i], ucrit, display, report, reduced_output
-                )
-                first_discharge = False
-            else:
-                dzq[i] = get_values_waqua1(i+1, Q[i], ucrit, display, report, reduced_output)
-            if dzq[i] is None:
-                missing_data = True
-        else:
-            dzq[i] = 0
+    if not Q[0] is None:
+        dzq1, firstm, firstn = get_values_waqua3(
+            1, Q[0], ucrit, display, report, reduced_output
+        )
+        if dzq1.size == 0:
+            missing_data = True
+    else:
+        dzq1 = 0
+    if not missing_data and not Q[1] is None:
+        dzq2 = get_values_waqua1(2, Q[1], ucrit, display, report, reduced_output)
+        if dzq2.size == 0:
+            missing_data = True
+    else:
+        dzq2 = 0
+    if not missing_data and not Q[2] is None:
+        dzq3 = get_values_waqua1(3, Q[2], ucrit, display, report, reduced_output)
+        if dzq3.size == 0:
+            missing_data = True
+    else:
+        dzq3 = 0
 
     if not missing_data:
         if display:
             dfastmi.io.log_text("char_bed_changes")
-            
-        if tstag > 0:
-            dzq = (dzq[0], 0*dzq[0], dzq[1], dzq[2])
-            T = (T[0], tstag, T[1], T[2])
-            rsigma = (rsigma[0], 1., rsigma[1], rsigma[2])
-        
-        # main_computation now returns new pointwise zmin and zmax
-        data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.main_computation(
-            dzq, T, rsigma
+        data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
+            dzq1, dzq2, dzq3, tstag, T, rsigma
         )
-        if old_zmin_zmax:
-            # get old zmax and zmin
-            data_zmax = dzb[0]
-            data_zmin = dzb[1]
 
         dfastmi.io.write_simona_box(
             dfastmi.io.get_filename("avgdzb.out"), data_zgem, firstm, firstn
         )
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("maxdzb.out"), data_zmax, firstm, firstn
+            dfastmi.io.get_filename("maxdzb.out"), data_z1o, firstm, firstn
         )
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
+            dfastmi.io.get_filename("mindzb.out"), data_z2o, firstm, firstn
         )
 
     return missing_data
@@ -668,19 +552,16 @@ def analyse_and_report_dflowfm(
     report: TextIO,
     reach: str,
     q_location: str,
+    q_threshold: Optional[float],
+    q_bankfull: float,
     tstag: float,
-    Q: Vector,
-    T: Vector,
-    rsigma: Vector,
-    slength: float,
-    nwidth: float,
+    q_fit: Tuple[float, float],
+    Q: QRuns,
+    T: Tuple[float, float, float],
+    rsigma: Tuple[float, float, float],
+    nlength: float,
     ucrit: float,
-    filenames: Dict[Any, Tuple[str,str]],
-    kmfile: str,
-    needs_tide: bool,
-    n_fields: int,
-    tide_bc: Vector,
-    old_zmin_zmax: bool
+    filenames: List[str],
 ) -> bool:
     """
     Perform analysis based on D-Flow FM data.
@@ -698,33 +579,26 @@ def analyse_and_report_dflowfm(
         Name of the reach.
     q_location : str
         Name of the location at which the discharge is
+    q_threshold : Optional[float]
+        River discharge at which the measure becomes active.
+    q_bankfull : float
+        River discharge at which the measure is bankfull.
     tstag : float
         Fraction of year that the river is stagnant.
-    Q : Vector
-        Array of discharges; one for each forcing condition.
-    T : Vector
-        Fraction of year represented by each forcing condition.
-    rsigma : Vector
-        Array of relaxation factors; one per forcing condition.
-    slength : float
-        The expected yearly impacted sedimentation length.
+    q_fit : Tuple[float, float]
+        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
+    Q : QRuns
+        Tuple of (at most) three characteristic discharges.
+    T : Tuple[float, float, float]
+        Fraction of year represented by each characteristic discharge.
+    rsigma : Tuple[float, float, float]
+        Relaxation factors of the 3 discharge periods.
+    nlength : float
+        The expected yearly impacted length.
     ucrit : float
         Critical flow velocity [m/s].
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of the names of the data file containing the simulation
-        results to be processed. The conditions (discharge, wave conditions,
-        ...) are the key in the dictionary. Per condition a tuple of two file
-        names is given: a reference file and a file with measure.
-    kmfile : str
-        Name of chainage file.
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-    n_fields : int
-        Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Vector
-        Array of tidal boundary condition; one per forcing condition.
-    old_zmin_zmax : bool
-        Specifies the minimum and maximum should follow old or new definition.
+    filenames : List[str]
+        List of simulation output files: 2 for each discharge - a reference file and a file with measure.
 
     Returns
     -------
@@ -732,78 +606,43 @@ def analyse_and_report_dflowfm(
         Flag indicating whether analysis couldn't be carried out due to missing
         data.
     """
-    first_discharge = True
     missing_data = False
-
-    dzq = [None] * len(Q)
-    if 0 in filenames.keys(): # the keys are 0,1,2
-        one_fm_filename = filenames[0][0]
-        for i in range(3):
-            if not missing_data and not Q[i] is None:
-                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields)
-                if dzq[i] is None:
-                    missing_data = True
-            else:
-                dzq[i] = 0
-    else: # the keys are the conditions
-        for i in range(len(Q)):
-            if not missing_data and not Q[i] is None:
-                q = Q[i]
-                if needs_tide:
-                    t = tide_bc[i]
-                    key = (q,t)
-                else:
-                    key = q
-                if rsigma[i] == 1:
-                    # no celerity, so ignore field
-                    dzq[i] = 0
-                elif key in filenames.keys():
-                    one_fm_filename = filenames[key][0]
-                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields)
-                else:
-                    if needs_tide:
-                        dfastmi.io.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
-                    else:
-                        dfastmi.io.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                    dfastmi.io.log_text("end_program", file=report)
-                if dzq[i] is None:
-                    missing_data = True
-            else:
-                dzq[i] = 0
+    if not Q[0] is None:
+        dzq1 = get_values_fm(1, Q[0], ucrit, report, (filenames[0], filenames[1]))
+        if dzq1 is None:
+            missing_data = True
+    else:
+        dzq1 = 0
+    if not missing_data and not Q[1] is None:
+        dzq2 = get_values_fm(2, Q[1], ucrit, report, (filenames[2], filenames[3]))
+        if dzq2 is None:
+            missing_data = True
+    else:
+        dzq2 = 0
+    if not missing_data and not Q[2] is None:
+        dzq3 = get_values_fm(3, Q[2], ucrit, report, (filenames[4], filenames[5]))
+        if dzq3 is None:
+            missing_data = True
+    else:
+        dzq3 = 0
 
     if not missing_data:
         if display:
             dfastmi.io.log_text("char_bed_changes")
-            
-        if tstag > 0:
-            dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
-            T = (T[0], tstag, T[1], T[2])
-            rsigma = (rsigma[0], 1., rsigma[1], rsigma[2])
-            
-        # main_computation now returns new pointwise zmin and zmax
-        data_zgem, data_z1o, data_z2o, dzb = dfastmi.kernel.main_computation(
-            dzq, T, rsigma
+        data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
+            dzq1, dzq2, dzq3, tstag, T, rsigma
         )
-        if old_zmin_zmax:
-            # get old zmax and zmin
-            data_zmax = dzb[0]
-            zmax_str = "maximum bed level change after flood without dredging"
-            data_zmin = dzb[1]
-            zmin_str = "minimum bed level change after low flow without dredging"
-        else:
-            zmax_str = "maximum value of bed level change without dredging"
-            zmin_str = "minimum value of bed level change without dredging"
 
-        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(one_fm_filename)
+        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(filenames[0])
         dst = dfastmi.io.get_filename("netcdf.out")
-        dfastmi.io.copy_ugrid(one_fm_filename, meshname, dst)
+        dfastmi.io.copy_ugrid(filenames[0], meshname, dst)
         dfastmi.io.ugrid_add(
             dst,
             "avgdzb",
             data_zgem,
             meshname,
             facedim,
-            long_name="year-averaged bed level change without dredging",
+            long_name="year-averaged change without dredging",
             units="m",
         )
         dfastmi.io.ugrid_add(
@@ -812,7 +651,7 @@ def analyse_and_report_dflowfm(
             data_z1o,
             meshname,
             facedim,
-            long_name=zmax_str,
+            long_name="maximum change after flood without dredging",
             units="m",
         )
         dfastmi.io.ugrid_add(
@@ -821,35 +660,9 @@ def analyse_and_report_dflowfm(
             data_z2o,
             meshname,
             facedim,
-            long_name=zmin_str,
+            long_name="minimum change after low flow without dredging",
             units="m",
         )
-        for i in range(len(dzb)):
-            j = (i + 1) % len(dzb)
-            dfastmi.io.ugrid_add(
-                dst,
-                "dzb_{}".format(i),
-                dzb[j],
-                meshname,
-                facedim,
-                long_name="bed level change at end of period {}".format(i+1),
-                units="m",
-            )
-            if rsigma[i]<1:
-                dfastmi.io.ugrid_add(
-                    dst,
-                    "dzq_{}".format(i),
-                    dzq[i],
-                    meshname,
-                    facedim,
-                    long_name="equilibrium bed level change aimed for during period {}".format(i+1),
-                    units="m",
-                )
-        
-        dvol1,dvol2 = comp_dredging_volume(data_zgem, slength, nwidth,kmfile,one_fm_filename)
-        print("Initial year dredging volume")
-        print("Estimate 1: ",dvol1)
-        print("Estimate 2: ",dvol2)
 
     return missing_data
 
@@ -984,12 +797,7 @@ def get_values_waqua3(
 
 
 def get_values_fm(
-    stage: int,
-    q: float,
-    ucrit: float,
-    report: TextIO,
-    filenames: Tuple[str, str],
-    n_fields: int,
+    stage: int, q: float, ucrit: float, report, filenames: Tuple[str, str]
 ) -> numpy.ndarray:
     """
     Read D-Flow FM data files for the specified stage, and return dzq.
@@ -1006,8 +814,6 @@ def get_values_fm(
         Text stream for log file.
     filenames : Tuple[str, str]
         Names of the reference simulation file and file with the implemented measure.
-    n_fields : int
-        Number of fields to process (e.g. to cover a tidal period).
 
     Returns
     -------
@@ -1026,46 +832,22 @@ def get_values_fm(
         dfastmi.io.log_text("end_program", file=report)
         return None
     else:
-        pass
+        u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+        v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+        u0 = numpy.sqrt(u ** 2 + v ** 2)
+        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface")
 
-    # file with measure implemented
+    # with measure
     if not os.path.isfile(filenames[1]):
         dfastmi.io.log_text("file_not_found", dict={"name": filenames[1]}, file=report)
         dfastmi.io.log_text("end_program", file=report)
         return None
     else:
-        pass
-
-    dzq = 0.
-    tot = 0.
-    ifld: Optional[int]
-
-    for ifld in range(n_fields):
-        # if last time step is needed, pass None to allow for files without time specification
-        if n_fields == 1:
-            ifld = None
-
-        # reference data
-        u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)
-        v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)
-        u0 = numpy.sqrt(u ** 2 + v ** 2)
-        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)
-
-        # data with measure
-        u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)
-        v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)
+        u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
+        v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
         u1 = numpy.sqrt(u ** 2 + v ** 2)
 
-        dzq1 = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
-
-        if n_fields <= 2 or (ifld > 0 and ifld < n_fields - 1):
-            wght = 1.
-        else:
-            wght = 0.5
-        tot = tot + wght
-        dzq = dzq + wght * dzq1
-    
-    dzq = dzq / tot
+    dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
     return dzq
 
 
@@ -1078,9 +860,9 @@ def write_report(
     q_stagnant: float,
     tstag: float,
     q_fit: Tuple[float, float],
-    Q: Vector,
-    t: Vector,
-    slength: float,
+    Q: QRuns,
+    t: Tuple[float, float, float],
+    nlength: float,
 ) -> None:
     """
     Write the analysis report to file.
@@ -1103,12 +885,12 @@ def write_report(
         Fraction of year during which the flow velocity is negligible.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    Q : Vector
+    Q : QRuns
         A tuple of 3 discharges for which simulation results are (expected to be) available.
-    t : Vector
+    t : Tuple[float, float, float]
         A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
-    slength : float
-        The expected yearly impacted sedimentation length.
+    nlength : float
+        The expected yearly impacted length.
 
     Returns
     -------
@@ -1165,10 +947,6 @@ def write_report(
                 stagename(i), dict={"q": Q[i], "border": q_location}, file=report
             )
     dfastmi.io.log_text("---", file=report)
-    if slength > 1:
-        nlength = int(slength)
-    else:
-        nlength = slength
     dfastmi.io.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     dfastmi.io.log_text("prepare_input", file=report)
 
@@ -1192,19 +970,17 @@ def config_to_absolute_paths(
         Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
     """
     rootdir = os.path.dirname(filename)
-    if "RiverKM" in config["General"]:
-        config["General"]["RiverKM"] = dfastmi.io.absolute_path(
-            rootdir, config["General"]["RiverKM"]
-        )
-    for QSTR in config.keys():
-        if "Reference" in config[QSTR]:
-            config[QSTR]["Reference"] = dfastmi.io.absolute_path(
-                rootdir, config[QSTR]["Reference"]
-            )
-        if "WithMeasure" in config[QSTR]:
-            config[QSTR]["WithMeasure"] = dfastmi.io.absolute_path(
-                rootdir, config[QSTR]["WithMeasure"]
-            )
+    for q in range(3):
+        QSTR = "Q{}".format(q + 1)
+        if QSTR in config:
+            if "Reference" in config[QSTR]:
+                config[QSTR]["Reference"] = dfastmi.io.absolute_path(
+                    rootdir, config[QSTR]["Reference"]
+                )
+            if "WithMeasures" in config[QSTR]:
+                config[QSTR]["WithMeasure"] = dfastmi.io.absolute_path(
+                    rootdir, config[QSTR]["WithMeasure"]
+                )
     return config
 
 
@@ -1232,16 +1008,16 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     with open(filename, "r") as configfile:
         config.read_file(configfile)
     try:
-        file_version = config["General"]["Version"]
+        version = config["General"]["Version"]
     except:
         raise Exception("No version information in the file!")
 
-    if version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2"):
+    if version == "1.0":
         section = config["General"]
         branch = section["Branch"]
         reach = section["Reach"]
     else:
-        raise Exception("Unsupported version number {} in the file!".format(file_version))
+        raise Exception("Unsupported version number {} in the file!".format(version))
 
     return config_to_absolute_paths(filename, config)
 
@@ -1265,19 +1041,17 @@ def config_to_relative_paths(
         Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
     """
     rootdir = os.path.dirname(filename)
-    if "RiverKM" in config["General"]:
-        config["General"]["RiverKM"] = dfastmi.io.relative_path(
-            rootdir, config["General"]["RiverKM"]
-        )
-    for QSTR in config.keys():
-        if "Reference" in config[QSTR]:
-            config[QSTR]["Reference"] = dfastmi.io.relative_path(
-                rootdir, config[QSTR]["Reference"]
-            )
-        if "WithMeasure" in config[QSTR]:
-            config[QSTR]["WithMeasure"] = dfastmi.io.relative_path(
-                rootdir, config[QSTR]["WithMeasure"]
-            )
+    for q in range(3):
+        QSTR = "Q{}".format(q + 1)
+        if QSTR in config:
+            if "Reference" in config[QSTR]:
+                config[QSTR]["Reference"] = dfastmi.io.relative_path(
+                    rootdir, config[QSTR]["Reference"]
+                )
+            if "WithMeasure" in config[QSTR]:
+                config[QSTR]["WithMeasure"] = dfastmi.io.relative_path(
+                    rootdir, config[QSTR]["WithMeasure"]
+                )
     return config
 
 
@@ -1316,450 +1090,3 @@ def stagename(i: int) -> str:
     """
     stagenames = ["lowwater", "transition", "highwater"]
     return stagenames[i]
-
-
-def comp_dredging_volume(
-    dzgem: numpy.ndarray,
-    slength: float,
-    nwidth: float,
-    kmfile: str,
-    simfile: str,
-) -> float:
-    """
-    Compute the yearly dredging volume.
-
-    Arguments
-    ---------
-    dzgem : numpy.ndarray
-        Yearly mean bed level change [m].
-    slength : float
-        The expected yearly impacted sedimentation length [m].
-    nwidth : float
-        Normal river width (from rivers configuration file) [m].
-    kmfile : str
-        Name of chainage file.
-    simfile : str
-        Name of simulation file.
-
-    Returns
-    -------
-    dvol : float
-        Dredging volume [m3].
-    """
-    dzmin = 0.01
-    nwbins = 10
-    sbin_length = 10.0
-    
-    xn, yn, FNC = get_xynode_connect(simfile)
-    xni, yni, FNCi, dzgemi = dz_filter(xn, yn, FNC, dzgem, dzmin)
-    areai = xynode_2_area(xni, yni, FNCi)
-
-    #xf = face_mean(xn, FNC)
-    #yf = face_mean(yn, FNC)
-    #with open("zgem.xyz", "w") as file:
-    #    for i in range(len(xf)):
-    #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xf[i],yf[i],dzgem[i]))
-
-    if kmfile == "":
-        dvol1 = math.nan
-    else:
-        xykm = dfastmi.io.get_xykm(kmfile)
-        xyline = numpy.array(xykm)[:, :2]
-        dvol1 = comp_dredging_volume1(dzgemi, areai, xni, yni, FNCi, xyline, slength, nwidth, nwbins, sbin_length)
-    
-    dvol2 = comp_dredging_volume2(dzgemi, areai, slength, nwidth)
-    return dvol1, dvol2
-
-
-def stream_bins(min_s, max_s, ds):
-    sbin_min = math.floor(min_s.min()/ds)
-    sbin_max = math.ceil(max_s.max()/ds)
-    sthresh = numpy.arange(sbin_min, sbin_max+2) * ds
-    
-    min_sbin = numpy.floor(min_s/ds).astype(numpy.int) - sbin_min
-    max_sbin = numpy.floor(max_s/ds).astype(numpy.int) - sbin_min
-    
-    nsbin = max_sbin - min_sbin + 1
-    nsbin_tot = nsbin.sum()
-    
-    iface = numpy.zeros(nsbin_tot, dtype=numpy.int)
-    afrac = numpy.zeros(nsbin_tot)
-    sbin  = numpy.zeros(nsbin_tot, dtype=numpy.int)
-    nfaces = len(min_s)
-    j = 0
-    for i in range(nfaces):
-        s0 = min_s[i]
-        s1 = max_s[i]
-        wght = 1 / (s1 - s0)
-        for ib in range(min_sbin[i], max_sbin[i]+1):
-            iface[j] = i
-            afrac[j] = wght * (min(sthresh[ib+1], s1) - max(sthresh[ib], s0))
-            sbin[j] = ib
-            j = j + 1
-
-    return iface, afrac, sbin, sthresh
-
-
-def min_max_s(s, FNC):
-    if FNC.mask.shape == ():
-        # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
-    else:
-        # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
-    nfaces = FNC.shape[0]
-    min_s = numpy.zeros((nfaces,))
-    max_s = numpy.zeros((nfaces,))
-    for i in range(nfaces):
-        fni = FNC[i]
-        nni = nnodes[i]
-        sni = s[fni][0:nni]
-        min_s[i] = sni.min()
-        max_s[i] = sni.max() # may need to check if max > min to avoid problems later ...
-
-    return min_s, max_s
-
-
-def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    """
-    Distribute the points over sample bins based on distance from centreline.
-
-    Arguments
-    ---------
-    df : numpy.ndarray
-        Array containing per point the signed distance from the centreline [m].
-    nwidth : float
-        Normal river width (from rivers configuration file) [m].
-    nbins : int
-        Number of bins over the normal width.
-
-    Returns
-    -------
-    jbin : numpy.ndarray
-        Bin index of each point (integers in the range 0 to nbins-1).
-    wthresh : numpy.ndarray
-        Signed distance threshold values between the bins [m].
-        This array contains nbins+1 values.
-    """
-    jbin = numpy.zeros(df.shape, dtype=numpy.int64)
-    binwidth = nwidth/nbins
-    wthresh = -nwidth/2 + binwidth * numpy.arange(nbins+1)
-    
-    for i in range(1,nbins):
-        idx = df > wthresh[i]
-        jbin[idx] = i
-        
-    return jbin, wthresh
-    
-
-def comp_dredging_volume1(
-    dzgemi: numpy.ndarray,
-    areai: numpy.ndarray,
-    xni: numpy.ndarray,
-    yni: numpy.ndarray,
-    FNCi: numpy.ma.masked_array,
-    xyline: numpy.ndarray,
-    slength: float,
-    nwidth: float,
-    nwbins: int = 10,
-    sbin_length: float = 10.0
-) -> float:
-    """
-    Compute the yearly dredging volume.
-    Algorithm 1.
-
-    Arguments
-    ---------
-    dzgemi : numpy.ndarray
-        Array of length M containing the yearly mean bed level change per cell [m].
-    areai : numpy.ndarray
-        Array of length M containing the grid cell area [m2].
-    xni : numpy.ndarray
-        Array of length K containing the x-coordinates of the nodes [m].
-    yni : numpy.ndarray
-        Array of length K containing the y-coordinate of the nodes [m2].
-    FNCi : numpy.ma.masked_array
-        Masked M x N array containing the indices of (max N) corner nodes for each of the M cells.
-        Maximum node index is K-1.
-    xyline : numpy.ndarray
-        Array containing the x,y data of a line.
-    slength : float
-        The expected yearly impacted sedimentation length [m].
-    nwidth : float
-        Normal river width (from rivers configuration file) [m].
-    nwbins : int
-        Number of bins to subdivide the normal width into [-].
-    sbin_length : float
-        Size of bins in streamwise direction [m].
-
-    Returns
-    -------
-    dvol : float
-        Dredging volume [m3].
-    """
-    sni, dni = proj_xy_line(xni, yni, xyline)
-    
-    dfi = face_mean(dni, FNCi)
-    wbini, wthresh = width_bins(dfi, nwidth, nwbins)
-    
-    min_sfi, max_sfi = min_max_s(sni, FNCi)
-    iface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
-    
-    wbin = wbini[iface]
-    dvoli = dzgemi * areai
-    n_wbin = len(wthresh)-1
-    n_sbin = sbin.max()+1
-    binvol = [None] * n_wbin
-    dredge_vol = 0
-    for iw in range(n_wbin):
-        lw = wbin == iw
-        bvol = numpy.bincount(sbin[lw], weights = dvoli[iface[lw]] * afrac[lw], minlength = n_sbin)
-        binvol[iw] = bvol
-        
-        gap = True
-        dvol = 0
-        for ib in range(len(bvol)):
-            if bvol[ib] > 0:
-                if gap:
-                    s0 = sthresh[ib]
-                    gap = False
-                dvol = dvol + bvol[ib] * (max(0, min(s0 - sthresh[ib] + slength, sbin_length)) / sbin_length)
-            else:
-                if dvol > 0:
-                    #print("width bin {}, start {}, volume {}".format(iw,s0,dvol))
-                    dredge_vol = dredge_vol + dvol
-                    dvol = 0
-                gap = True
-        if dvol > 0:
-            #print("width bin {}, start {}, volume {}".format(iw,s0,dvol))
-            dredge_vol = dredge_vol + dvol
-            dvol = 0
-
-    xfi = face_mean(xni, FNCi)
-    yfi = face_mean(yni, FNCi)
-    #with open("zgem_filtered.xyz", "w") as file:
-    #    for i in range(len(xfi)):
-    #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xfi[i],yfi[i],dzgemi[i]))
-
-    #with open("node_sd_filtered.xyz", "w") as file:
-    #    for i in range(len(sni)):
-    #        file.write("{:.2f} {:.2f} {:.2f} {:.2f}\n".format(sni[i],dni[i],sni[i],dni[i]))
-
-    sfi = face_mean(sni, FNCi)
-    #with open("zgem_sd_filtered.xyz", "w") as file:
-    #    for i in range(len(sfi)):
-    #        file.write("{:.2f} {:.2f} {:.6f} {:.2f} {:.2f}\n".format(sfi[i],dfi[i],dzgemi[i],min_sfi[i],max_sfi[i]))
-
-    binvol2 = numpy.stack(binvol)
-    with open("binned_data.xyz", "w") as file:
-        for i in range(n_sbin):
-            vol_str = " ".join("{:.2f}".format(i) for i in binvol2[:,i])
-            file.write("{:.2f} ".format((sthresh[i] + sthresh[i+1])/2) + vol_str + "\n")
-
-    return dredge_vol
-
-
-def comp_dredging_volume2(
-    dzgemi: numpy.ndarray,
-    areai: numpy.ndarray,
-    slength: float,
-    nwidth: float,
-) -> float:
-    """
-    Compute the yearly dredging volume.
-    Algorithm 2.
-
-    Arguments
-    ---------
-    dzgemi : numpy.ndarray
-        Array of length M containing the yearly mean bed level change per cell [m].
-        Array clipped to values with dzgem > dzmin.
-    areai : numpy.ndarray
-        Array of length M containing the grid cell area [m2].
-        Array clipped to values with dzgem > dzmin.
-    slength : float
-        The expected yearly impacted sedimentation length [m].
-    nwidth : float
-        Normal river width (from rivers configuration file) [m].
-
-    Returns
-    -------
-    dvol : float
-        Dredging volume [m3].
-    """
-    dvol_eq = (dzgemi * areai).sum()
-    area_eq = areai.sum()
-    dvol = dvol_eq * (slength * nwidth) / area_eq
-    return dvol
-
-
-def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-    xn = dfastmi.io.read_fm_map(filename, "x", location="node")
-    yn = dfastmi.io.read_fm_map(filename, "y", location="node")
-    FNC = dfastmi.io.read_fm_map(filename, "face_node_connectivity")
-    
-    return xn, yn, FNC
-
-def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
-    if FNC.mask.shape == ():
-        # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
-    else:
-        # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
-    nfaces = FNC.shape[0]
-    area = numpy.zeros((nfaces,))
-    for i in range(nfaces):
-        fni = FNC[i]
-        nni = nnodes[i]
-        xni = xn[fni][0:nni]
-        yni = yn[fni][0:nni]
-        areai = 0.0
-        for j in range(1,nni-1):
-            areai += (xni[j] - xni[0]) * (yni[j+1] - yni[j]) - (xni[j+1] - xni[j]) * (yni[j] - yni[0])
-        area[i] = abs(areai)/2
-    
-    return area
-    
-
-def face_mean(vn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
-    if FNC.mask.shape == ():
-        # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
-    else:
-        # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
-    nfaces = FNC.shape[0]
-    vf = numpy.zeros((nfaces,))
-    for i in range(nfaces):
-        fni = FNC[i]
-        nni = nnodes[i]
-        vni = vn[fni][0:nni]
-        vf[i] = vni.mean()
-    
-    return vf
-    
-
-def dz_filter(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, dzb: numpy.ndarray, dzbmin: float):
-    iface = numpy.where(dzb > dzbmin)
-    FNCi = FNC[iface]
-    inode = numpy.unique(FNCi.flatten())
-    if len(inode) == 0:
-        inode_max = 0
-    else:
-        inode_max = inode.max()
-
-    FNCi.data[FNCi.mask] = 0
-    renum = numpy.zeros(inode_max + 1, dtype=numpy.int)
-    renum[inode] = range(len(inode))
-    rFNCi = numpy.ma.masked_array(renum[FNCi], mask=FNCi.mask)
-
-    return xn[inode], yn[inode], rFNCi, dzb[iface]
-
-
-def proj_xy_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    """
-    Project chainage values from source line L1 onto another line L2.
-
-    The chainage values are giving along a line L1 (xykm_numpy). For each node
-    of the line L2 (line_xy) on which we would like to know the chainage, first
-    the closest node (discrete set of nodes) on L1 is determined and
-    subsequently the exact chainage isobtained by determining the closest point
-    (continuous line) on L1 for which the chainage is determined using by means
-    of interpolation.
-
-    Arguments
-    ---------
-    xf : numpy.ndarray
-        Array containing the x coordinates of a set of points.
-    yf : numpy.ndarray
-        Array containing the y coordinates of a set of points.
-    xyline : numpy.ndarray
-        Array containing the x,y data of a line.
-
-    Results
-    -------
-    sf : numpy.ndarray
-        Array containing the distance along the line.
-    df : numpy.ndarray
-        Array containing the distance from the line (- for left, + for right).
-    """
-    # combine xf and yf
-    nf = len(xf)
-    xyf = numpy.concatenate([xf.reshape((nf,1)),yf.reshape((nf,1))], axis=1)
-    
-    # pre-allocate the output arrays
-    sf = numpy.zeros(nf)
-    df = numpy.zeros(nf)
-
-    # compute coordinate
-    ds = numpy.sqrt(((xyline[1:] - xyline[:-1]) **2).sum(axis=1))
-    sline = numpy.cumsum(numpy.concatenate([numpy.zeros(1),ds]))
-    
-    # get an array with only the x,y coordinates of xyline
-    last_node = xyline.shape[0] - 1
-    
-    # initialize sgn for the exceptional case of xyline containing just one node.
-    sgn = 1
-
-    # for each point xyp = xyf[i] ...
-    for i,xyp in enumerate(xyf):
-        # find the node on xyline closest to xyp
-        imin = numpy.argmin(((xyp - xyline) ** 2).sum(axis=1))
-        p0 = xyline[imin]
-
-        # determine the distance between that node and xyp
-        dist2 = ((xyp - p0) ** 2).sum()
-    
-        # distance value of that node
-        s = sline[imin]
-        
-        # if we didn't get the first node
-        if imin > 0:
-            # project xyp onto the line segment before this node
-            p1 = xyline[imin - 1]
-            alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0])
-                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
-            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = ((p0[0] - p1[0]) * (xyp[1] - p0[1])
-                  - (p0[1] - p1[1]) * (xyp[0] - p0[0]))
-            # if there is a closest point not coinciding with the nodes ...
-            if alpha > 0 and alpha < 1:
-                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
-                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
-                ) ** 2
-                # if it's actually closer than the node ...
-                if dist2link < dist2:
-                    # update the closest point information
-                    dist2 = dist2link
-                    s = sline[imin] + alpha * (sline[imin - 1] - sline[imin])
-
-        # if we didn't get the last node
-        if imin < last_node:
-            # project rp onto the line segment after this node
-            p1 = xyline[imin + 1]
-            alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0])
-                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
-            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = ((p1[0] - p0[0]) * (xyp[1] - p0[1])
-                  - (p1[1] - p0[1]) * (xyp[0] - p0[0]))
-            # if there is a closest point not coinciding with the nodes ...
-            if alpha > 0 and alpha < 1:
-                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
-                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
-                ) ** 2
-                # if it's actually closer than the previous value ...
-                if dist2link < dist2:
-                    # update the closest point information
-                    dist2 = dist2link
-                    s = sline[imin] + alpha * (
-                        sline[imin + 1] - sline[imin]
-                    )
-
-        # store the distance values, loop ... and return
-        sf[i] = s
-        df[i] = math.copysign(math.sqrt(dist2), sgn)
-        
-    return sf,df

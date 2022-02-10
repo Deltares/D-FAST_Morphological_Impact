@@ -125,7 +125,6 @@ class Test_read_rivers():
         rivers['qfit'] = [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
         rivers['qlevels'] = [[(100.0, 200.0, 300.0, 400.0)], [(1000.0, 2000.0, 3000.0, 4000.0), (1000.0, 2000.0, 3000.0, 4000.0)]]
         rivers['dq'] = [[(5.0, 15.0)], [(1000.0, 1000.0), (1000.0, 1000.0)]]
-        rivers['version'] = '1.0'
         self.maxDiff = None
         assert dfastmi.io.read_rivers("tests/files/read_rivers_test.ini") == rivers
 

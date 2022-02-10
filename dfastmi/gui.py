@@ -363,22 +363,19 @@ def update_qvalues() -> None:
         tstag, T, rsigma = dfastmi.kernel.char_times(
             q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
         )
-        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
         dialog["nlength"].setText(str(nlength))
     except:
         Q = (None, None, None)
-        applyQ = (False, False, False)
         dialog["nlength"].setText("---")
 
     DFlowFM = dialog["mode"].currentIndex() == 1
-    for iq, i in {"q1": 0, "q2": 1, "q3": 2}.items():
-        q = Q[i]
+    for iq, q in {"q1": Q[0], "q2": Q[1], "q3": Q[2]}.items():
         dialog[iq].setText(str(q))
-        active = not q is None and applyQ[i]
-        dialog[iq].setEnabled(active)
+        dialog[iq].setEnabled(not q is None)
         if DFlowFM:
-            dialog[iq + "file1"].setEnabled(active)
-            dialog[iq + "file2"].setEnabled(active)
+            dialog[iq + "file1"].setEnabled(not q is None)
+            dialog[iq + "file2"].setEnabled(not q is None)
 
 
 def close_dialog() -> None:
