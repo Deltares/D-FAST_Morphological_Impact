@@ -1354,6 +1354,12 @@ def comp_dredging_volume(
     xni, yni, FNCi, dzgemi = dz_filter(xn, yn, FNC, dzgem, dzmin)
     areai = xynode_2_area(xni, yni, FNCi)
 
+    #xf = face_mean(xn, FNC)
+    #yf = face_mean(yn, FNC)
+    #with open("zgem.xyz", "w") as file:
+    #    for i in range(len(xf)):
+    #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xf[i],yf[i],dzgem[i]))
+
     if kmfile == "":
         dvol1 = math.nan
     else:
@@ -1529,12 +1535,6 @@ def comp_dredging_volume1(
             dredge_vol = dredge_vol + dvol
             dvol = 0
 
-    #xf = face_mean(xn, FNC)
-    #yf = face_mean(yn, FNC)
-    #with open("zgem.xyz", "w") as file:
-    #    for i in range(len(xf)):
-    #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xf[i],yf[i],dzgem[i]))
-
     xfi = face_mean(xni, FNCi)
     yfi = face_mean(yni, FNCi)
     #with open("zgem_filtered.xyz", "w") as file:
@@ -1644,7 +1644,10 @@ def dz_filter(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, 
     iface = numpy.where(dzb > dzbmin)
     FNCi = FNC[iface]
     inode = numpy.unique(FNCi.flatten())
-    inode_max = inode.max()
+    if len(inode) == 0:
+        inode_max = 0
+    else:
+        inode_max = inode.max()
 
     FNCi.data[FNCi.mask] = 0
     renum = numpy.zeros(inode_max + 1, dtype=numpy.int)
