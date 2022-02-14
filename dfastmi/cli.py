@@ -90,7 +90,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         if have_files and not all_q:
             break
 
-        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
+        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
         reach = rivers["reaches"][ibranch][ireach]
         if have_files:
@@ -118,10 +118,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 reduced_output,
                 reach,
                 q_location,
-                q_threshold,
-                q_bankfull,
                 tstag,
-                q_fit,
                 Q,
                 T,
                 rsigma,

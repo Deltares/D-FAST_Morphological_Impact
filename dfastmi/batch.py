@@ -37,6 +37,7 @@ import numpy
 import dfastmi.io
 import dfastmi.kernel
 import configparser
+from packaging import version
 
 
 def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> None:
@@ -89,11 +90,21 @@ def batch_mode_core(
     """
     report = open(dfastmi.io.get_filename("report.out"), "w")
 
-    version = dfastmi.__version__
-    dfastmi.io.log_text("header", dict={"version": version}, file=report)
+    prog_version = dfastmi.__version__
+    dfastmi.io.log_text("header", dict={"version": prog_version}, file=report)
     dfastmi.io.log_text("limits", file=report)
     dfastmi.io.log_text("===", file=report)
 
+    cfg_version = config["General"]["Version"]
+    rvr_version = rivers["version"]
+    if version.parse(cfg_version) != version.parse(rvr_version):
+        raise Exception(
+            "Version number of configuration file ({}) must match version number of rivers file ({})".format(
+                cfg_version,
+                rvr_version
+            )
+        )
+    
     branch = config["General"]["Branch"]
     try:
         ibranch = rivers["branches"].index(branch)
@@ -110,26 +121,32 @@ def batch_mode_core(
             )
             failed = True
         else:
-            celerity_hg = rivers["proprate_high"][ibranch][ireach]
-            celerity_lw = rivers["proprate_low"][ibranch][ireach]
             nwidth = rivers["normal_width"][ibranch][ireach]
+            q_location = rivers["qlocations"][ibranch]
+            q_stagnant = rivers["qstagnant"][ibranch][ireach]
+            needs_tide = False
+            n_fields = 1
+            tide_bc = []
+            
+            if version.parse(cfg_version) == version.parse("1"):
+                # version 1
+                celerity_hg = rivers["proprate_high"][ibranch][ireach]
+                celerity_lw = rivers["proprate_low"][ibranch][ireach]
+                (
+                    all_q,
+                    q_threshold,
+                    q_bankfull,
+                    q_fit,
+                    Q,
+                    applyQ,
+                    tstag,
+                    T,
+                    rsigma,
+                ) = batch_get_discharges(
+                    rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
+                )
 
-            (
-                all_q,
-                q_location,
-                q_threshold,
-                q_bankfull,
-                q_fit,
-                q_stagnant,
-                Q,
-                tstag,
-                T,
-                rsigma,
-            ) = batch_get_discharges(
-                rivers, ibranch, ireach, config, celerity_hg, celerity_lw, nwidth
-            )
-
-            nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth)
+            slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
             reach = rivers["reaches"][ibranch][ireach]
             ucrit = rivers["ucritical"][ibranch][ireach]
@@ -152,6 +169,7 @@ def batch_mode_core(
                     dict={"netcdf": dfastmi.io.get_filename("netcdf.out")},
                 )
             filenames = get_filenames(mode, config)
+
             failed = analyse_and_report(
                 mode,
                 False,
@@ -159,17 +177,19 @@ def batch_mode_core(
                 reduced_output,
                 reach,
                 q_location,
-                q_threshold,
-                q_bankfull,
                 tstag,
-                q_fit,
                 Q,
                 T,
                 rsigma,
-                nlength,
+                slength,
+                nwidth,
                 ucrit,
                 filenames,
             )
+            if slength > 1:
+                nlength = int(slength)
+            else:
+                nlength = slength
             dfastmi.io.log_text(
                 "length_estimate", dict={"nlength": nlength}, file=report
             )
@@ -201,16 +221,15 @@ def batch_get_discharges(
     ibranch: int,
     ireach: int,
     config: configparser.ConfigParser,
+    q_stagnant: float,
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
 ) -> Tuple[
     bool,
-    str,
     Optional[float],
     float,
     Tuple[float, float],
-    float,
     QRuns,
     float,
     Tuple[float, float, float],
@@ -229,29 +248,27 @@ def batch_get_discharges(
         Number of selected reach.
     config : configparser.ConfigParser
         Configuration of the analysis to be run.
+    q_stagnant : float
+        Discharge below which the river flow is negligible [m3/s].
     celerity_hg : float
-        Bed celerity during transitional and flood periods (from rivers configuration file).
+        Bed celerity during transitional and flood periods (from rivers configuration file) [m/s].
     celerity_lw : float
-        Bed celerity during low flow period (from rivers configuration file).
+        Bed celerity during low flow period (from rivers configuration file) [m/s].
     nwidth : float
-        Normal river width (from rivers configuration file).
+        Normal river width (from rivers configuration file) [m].
 
     Results
     -------
     all_q : bool
         Flag indicating whether simulation data for all discharges is available.
-    q_location : str
-        Name of the location at which the discharge is
     q_threshold : Optional[float]
-        River discharge at which the measure becomes active.
+        River discharge at which the measure becomes active [m3/s].
     q_bankfull : float
-        River discharge at which the measure is bankfull.
+        River discharge at which the measure is bankfull [m3/s].
     q_fit : Tuple[float, float]
-        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    q_stagnant : float
-        Discharge below which the river flow is negligible.
+        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file) [m3/s].
     Q : QRuns
-        Tuple of (at most) three characteristic discharges.
+        Tuple of (at most) three characteristic discharges [m3/s].
     t_stagnant : float
         Fraction of year during which flow velocity is considered negligible.
     T : Tuple[int,int,int]
@@ -263,7 +280,6 @@ def batch_get_discharges(
 
     stages = dfastmi.io.get_text("stage_descriptions")
 
-    q_location = rivers["qlocations"][ibranch]
     q_stagnant = rivers["qstagnant"][ibranch][ireach]
     q_fit = rivers["qfit"][ibranch][ireach]
     q_levels = rivers["qlevels"][ibranch][ireach]
@@ -297,12 +313,11 @@ def batch_get_discharges(
     all_q = True
     return (
         all_q,
-        q_location,
         q_threshold,
         q_bankfull,
         q_fit,
-        q_stagnant,
         Q,
+        applyQ,
         tstag,
         T,
         rsigma,
@@ -310,8 +325,9 @@ def batch_get_discharges(
 
 
 def get_filenames(
-    imode: int, config: Optional[configparser.ConfigParser] = None
-) -> List[str]:
+    imode: int,
+    config: Optional[configparser.ConfigParser] = None,
+) -> Dict[Any, Tuple[str,str]]:
     """
     Extract the list of six file names from the configuration.
 
@@ -324,24 +340,62 @@ def get_filenames(
 
     Returns
     -------
-    filenames : List[str]
-        List of six strings representing the D-Flow FM file names.
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of string tuples representing the D-Flow FM file names for
+        each reference/with measure pair. The keys of the dictionary vary. They
+        can be the discharge index, discharge value or a tuple of forcing
+        conditions, such as a Discharge and Tide forcing tuple.
     """
+    filenames: Dict[Any, Tuple[str,str]]
+    filenames = {}
     if imode == 0 or config is None:
-        filenames = []
+        pass
     else:
-        j = 0
-        filenames = [""] * 6
-        for i in range(3):
-            QSTR = "Q{}".format(i + 1)
-            if QSTR in config:
-                filenames[j] = config[QSTR]["Reference"]
-                j += 1
-                filenames[j] = config[QSTR]["WithMeasure"]
-                j += 1
-            else:
-                j += 2
+        if config["General"]["Version"] == "1.0":
+            for i in range(3):
+                QSTR = "Q{}".format(i + 1)
+                if QSTR in config:
+                    reference = cfg_get(config, QSTR, "Reference")
+                    measure = cfg_get(config, QSTR, "WithMeasure")
+                    filenames[i] = (reference, measure)
+
     return filenames
+
+
+def cfg_get(config: configparser.ConfigParser, chap: str, key: str) -> str:
+    """
+    Get a single entry from the analysis configuration structure.
+    Raise clear exception message when it fails.
+
+    Arguments
+    ---------
+    config : Optional[configparser.ConfigParser]
+        The variable containing the configuration (may be None for imode = 0).
+    chap : str
+        The name of the chapter in which to search for the key.
+    key : str
+        The name of the key for which to return the value.
+
+    Raises
+    ------
+    Exception
+        If the key in the chapter doesn't exist.
+
+    Returns
+    -------
+    value : str
+        The value specified for the key in the chapter.
+    """
+    try:
+         return config[chap][key]
+    except:
+        pass
+    raise Exception(
+        'Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(
+            key,
+            chap,
+        )
+    )
 
 
 def analyse_and_report(
@@ -351,16 +405,14 @@ def analyse_and_report(
     reduced_output: bool,
     reach: str,
     q_location: str,
-    q_threshold: Optional[float],
-    q_bankfull: float,
     tstag: float,
-    q_fit: Tuple[float, float],
     Q: QRuns,
     T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
-    nlength: float,
+    slength: float,
+    nwidth: float,
     ucrit: float,
-    filenames: List[str],
+    filenames: Dict[Any, Tuple[str,str]],
 ) -> bool:
     """
     Perform analysis for any model.
@@ -382,26 +434,23 @@ def analyse_and_report(
         Name of the reach.
     q_location : str
         Name of the location at which the discharge is
-    q_threshold : Optional[float]
-        River discharge at which the measure becomes active.
-    q_bankfull : float
-        River discharge at which the measure is bankfull.
     tstag : float
         Fraction of year that the river is stagnant.
-    q_fit : Tuple[float, float]
-        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
-        Tuple of (at most) three characteristic discharges.
+        Array of discharges; one for each forcing condition.
     T : Tuple[float, float, float]
-        Fraction of year represented by each characteristic discharge.
+        Fraction of year represented by each forcing condition.
     rsigma : Tuple[float, float, float]
-        Relaxation factors of the 3 discharge periods.
-    nlength : float
-        The expected yearly impacted length.
+        Array of relaxation factors; one per forcing condition.
+    slength : float
+        The expected yearly impacted sedimentation length.
     ucrit : float
         Critical flow velocity [m/s].
-    filenames : List[str]
-        List of simulation output files: 2 for each discharge - a reference file and a file with measure.
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of the names of the data file containing the simulation
+        results to be processed. The conditions (discharge, wave conditions,
+        ...) are the key in the dictionary. Per condition a tuple of two file
+        names is given: a reference file and a file with measure.
 
     Returns
     -------
@@ -416,14 +465,12 @@ def analyse_and_report(
             reduced_output,
             reach,
             q_location,
-            q_threshold,
-            q_bankfull,
             tstag,
             q_fit,
             Q,
             T,
             rsigma,
-            nlength,
+            slength,
             ucrit,
         )
     else:
@@ -432,14 +479,12 @@ def analyse_and_report(
             report,
             reach,
             q_location,
-            q_threshold,
-            q_bankfull,
             tstag,
-            q_fit,
             Q,
             T,
             rsigma,
-            nlength,
+            slength,
+            nwidth,
             ucrit,
             filenames,
         )
@@ -451,14 +496,11 @@ def analyse_and_report_waqua(
     reduced_output: bool,
     reach: str,
     q_location: str,
-    q_threshold: Optional[float],
-    q_bankfull: float,
     tstag: float,
-    q_fit: Tuple[float, float],
     Q: QRuns,
     T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
-    nlength: float,
+    slength: float,
     ucrit: float,
 ) -> bool:
     """
@@ -480,22 +522,16 @@ def analyse_and_report_waqua(
         Name of the reach.
     q_location : str
         Name of the location at which the discharge is
-    q_threshold : Optional[float]
-        River discharge at which the measure becomes active.
-    q_bankfull : float
-        River discharge at which the measure is bankfull.
     tstag : float
         Number of days that the river is stagnant.
-    q_fit : Tuple[float, float]
-        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
-        Tuple of (at most) three characteristic discharges.
+        Array of discharges; one for each forcing condition.
     T : Tuple[float, float, float]
-        Fraction of year represented by each characteristic discharge.
+        Fraction of year represented by each forcing condition.
     rsigma : Tuple[float, float, float]
-        Relaxation factors of the 3 discharge periods.
-    nlength : float
-        The expected yearly impacted length.
+        Array of relaxation factors; one per forcing condition.
+    slength : float
+        The expected yearly impacted sedimentation length.
     ucrit : float
         Critical flow velocity [m/s].
 
@@ -506,42 +542,49 @@ def analyse_and_report_waqua(
         data.
     """
     missing_data = False
-    if not Q[0] is None:
-        dzq1, firstm, firstn = get_values_waqua3(
-            1, Q[0], ucrit, display, report, reduced_output
-        )
-        if dzq1.size == 0:
-            missing_data = True
-    else:
-        dzq1 = 0
-    if not missing_data and not Q[1] is None:
-        dzq2 = get_values_waqua1(2, Q[1], ucrit, display, report, reduced_output)
-        if dzq2.size == 0:
-            missing_data = True
-    else:
-        dzq2 = 0
-    if not missing_data and not Q[2] is None:
-        dzq3 = get_values_waqua1(3, Q[2], ucrit, display, report, reduced_output)
-        if dzq3.size == 0:
-            missing_data = True
-    else:
-        dzq3 = 0
+    first_discharge = True
+    
+    dzq = [None] * len(Q)
+    for i in range(3):
+        if not missing_data and not Q[i] is None:
+            if first_discharge:
+                dzq[i], firstm, firstn = get_values_waqua3(
+                    i+1, Q[i], ucrit, display, report, reduced_output
+                )
+                first_discharge = False
+            else:
+                dzq[i] = get_values_waqua1(i+1, Q[i], ucrit, display, report, reduced_output)
+            if dzq[i] is None:
+                missing_data = True
+        else:
+            dzq[i] = 0
 
     if not missing_data:
         if display:
             dfastmi.io.log_text("char_bed_changes")
-        data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
-            dzq1, dzq2, dzq3, tstag, T, rsigma
+            
+        if tstag > 0:
+            dzq = (dzq[0], 0*dzq[0], dzq[1], dzq[2])
+            T = (T[0], tstag, T[1], T[2])
+            rsigma = (rsigma[0], 1., rsigma[1], rsigma[2])
+        
+        # main_computation now returns new pointwise zmin and zmax
+        data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.main_computation(
+            dzq, T, rsigma
         )
+        if True:
+            # get old zmax and zmin
+            data_zmax = dzb[0]
+            data_zmin = dzb[1]
 
         dfastmi.io.write_simona_box(
             dfastmi.io.get_filename("avgdzb.out"), data_zgem, firstm, firstn
         )
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("maxdzb.out"), data_z1o, firstm, firstn
+            dfastmi.io.get_filename("maxdzb.out"), data_zmax, firstm, firstn
         )
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("mindzb.out"), data_z2o, firstm, firstn
+            dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
         )
 
     return missing_data
@@ -552,16 +595,15 @@ def analyse_and_report_dflowfm(
     report: TextIO,
     reach: str,
     q_location: str,
-    q_threshold: Optional[float],
-    q_bankfull: float,
     tstag: float,
-    q_fit: Tuple[float, float],
     Q: QRuns,
     T: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
-    nlength: float,
+    slength: float,
+    nwidth: float,
     ucrit: float,
-    filenames: List[str],
+    filenames: Dict[Any, Tuple[str,str]],
+
 ) -> bool:
     """
     Perform analysis based on D-Flow FM data.
@@ -579,26 +621,23 @@ def analyse_and_report_dflowfm(
         Name of the reach.
     q_location : str
         Name of the location at which the discharge is
-    q_threshold : Optional[float]
-        River discharge at which the measure becomes active.
-    q_bankfull : float
-        River discharge at which the measure is bankfull.
     tstag : float
         Fraction of year that the river is stagnant.
-    q_fit : Tuple[float, float]
-        A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     Q : QRuns
-        Tuple of (at most) three characteristic discharges.
+        Array of discharges; one for each forcing condition.
     T : Tuple[float, float, float]
-        Fraction of year represented by each characteristic discharge.
+        Fraction of year represented by each forcing condition.
     rsigma : Tuple[float, float, float]
-        Relaxation factors of the 3 discharge periods.
-    nlength : float
-        The expected yearly impacted length.
+        Array of relaxation factors; one per forcing condition.
+    slength : float
+        The expected yearly impacted sedimentation length.
     ucrit : float
         Critical flow velocity [m/s].
-    filenames : List[str]
-        List of simulation output files: 2 for each discharge - a reference file and a file with measure.
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of the names of the data file containing the simulation
+        results to be processed. The conditions (discharge, wave conditions,
+        ...) are the key in the dictionary. Per condition a tuple of two file
+        names is given: a reference file and a file with measure.
 
     Returns
     -------
@@ -606,43 +645,54 @@ def analyse_and_report_dflowfm(
         Flag indicating whether analysis couldn't be carried out due to missing
         data.
     """
+    first_discharge = True
     missing_data = False
-    if not Q[0] is None:
-        dzq1 = get_values_fm(1, Q[0], ucrit, report, (filenames[0], filenames[1]))
-        if dzq1 is None:
-            missing_data = True
-    else:
-        dzq1 = 0
-    if not missing_data and not Q[1] is None:
-        dzq2 = get_values_fm(2, Q[1], ucrit, report, (filenames[2], filenames[3]))
-        if dzq2 is None:
-            missing_data = True
-    else:
-        dzq2 = 0
-    if not missing_data and not Q[2] is None:
-        dzq3 = get_values_fm(3, Q[2], ucrit, report, (filenames[4], filenames[5]))
-        if dzq3 is None:
-            missing_data = True
-    else:
-        dzq3 = 0
+
+    dzq = [None] * len(Q)
+    if 0 in filenames.keys(): # the keys are 0,1,2
+        one_fm_filename = filenames[0][0]
+        for i in range(3):
+            if not missing_data and not Q[i] is None:
+                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields)
+                if dzq[i] is None:
+                    missing_data = True
+            else:
+                dzq[i] = 0
+
 
     if not missing_data:
         if display:
             dfastmi.io.log_text("char_bed_changes")
-        data_zgem, data_z1o, data_z2o = dfastmi.kernel.main_computation(
-            dzq1, dzq2, dzq3, tstag, T, rsigma
+            
+        if tstag > 0:
+            dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
+            T = (T[0], tstag, T[1], T[2])
+            rsigma = (rsigma[0], 1., rsigma[1], rsigma[2])
+            
+        # main_computation now returns new pointwise zmin and zmax
+        data_zgem, data_z1o, data_z2o, dzb = dfastmi.kernel.main_computation(
+            dzq, T, rsigma
         )
+        if old_zmin_zmax:
+            # get old zmax and zmin
+            data_zmax = dzb[0]
+            zmax_str = "maximum bed level change after flood without dredging"
+            data_zmin = dzb[1]
+            zmin_str = "minimum bed level change after low flow without dredging"
+        else:
+            zmax_str = "maximum value of bed level change without dredging"
+            zmin_str = "minimum value of bed level change without dredging"
 
-        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(filenames[0])
+        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(one_fm_filename)
         dst = dfastmi.io.get_filename("netcdf.out")
-        dfastmi.io.copy_ugrid(filenames[0], meshname, dst)
+        dfastmi.io.copy_ugrid(one_fm_filename, meshname, dst)
         dfastmi.io.ugrid_add(
             dst,
             "avgdzb",
             data_zgem,
             meshname,
             facedim,
-            long_name="year-averaged change without dredging",
+            long_name="year-averaged bed level change without dredging",
             units="m",
         )
         dfastmi.io.ugrid_add(
@@ -651,7 +701,7 @@ def analyse_and_report_dflowfm(
             data_z1o,
             meshname,
             facedim,
-            long_name="maximum change after flood without dredging",
+            long_name=zmax_str,
             units="m",
         )
         dfastmi.io.ugrid_add(
@@ -660,9 +710,30 @@ def analyse_and_report_dflowfm(
             data_z2o,
             meshname,
             facedim,
-            long_name="minimum change after low flow without dredging",
+            long_name=zmin_str,
             units="m",
         )
+        for i in range(len(dzb)):
+            j = (i + 1) % len(dzb)
+            dfastmi.io.ugrid_add(
+                dst,
+                "dzb_{}".format(i),
+                dzb[j],
+                meshname,
+                facedim,
+                long_name="bed level change at end of period {}".format(i+1),
+                units="m",
+            )
+            if rsigma[i]<1:
+                dfastmi.io.ugrid_add(
+                    dst,
+                    "dzq_{}".format(i),
+                    dzq[i],
+                    meshname,
+                    facedim,
+                    long_name="equilibrium bed level change aimed for during period {}".format(i+1),
+                    units="m",
+                )
 
     return missing_data
 
@@ -797,7 +868,11 @@ def get_values_waqua3(
 
 
 def get_values_fm(
-    stage: int, q: float, ucrit: float, report, filenames: Tuple[str, str]
+    stage: int,
+    q: float,
+    ucrit: float,
+    report: TextIO,
+    filenames: Tuple[str, str],
 ) -> numpy.ndarray:
     """
     Read D-Flow FM data files for the specified stage, and return dzq.
@@ -832,22 +907,33 @@ def get_values_fm(
         dfastmi.io.log_text("end_program", file=report)
         return None
     else:
-        u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
-        v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
-        u0 = numpy.sqrt(u ** 2 + v ** 2)
-        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface")
+        pass
 
-    # with measure
+    # file with measure implemented
     if not os.path.isfile(filenames[1]):
         dfastmi.io.log_text("file_not_found", dict={"name": filenames[1]}, file=report)
         dfastmi.io.log_text("end_program", file=report)
         return None
     else:
-        u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
-        v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
-        u1 = numpy.sqrt(u ** 2 + v ** 2)
+        pass
 
-    dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+    dzq = 0.
+    tot = 0.
+    ifld: Optional[int]
+
+    # if last time step is needed, pass None to allow for files without time specification
+    # reference data
+    u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+    v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+    u0 = numpy.sqrt(u ** 2 + v ** 2)
+    h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface")
+
+    # data with measure
+    u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
+    v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
+    u1 = numpy.sqrt(u ** 2 + v ** 2)
+
+    dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)     
     return dzq
 
 
@@ -862,7 +948,7 @@ def write_report(
     q_fit: Tuple[float, float],
     Q: QRuns,
     t: Tuple[float, float, float],
-    nlength: float,
+    slength: float,
 ) -> None:
     """
     Write the analysis report to file.
@@ -889,8 +975,8 @@ def write_report(
         A tuple of 3 discharges for which simulation results are (expected to be) available.
     t : Tuple[float, float, float]
         A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
-    nlength : float
-        The expected yearly impacted length.
+    slength : float
+        The expected yearly impacted sedimentation length.
 
     Returns
     -------
@@ -947,6 +1033,10 @@ def write_report(
                 stagename(i), dict={"q": Q[i], "border": q_location}, file=report
             )
     dfastmi.io.log_text("---", file=report)
+    if slength > 1:
+        nlength = int(slength)
+    else:
+        nlength = slength
     dfastmi.io.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     dfastmi.io.log_text("prepare_input", file=report)
 
@@ -970,17 +1060,15 @@ def config_to_absolute_paths(
         Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
     """
     rootdir = os.path.dirname(filename)
-    for q in range(3):
-        QSTR = "Q{}".format(q + 1)
-        if QSTR in config:
-            if "Reference" in config[QSTR]:
-                config[QSTR]["Reference"] = dfastmi.io.absolute_path(
-                    rootdir, config[QSTR]["Reference"]
-                )
-            if "WithMeasures" in config[QSTR]:
-                config[QSTR]["WithMeasure"] = dfastmi.io.absolute_path(
-                    rootdir, config[QSTR]["WithMeasure"]
-                )
+    for QSTR in config.keys():
+        if "Reference" in config[QSTR]:
+            config[QSTR]["Reference"] = dfastmi.io.absolute_path(
+                rootdir, config[QSTR]["Reference"]
+            )
+        if "WithMeasure" in config[QSTR]:
+            config[QSTR]["WithMeasure"] = dfastmi.io.absolute_path(
+                rootdir, config[QSTR]["WithMeasure"]
+            )
     return config
 
 
@@ -1008,16 +1096,16 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     with open(filename, "r") as configfile:
         config.read_file(configfile)
     try:
-        version = config["General"]["Version"]
+        file_version = config["General"]["Version"]
     except:
         raise Exception("No version information in the file!")
 
-    if version == "1.0":
+    if version.parse(file_version) == version.parse("1"):
         section = config["General"]
         branch = section["Branch"]
         reach = section["Reach"]
     else:
-        raise Exception("Unsupported version number {} in the file!".format(version))
+        raise Exception("Unsupported version number {} in the file!".format(file_version))
 
     return config_to_absolute_paths(filename, config)
 
@@ -1041,17 +1129,15 @@ def config_to_relative_paths(
         Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
     """
     rootdir = os.path.dirname(filename)
-    for q in range(3):
-        QSTR = "Q{}".format(q + 1)
-        if QSTR in config:
-            if "Reference" in config[QSTR]:
-                config[QSTR]["Reference"] = dfastmi.io.relative_path(
-                    rootdir, config[QSTR]["Reference"]
-                )
-            if "WithMeasure" in config[QSTR]:
-                config[QSTR]["WithMeasure"] = dfastmi.io.relative_path(
-                    rootdir, config[QSTR]["WithMeasure"]
-                )
+    for QSTR in config.keys():
+        if "Reference" in config[QSTR]:
+            config[QSTR]["Reference"] = dfastmi.io.relative_path(
+                rootdir, config[QSTR]["Reference"]
+            )
+        if "WithMeasure" in config[QSTR]:
+            config[QSTR]["WithMeasure"] = dfastmi.io.relative_path(
+                rootdir, config[QSTR]["WithMeasure"]
+            )
     return config
 
 

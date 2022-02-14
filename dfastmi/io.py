@@ -34,10 +34,13 @@ import netCDF4
 import configparser
 import os
 import pathlib
+from packaging import version
 
 DataField = List[List[Union[float, List[float]]]]
 # RiversObject = Dict[str, Union[int, List[str], List[List[str]], DataField]]
-class RiversObject(TypedDict, total=False):
+
+class RiversObjectV1(TypedDict, total=False):
+    version: str
     branches: List[str]
     reaches: List[List[str]]
     qlocations: List[str]
@@ -52,6 +55,8 @@ class RiversObject(TypedDict, total=False):
     qlevels: List[List[Tuple[float, float, float, float]]]
     dq: List[List[Tuple[float, float]]]
 
+
+RiversObject = RiversObjectV1
 
 PROGTEXTS: Dict[str, List[str]]
 
@@ -97,7 +102,10 @@ def load_program_texts(filename: str) -> None:
 
 
 def log_text(
-    key: str, file: Optional[TextIO] = None, dict: Dict[str, Any] = {}, repeat: int = 1
+    key: str,
+    file: Optional[TextIO] = None,
+    dict: Dict[str, Any] = {},
+    repeat: int = 1,
 ) -> None:
     """
     Write a text to standard out or file.
@@ -209,6 +217,15 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
     # initialize rivers dictionary
     rivers = {}
+    try:
+        file_version = config["General"]["Version"]
+    except:
+        raise Exception("No version information in the file {}!".format(filename))
+
+    if version.parse(file_version) == version.parse("1"):
+        rivers["version"] = "1.0"
+    else:
+        raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
 
     # parse branches
     branches = [k for k in config.keys()]
@@ -238,16 +255,20 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
     # collect the values for all other quantities
     nreaches = [len(x) for x in allreaches]
-    rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
-    rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
     rivers["normal_width"] = collect_values1(config, branches, nreaches, "NWidth")
     rivers["ucritical"] = collect_values1(config, branches, nreaches, "UCrit")
-    rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
     rivers["qstagnant"] = collect_values1(config, branches, nreaches, "QStagnant")
-    rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
-    rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
-    rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
-    rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
+    
+    # read version specific records 
+    if rivers["version"] == "1.0":
+        rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
+        rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
+        rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
+        rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
+        rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
+        rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
+        rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
+
 
     return rivers
 
@@ -261,7 +282,7 @@ def collect_values1(
     """
     Collect river parameter data from river configuration object.
 
-    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
+    This routines collects entries of type float.
 
     Arguments
     ---------
@@ -290,6 +311,7 @@ def collect_values1(
         g_val = config["General"][key]
     except:
         g_val = ""
+
     all_values = []
     for ib in range(len(branches)):
         branch = branches[ib]
@@ -297,6 +319,7 @@ def collect_values1(
             b_val = config[branch][key]
         except:
             b_val = g_val
+
         values_per_branch = []
         for i in range(nreaches[ib]):
             stri = str(i + 1)
@@ -304,16 +327,20 @@ def collect_values1(
                 val = config[branch][key + stri]
             except:
                 val = b_val
+
             vals = tuple(float(x) for x in val.split())
             if len(vals) != 1:
                 raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(
-                        val, 1
+                    'Incorrect number of values read from "{}" for reach {} on branch "{}". Need {} values.'.format(
+                        val, i+1, branch, 1
                     )
                 )
             values_per_branch.append(vals[0])
+
         all_values.append(values_per_branch)
+
     return all_values
+
 
 
 def collect_values2(
@@ -325,7 +352,7 @@ def collect_values2(
     """
     Collect river parameter data from river configuration object.
 
-    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
+    This routines collects entries of type Tuple[float, float].
 
     Arguments
     ---------
@@ -389,7 +416,7 @@ def collect_values4(
     """
     Collect river parameter data from river configuration object.
 
-    This routines collects float, Tuple[float, float] or Tuple[float, float, float, float]
+    This routines collects entries of type Tuple[float, float, float, float].
 
     Arguments
     ---------
@@ -481,7 +508,11 @@ def write_config(filename: str, config: configparser.ConfigParser) -> None:
                 configfile.write(OPTIONLINE.format(o, config[s][o]))
 
 
-def read_fm_map(filename: str, varname: str, location: str = "face") -> numpy.ndarray:
+def read_fm_map(
+    filename: str,
+    varname: str,
+    location: str = "face",
+) -> numpy.ndarray:
     """
     Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
 
@@ -572,7 +603,7 @@ def read_fm_map(filename: str, varname: str, location: str = "face") -> numpy.nd
     dims = var.dimensions
     if var.get_dims()[0].isunlimited():
         # assume that time dimension is unlimited and is the first dimension
-        # slice to obtain last time step
+        # slice to obtain last time step or earlier as requested
         data = var[-1, :]
     else:
         data = var[...] - start_index
