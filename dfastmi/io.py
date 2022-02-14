@@ -34,6 +34,7 @@ import netCDF4
 import configparser
 import os
 import pathlib
+import zlib
 from packaging import version
 
 DataField = List[List[Union[float, List[float]]]]
@@ -227,6 +228,8 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
     else:
         raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
 
+    verify_checksum_rivers(config, filename)
+    
     # parse branches
     branches = [k for k in config.keys()]
     branches.remove("DEFAULT")
@@ -271,6 +274,30 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
 
 
     return rivers
+
+
+def verify_checksum_rivers(
+    config: configparser.ConfigParser,
+    filename: str,
+):
+    chapters = [k for k in config.keys()]
+    checksum = ""
+    checkval = 1
+    for chapter in chapters:
+        keys = [k for k in config[chapter].keys()]
+        for key in keys:
+            str = config[chapter][key]
+            if chapter == "General" and key == "checksum":
+                checksum = str
+            else:
+                checkval = zlib.adler32(str.encode("utf-8"), checkval) & 0xffffffff
+    #print("Expected checksum: ", checkval)
+    if checksum == "":
+        log_text("checksum", dict = {"filename": filename})
+    else:
+        checkval2 = int(checksum)
+        if checkval2 != checkval:
+            raise Exception("Checksum mismatch: configuration file {} has been modified!".format(filename))
 
 
 def collect_values1(
