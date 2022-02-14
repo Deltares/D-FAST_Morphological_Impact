@@ -923,6 +923,19 @@ def get_values_fm(
     v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
     u1 = numpy.sqrt(u ** 2 + v ** 2)
 
+    xn0, yn0, FNC0 = get_xynode_connect(filenames[0])
+    xn1, yn1, FNC1 = get_xynode_connect(filenames[1])
+    
+    if numpy.array_equal(FNC0, FNC1) and numpy.array_equal(xn0, xn1) and numpy.array_equal(yn0, yn1):
+        pass
+    else:
+        xyf0 = face_mean(xn0, FNC0) + 1j * face_mean(yn0, FNC0)
+        xyf1 = face_mean(xn1, FNC1) + 1j * face_mean(yn1, FNC1)
+        xyfi, i0, i1 = numpy.intersect1d(xyf0, xyf1, return_indices = True)
+        u2 = u1[i1]
+        u1 = u0.copy()
+        u1[i0] = u2
+
     dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)     
     return dzq
 
@@ -1166,3 +1179,30 @@ def stagename(i: int) -> str:
     """
     stagenames = ["lowwater", "transition", "highwater"]
     return stagenames[i]
+
+
+def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    xn = dfastmi.io.read_fm_map(filename, "x", location="node")
+    yn = dfastmi.io.read_fm_map(filename, "y", location="node")
+    FNC = dfastmi.io.read_fm_map(filename, "face_node_connectivity")
+    
+    return xn, yn, FNC
+
+
+def face_mean(vn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
+    if FNC.mask.shape == ():
+        # all faces have the same number of nodes
+        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
+    else:
+        # varying number of nodes
+        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
+    max_nnodes = FNC.shape[1]
+    for i in range(max_nnodes):
+        fni = FNC[:, i]
+        fni_active = numpy.invert(fni.mask)
+        if i == 0:
+            vf = vn[fni]
+        else:
+            vf[fni_active]  = vf[fni_active] + vn[fni[fni_active]]
+    vf = vf / nnodes
+    return vf
