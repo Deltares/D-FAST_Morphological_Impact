@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
-from dfastmi.kernel import QRuns
+from dfastmi.kernel import Vector, QRuns
 
 import sys
 import os
@@ -124,9 +124,6 @@ def batch_mode_core(
             nwidth = rivers["normal_width"][ibranch][ireach]
             q_location = rivers["qlocations"][ibranch]
             q_stagnant = rivers["qstagnant"][ibranch][ireach]
-            needs_tide = False
-            n_fields = 1
-            tide_bc = []
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
@@ -199,13 +196,13 @@ def batch_mode_core(
     return failed
 
 
-def countQ(Q: QRuns) -> int:
+def countQ(Q: Vector) -> int:
     """
     Count the number of non-empty discharges.
 
     Arguments
     ---------
-    Q : QRuns
+    Q : Vector
         Tuple of (at most) three characteristic discharges.
 
     Returns
@@ -232,8 +229,8 @@ def batch_get_discharges(
     Tuple[float, float],
     QRuns,
     float,
-    Tuple[float, float, float],
-    Tuple[float, float, float],
+    Vector,
+    Vector,
 ]:
     """
     Get the simulation discharges in batch mode (no user interaction).
@@ -270,11 +267,11 @@ def batch_get_discharges(
     Q : QRuns
         Tuple of (at most) three characteristic discharges [m3/s].
     t_stagnant : float
-        Fraction of year during which flow velocity is considered negligible.
-    T : Tuple[int,int,int]
-        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
-    rsigma : Tuple[float, float, float]
-        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
+        Fraction of year during which flow velocity is considered negligible [-].
+    T : Vector
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+    rsigma : Vector
+        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
     """
     q_threshold: Optional[float]
 
@@ -406,9 +403,9 @@ def analyse_and_report(
     reach: str,
     q_location: str,
     tstag: float,
-    Q: QRuns,
-    T: Tuple[float, float, float],
-    rsigma: Tuple[float, float, float],
+    Q: Vector,
+    T: Vector,
+    rsigma: Vector,
     slength: float,
     nwidth: float,
     ucrit: float,
@@ -436,11 +433,11 @@ def analyse_and_report(
         Name of the location at which the discharge is
     tstag : float
         Fraction of year that the river is stagnant.
-    Q : QRuns
+    Q : Vector
         Array of discharges; one for each forcing condition.
-    T : Tuple[float, float, float]
+    T : Vector
         Fraction of year represented by each forcing condition.
-    rsigma : Tuple[float, float, float]
+    rsigma : Vector
         Array of relaxation factors; one per forcing condition.
     slength : float
         The expected yearly impacted sedimentation length.
@@ -466,7 +463,6 @@ def analyse_and_report(
             reach,
             q_location,
             tstag,
-            q_fit,
             Q,
             T,
             rsigma,
@@ -497,9 +493,9 @@ def analyse_and_report_waqua(
     reach: str,
     q_location: str,
     tstag: float,
-    Q: QRuns,
-    T: Tuple[float, float, float],
-    rsigma: Tuple[float, float, float],
+    Q: Vector,
+    T: Vector,
+    rsigma: Vector,
     slength: float,
     ucrit: float,
 ) -> bool:
@@ -524,11 +520,11 @@ def analyse_and_report_waqua(
         Name of the location at which the discharge is
     tstag : float
         Number of days that the river is stagnant.
-    Q : QRuns
+    Q : Vector
         Array of discharges; one for each forcing condition.
-    T : Tuple[float, float, float]
+    T : Vector
         Fraction of year represented by each forcing condition.
-    rsigma : Tuple[float, float, float]
+    rsigma : Vector
         Array of relaxation factors; one per forcing condition.
     slength : float
         The expected yearly impacted sedimentation length.
@@ -596,9 +592,9 @@ def analyse_and_report_dflowfm(
     reach: str,
     q_location: str,
     tstag: float,
-    Q: QRuns,
-    T: Tuple[float, float, float],
-    rsigma: Tuple[float, float, float],
+    Q: Vector,
+    T: Vector,
+    rsigma: Vector,
     slength: float,
     nwidth: float,
     ucrit: float,
@@ -623,11 +619,11 @@ def analyse_and_report_dflowfm(
         Name of the location at which the discharge is
     tstag : float
         Fraction of year that the river is stagnant.
-    Q : QRuns
+    Q : Vector
         Array of discharges; one for each forcing condition.
-    T : Tuple[float, float, float]
+    T : Vector
         Fraction of year represented by each forcing condition.
-    rsigma : Tuple[float, float, float]
+    rsigma : Vector
         Array of relaxation factors; one per forcing condition.
     slength : float
         The expected yearly impacted sedimentation length.
@@ -653,7 +649,7 @@ def analyse_and_report_dflowfm(
         one_fm_filename = filenames[0][0]
         for i in range(3):
             if not missing_data and not Q[i] is None:
-                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields)
+                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i])
                 if dzq[i] is None:
                     missing_data = True
             else:
@@ -673,15 +669,11 @@ def analyse_and_report_dflowfm(
         data_zgem, data_z1o, data_z2o, dzb = dfastmi.kernel.main_computation(
             dzq, T, rsigma
         )
-        if old_zmin_zmax:
-            # get old zmax and zmin
-            data_zmax = dzb[0]
-            zmax_str = "maximum bed level change after flood without dredging"
-            data_zmin = dzb[1]
-            zmin_str = "minimum bed level change after low flow without dredging"
-        else:
-            zmax_str = "maximum value of bed level change without dredging"
-            zmin_str = "minimum value of bed level change without dredging"
+        # get old zmax and zmin
+        data_zmax = dzb[0]
+        zmax_str = "maximum bed level change after flood without dredging"
+        data_zmin = dzb[1]
+        zmin_str = "minimum bed level change after low flow without dredging"
 
         meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(one_fm_filename)
         dst = dfastmi.io.get_filename("netcdf.out")
@@ -919,9 +911,7 @@ def get_values_fm(
 
     dzq = 0.
     tot = 0.
-    ifld: Optional[int]
 
-    # if last time step is needed, pass None to allow for files without time specification
     # reference data
     u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
     v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
@@ -946,8 +936,8 @@ def write_report(
     q_stagnant: float,
     tstag: float,
     q_fit: Tuple[float, float],
-    Q: QRuns,
-    t: Tuple[float, float, float],
+    Q: Vector,
+    t: Vector,
     slength: float,
 ) -> None:
     """
@@ -971,9 +961,9 @@ def write_report(
         Fraction of year during which the flow velocity is negligible.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    Q : QRuns
+    Q : Vector
         A tuple of 3 discharges for which simulation results are (expected to be) available.
-    t : Tuple[float, float, float]
+    t : Vector
         A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
     slength : float
         The expected yearly impacted sedimentation length.

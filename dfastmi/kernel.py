@@ -37,6 +37,7 @@ import numpy
 QLevels = Tuple[float, float, float, float]
 QChange = Tuple[float, float]
 QRuns = Tuple[Optional[float], Optional[float], Optional[float]]
+Vector = Tuple[float, ...]
 
 
 def char_discharges(
@@ -112,7 +113,7 @@ def char_times(
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
-) -> Tuple[float, Tuple[float, float, float], Tuple[float, float, float]]:
+) -> Tuple[float, Vector, Vector]:
     """
     This routine determines the characteric times and rsigma.
 
@@ -130,7 +131,7 @@ def char_times(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
         Discharge below which flow velocity is considered negligible (from rivers configuration file).
-    Q : QRuns
+    Q : Vector
         A tuple of 3 discharges for which simulation results are (expected to be) available.
     celerity_hg : float
         Bed celerity during transitional and flood periods (from rivers configuration file).
@@ -143,9 +144,9 @@ def char_times(
     -------
     t_stagnant : float
         Number of days during which flow velocity is considered negligible.
-    T : Tuple[float, float, float]
+    T : Vector
         A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
-    rsigma : Tuple[float, float, float]
+    rsigma : Vector
         A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
     if q_stagnant > q_fit[0]:
@@ -173,7 +174,7 @@ def char_times(
 
 
 def estimate_sedimentation_length(
-    rsigma: Tuple[float, float, float],
+    rsigma: Vector,
     applyQ: Tuple[bool],
     nwidth: float,
 ) -> float:
@@ -182,7 +183,7 @@ def estimate_sedimentation_length(
 
     Arguments
     ---------
-    rsigma : Tuple[float, float, float]
+    rsigma : Vector
         A tuple of relaxation factors, one for each period.
     nwidth : float
         Normal river width (from rivers configuration file).
@@ -234,9 +235,8 @@ def dzq_from_du_and_h(
 
 def main_computation(
     dzq: List[numpy.ndarray],
-    t_stagnant: float,
-    T: Tuple[float, float, float],
-    rsigma: Tuple[float, float, float],
+    T: Vector,
+    rsigma: Vector,
 ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[numpy.ndarray]]:
     """
     This routine computes the bed level changes.
@@ -247,11 +247,9 @@ def main_computation(
     ---------
     dzq : List[numpy.ndarray]
         A list of arrays containing the equilibrium bed level change for each respective discharge period.
-    t_stagnant : float
-        Number of days during which flow velocity is considered negligible.
-    T : Tuple[float, float, float]
+    T : Vector
         A tuple of periods indicating the number of days during which each discharge applies.
-    rsigma : Tuple[float, float, float]
+    rsigma : Vector
         A tuple of relaxation factors, one for each period.
 
     Returns
