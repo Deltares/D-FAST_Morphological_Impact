@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
-from dfastmi.kernel import Vector, QRuns
+from dfastmi.kernel import Vector, BoolVector, QRuns
 
 import sys
 import os
@@ -176,6 +176,7 @@ def batch_mode_core(
                 q_location,
                 tstag,
                 Q,
+                applyQ,
                 T,
                 rsigma,
                 slength,
@@ -404,6 +405,7 @@ def analyse_and_report(
     q_location: str,
     tstag: float,
     Q: Vector,
+    applyQ: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -435,6 +437,8 @@ def analyse_and_report(
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -464,6 +468,7 @@ def analyse_and_report(
             q_location,
             tstag,
             Q,
+            applyQ,
             T,
             rsigma,
             slength,
@@ -477,6 +482,7 @@ def analyse_and_report(
             q_location,
             tstag,
             Q,
+            applyQ,
             T,
             rsigma,
             slength,
@@ -494,6 +500,7 @@ def analyse_and_report_waqua(
     q_location: str,
     tstag: float,
     Q: Vector,
+    applyQ: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -522,6 +529,8 @@ def analyse_and_report_waqua(
         Number of days that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -542,7 +551,7 @@ def analyse_and_report_waqua(
     
     dzq = [None] * len(Q)
     for i in range(3):
-        if not missing_data and not Q[i] is None:
+        if not missing_data and applyQ[i]:
             if first_discharge:
                 dzq[i], firstm, firstn = get_values_waqua3(
                     i+1, Q[i], ucrit, display, report, reduced_output
@@ -593,6 +602,7 @@ def analyse_and_report_dflowfm(
     q_location: str,
     tstag: float,
     Q: Vector,
+    applyQ: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -621,6 +631,8 @@ def analyse_and_report_dflowfm(
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -646,9 +658,12 @@ def analyse_and_report_dflowfm(
 
     dzq = [None] * len(Q)
     if 0 in filenames.keys(): # the keys are 0,1,2
-        one_fm_filename = filenames[0][0]
         for i in range(3):
-            if not missing_data and not Q[i] is None:
+            if not missing_data and applyQ[i]:
+                if first_discharge:
+                    # select the reference file of the first discharge as the file from which to copy the grid ...
+                    one_fm_filename = filenames[i][0]
+                    first_discharge = False
                 dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i])
                 if dzq[i] is None:
                     missing_data = True
