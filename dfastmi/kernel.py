@@ -268,10 +268,14 @@ def main_computation(
     """
     N = len(dzq)
     # N should also equal len(T) and len(rsigma)
+    firstQ = True
     
     for i in range(len(dzq)):
-        if i == 0:
+        if dzq[i] is None:
+            pass
+        elif firstQ:
             mask = numpy.isnan(dzq[0])
+            firstQ = False
         else:
             mask = mask | numpy.isnan(dzq[i])
     

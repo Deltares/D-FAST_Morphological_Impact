@@ -537,12 +537,12 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    failed = dfastmi.batch.batch_mode_core(rivers, False, config)
+    success = dfastmi.batch.batch_mode_core(rivers, False, config)
     report = dfastmi.io.get_filename("report.out")
-    if failed:
-        showError(gui_text("error_during_analysis", dict={"report": report},))
-    else:
+    if success:
         showMessage(gui_text("end_of_analysis", dict={"report": report},))
+    else:
+        showError(gui_text("error_during_analysis", dict={"report": report},))
 
 
 def menu_about_self() -> None:

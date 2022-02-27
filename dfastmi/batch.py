@@ -110,7 +110,7 @@ def batch_mode_core(
         ibranch = rivers["branches"].index(branch)
     except:
         dfastmi.io.log_text("invalid_branch", dict={"branch": branch}, file=report)
-        failed = True
+        success = False
     else:
         reach = config["General"]["Reach"]
         try:
@@ -119,7 +119,7 @@ def batch_mode_core(
             dfastmi.io.log_text(
                 "invalid_reach", dict={"reach": reach, "branch": branch}, file=report
             )
-            failed = True
+            success = False
         else:
             nwidth = rivers["normal_width"][ibranch][ireach]
             q_location = rivers["qlocations"][ibranch]
@@ -167,7 +167,7 @@ def batch_mode_core(
                 )
             filenames = get_filenames(mode, config)
 
-            failed = analyse_and_report(
+            success = analyse_and_report(
                 mode,
                 False,
                 report,
@@ -194,7 +194,7 @@ def batch_mode_core(
 
     dfastmi.io.log_text("end", file=report)
     report.close()
-    return failed
+    return success
 
 
 def countQ(Q: Vector) -> int:
@@ -455,9 +455,8 @@ def analyse_and_report(
 
     Returns
     -------
-    missing_data : bool
-        Flag indicating whether analysis couldn't be carried out due to missing
-        data.
+    success : bool
+        Flag indicating whether analysis could be carried out.
     """
     if imode == 0:
         return analyse_and_report_waqua(
@@ -542,16 +541,15 @@ def analyse_and_report_waqua(
 
     Returns
     -------
-    missing_data : bool
-        Flag indicating whether analysis couldn't be carried out due to missing
-        data.
+    success : bool
+        Flag indicating whether analysis could be carried out.
     """
-    missing_data = False
+    success = True
     first_discharge = True
     
     dzq = [None] * len(Q)
     for i in range(3):
-        if not missing_data and applyQ[i]:
+        if success and applyQ[i]:
             if first_discharge:
                 dzq[i], firstm, firstn = get_values_waqua3(
                     i+1, Q[i], ucrit, display, report, reduced_output
@@ -560,11 +558,11 @@ def analyse_and_report_waqua(
             else:
                 dzq[i] = get_values_waqua1(i+1, Q[i], ucrit, display, report, reduced_output)
             if dzq[i] is None:
-                missing_data = True
+                success = False
         else:
             dzq[i] = 0
 
-    if not missing_data:
+    if success:
         if display:
             dfastmi.io.log_text("char_bed_changes")
             
@@ -592,7 +590,7 @@ def analyse_and_report_waqua(
             dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
         )
 
-    return missing_data
+    return success
 
 
 def analyse_and_report_dflowfm(
@@ -649,29 +647,31 @@ def analyse_and_report_dflowfm(
 
     Returns
     -------
-    missing_data : bool
-        Flag indicating whether analysis couldn't be carried out due to missing
-        data.
+    success : bool
+        Flag indicating whether analysis could be carried out.
     """
     first_discharge = True
-    missing_data = False
+    success = True
 
     dzq = [None] * len(Q)
-    if 0 in filenames.keys(): # the keys are 0,1,2
+    oldKeys = False
+    for i in range(3):
+        oldKeys = oldKeys | i in filenames.keys()
+
+    if oldKeys: # the keys are 0,1,2
         for i in range(3):
-            if not missing_data and applyQ[i]:
+            if success and applyQ[i]:
                 if first_discharge:
                     # select the reference file of the first discharge as the file from which to copy the grid ...
                     one_fm_filename = filenames[i][0]
                     first_discharge = False
                 dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i])
                 if dzq[i] is None:
-                    missing_data = True
+                    success = False
             else:
                 dzq[i] = 0
 
-
-    if not missing_data:
+    if success:
         if display:
             dfastmi.io.log_text("char_bed_changes")
             
@@ -742,7 +742,7 @@ def analyse_and_report_dflowfm(
                     units="m",
                 )
 
-    return missing_data
+    return success
 
 
 def get_values_waqua1(
