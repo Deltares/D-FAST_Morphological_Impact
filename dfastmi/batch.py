@@ -146,7 +146,12 @@ def batch_mode_core(
             slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
             reach = rivers["reaches"][ibranch][ireach]
-            ucrit = rivers["ucritical"][ibranch][ireach]
+            try:
+                ucrit = float(config["General"]["Ucrit"])
+            except:
+                ucrit = rivers["ucritical"][ibranch][ireach]
+            ucritMin = 0.01
+            ucrit = max(ucritMin, ucrit)
             if config["General"]["Mode"] == "WAQUA export":
                 mode = 0
                 dfastmi.io.log_text(
@@ -656,7 +661,7 @@ def analyse_and_report_dflowfm(
     dzq = [None] * len(Q)
     oldKeys = False
     for i in range(3):
-        oldKeys = oldKeys | i in filenames.keys()
+        oldKeys = oldKeys | (i in filenames.keys())
 
     if oldKeys: # the keys are 0,1,2
         for i in range(3):
