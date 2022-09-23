@@ -934,13 +934,13 @@ def get_values_fm(
 
     # reference data
     u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
-    v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity")
+    v = dfastmi.io.read_fm_map(filenames[0], "sea_water_y_velocity")
     u0 = numpy.sqrt(u ** 2 + v ** 2)
     h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface")
 
     # data with measure
     u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
-    v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity")
+    v = dfastmi.io.read_fm_map(filenames[1], "sea_water_y_velocity")
     u1 = numpy.sqrt(u ** 2 + v ** 2)
 
     xn0, yn0, FNC0 = get_xynode_connect(filenames[0])
