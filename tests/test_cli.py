@@ -39,11 +39,15 @@ class Test_interactive_mode():
         #    print(s)
         self.maxDiff = None
         refstr = open(tstdir + os.sep + "ref_stdout_NL.txt", "r").read().splitlines()
-        assert outstr == refstr
+        assert outstr[:21] == refstr[:21]
+        # line 22 contains the version number and will thus change
+        assert outstr[23:] == refstr[23:]
         #
         result = open(tstdir + os.sep + "verslag.run", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_verslag.run", "r").read().splitlines()
-        assert result == refstr
+        assert result[:21] == refstr[:21]
+        # line 22 contains the version number and will thus change
+        assert result[23:] == refstr[23:]
         #
         result = open(tstdir + os.sep + "jaargem.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
@@ -78,11 +82,15 @@ class Test_interactive_mode():
         #    print(s)
         self.maxDiff = None
         refstr = open(tstdir + os.sep + "ref_stdout_UK.txt", "r").read().splitlines()
-        assert outstr == refstr
+        assert outstr[:21] == refstr[:21]
+        # line 22 contains the version number and will thus change
+        assert outstr[23:] == refstr[23:]
         #
         result = open(tstdir + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
-        assert result == refstr
+        assert result[:21] == refstr[:21]
+        # line 22 contains the version number and will thus change
+        assert result[23:] == refstr[23:]
         #
         result = open(tstdir + os.sep + "yearavg_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()

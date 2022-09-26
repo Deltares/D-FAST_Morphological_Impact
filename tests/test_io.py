@@ -125,6 +125,7 @@ class Test_read_rivers():
         rivers['qfit'] = [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
         rivers['qlevels'] = [[(100.0, 200.0, 300.0, 400.0)], [(1000.0, 2000.0, 3000.0, 4000.0), (1000.0, 2000.0, 3000.0, 4000.0)]]
         rivers['dq'] = [[(5.0, 15.0)], [(1000.0, 1000.0), (1000.0, 1000.0)]]
+        rivers['version'] = '1.0'
         self.maxDiff = None
         assert dfastmi.io.read_rivers("tests/files/read_rivers_test.ini") == rivers
 
@@ -167,7 +168,7 @@ class Test_collect_values1():
         key = "A"
         with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values1(config, branches, nreaches, key)
-        assert str(cm.value) == 'Incorrect number of values read from "0.0 0.1". Need 1 values.'
+        assert str(cm.value) == 'Incorrect number of values read from "0.0 0.1" for reach 2 on branch "Branch2". Need 1 values.'
 
 class Test_collect_values2():
     def test_collect_values2_01(self):

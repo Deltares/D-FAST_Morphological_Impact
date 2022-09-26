@@ -198,18 +198,19 @@ class Test_estimate_sedimentation_length():
         Testing char_times for default Bovenrijn conditions.
         """
         rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
+        applyQ = (True, True, True)
         nwidth = 340
         L = 1384
-        assert dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth) == L
+        assert int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)) == L
 
 class Test_dzq_from_du_and_h():
     def test_dzq_from_du_and_h_01(self):
         """
         Testing dzq_from_du_and_h for situations not resulting in NaN.
         """
-        u0  = numpy.array([0.5,  0.5, 1.0, 1.0,  0.5])
-        h0  = numpy.array([1.0,  1.0, 1.0, 2.0,  1.0])
-        u1  = numpy.array([0.5, -0.5, 0.5, 0.5,  1.0])
+        u0  = numpy.array([0.5,  1.0, 1.0, 1.0,  0.5])
+        h0  = numpy.array([1.0,  4.0, 1.0, 2.0,  1.0])
+        u1  = numpy.array([0.5,  0.5, 0.5, 0.5,  1.0])
         ucrit = 0.3
         dzq = numpy.array([0.0,  2.0, 0.5, 1.0,  -1.0])
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
@@ -240,19 +241,19 @@ class Test_main_computation():
         dzq2 = numpy.array([0.0, 1.0, 0.0, 1.0, 1.0])
         dzq3 = numpy.array([0.0, 0.0, 1.0, 1.0, 1.0])
         t_stagnant = 0.3
-        T = (0.1, 0.2, 0.4)
-        rsigma = (0.1, 0.2, 0.4)
-        zgem = numpy.array([0.48084677419354843, 0.33709677419354844, 0.18205645161290324, 1., 0.])
-        z1o = numpy.array([0.07258064516129033, 0.32258064516129037, 0.6048387096774194, 1., 0.])
-        z2o = numpy.array([0.9072580645161291, 0.03225806451612904, 0.06048387096774193, 1., 0.])
-        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation(dzq1, dzq2, dzq3, t_stagnant, T, rsigma)
+        T = (0.1, t_stagnant, 0.2, 0.4)
+        rsigma = (0.1, 1., 0.2, 0.4)
+        zgem = numpy.array([0.4808467741935485, 0.33709677419354844, 0.1820564516129032, 1., 0.])
+        zmax = numpy.array([0.9072580645161291, 0.8064516129032259 , 0.6048387096774194, 1.0000000000000002, 0.])
+        zmin = numpy.array([0.07258064516129033, 0.03225806451612904, 0.012096774193548387, 1., 0.])
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq1, dzq2, dzq3], T, rsigma)
         print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
         print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
-        print("z1o  reference: ", numpy.array2string(z1o, floatmode = 'unique'))
-        print("z1o  computed : ", numpy.array2string(z1oc, floatmode = 'unique'))
-        print("z2o  reference: ", numpy.array2string(z2o, floatmode = 'unique'))
-        print("z2o  computed : ", numpy.array2string(z2oc, floatmode = 'unique'))
-        assert (zgemc == zgem).all() and (z1o == z1oc).all() and (z2o == z2oc).all() == True
+        print("zmax reference: ", numpy.array2string(zmax, floatmode = 'unique'))
+        print("zmax computed : ", numpy.array2string(zmaxc, floatmode = 'unique'))
+        print("zmin reference: ", numpy.array2string(zmin, floatmode = 'unique'))
+        print("zmin computed : ", numpy.array2string(zminc, floatmode = 'unique'))
+        assert (zgemc == zgem).all() and (zmax == zmaxc).all() and (zmin == zminc).all() == True
 
 
 if __name__ == '__main__':
