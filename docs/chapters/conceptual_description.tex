@@ -33,7 +33,7 @@ After all, the maximum bed level change of one single river enlarging measure is
 However, when a series of measures along the river are combined (for instance, lowering of the groynes along a reach) the downstream bed level changes may be increased by accumulation of downstream migrating bed waves, such that the accumulated bed level change may be significantly larger.
 In other words, river measures extending over longer reaches may result in a larger morphodynamic response than comparable but more isolated measures.
 
-The aforementioned observations result in the following premisses.
+The aforementioned observations result in the following premises.
 The rule-of-thumb described in the following sections
 
 \begin{itemize}
@@ -200,10 +200,11 @@ in which
 \item[$q_\text{out}$] \emph{outflow of} unit discharge \emph{to} the flood plain per unit length \unitbrackets{m\textsuperscript{2}/sm}
 \item[$s$] streamwise coordinate \unitbrackets{m}
 \item[$z_b$] bed level change due to measure \unitbrackets{m}
-\item[$s_\text{mc}$] main channel unit sediment transport \unitbrackets{m\textsuperscript{2}/s}
-\item[$s_\text{out}$] \emph{outflow of} unit sediment \emph{to} the flood plan per unit length \unitbrackets{m\textsuperscript{2}/ms}
+\item[$s_\text{mc}$] main channel unit sediment transport including pores \unitbrackets{m\textsuperscript{2}/s}
+\item[$s_\text{out}$] \emph{outflow of} unit sediment transport including pores \emph{to} the flood plain per unit length \unitbrackets{m\textsuperscript{2}/sm}
 \end{symbollist}
 
+Note that the outflow of sediment is assumed to be a consequence of the outflow of discharge only; the conceptual framework does not allow for selective removal of only sediments.	
 The unit sediment transport capacity in the main channel, $s_\text{mc}$, is approximated by $s_\text{mc} = m \left ( q_\text{mc} / h \right )^b$ with $h$ the water depth \unitbrackets{m} in the main channel, $m$ a dimensionless calibration factor and a dimensionless sediment transport exponent $b$ about 5 \citep{Engelundh67}.
 Using this approximation the gradients in the sediment transport capacity can be written as
 %
@@ -215,8 +216,15 @@ Using this approximation the gradients in the sediment transport capacity can be
 \label{Eq4}
 \end{align}
 %
-if we assume that the water level gradient is negligible ($\pdiff{z_w}{s} \approx 0$).
-Substitution of \autoref{Eq4} and \autoref{Eq2} into \autoref{Eq3} gives
+if we assume that the water level gradient is negligible ($\pdiff{z_w}{s} \approx 0$) such that $\pdiff{h}{s} \approx -\pdiff{z_b}{s}$.
+Substitution of \autoref{Eq4} into \autoref{Eq3} gives
+%
+\begin{equation}
+\pdiff{z_b}{t} + b \frac{s_\text{mc}}{q_\text{mc}} \pdiff{q_\text{mc}}{s} + b \frac{s_\text{mc}}{h} \pdiff{z_b}{s} = -s_\text{out}
+\label{Eq5a}
+\end{equation}
+%
+which after substitution of \autoref{Eq2} in the second term becomes
 %
 \begin{equation}
 \frac{h}{b s_\text{mc}} \pdiff{z_b}{t} + \pdiff{z_b}{s} = h \frac{q_\text{out}}{q_\text{mc}} - h \frac{s_\text{out}}{b s_\text{mc}}
@@ -224,12 +232,25 @@ Substitution of \autoref{Eq4} and \autoref{Eq2} into \autoref{Eq3} gives
 \end{equation}
 
 The dynamic bed level changes will develop starting from the upstream end of the measure.
-The length $L$ over which this sedimentation occurs corresponds to the reach in which the main channel discharge is reduced and in which the flow pattern is adjusted by the reduced discharge.
-Hence, this length $L$ is thus \emph{not} always equal to the length of the measure or the distance between the inflow and outflow openings of a secondary channel.
+The length $L$ over which this sedimentation occurs (i.e.~varies from 0 upstream to maximum amount $\Delta z_b$ downstream) corresponds to the reach over which discharge leaves the main channel and in which the flow pattern is adjusted by the reduced discharge as sketched in \autoref{Fig4}.
+Hence, this length $L$ may thus be significantly shorter than the length of the measure or the distance between the inflow and outflow openings of a secondary channel.
 The integration of \autoref{Eq5} over this length $L$ results in a relaxation model for the dynamic bed level change due to the measure
 %
 \begin{equation}
-\diff{\Delta z_b}{t} = \frac{\Delta z_{b,\text{eq}} - \Delta z_b}{T}
+\frac{h}{b s_\text{mc}} \int_0^L \pdiff{z_b}{t} ds + \int_0^L \pdiff{z_b}{s} ds = \int_0^L \left [ h \frac{q_\text{out}}{q_\text{mc}} - h \frac{s_\text{out}}{b s_\text{mc}} \right ] ds
+\label{Eq5a}
+\end{equation}
+%
+\begin{equation}
+\frac{h}{b s_\text{mc}} L^* \pdiff{\Delta z_b}{t} + \Delta z_b = - h \frac{\Delta q_\text{mc}}{q_\text{mc}} + h \frac{\Delta s_\text{mc}}{b s_\text{mc}}
+\label{Eq5b}
+\end{equation}
+%
+which $\Delta q_\text{mc}$ is the total change in unit discharge in the main channel due to the measure \unitbrackets{m\textsuperscript{2}/s} and $\Delta s_\text{mc}$ is the total change in unit sediment transport due to the measure \unitbrackets{m\textsuperscript{2}/s}.
+Please note that $q_\text{out}$ was defined above positive for fluxes towards the flood plain, however, the resulting change $\Delta q_\text{mc}$ in the unit discharge within the main channel will be negative for such conditions (equivalently for $s_\text{out}$ and $\Delta s_\text{mc}$); this introduces a sign change on the right hand side.
+%
+\begin{equation}
+\diff{\Delta z_b}{t} = \frac{\Delta z_{b,\text{eq}} - \Delta z_b}{T_m}
 \label{Eq5dif}
 \end{equation}
 %
@@ -243,13 +264,13 @@ T_m \approx \frac{h L}{b s_\text{mc}}
 and an equilibrium bed level change \unitbrackets{m} given by
 %
 \begin{equation}
-\Delta z_{b,\text{eq}} = -h \left ( \frac{\Delta q_\text{mc}}{q_\text{mc}} + \frac{\Delta s_\text{mc}}{b s_\text{mc}} \right )
+\Delta z_{b,\text{eq}} = -h \left ( \frac{\Delta q_\text{mc}}{q_\text{mc}} - \frac{\Delta s_\text{mc}}{b s_\text{mc}} \right )
 \label{Eq6}
 \end{equation}
 %
 This relaxation behaviour can also be observed in the results of the numerical models (both 1D and 2D).
 
-The rule-of-thumb is derived by posing that the bed level change $\Delta z_b$ can be interpreted as the bed level change due to a measure over a distance $L$ along a line perpendicular to the stream line at the upstream end of the measure.
+The rule-of-thumb is derived by posing that the bed level change $\Delta z_b$ can be interpreted as the bed level change due to a measure over a distance $L$ along a stream line starting from the upstream end of the measure.
 The equilibrium value $\Delta z_{b,\text{eq}}$ depends according \autoref{Eq6} on the (original) water depth, the relative change in unit discharge and the relative change in the sediment transport.
 The latter term is the result of the sediment flux into the secondary channel which dampens the effect of reduced sediment transport capacity in the main channel.
 Ignoring this relatively minor dampening term results in a more conservative estimate.
@@ -313,49 +334,31 @@ z_{b,2}(0) &= \frac{z_{b,1,\text{eq}} (1-\sigma_1) + z_{b,2,\text{eq}} (1-\sigma
 z_{b,3}(0) &= \frac{z_{b,1,\text{eq}} (1-\sigma_1) \sigma_2 + z_{b,2,\text{eq}} (1-\sigma_2) + z_{b,3,\text{eq}} (1-\sigma_3) \sigma_1 \sigma_2}{1 - \sigma_1 \sigma_2 \sigma_3} \label{Eq8g}
 \end{align}
 
-The lower bound for the morphological impact of the measure will be equal to the minimum value of $z_{b,1}(0)$, $z_{b,2}(0)$ and $z_{b,3}(0)$ and the upper bound is given by the maximum value of $z_{b,1}(0)$, $z_{b,2}(0)$, $z_{b,3}(0)$.
+The lower bound for the morphological impact of the measure will be equal to $\min[z_{b,1}(0), z_{b,2}(0), z_{b,3}(0)]$ and the upper bound is given by $\max[z_{b,1}(0), z_{b,2}(0), z_{b,3}(0)]$.
 For the schematized hydrograph shown in \autoref{Fig5} the bed level change is
 
 \begin{itemize}
-\item at its maximum after flood period 3 (the third block in \autoref{Tab2}), the corresponding bed level is $z_{b,1}(0)$ (\autoref{Eq8e}) 
-\item at its minimum after the low flow period 1 (the first block in \autoref{Tab2}), the corresponding bed level is $z_{b,2}(0)$ (\autoref{Eq8f}).
+\item maximum at $z_{b,1}(0)$ (\autoref{Eq8e}) after flood period 3 (the third block in \autoref{Tab2})
+\item minimum at $z_{b,2}(0)$ (\autoref{Eq8f}) after the low flow period 1 (the first block in \autoref{Tab2}).
 \end{itemize}
 
-The influence of barriers can be included by inserting a yearly period without bed level changes in between flood period 3 and low flow period 1.
+In case the river section is experiences nearly stagnant flow conditions due to barriers a yearly period without bed level changes is inserted between low flow period 1 and the transitional flow period 2.\footnote{Earlier versions of this manual suggested that this period might be inserted between the flood period 3 and the low flow period 1, but algorithmically it was always placed between periods 1 and 2.}
 
-After identifying expressions for the two extreme (minimum, maximum) values, we also determine an expression for the year-averaged bed level change by integrating \autoref{Eq7} per constant discharge period to
+We can't only obtain expressions for the two extreme (minimum, maximum) values but we can also determine an expression for the year-averaged bed level change by integrating \autoref{Eq7} per constant discharge period to
 %
 \begin{align}
-\bar{z}_{b,i} &= \frac{1}{T_i} \int_0^{T_i}{z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})}dt \nonumber \\
-&= \frac{1}{T_i} \int_0^{T_i}{z_{b,i,\text{eq}} + [z_{b,i}(0) - z_{b,i,\text{eq}}]e^{-t/T_{m,i}}}dt \nonumber \\
-&= \frac{1}{T_i} \left . \left ( {z_{b,i,\text{eq}} t - [z_{b,i}(0) - z_{b,i,\text{eq}}]T_{m,i} e^{-t/T_{m,i}}} \right ) \right |_{t=0}^{t=T_i} \nonumber \\
-&= z_{b,i,\text{eq}} - [z_{b,i}(0) - z_{b,i,\text{eq}}] \frac{T_{m,i}}{T_i} ( e^{-T_i/T_{m,i}} - 1 ) \nonumber \\
-&= z_{b,i,\text{eq}} + [z_{b,i}(0) - z_{b,i,\text{eq}}] \frac{T_{m,i}}{T_i} ( 1 - \sigma_i ) \label{Eq8h_1}
+\bar{z}_{b,i} &= \frac{1}{T_i} \int_0^{T_i}{z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})}dt \\
+&= \frac{1}{T_i} \left . \left ( {z_{b,i,\text{eq}} t + [z_{b,i,\text{eq}} - z_{b,i}(0)]T_{m,i} e^{-t/T_{m,i}}} \right ) \right |_{t=0}^{t=T_i} \\
+&= z_{b,i,\text{eq}} + [z_{b,i,\text{eq}} - z_{b,i}(0)] \frac{T_{m,i}}{T_i} ( e^{-T_i/T_{m,i}} - 1 )
 \end{align}
 %
-One may notice that for a large morphological time scale $T_{m,i}$, the last term $\sigma_i - 1$ will become very small while the $T_{m,i}$ term becomes obviously large; their product will tend to $T_i$.
-Alternatively, for $T_i \ll T_{m,i}$ one can assume the transition from $z_{b,i}(0)$ to $z_{b,i+1}(0)$ to be approximately linear, which results in a much simpler expression
+and over all periods to
 %
 \begin{equation}
-\bar{z}_{b,i} \approx \frac{1}{2} [ z_{b,i+1}(0) + z_{b,i}(0) ] \label{Eq8hv2_1}
-\end{equation}
-%
-The integration over all periods results in
-%
-\begin{equation}
-\bar{z}_b = \frac{\sum{z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{[ z_{b,i}(0) - z_{b,i,\text{eq}} ] T_{m,i} ( 1 - \sigma_i )}}{\sum{T_i}}
+\bar{z}_b = \frac{\sum{z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{(z_{b,i,\text{eq}}-z_{b,i}(0)) T_{m,i} (\sigma_i-1)}}{\sum{T_i}}
 \label{Eq8h}
 \end{equation}
 %
-based on \autoref{Eq8h_1} and based on \autoref{Eq8hv2_1} we obtain
-%
-\begin{equation}
-\bar{z}_b \approx \frac{\sum [ z_{b,i+1}(0) + z_{b,i}(0) ] T_i}{2 \sum{T_i}}
-\label{Eq8hv2}
-\end{equation}
-%
-\dfastmi uses \autoref{Eq8hv2} to compute the mean bed level change.
-
 If all bed level changes are removed after the flood period by means of dredging, the yearly dredging amount can finally be estimated by ignoring any excess depth.
 After all, the maximum bed level change at the end of the flood season can with $z_{b,1}(0) = 0$ and \autoref{Eq8a} to \autoref{Eq8i} be expressed as the maximum dredging depth $z_\text{mdd}$
 
