@@ -42,23 +42,7 @@ from packaging import version
 DataField = List[List[Union[float, List[float]]]]
 # RiversObject = Dict[str, Union[int, List[str], List[List[str]], DataField]]
 
-class RiversObjectV1(TypedDict, total=False):
-    version: str
-    branches: List[str]
-    reaches: List[List[str]]
-    qlocations: List[str]
-    proprate_high: List[List[float]]
-    proprate_low: List[List[float]]
-    normal_width: List[List[float]]
-    ucritical: List[List[float]]
-    qbankfull: List[List[float]]
-    qstagnant: List[List[float]]
-    qmin: List[List[float]]
-    qfit: List[List[Tuple[float, float]]]
-    qlevels: List[List[Tuple[float, float, float, float]]]
-    dq: List[List[Tuple[float, float]]]
-    
-class RiversObjectV2(TypedDict, total=False):
+class RiversObject(TypedDict, total=False):
     version: str
     branches: List[str]
     reaches: List[List[str]]
@@ -66,14 +50,22 @@ class RiversObjectV2(TypedDict, total=False):
     normal_width: List[List[float]]
     ucritical: List[List[float]]
     qstagnant: List[List[float]]
-    tide: List[List[Tuple[bool]]]
+    tide: List[List[bool]]
     hydro_q: List[List[Tuple[float, ...]]]
+    autotime: List[List[bool]]
     hydro_t: List[List[Tuple[float, ...]]]
+    qfit: List[List[Tuple[float, float]]]
     tide_bc: List[List[Tuple[float, ...]]]
+    cform: List[List[int]]
+    cdisch: List[List[Tuple[float, float]]]
     prop_q: List[List[Tuple[float, ...]]]
     prop_c: List[List[Tuple[float, ...]]]
-
-RiversObject = Union[RiversObjectV1, RiversObjectV2]
+    proprate_high: List[List[float]] # only for version = 1
+    proprate_low: List[List[float]] # only for version = 1
+    qbankfull: List[List[float]] # only for version = 1
+    qmin: List[List[float]] # only for version = 1
+    qlevels: List[List[Tuple[float, float, float, float]]] # only for version = 1
+    dq: List[List[Tuple[float, float]]] # only for version = 1
 
 PROGTEXTS: Dict[str, List[str]]
 
@@ -233,16 +225,15 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
         config.read_file(configfile)
 
     # initialize rivers dictionary
-    rivers = {}
     try:
         file_version = config["General"]["Version"]
     except:
         raise Exception("No version information in the file {}!".format(filename))
 
     if version.parse(file_version) == version.parse("1"):
-        rivers["version"] = "1.0"
+        iversion = 1
     elif version.parse(file_version) == version.parse("2"):
-        rivers["version"] = "2.0"
+        iversion = 2
     else:
         raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
 
@@ -250,7 +241,6 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
     branches = [k for k in config.keys()]
     branches.remove("DEFAULT")
     branches.remove("General")
-    rivers["branches"] = branches
 
     # parse reaches and discharge locations
     allreaches = []
@@ -269,95 +259,188 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
             except:
                 break
         allreaches.extend([reaches])
-    rivers["reaches"] = allreaches
-    rivers["qlocations"] = qlocations
 
     # collect the values for all other quantities
     nreaches = [len(x) for x in allreaches]
-    rivers["normal_width"] = collect_values1(config, branches, nreaches, "NWidth")
-    rivers["ucritical"] = collect_values1(config, branches, nreaches, "UCrit")
-    rivers["qstagnant"] = collect_values1(config, branches, nreaches, "QStagnant")
     
-    # read version specific records 
-    if rivers["version"] == "1.0":
-        rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
-        rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
-        rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
-        rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
-        rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
-        rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
-        rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
+    # call the specific reader for the file version
+    if iversion == 1:
+        rivers = read_rivers1(config, branches, allreaches, qlocations)
         
-    elif rivers["version"] == "2.0":
-        rivers["tide"] = collect_values_logical(config, branches, nreaches, "Tide")
-        rivers["hydro_q"] = collect_valuesN(config, branches, nreaches, "HydroQ")
-        rivers["hydro_t"] = collect_valuesN(config, branches, nreaches, "HydroT")
-        rivers["tide_bc"] = collect_valuesN(config, branches, nreaches, "TideBC")
-        rivers["prop_q"] = collect_valuesN(config, branches, nreaches, "PropQ")
-        rivers["prop_c"] = collect_valuesN(config, branches, nreaches, "PropC")
-        
-        # verify consistent length of hydro_q and hydro_t
-        verify_consistent_length(rivers, "hydro_q", "hydro_t") 
-
-        # verify consistent length of hydro_q and hydro_t
-        verify_consistent_length(rivers, "hydro_q", "tide_bc", cond="tide") 
-        
-        # verify consistent length of prop_q and prop_c
-        verify_consistent_length(rivers, "prop_q", "prop_c") 
-
+    else: # iversion == 2
+        rivers = read_rivers2(config, branches, allreaches, qlocations)
+    
     return rivers
 
 
-def verify_consistent_length(
-    rivers: RiversObject,
-    key1: str,
-    key2: str,
-    cond: str = "",
-    ) -> None:
+def read_rivers1(config: configparser.ConfigParser, branches: List[str], allreaches: List[List[str]], qlocations: List[str]) -> RiversObject:
     """
-    Verify that for each branch/reach the tuples in the two records have matching lengths.
+    Read a configuration file containing the river data.
 
-    Arguments
-    ---------
-    rivers: RiversObject
-        The dictionary containing river data.
-    key1 : str
-        The name of the first parameter for which the lengths should be compared.
-    key2 : str
-        The name of the second parameter for which the lengths should be compared.
-    cond : str
-        The name of a conditional parameter. Only perform check if it returns True.
+    Read the configuration file containing the listing of various branches/reaches
+    and their associated default parameter settings.
 
-    Raises
-    ------
-    Exception
-        If the lengths of the corresponding entries in the two arrays don't match.
+    Parameters
+    ----------
+    filename : str
+        The name of the river configuration file (default "rivers.ini").
 
     Returns
     -------
-    None
+    river_config : RiversObject
+        A dictionary containing the river data.
     """
-    has_cond = cond != ""
+    rivers : RiversObject = {}
+    
+    rivers["version"] = "1.0"
+    rivers["branches"] = branches
+    rivers["reaches"] = allreaches
+    rivers["qlocations"] = qlocations
+    
+    nreaches = [len(x) for x in allreaches]
+
+    rivers["normal_width"] = collect_values1(config, branches, nreaches, "NWidth")
+    rivers["ucritical"] = collect_values1(config, branches, nreaches, "UCrit")
+    rivers["qstagnant"] = collect_values1(config, branches, nreaches, "QStagnant")
+
+    rivers["proprate_high"] = collect_values1(config, branches, nreaches, "PrHigh")
+    rivers["proprate_low"] = collect_values1(config, branches, nreaches, "PrLow")
+    rivers["qbankfull"] = collect_values1(config, branches, nreaches, "QBankfull")
+    rivers["qmin"] = collect_values1(config, branches, nreaches, "QMin")
+    rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit")
+    rivers["qlevels"] = collect_values4(config, branches, nreaches, "QLevels")
+    rivers["dq"] = collect_values2(config, branches, nreaches, "dQ")
+    
+    return rivers
+        
+def read_rivers2(config: configparser.ConfigParser, branches: List[str], allreaches: List[List[str]], qlocations: List[str]) -> RiversObject:
+    """
+    Read a configuration file containing the river data.
+
+    Read the configuration file containing the listing of various branches/reaches
+    and their associated default parameter settings.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the river configuration file (default "rivers.ini").
+
+    Returns
+    -------
+    river_config : RiversObject
+        A dictionary containing the river data.
+    """
+    rivers : RiversObject = {}
+    
+    rivers["version"] = "2.0"
+    rivers["branches"] = branches
+    rivers["reaches"] = allreaches
+    rivers["qlocations"] = qlocations
+    
+    nreaches = [len(x) for x in allreaches]
+
+    rivers["normal_width"] = collect_values1(config, branches, nreaches, "NWidth")
+    rivers["ucritical"] = collect_values1(config, branches, nreaches, "UCrit")
+    rivers["qstagnant"] = collect_values1(config, branches, nreaches, "QStagnant")
+
+    rivers["hydro_q"] = collect_valuesN(config, branches, nreaches, "HydroQ")
+
+    rivers["autotime"] = collect_values_logical(config, branches, nreaches, "AutoTime", False)
+    # for AutoTime = True
+    rivers["qfit"] = collect_values2(config, branches, nreaches, "QFit", (0.0, 0.0))
+    # for AutoTime = False
+    rivers["hydro_t"] = collect_valuesN(config, branches, nreaches, "HydroT")
+
+    rivers["tide"] = collect_values_logical(config, branches, nreaches, "Tide")
+    # for Tide = True
+    rivers["tide_bc"] = collect_valuesN(config, branches, nreaches, "TideBC")
+
+    rivers["cform"] = collect_int_values1(config, branches, nreaches, "CelerForm", 2)
+    # for CelerForm = 1
+    rivers["prop_q"] = collect_valuesN(config, branches, nreaches, "PropQ")
+    rivers["prop_c"] = collect_valuesN(config, branches, nreaches, "PropC")
+    # for CelerForm = 2
+    rivers["cdisch"] = collect_values2(config, branches, nreaches, "CelerQ", (0.0, 0.0))
+    
+    # verify consistent length of hydro_q and hydro_t
+    tup1: Tuple[float, ...]
+    tup2: Tuple[float, ...]
     branches = rivers["branches"]
     for ib in range(len(branches)):
         reaches = rivers["reaches"][ib]
         for i in range(len(reaches)):
-            if has_cond and not rivers[cond][ib][i]:
-                continue
-            tup1 = rivers[key1][ib][i]
-            tup2 = rivers[key2][ib][i]
-            if len(tup1) != len(tup2):
+            tup1 = rivers["hydro_q"][ib][i]
+            if rivers["autotime"][ib][i]:
+                tup2 = rivers["qfit"][ib][i]
+                if tup2 == (0.0, 0.0):
+                    raise Exception(
+                        'The parameter "QFit" must be specified for branch "{}", reach "{}" since "AutoTime" is set to True.'.format(
+                            branches[ib],
+                            reaches[i],
+                         )
+                    )
+            else:
+                tup2 = rivers["hydro_t"][ib][i]
+                if len(tup1) != len(tup2):
+                    raise Exception(
+                        'Length of "HydroQ" and "HydroT" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
+                            branches[ib],
+                            reaches[i],
+                            len(tup1),
+                            len(tup2),
+                         )
+                    )
+            if rivers["tide"][ib][i]:
+                tup2 = rivers["tide_bc"][ib][i]
+                if len(tup1) != len(tup2):
+                    raise Exception(
+                        'Length of "HydroQ" and "TideBC" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
+                            branches[ib],
+                            reaches[i],
+                            len(tup1),
+                            len(tup2),
+                         )
+                    )
+            if rivers["cform"][ib][i] == 1:
+                tup1 = rivers["prop_q"][ib][i]
+                tup2 = rivers["prop_c"][ib][i]
+                if len(tup1) != len(tup2):
+                    raise Exception(
+                        'Length of "PropQ" and "PropC" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
+                            branches[ib],
+                            reaches[i],
+                            len(tup1),
+                            len(tup2),
+                         )
+                    )
+                elif len(tup1) == 0:
+                    raise Exception(
+                        'The parameters "PropQ" and "PropC" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 1.'.format(
+                            branches[ib],
+                            reaches[i],
+                         )
+                    )
+            elif rivers["cform"][ib][i] == 2:
+                tup2 = rivers["cdisch"][ib][i]
+                if tup2 == (0.0, 0.0):
+                    raise Exception(
+                        'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
+                            branches[ib],
+                            reaches[i],
+                         )
+                    )
+                    
+            else:
                 raise Exception(
-                    'Length of "{}" and "{}" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
-                        key1,
-                        key2,
+                    'Invalid value {} specified for "CelerForm" for branch "{}", reach "{}"; only 1 and 2 are supported.'.format(
+                        rivers["cform"][ib][i],
                         branches[ib],
                         reaches[i],
-                        len(tup1),
-                        len(tup2),
                     )
                 )
-    return
+                
+
+    return rivers
 
 
 def collect_values1(
@@ -365,6 +448,7 @@ def collect_values1(
     branches: List[str],
     nreaches: List[int],
     key: str,
+    default: Optional[float] = None,
 ) -> List[List[float]]:
     """
     Collect river parameter data from river configuration object.
@@ -385,14 +469,13 @@ def collect_values1(
     Raises
     ------
     Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
+        If the number of values read from the file doesn't match 1.
 
     Returns
     -------
-    data : DataField
+    data : List[List[float]]
         A list of lists. Each list contains per reach within the corresponding
-        branch one float or a list of floats depending on input argument nval.
+        branch one float.
     """
     try:
         g_val = config["General"][key]
@@ -414,26 +497,108 @@ def collect_values1(
                 val = config[branch][key + stri]
             except:
                 val = b_val
-
-            vals = tuple(float(x) for x in val.split())
-            if len(vals) != 1:
-                raise Exception(
-                    'Incorrect number of values read from "{}" for reach {} on branch "{}". Need {} values.'.format(
-                        val, i+1, branch, 1
+            if val == "" and default is not None:
+                fval = default
+            else:
+                try:
+                    vals = tuple(float(x) for x in val.split())
+                except:
+                    vals = ()
+                if len(vals) != 1:
+                    raise Exception(
+                        'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                            key, i+1, branches[ib], val, 1
+                        )
                     )
-                )
-            values_per_branch.append(vals[0])
+                fval = vals[0]
+            values_per_branch.append(fval)
 
         all_values.append(values_per_branch)
 
     return all_values
 
 
+def collect_int_values1(
+    config: configparser.ConfigParser,
+    branches: List[str],
+    nreaches: List[int],
+    key: str,
+    default: Optional[int] = None,
+) -> List[List[int]]:
+    """
+    Collect river parameter data from river configuration object.
+
+    This routines collects entries of type integer.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        The dictionary containing river data.
+    branches : List[str]
+        The list of river branches. The length of this list is nBranches.
+    nreaches : List[int]
+        The number of reaches per river branch. The length of this list is nBranches.
+    key : str
+        The name of the parameter for which the values are to be retrieved.
+
+    Raises
+    ------
+    Exception
+        If the number of values read from the file doesn't match 1.
+
+    Returns
+    -------
+    data : List[List[int]]
+        A list of lists. Each list contains per reach within the corresponding
+        branch one integer.
+    """
+    try:
+        g_val = config["General"][key]
+    except:
+        g_val = ""
+
+    all_values = []
+    for ib in range(len(branches)):
+        branch = branches[ib]
+        try:
+            b_val = config[branch][key]
+        except:
+            b_val = g_val
+
+        values_per_branch = []
+        for i in range(nreaches[ib]):
+            stri = str(i + 1)
+            try:
+                val = config[branch][key + stri]
+            except:
+                val = b_val
+            if val == "" and default is not None:
+                ival = default
+            else:
+                try:
+                    vals = tuple(int(x) for x in val.split())
+                except:
+                    vals = ()
+                if len(vals) != 1:
+                    raise Exception(
+                        'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                            key, i+1, branches[ib], val, 1
+                        )
+                    )
+                ival = vals[0]
+            values_per_branch.append(ival)
+
+        all_values.append(values_per_branch)
+
+    return all_values
+    
+
 def collect_values_logical(
     config: configparser.ConfigParser,
     branches: List[str],
     nreaches: List[int],
     key: str,
+    default: Optional[bool] = None,
 ) -> List[List[bool]]:
     """
     Collect river parameter data from river configuration object.
@@ -454,12 +619,11 @@ def collect_values_logical(
     Raises
     ------
     Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
+        If the number of values read from the file doesn't match 1.
 
     Returns
     -------
-    data : DataField
+    data : List[List[bool]]
         A list of lists. Each list contains per reach within the corresponding
         branch one float or a list of floats depending on input argument nval.
     """
@@ -481,14 +645,21 @@ def collect_values_logical(
                 val = config[branch][key + stri]
             except:
                 val = b_val
-            vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in val.split())
-            if len(vals) != 1:
-                raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(
-                        val, 1
+            if val == "" and default is not None:
+                bval = default
+            else:
+                try:
+                    vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in val.split())
+                except:
+                    vals = ()
+                if len(vals) != 1:
+                    raise Exception(
+                        'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                            key, i+1, branches[ib], val, 1
+                        )
                     )
-                )
-            values_per_branch.append(vals[0])
+                bval = vals[0]
+            values_per_branch.append(bval)
         all_values.append(values_per_branch)
     return all_values
 
@@ -498,6 +669,7 @@ def collect_values2(
     branches: List[str],
     nreaches: List[int],
     key: str,
+    default: Optional[Tuple[float, float]] = None,
 ) -> List[List[Tuple[float, float]]]:
     """
     Collect river parameter data from river configuration object.
@@ -514,19 +686,21 @@ def collect_values2(
         The number of reaches per river branch. The length of this list is nBranches.
     key : str
         The name of the parameter for which the values are to be retrieved.
+    default : Optional[Tuple[float, float]]
+        Default tuple if not specified in file.
 
     Raises
     ------
     Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
+        If the number of values read from the file doesn't match 2.
 
     Returns
     -------
-    data : DataField
+    data : List[List[Tuple[float, float]]]
         A list of lists. Each list contains per reach within the corresponding
-        branch one float or a list of floats depending on input argument nval.
+        branch a list of 2 floats.
     """
+    vals: Tuple[float, ...]
     try:
         g_val = config["General"][key]
     except:
@@ -545,13 +719,19 @@ def collect_values2(
                 val = config[branch][key + stri]
             except:
                 val = b_val
-            vals = tuple(float(x) for x in val.split())
-            if len(vals) != 2:
-                raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(
-                        val, 2
+            if val == "" and default is not None:
+                vals = default
+            else:
+                try:
+                    vals = tuple(float(x) for x in val.split())
+                except:
+                    vals = ()
+                if len(vals) != 2:
+                    raise Exception(
+                        'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                            key, i+1, branches[ib], val, 2
+                        )
                     )
-                )
             values_per_branch.append((vals[0], vals[1]))
         all_values.append(values_per_branch)
     return all_values
@@ -562,6 +742,7 @@ def collect_values4(
     branches: List[str],
     nreaches: List[int],
     key: str,
+    default: Optional[Tuple[float, float, float, float]] = None,
 ) -> List[List[Tuple[float, float, float, float]]]:
     """
     Collect river parameter data from river configuration object.
@@ -578,20 +759,21 @@ def collect_values4(
         The number of reaches per river branch. The length of this list is nBranches.
     key : str
         The name of the parameter for which the values are to be retrieved.
+    default : Optional[Tuple[float, float, float, float]]
+        Default tuple if not specified in file.
 
     Raises
     ------
     Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
+        If the number of values read from the file doesn't match 4.
 
     Returns
     -------
-    data : DataField
+    data : List[List[Tuple[float, float, float, float]]]
         A list of lists. Each list contains per reach within the corresponding
-        branch one float or a list of floats depending on input argument nval.
+        branch a list of 4 floats.
     """
-    vals: Union[float, Tuple[float, ...]]
+    vals: Tuple[float, ...]
     try:
         g_val = config["General"][key]
     except:
@@ -610,13 +792,19 @@ def collect_values4(
                 val = config[branch][key + stri]
             except:
                 val = b_val
-            vals = tuple(float(x) for x in val.split())
-            if len(vals) != 4:
-                raise Exception(
-                    'Incorrect number of values read from "{}". Need {} values.'.format(
-                        val, 4
+            if val == "" and default is not None:
+                vals = default
+            else:
+                try:
+                    vals = tuple(float(x) for x in val.split())
+                except:
+                    vals = ()
+                if len(vals) != 4:
+                    raise Exception(
+                        'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                            key, i+1, branches[ib], val, 4
+                        )
                     )
-                )
             values_per_branch.append((vals[0], vals[1], vals[2], vals[3]))
         all_values.append(values_per_branch)
     return all_values
@@ -644,19 +832,13 @@ def collect_valuesN(
     key : str
         The name of the parameter for which the values are to be retrieved.
 
-    Raises
-    ------
-    Exception
-        If the number of values read from the file doesn't match the number
-        of values specified by the input argument nval.
-
     Returns
     -------
-    data : DataField
+    data : List[List[Tuple[float, ...]]]
         A list of lists. Each list contains per reach within the corresponding
-        branch one float or a list of floats depending on input argument nval.
+        branch a list of floats.
     """
-    vals: Union[float, Tuple[float, ...]]
+    vals: Tuple[float, ...]
     try:
         g_val = config["General"][key]
     except:
@@ -898,6 +1080,8 @@ def copy_ugrid(srcname: str, meshname: str, dstname: str) -> None:
     """
     # open source and destination files
     src = netCDF4.Dataset(srcname)
+    if os.path.exists(dstname):
+        os.remove(dstname)
     dst = netCDF4.Dataset(dstname, "w", format="NETCDF4")
 
     # locate source mesh
@@ -1211,3 +1395,253 @@ def get_xykm(
         xykm = shapely.geometry.asLineString(xykm.coords[::-1])
 
     return xykm
+
+
+def config_get_bool(
+    config: configparser.ConfigParser,
+    group: str,
+    key: str,
+    default: Optional[bool] = None,
+) -> bool:
+    """
+    Get a boolean from a selected group and keyword in the analysis settings.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Settings for the D-FAST analysis.
+    group : str
+        Name of the group from which to read.
+    key : str
+        Name of the keyword from which to read.
+    default : Optional[bool]
+        Optional default value.
+
+    Raises
+    ------
+    Exception
+        If the keyword isn't specified and no default value is given.
+
+    Returns
+    -------
+    val : bool
+        Boolean value.
+    """
+    try:
+        str = config[group][key].lower()
+        val = (
+            (str == "yes")
+            or (str == "y")
+            or (str == "true")
+            or (str == "t")
+            or (str == "1")
+        )
+    except:
+        if not default is None:
+            val = default
+        else:
+            raise Exception(
+                'No boolean value specified for required keyword "{}" in block "{}".'.format(
+                    key, group
+                )
+            )
+    return val
+
+
+def config_get_int(
+    config: configparser.ConfigParser,
+    group: str,
+    key: str,
+    default: Optional[int] = None,
+    positive: bool = False,
+) -> int:
+    """
+    Get an integer from a selected group and keyword in the analysis settings.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Settings for the D-FAST analysis.
+    group : str
+        Name of the group from which to read.
+    key : str
+        Name of the keyword from which to read.
+    default : Optional[int]
+        Optional default value.
+    positive : bool
+        Flag specifying whether all integers are accepted (if False), or only strictly positive integers (if True).
+
+    Raises
+    ------
+    Exception
+        If the keyword isn't specified and no default value is given.
+        If a negative or zero value is specified when a positive value is required.
+
+    Returns
+    -------
+    val : int
+        Integer value.
+    """
+    try:
+        val = int(config[group][key])
+    except:
+        if not default is None:
+            val = default
+        else:
+            raise Exception(
+                'No integer value specified for required keyword "{}" in block "{}".'.format(
+                    key, group
+                )
+            )
+    if positive:
+        if val <= 0:
+            raise Exception(
+                'Value for "{}" in block "{}" must be positive, not {}.'.format(
+                    key, group, val
+                )
+            )
+    return val
+
+
+def config_get_float(
+    config: configparser.ConfigParser,
+    group: str,
+    key: str,
+    default: Optional[float] = None,
+    positive: bool = False,
+) -> float:
+    """
+    Get a floating point value from a selected group and keyword in the analysis settings.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Settings for the D-FAST analysis.
+    group : str
+        Name of the group from which to read.
+    key : str
+        Name of the keyword from which to read.
+    default : Optional[float]
+        Optional default value.
+    positive : bool
+        Flag specifying whether all floats are accepted (if False), or only positive floats (if True).
+
+    Raises
+    ------
+    Exception
+        If the keyword isn't specified and no default value is given.
+        If a negative value is specified when a positive value is required.
+
+    Returns
+    -------
+    val : float
+        Floating point value.
+    """
+    try:
+        val = float(config[group][key])
+    except:
+        if not default is None:
+            val = default
+        else:
+            raise Exception(
+                'No floating point value specified for required keyword "{}" in block "{}".'.format(
+                    key, group
+                )
+            )
+    if positive:
+        if val < 0.0:
+            raise Exception(
+                'Value for "{}" in block "{}" must be positive, not {}.'.format(
+                    key, group, val
+                )
+            )
+    return val
+
+
+def config_get_str(
+    config: configparser.ConfigParser,
+    group: str,
+    key: str,
+    default: Optional[str] = None,
+) -> str:
+    """
+    Get a string from a selected group and keyword in the analysis settings.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Settings for the D-FAST analysis.
+    group : str
+        Name of the group from which to read.
+    key : str
+        Name of the keyword from which to read.
+    default : Optional[str]
+        Optional default value.
+
+    Raises
+    ------
+    Exception
+        If the keyword isn't specified and no default value is given.
+
+    Returns
+    -------
+    val : str
+        String.
+    """
+    try:
+        val = config[group][key]
+    except:
+        if not default is None:
+            val = default
+        else:
+            raise Exception(
+                'No value specified for required keyword "{}" in block "{}".'.format(
+                    key, group
+                )
+            )
+    return val
+
+
+def config_get_range(
+    config: configparser.ConfigParser, group: str, key: str, default: Optional[Tuple[float,float]] = None,
+) -> Tuple[float, float]:
+    """
+    Get a start and end value from a selected group and keyword in the analysis settings.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Settings for the D-FAST analysis.
+    group : str
+        Name of the group from which to read.
+    key : str
+        Name of the keyword from which to read.
+    default : Optional[Tuple[float,float]]
+        Optional default range.
+
+    Returns
+    -------
+    val : Tuple[float,float]
+        Lower and upper limit of the range.
+    """
+    try:
+        str = config_get_str(config, group, key)
+        obrack = str.find("[")
+        cbrack = str.find("]")
+        if obrack >= 0 and cbrack >= 0:
+            str = str[obrack + 1 : cbrack - 1]
+        vallist = [float(fstr) for fstr in str.split(":")]
+        if vallist[0] > vallist[1]:
+            val = (vallist[1], vallist[0])
+        else:
+            val = (vallist[0], vallist[1])
+    except:
+        if not default is None:
+            val = default
+        else:
+            raise Exception(
+                'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format(
+                    str, key, group
+                )
+            )
+    return val

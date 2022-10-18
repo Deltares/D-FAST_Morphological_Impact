@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional, List, Dict, Any, Tuple, TextIO
+from typing import Optional, List, Union, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
 from dfastmi.kernel import Vector, QRuns
 
@@ -37,8 +37,12 @@ import math
 import numpy
 import dfastmi.io
 import dfastmi.kernel
+import dfastmi.plotting
+import matplotlib
 import configparser
+import shapely
 from packaging import version
+import netCDF4
 
 
 def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> None:
@@ -49,7 +53,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
 
     Arguments
     ---------
-    config_file
+    config_file : str
         Name of the configuration file.
     rivers : RiversObject
         A dictionary containing the river data.
@@ -62,14 +66,15 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
 
     try:
         config = load_configuration_file(config_file)
+        rootdir = os.path.dirname(config_file)
     except:
         print(sys.exc_info()[1])
     else:
-        batch_mode_core(rivers, reduced_output, config)
+        batch_mode_core(rivers, reduced_output, config, rootdir = rootdir)
 
 
 def batch_mode_core(
-    rivers: RiversObject, reduced_output: bool, config: configparser.ConfigParser
+    rivers: RiversObject, reduced_output: bool, config: configparser.ConfigParser, rootdir: str = "", gui: bool = False
 ) -> bool:
     """
     Run the analysis for a given configuration in batch mode.
@@ -83,13 +88,31 @@ def batch_mode_core(
         interest only.
     config : configparser.ConfigParser
         Configuration of the analysis to be run.
+    rootdir : str
+        Reference directory for default output folders.
+    gui : bool
+        Flag indicating whether this routine is called from the GUI.
 
     Return
     ------
     success : bool
         Flag indicating whether the analysis could be completed successfully.
     """
-    report = open(dfastmi.io.get_filename("report.out"), "w")
+    Q1 : QRuns
+    applyQ1 : Tuple[bool, bool, bool]
+    Q : Tuple[float, ...]
+    applyQ : Tuple[bool, ...]
+    
+    # check outputdir
+    if rootdir == "":
+        rootdir = os.getcwd()
+    outputdir = dfastmi.io.config_get_str(config, "General", "OutputDir", rootdir + os.sep + "output")
+    if os.path.exists(outputdir):
+        dfastmi.io.log_text("overwrite_dir", dict={"dir": outputdir})
+    else:
+        os.makedirs(outputdir)
+    report = open(outputdir + os.sep + dfastmi.io.get_filename("report.out"), "w")
+    display = True
 
     prog_version = dfastmi.__version__
     dfastmi.io.log_text("header", dict={"version": prog_version}, file=report)
@@ -125,50 +148,86 @@ def batch_mode_core(
             nwidth = rivers["normal_width"][ibranch][ireach]
             q_location = rivers["qlocations"][ibranch]
             q_stagnant = rivers["qstagnant"][ibranch][ireach]
+            if "Qthreshold" in config["General"]:
+                q_threshold = float(config["General"]["Qthreshold"])
+            else:
+                q_threshold = q_stagnant
             needs_tide = False
             n_fields = 1
-            tide_bc = []
+            tide_bc: Tuple[float, ...] = ()
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
                 celerity_hg = rivers["proprate_high"][ibranch][ireach]
                 celerity_lw = rivers["proprate_low"][ibranch][ireach]
+
                 (
                     all_q,
                     q_threshold,
                     q_bankfull,
                     q_fit,
-                    Q,
-                    applyQ,
+                    Q1,
+                    applyQ1,
                     tstag,
                     T,
                     rsigma,
                 ) = batch_get_discharges(
                     rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
                 )
+                Q = Q1
+                applyQ = applyQ1
+                Tmi = tuple(0 if Q[i] is None or Q[i]<=q_stagnant else T[i] for i in range(len(T)))
+                celerity = (celerity_lw, celerity_hg, celerity_hg)
 
             else:
                 # version 2
                 Q = rivers["hydro_q"][ibranch][ireach]
                 applyQ = (True,) * len(Q)
-                T = rivers["hydro_t"][ibranch][ireach]
-                sumT = sum(T)
-                T = tuple(t / sumT for t in T)
-                prop_q = rivers["prop_q"][ibranch][ireach]
-                prop_c = rivers["prop_c"][ibranch][ireach]
+                if rivers["autotime"][ibranch][ireach]:
+                    q_fit = rivers["qfit"][ibranch][ireach]
+                    T, Tmi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
+                else:
+                    T = rivers["hydro_t"][ibranch][ireach]
+                    sumT = sum(T)
+                    T = tuple(t / sumT for t in T)
+                    Tmi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
+                
+                # determine the bed celerity based on the input settings
+                cform = rivers["cform"][ibranch][ireach]
+                if cform == 1:
+                    prop_q = rivers["prop_q"][ibranch][ireach]
+                    prop_c = rivers["prop_c"][ibranch][ireach]
+                    celerity = tuple(dfastmi.kernel.get_celerity(q, prop_q, prop_c) for q in Q)
+                elif cform == 2:
+                    cdisch = rivers["cdisch"][ibranch][ireach]
+                    celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
+                
+                # set the celerity equal to 0 for discharges less or equal to q_stagnant
+                celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
+                
+                # check if all celerities are equal to 0. If so, the impact would be 0.
+                all_zero = True
+                for i in range(len(Q)):
+                    if celerity[i] < 0.0:
+                        raise Exception("Invalid negative celerity {} m/s encountered for discharge {} m3/s!".format(celerity[i],Q[i]))
+                    elif celerity[i] > 0.0:
+                        all_zero = False
+                if all_zero:
+                    raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
+                
                 needs_tide = rivers["tide"][ibranch][ireach]
                 if needs_tide:
                     tide_bc = rivers["tide_bc"][ibranch][ireach]
-                rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, prop_q, prop_c, nwidth)
-                tstag = 0
-                try:
                     n_fields = int(config["General"]["NFields"])
-                except:
+                    if n_fields == 1:
+                        raise Exception("Unexpected combination of tides and NFields = 1!")
+                else:
                     n_fields = 1
-                if needs_tide and n_fields == 1:
-                    raise Exception("Unexpected combination of tides and NFields = 1!")
+                rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+                tstag = 0
 
-            slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+            #slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+            slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
 
             reach = rivers["reaches"][ibranch][ireach]
             ucrit = rivers["ucritical"][ibranch][ireach]
@@ -192,17 +251,61 @@ def batch_mode_core(
                 )
             filenames = get_filenames(mode, needs_tide, config)
             old_zmin_zmax = False
-            if "RiverKM" in config["General"]:
-                kmfile = config["General"]["RiverKM"]
+            kmfile = dfastmi.io.config_get_str(config, "General", "RiverKM", "")
+            xykm = dfastmi.io.get_xykm(kmfile)
+            xykline = numpy.array(xykm)
+            kline = xykline[:,2]
+            kmbounds = dfastmi.io.config_get_range(config, "General", "Boundaries", (min(kline), max(kline)))
+            if display:
+                dfastmi.io.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
+
+            # set plotting flags
+            plotting = dfastmi.io.config_get_bool(config, "General", "Plotting", True)
+            if plotting:
+                saveplot = dfastmi.io.config_get_bool(config, "General", "SavePlots", True)
+                saveplot_zoomed = dfastmi.io.config_get_bool(config, "General", "SaveZoomPlots", False)
+                zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
+                zoom_km_step = dfastmi.io.config_get_float(config, "General", "ZoomStepKM", zoom_km_step)
+                if zoom_km_step < 0.01:
+                    saveplot_zoomed = False
+                if saveplot_zoomed:
+                    kmzoom, xyzoom = get_zoom_extends(kmbounds[0], kmbounds[1], zoom_km_step, xykline)
+                else:
+                    kmzoom = []
+                    xyzoom = []
+                closeplot = dfastmi.io.config_get_bool(config, "General", "ClosePlots", False)
             else:
-                kmfile = ""
+                saveplot = False
+                saveplot_zoomed = False
+                kmzoom = []
+                xyzoom = []
+                closeplot = False
+    
+            # as appropriate check output dir for figures and file format
+            if saveplot:
+                figdir = dfastmi.io.config_get_str(
+                    config, "General", "FigureDir", rootdir + os.sep + "figure"
+                )
+                dfastmi.io.log_text("figure_dir", dict={"dir": figdir})
+                if os.path.exists(figdir):
+                    dfastmi.io.log_text("overwrite_dir", dict={"dir": figdir})
+                else:
+                    os.makedirs(figdir)
+                plot_ext = dfastmi.io.config_get_str(config, "General", "FigureExt", ".png")
+            else:
+                figdir = ''
+                plot_ext = ''
+            
+            plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
+
             failed = analyse_and_report(
                 mode,
-                False,
+                display,
                 report,
                 reduced_output,
                 reach,
                 q_location,
+                q_threshold,
                 tstag,
                 Q,
                 T,
@@ -211,19 +314,28 @@ def batch_mode_core(
                 nwidth,
                 ucrit,
                 filenames,
-                kmfile,
+                xykm,
                 needs_tide,
                 n_fields,
                 tide_bc,
                 old_zmin_zmax,
+                kmbounds,
+                outputdir,
+                plotops,
             )
             if slength > 1:
-                nlength = int(slength)
+                nlength = "{}".format(int(slength))
             else:
-                nlength = slength
+                nlength = "{}".format(slength)
             dfastmi.io.log_text(
                 "length_estimate", dict={"nlength": nlength}, file=report
             )
+
+            if plotops['plotting']:
+                if plotops['closeplot']:
+                    matplotlib.pyplot.close("all")
+                else:
+                    matplotlib.pyplot.show(block=not gui)
 
     dfastmi.io.log_text("end", file=report)
     report.close()
@@ -247,6 +359,85 @@ def countQ(Q: Vector) -> int:
     return sum([not q is None for q in Q])
 
 
+def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Vector:
+    """
+    Get the representative time span for each discharge.
+
+    Arguments
+    ---------
+    Q : Vector
+        a vector of discharges included in hydrograph [m3/s].
+    q_fit : float
+        A discharge and dicharge change determining the discharge exceedance curve [m3/s].
+    q_stagnant : float
+        Discharge below which flow conditions are stagnant [m3/s].
+    q_threshold : float
+        Discharge below which the measure has no effect (due to measure design) [m3/s].
+
+    Results
+    -------
+    T : Vector
+        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+    Tmi : Vector
+        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+    """
+    
+    # make sure that the discharges are sorted low to high
+    qvec = numpy.array(Q)
+    sorted = numpy.argsort(qvec)
+    q = qvec[sorted]
+    
+    t = numpy.zeros(q.shape)
+    tmi = numpy.zeros(q.shape)
+    p_do = 1.0
+    p_th = math.exp(min(0.0, q_fit[0] - max(q_stagnant, q_threshold))/q_fit[1])
+    for i in range(len(q)):
+        if q[i] <= q_stagnant:
+            # if the current discharge is in the stagnant regime
+            if i < len(q)-1 and q[i+1] > q_stagnant:
+                # if the next discharge is not in the stagnant regime, then the stagnant discharge is the boundary between the two regimes
+                # this will associate the whole stagnant period with this discharge since p_do = 1
+                q_up = q_stagnant
+                p_up = math.exp(min(0.0, q_fit[0] - q_up)/q_fit[1])
+            else:
+                # if the next discharge is also in the stagnant regime, keep p_up = p_do = 1
+                # this will associate zero time with this discharge
+                p_up = 1.0
+        elif i < len(q)-1:
+            # if the current discharge is above the stagnant regime and more (higher) discharges follow, select the geometric midpoint as transition
+            q_up = math.sqrt(q[i] * q[i+1])
+            p_up = math.exp(min(0.0, q_fit[0] - q_up)/q_fit[1])
+        else:
+            # if there are no higher discharges, associate this discharge with the whole remaining range until "infinite discharge"
+            # q_up = inf
+            p_up = 0.0
+        t[i] = p_do - p_up
+        
+        if q[i] <= q_threshold:
+            # if the measure is inactive for the current discharge, this discharge range may still be associated with impact at the high discharge end
+            tmi[i] = max(0.0, p_th - p_up)
+        else:
+            # if the measure is active for the current discharge, the impact of this discharge range may be reduced at the low discharge end
+            tmi[i] = min(p_th, p_do) - p_up
+        p_do = p_up
+    
+    # correct in case the sorting of the discharges changed the order
+    tvec = numpy.zeros(q.shape)
+    tvec[sorted] = t
+    T = tuple(ti for ti in tvec)
+
+    tvec_mi = numpy.zeros(q.shape)
+    tvec_mi[sorted] = tmi
+    Tmi = tuple(ti for ti in tvec_mi)
+    
+    print(Q)
+    print(q)
+    print(T)
+    print(Tmi)
+
+    return T, Tmi
+
+
 def batch_get_discharges(
     rivers: RiversObject,
     ibranch: int,
@@ -262,6 +453,7 @@ def batch_get_discharges(
     float,
     Tuple[float, float],
     QRuns,
+    Tuple[bool, bool, bool],
     float,
     Vector,
     Vector,
@@ -300,12 +492,15 @@ def batch_get_discharges(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file) [m3/s].
     Q : QRuns
         Tuple of (at most) three characteristic discharges [m3/s].
+    applyQ : Tuple[bool, bool, bool]
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
     t_stagnant : float
         Fraction of year during which flow velocity is considered negligible [-].
     T : Vector
-        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
     rsigma : Vector
-        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+        A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
     """
     q_threshold: Optional[float]
 
@@ -381,6 +576,7 @@ def get_filenames(
         conditions, such as a Discharge and Tide forcing tuple.
     """
     filenames: Dict[Any, Tuple[str,str]]
+    key: Union[Tuple[float, int], float]
     filenames = {}
     if imode == 0 or config is None:
         pass
@@ -455,6 +651,7 @@ def analyse_and_report(
     reduced_output: bool,
     reach: str,
     q_location: str,
+    q_threshold: float,
     tstag: float,
     Q: Vector,
     T: Vector,
@@ -463,11 +660,14 @@ def analyse_and_report(
     nwidth: float,
     ucrit: float,
     filenames: Dict[Any, Tuple[str,str]],
-    kmfile: str,
+    xykm: shapely.geometry.linestring.LineStringAdapter,
     needs_tide: bool,
     n_fields: int,
     tide_bc: Vector,
     old_zmin_zmax: bool,
+    kmbounds: Tuple[float,float],
+    outputdir: str,
+    plotops: Dict,
 ) -> bool:
     """
     Perform analysis for any model.
@@ -488,7 +688,9 @@ def analyse_and_report(
     reach : str
         Name of the reach.
     q_location : str
-        Name of the location at which the discharge is
+        Name of the location at which the discharge is defined.
+    q_threshold : float
+        Threshold discharge above which the measure is active.
     tstag : float
         Fraction of year that the river is stagnant.
     Q : Vector
@@ -506,8 +708,8 @@ def analyse_and_report(
         results to be processed. The conditions (discharge, wave conditions,
         ...) are the key in the dictionary. Per condition a tuple of two file
         names is given: a reference file and a file with measure.
-    kmfile : str
-        Name of chainage file.
+    xykm : shapely.geometry.linestring.LineStringAdapter
+        Original river chainage line.
     needs_tide : bool
         Specifies whether the tidal boundary is needed.
     n_fields : int
@@ -516,6 +718,12 @@ def analyse_and_report(
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
+    kmbounds : Tuple[float,float]
+        Minimum and maximum chainage values indicating range of interest.
+    outputdir : str
+        Name of the output directory.
+    plotops : Dict
+        Dictionary of plot settings
 
     Returns
     -------
@@ -537,6 +745,7 @@ def analyse_and_report(
             slength,
             ucrit,
             old_zmin_zmax,
+            outputdir,
         )
     else:
         return analyse_and_report_dflowfm(
@@ -544,6 +753,7 @@ def analyse_and_report(
             report,
             reach,
             q_location,
+            q_threshold,
             tstag,
             Q,
             T,
@@ -552,11 +762,14 @@ def analyse_and_report(
             nwidth,
             ucrit,
             filenames,
-            kmfile,
+            xykm,
             needs_tide,
             n_fields,
             tide_bc,
             old_zmin_zmax,
+            kmbounds,
+            outputdir,
+            plotops,
         )
 
 
@@ -572,7 +785,8 @@ def analyse_and_report_waqua(
     rsigma: Vector,
     slength: float,
     ucrit: float,
-    old_zmin_zmax: bool
+    old_zmin_zmax: bool,
+    outputdir: str
 ) -> bool:
     """
     Perform analysis based on WAQUA data.
@@ -607,6 +821,8 @@ def analyse_and_report_waqua(
         Critical flow velocity [m/s].
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
+    outputdir : str
+        Name of the output directory.
 
     Returns
     -------
@@ -617,6 +833,7 @@ def analyse_and_report_waqua(
     missing_data = False
     first_discharge = True
     
+    dzq : List[Optional[Union[float, numpy.ndarray]]]
     dzq = [None] * len(Q)
     for i in range(3):
         if not missing_data and not Q[i] is None:
@@ -630,16 +847,16 @@ def analyse_and_report_waqua(
             if dzq[i] is None:
                 missing_data = True
         else:
-            dzq[i] = 0
+            dzq[i] = 0.0
 
     if not missing_data:
         if display:
             dfastmi.io.log_text("char_bed_changes")
             
         if tstag > 0:
-            dzq = (dzq[0], 0*dzq[0], dzq[1], dzq[2])
+            dzq = [dzq[0], 0.0, dzq[1], dzq[2]]
             T = (T[0], tstag, T[1], T[2])
-            rsigma = (rsigma[0], 1., rsigma[1], rsigma[2])
+            rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
         
         # main_computation now returns new pointwise zmin and zmax
         data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.main_computation(
@@ -651,13 +868,13 @@ def analyse_and_report_waqua(
             data_zmin = dzb[1]
 
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("avgdzb.out"), data_zgem, firstm, firstn
+            outputdir + os.sep + dfastmi.io.get_filename("avgdzb.out"), data_zgem, firstm, firstn
         )
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("maxdzb.out"), data_zmax, firstm, firstn
+            outputdir + os.sep + dfastmi.io.get_filename("maxdzb.out"), data_zmax, firstm, firstn
         )
         dfastmi.io.write_simona_box(
-            dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
+            outputdir + os.sep + dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
         )
 
     return missing_data
@@ -668,6 +885,7 @@ def analyse_and_report_dflowfm(
     report: TextIO,
     reach: str,
     q_location: str,
+    q_threshold: float,
     tstag: float,
     Q: Vector,
     T: Vector,
@@ -676,11 +894,14 @@ def analyse_and_report_dflowfm(
     nwidth: float,
     ucrit: float,
     filenames: Dict[Any, Tuple[str,str]],
-    kmfile: str,
+    xykm: shapely.geometry.linestring.LineStringAdapter,
     needs_tide: bool,
     n_fields: int,
     tide_bc: Vector,
-    old_zmin_zmax: bool
+    old_zmin_zmax: bool,
+    kmbounds: Tuple[float, float],
+    outputdir: str,
+    plotops: Dict,
 ) -> bool:
     """
     Perform analysis based on D-Flow FM data.
@@ -697,7 +918,9 @@ def analyse_and_report_dflowfm(
     reach : str
         Name of the reach.
     q_location : str
-        Name of the location at which the discharge is
+        Name of the location at which the discharge is defined.
+    q_threshold : float
+        Threshold discharge above which the measure is active.
     tstag : float
         Fraction of year that the river is stagnant.
     Q : Vector
@@ -715,8 +938,8 @@ def analyse_and_report_dflowfm(
         results to be processed. The conditions (discharge, wave conditions,
         ...) are the key in the dictionary. Per condition a tuple of two file
         names is given: a reference file and a file with measure.
-    kmfile : str
-        Name of chainage file.
+    xykm : shapely.geometry.linestring.LineStringAdapter
+        Original river chainage line.
     needs_tide : bool
         Specifies whether the tidal boundary is needed.
     n_fields : int
@@ -725,6 +948,12 @@ def analyse_and_report_dflowfm(
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
+    kmbounds : Tuple[float,float]
+        Minimum and maximum chainage values indicating range of interest.
+    outputdir : str
+        Name of output directory.
+    plotops : Dict
+        Dictionary of plot settings
 
     Returns
     -------
@@ -732,15 +961,122 @@ def analyse_and_report_dflowfm(
         Flag indicating whether analysis couldn't be carried out due to missing
         data.
     """
+    key: Union[Tuple[float, int], float]
+
     first_discharge = True
     missing_data = False
-
-    dzq = [None] * len(Q)
+    one_fm_filename: Union[None, str] = None
+    
+    # determine the name of the first FM data file that will be used
     if 0 in filenames.keys(): # the keys are 0,1,2
-        one_fm_filename = filenames[0][0]
         for i in range(3):
             if not missing_data and not Q[i] is None:
-                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields)
+                one_fm_filename = filenames[i][0]
+                break
+    else: # the keys are the conditions
+        for i in range(len(Q)):
+            if not missing_data and not Q[i] is None:
+                q = Q[i]
+                if needs_tide:
+                    t = tide_bc[i]
+                    key = (q,t)
+                else:
+                    key = q
+                if rsigma[i] == 1 or Q[i] <= q_threshold:
+                    # no celerity or measure not active, so ignore field
+                    pass
+                elif key in filenames.keys():
+                    one_fm_filename = filenames[key][0]
+                    break
+                else:
+                    if needs_tide:
+                        dfastmi.io.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
+                    else:
+                        dfastmi.io.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
+                    dfastmi.io.log_text("end_program", file=report)
+                    missing_data = True
+
+    if one_fm_filename is None:
+        print("The measure is not active for any of the checked conditions.")
+        missing_data = True
+
+    if missing_data:
+        return missing_data
+    
+    if display:
+        dfastmi.io.log_text('-- load mesh')
+    xn, yn, FNC = get_xynode_connect(one_fm_filename)
+    
+    dnmax = 3000.0
+    
+    if display:
+        dfastmi.io.log_text('-- identify region of interest')
+    # add call to dfastbe.io.clip_path_to_kmbounds?
+    print("buffer")
+    xybuffer = xykm.buffer(dnmax)
+    bbox = xybuffer.envelope.exterior
+    print("prepare")
+    xybprep = shapely.prepared.prep(xybuffer)
+    
+    print("prepare filter step 1")
+    xmin = bbox.coords[0][0]
+    xmax = bbox.coords[1][0]
+    ymin = bbox.coords[0][1]
+    ymax = bbox.coords[2][1]
+    keep = (xn > xmin) & (xn < xmax) & (yn > ymin) & (yn < ymax)
+    print("prepare filter step 2")
+    for i in range(xn.size):
+        if keep[i] and not xybprep.contains(shapely.geometry.Point((xn[i], yn[i]))):
+            keep[i] = False
+    
+    print("apply filter")
+    xni, yni, FNCi, iface, inode = filter_faces_by_node_condition(xn, yn, FNC, keep)
+    interest_region = numpy.zeros(FNC.shape[0], dtype=numpy.int)
+    interest_region[iface] = 1
+    
+    #if display:
+    #    dfastmi.io.log_text('-- get centres') # note that this should be the circumference point
+    #xfi = face_mean(xni, FNCi)
+    #yfi = face_mean(yni, FNCi)
+    
+    xykline = numpy.array(xykm)
+    
+    # project all nodes onto the line, obtain the distance along (sni) and normal (dni) the line
+    # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
+    xyline = xykline[:,:2]
+    kline = xykline[:,2]
+    sline = distance_along_line(xyline)
+    # convert chainage bounds to distance along line bounds
+    ikeep = numpy.logical_and(kline >= kmbounds[0], kline <= kmbounds[1])
+    sline_r = sline[ikeep]
+    sbounds = (min(sline_r), max(sline_r))
+    
+    # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
+    # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
+    if display:
+        dfastmi.io.log_text('-- project')
+    sni, nni = proj_xy_line(xni, yni, xyline)
+    sfi = face_mean(sni, FNCi)
+    #nfi = face_mean(nni, FNCi)
+    
+    # determine chainage values of each cell
+    if display:
+        dfastmi.io.log_text('-- chainage')
+    kfi = distance_to_chainage(sline, xykline[:,2], sfi)
+    
+    # determine line direction for each cell
+    if display:
+        dfastmi.io.log_text('-- direction')
+    dxi, dyi = get_direction(xyline, sfi)
+    
+    if display:
+        dfastmi.io.log_text('-- done')
+    
+    dzq = [None] * len(Q)
+    if 0 in filenames.keys(): # the keys are 0,1,2
+        for i in range(3):
+            if not missing_data and not Q[i] is None:
+                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
                 if dzq[i] is None:
                     missing_data = True
             else:
@@ -758,15 +1094,13 @@ def analyse_and_report_dflowfm(
                     # no celerity, so ignore field
                     dzq[i] = 0
                 elif key in filenames.keys():
-                    one_fm_filename = filenames[key][0]
-                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields)
+                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields, dxi, dyi, iface)
                 else:
                     if needs_tide:
                         dfastmi.io.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
                     else:
                         dfastmi.io.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
                     dfastmi.io.log_text("end_program", file=report)
-                if dzq[i] is None:
                     missing_data = True
             else:
                 dzq[i] = 0
@@ -778,78 +1112,233 @@ def analyse_and_report_dflowfm(
         if tstag > 0:
             dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
             T = (T[0], tstag, T[1], T[2])
-            rsigma = (rsigma[0], 1., rsigma[1], rsigma[2])
+            rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
             
         # main_computation now returns new pointwise zmin and zmax
-        data_zgem, data_z1o, data_z2o, dzb = dfastmi.kernel.main_computation(
+        dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.main_computation(
             dzq, T, rsigma
         )
         if old_zmin_zmax:
             # get old zmax and zmin
-            data_zmax = dzb[0]
+            dzmaxi = dzbi[0]
             zmax_str = "maximum bed level change after flood without dredging"
-            data_zmin = dzb[1]
+            dzmini = dzbi[1]
             zmin_str = "minimum bed level change after low flow without dredging"
         else:
             zmax_str = "maximum value of bed level change without dredging"
             zmin_str = "minimum value of bed level change without dredging"
-
+        
+        if display:
+            dfastmi.io.log_text('writing_output')
         meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(one_fm_filename)
-        dst = dfastmi.io.get_filename("netcdf.out")
+        dst = outputdir + os.sep + dfastmi.io.get_filename("netcdf.out")
+        print("writing ", dst)
+        print("copying mesh")
         dfastmi.io.copy_ugrid(one_fm_filename, meshname, dst)
+        print("adding data")
+        nc_fill = netCDF4.default_fillvals['f8']
+        dzgem = numpy.repeat(nc_fill, FNC.shape[0])
+        dzgem[iface]=dzgemi
         dfastmi.io.ugrid_add(
             dst,
             "avgdzb",
-            data_zgem,
+            dzgem,
             meshname,
             facedim,
             long_name="year-averaged bed level change without dredging",
             units="m",
         )
+        dzmax = numpy.repeat(nc_fill, FNC.shape[0])
+        dzmax[iface]=dzmaxi
         dfastmi.io.ugrid_add(
             dst,
             "maxdzb",
-            data_z1o,
+            dzmax,
             meshname,
             facedim,
             long_name=zmax_str,
             units="m",
         )
+        dzmin = numpy.repeat(nc_fill, FNC.shape[0])
+        dzmin[iface]=dzmini
         dfastmi.io.ugrid_add(
             dst,
             "mindzb",
-            data_z2o,
+            dzmin,
             meshname,
             facedim,
             long_name=zmin_str,
             units="m",
         )
-        for i in range(len(dzb)):
-            j = (i + 1) % len(dzb)
+        for i in range(len(dzbi)):
+            j = (i + 1) % len(dzbi)
+            dzb = numpy.repeat(nc_fill, FNC.shape[0])
+            dzb[iface]=dzbi[j]
             dfastmi.io.ugrid_add(
                 dst,
                 "dzb_{}".format(i),
-                dzb[j],
+                dzb,
                 meshname,
                 facedim,
                 long_name="bed level change at end of period {}".format(i+1),
                 units="m",
             )
-            if rsigma[i]<1:
+            if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
+                dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
+                dzq_full[iface]=dzq[i]
                 dfastmi.io.ugrid_add(
                     dst,
                     "dzq_{}".format(i),
-                    dzq[i],
+                    dzq_full,
                     meshname,
                     facedim,
                     long_name="equilibrium bed level change aimed for during period {}".format(i+1),
                     units="m",
                 )
         
-        dvol1,dvol2 = comp_dredging_volume(data_zgem, slength, nwidth,kmfile,one_fm_filename)
-        print("Initial year dredging volume")
-        print("Estimate 1: ",dvol1)
-        print("Estimate 2: ",dvol2)
+        projmesh = outputdir + os.sep + 'projected_mesh.nc'
+        print("writing ", projmesh)
+        print("copying mesh")
+        dfastmi.io.copy_ugrid(one_fm_filename, meshname, projmesh)
+        print("adding data")
+        dfastmi.io.ugrid_add(
+            projmesh,
+            "avgdzb",
+            dzgem,
+            meshname,
+            facedim,
+            long_name="year-averaged bed level change without dredging",
+            units="m",
+        )
+        
+        print("replacing coordinates") # should officially not include missing values ...
+        sn = numpy.repeat(nc_fill, xn.shape[0])
+        sn[inode]=sni
+        nn = numpy.repeat(nc_fill, xn.shape[0])
+        nn[inode]=nni
+        
+        # open destination file
+        dst = netCDF4.Dataset(projmesh, "a")
+        dst.variables[meshname + '_node_x'][:] = sn[:]
+        dst.variables[meshname + '_node_y'][:] = nn[:]
+        dst.close()       
+
+        if plotops['plotting']:
+            if FNCi.mask.shape == ():
+                # all faces have the same number of nodes
+                nnodes = numpy.ones(FNCi.data.shape[0], dtype=numpy.int) * FNCi.data.shape[1]
+            else:
+                # varying number of nodes
+                nnodes = FNCi.mask.shape[1] - FNCi.mask.sum(axis=1)
+            fig, ax = dfastmi.plotting.plot_overview(
+                (xmin, ymin, xmax, ymax),
+                xykline,
+                FNCi,
+                nnodes,
+                xni,
+                yni,
+                dzgemi,
+                "x-coordinate [km]",
+                "y-coordinate [km]",
+                "change to year-averaged equilibrium",
+                "erosion and sedimentation [m]",
+                plotops['xyzoom'],
+            )
+
+            if plotops['saveplot']:
+                figbase = plotops['figdir'] + os.sep + "overview"
+                if plotops['saveplot_zoomed']:
+                    dfastmi.plotting.zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
+                figfile = figbase + plotops['plot_ext']
+                dfastmi.plotting.savefig(fig, figfile)
+
+        if display:
+            dfastmi.io.log_text('compute_initial_year_dredging')
+
+        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
+
+        if display:
+            if sedvol.shape[1] > 0:
+                print("Estimated sedimentation volume per area using 3 methods")
+                print("                              Max:             Method 1:        Method 2:       ")
+                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+                for i in range(sedvol.shape[1]):
+                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedarea[i], sedvol[0,i], sedvol[1,i], sedvol[2,i]))
+                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedvol[0,:].max(), sedvol[1,:].max(), sedvol[2,:].max()))
+                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedarea.sum(), sedvol[0,:].sum(), sedvol[1,:].sum(), sedvol[2,:].sum()))
+
+            if sedvol.shape[1] > 0 and erovol.shape[1] > 0:
+                print("")
+                
+            if erovol.shape[1] > 0:
+                print("Estimated erosion volume per area using 3 methods")
+                print("                              Max:             Method 1:        Method 2:       ")
+                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+                for i in range(erovol.shape[1]):
+                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, eroarea[i], erovol[0,i], erovol[1,i], erovol[2,i]))
+                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
+                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
+
+        projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
+        dfastmi.io.copy_ugrid(one_fm_filename, meshname, projmesh)
+        dfastmi.io.ugrid_add(
+            projmesh,
+            "interest_region",
+            interest_region,
+            meshname,
+            facedim,
+            long_name="Region on which the sedimentation analysis was performed",
+            units="1",
+        )
+        sed_area = numpy.repeat(nc_fill, FNC.shape[0])
+        
+        for i in range(len(sed_area_list)):
+            sed_area[iface[sed_area_list[i] == 1]] = i+1
+        dfastmi.io.ugrid_add(
+            projmesh,
+            "sed_area",
+            sed_area,
+            meshname,
+            facedim,
+            long_name="Sedimentation area",
+            units="1",
+        )
+        ero_area = numpy.repeat(nc_fill, FNC.shape[0])
+        
+        for i in range(len(ero_area_list)):
+            ero_area[iface[ero_area_list[i] == 1]] = i+1
+        dfastmi.io.ugrid_add(
+            projmesh,
+            "ero_area",
+            ero_area,
+            meshname,
+            facedim,
+            long_name="Erosion area",
+            units="1",
+        )
+        wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
+        wght_estimate1[iface] = wght_estimate1i
+        dfastmi.io.ugrid_add(
+            projmesh,
+            "wght_estimate1",
+            wght_estimate1,
+            meshname,
+            facedim,
+            long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
+            units="1",
+        )
+        wbin = numpy.repeat(nc_fill, FNC.shape[0])
+        wbin[iface] = wbini
+        dfastmi.io.ugrid_add(
+            projmesh,
+            "wbin",
+            wbin,
+            meshname,
+            facedim,
+            long_name="Index of width bin",
+            units="1",
+        )
+        
 
     return missing_data
 
@@ -990,6 +1479,9 @@ def get_values_fm(
     report: TextIO,
     filenames: Tuple[str, str],
     n_fields: int,
+    dx: numpy.ndarray,
+    dy: numpy.ndarray,
+    iface: numpy.ndarray,
 ) -> numpy.ndarray:
     """
     Read D-Flow FM data files for the specified stage, and return dzq.
@@ -1008,6 +1500,12 @@ def get_values_fm(
         Names of the reference simulation file and file with the implemented measure.
     n_fields : int
         Number of fields to process (e.g. to cover a tidal period).
+    dx : numpy.ndarray
+        Array containing the x-component of the direction vector at each cell.
+    dy : numpy.ndarray
+        Array containing the y-component of the direction vector at each cell.
+    iface : numpy.ndarray
+        Array containing the subselection of cells.
 
     Returns
     -------
@@ -1039,33 +1537,55 @@ def get_values_fm(
     dzq = 0.
     tot = 0.
     ifld: Optional[int]
+    ustream_pos = numpy.zeros(dx.shape)
+    ustream_neg = numpy.zeros(dx.shape)
+    dzq_pos = numpy.zeros(dx.shape)
+    dzq_neg = numpy.zeros(dx.shape)
+    t_pos = numpy.zeros(dx.shape)
+    t_neg = numpy.zeros(dx.shape)
+    wght_pos = numpy.zeros(dx.shape)
+    wght_neg = numpy.zeros(dx.shape)
 
+    ref = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=0)
+    
     for ifld in range(n_fields):
         # if last time step is needed, pass None to allow for files without time specification
         if n_fields == 1:
             ifld = None
 
         # reference data
-        u = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)
-        v = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)
-        u0 = numpy.sqrt(u ** 2 + v ** 2)
-        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)
+        u0 = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)[iface]
+        v0 = dfastmi.io.read_fm_map(filenames[0], "sea_water_y_velocity", ifld=ifld)[iface]
+        umag0 = numpy.sqrt(u0 ** 2 + v0 ** 2)
+        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
 
         # data with measure
-        u = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)
-        v = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)
-        u1 = numpy.sqrt(u ** 2 + v ** 2)
+        u1 = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)[iface]
+        v1 = dfastmi.io.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
+        umag1 = numpy.sqrt(u1**2 + v1**2)
 
-        dzq1 = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+        dzq1 = dfastmi.kernel.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
 
-        if n_fields <= 2 or (ifld > 0 and ifld < n_fields - 1):
-            wght = 1.
-        else:
-            wght = 0.5
-        tot = tot + wght
-        dzq = dzq + wght * dzq1
-    
-    dzq = dzq / tot
+        if n_fields > 1:
+            ustream = u0*dx + v0*dy
+            
+            # positive flow -> flow in downstream direction -> biggest flow in positive direction during peak ebb flow
+            ipos = ustream > ustream_pos
+            ustream_pos[ipos] = ustream[ipos]
+            t_pos[ipos] = t_pos[ipos] + 1
+            dzq_pos[ipos] = dzq1[ipos]
+            
+            # negative flow -> flow in upstream direction -> biggest flow in negative direction during peak flood flow
+            ineg = ustream < ustream_neg
+            ustream_neg[ineg] = ustream[ineg]
+            t_neg[ineg] = t_neg[ineg] + 1
+            dzq_neg[ineg] = dzq1[ineg]
+
+    if n_fields > 1:
+        dzq = (t_pos * dzq_pos + t_neg * dzq_neg ) / numpy.maximum(t_pos + t_neg, 1)
+    else:
+        dzq = dzq1
+
     return dzq
 
 
@@ -1174,15 +1694,15 @@ def write_report(
 
 
 def config_to_absolute_paths(
-    filename: str, config: configparser.ConfigParser
+    rootdir: str, config: configparser.ConfigParser
 ) -> configparser.ConfigParser:
     """
     Convert a configuration object to contain absolute paths (for editing).
 
     Arguments
     ---------
-    filename : str
-        The name of the file: all relative paths in the configuration will be assumed relative to this.
+    rootdir : str
+        The path to be used as base for the absolute paths.
     config : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis with absolute or relative paths.
 
@@ -1191,11 +1711,11 @@ def config_to_absolute_paths(
     aconfig : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
     """
-    rootdir = os.path.dirname(filename)
-    if "RiverKM" in config["General"]:
-        config["General"]["RiverKM"] = dfastmi.io.absolute_path(
-            rootdir, config["General"]["RiverKM"]
-        )
+    for key in ("RiverKM", "FigureDir", "OutputDir"):
+        if key in config["General"]:
+            config["General"][key] = dfastmi.io.absolute_path(
+                rootdir, config["General"][key]
+            )
     for QSTR in config.keys():
         if "Reference" in config[QSTR]:
             config[QSTR]["Reference"] = dfastmi.io.absolute_path(
@@ -1243,19 +1763,20 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     else:
         raise Exception("Unsupported version number {} in the file!".format(file_version))
 
-    return config_to_absolute_paths(filename, config)
+    rootdir = os.path.dirname(filename)
+    return config_to_absolute_paths(rootdir, config)
 
 
 def config_to_relative_paths(
-    filename: str, config: configparser.ConfigParser
+    rootdir: str, config: configparser.ConfigParser
 ) -> configparser.ConfigParser:
     """
     Convert a configuration object to contain relative paths (for saving).
 
     Arguments
     ---------
-    filename : str
-        The name of the file: all paths will be defined relative to this.
+    rootdir : str
+        The path to be used as base for the absolute paths.
     config : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
 
@@ -1264,11 +1785,11 @@ def config_to_relative_paths(
     rconfig : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
     """
-    rootdir = os.path.dirname(filename)
-    if "RiverKM" in config["General"]:
-        config["General"]["RiverKM"] = dfastmi.io.relative_path(
-            rootdir, config["General"]["RiverKM"]
-        )
+    for key in ("RiverKM", "FigureDir", "OutputDir"):
+        if key in config["General"]:
+            config["General"][key] = dfastmi.io.relative_path(
+                rootdir, config["General"][key]
+            )
     for QSTR in config.keys():
         if "Reference" in config[QSTR]:
             config[QSTR]["Reference"] = dfastmi.io.relative_path(
@@ -1296,7 +1817,8 @@ def save_configuration_file(filename: str, config):
     -------
     None
     """
-    config = config_to_relative_paths(filename, config)
+    rootdir = os.path.dirname(filename)
+    config = config_to_relative_paths(rootdir, config)
     dfastmi.io.write_config(filename, config)
 
 
@@ -1318,12 +1840,19 @@ def stagename(i: int) -> str:
     return stagenames[i]
 
 
-def comp_dredging_volume(
-    dzgem: numpy.ndarray,
+def comp_sedimentation_volume(
+    xni: numpy.ndarray,
+    yni: numpy.ndarray,
+    sni: numpy.ndarray,
+    dni: numpy.ndarray,
+    FNCi: numpy.ndarray,
+    dzgemi: numpy.ndarray,
     slength: float,
     nwidth: float,
-    kmfile: str,
+    xykline: numpy.ndarray,
     simfile: str,
+    outputdir: str,
+    plotops: Dict,
 ) -> float:
     """
     Compute the yearly dredging volume.
@@ -1336,10 +1865,12 @@ def comp_dredging_volume(
         The expected yearly impacted sedimentation length [m].
     nwidth : float
         Normal river width (from rivers configuration file) [m].
-    kmfile : str
-        Name of chainage file.
+    xykline : numpy.ndarray
+        Array containing the x,y and chainage data of a line.
     simfile : str
         Name of simulation file.
+    outputdir : str
+        Name of output directory.
 
     Returns
     -------
@@ -1349,40 +1880,198 @@ def comp_dredging_volume(
     dzmin = 0.01
     nwbins = 10
     sbin_length = 10.0
+    dnmax = 3000.0
     
-    xn, yn, FNC = get_xynode_connect(simfile)
-    xni, yni, FNCi, dzgemi = dz_filter(xn, yn, FNC, dzgem, dzmin)
     areai = xynode_2_area(xni, yni, FNCi)
-
-    #xf = face_mean(xn, FNC)
-    #yf = face_mean(yn, FNC)
-    #with open("zgem.xyz", "w") as file:
-    #    for i in range(len(xf)):
-    #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xf[i],yf[i],dzgem[i]))
-
-    if kmfile == "":
-        dvol1 = math.nan
-    else:
-        xykm = dfastmi.io.get_xykm(kmfile)
-        xyline = numpy.array(xykm)[:, :2]
-        dvol1 = comp_dredging_volume1(dzgemi, areai, xni, yni, FNCi, xyline, slength, nwidth, nwbins, sbin_length)
     
-    dvol2 = comp_dredging_volume2(dzgemi, areai, slength, nwidth)
-    return dvol1, dvol2
+    print("bin cells in across-stream direction")
+    # determine the mean normal distance dfi per cell
+    dfi = face_mean(dni, FNCi)
+    # distribute the cells over nwbins bins over the channel width
+    wbini, wthresh = width_bins(dfi, nwidth, nwbins)
 
+    print("bin cells in along-stream direction")
+    # determine the minimum and maximum along line distance of each cell
+    min_sfi, max_sfi = min_max_s(sni, FNCi)
+    # determine the weighted mapping of cells to chainage bins
+    siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
+    wbin = wbini[siface]
+
+    print("determine chainage per bin")
+    # determine chainage values of at the midpoints
+    smid = (sthresh[1:] + sthresh[:-1])/2
+    sline = distance_along_line(xykline[:,:2])
+    kmid = distance_to_chainage(sline, xykline[:,2], smid)
+    n_sbin = sbin.max()+1
+    
+    EFCi = facenode_to_edgeface(FNCi)
+    wght_area_tot = numpy.zeros(dzgemi.shape)
+    wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
+    plot_n = 3
+
+    print("-- detecting separate sedimentation areas")
+    xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
+    area_str = "sedimentation area {}"
+    total_str = "total sedimentation volume"
+    sedarea, sedvol, sed_area_list, wght_area_tot = detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
+
+    print("-- detecting separate erosion areas")
+    xyzfil = ""
+    area_str = "erosion area {}"
+    total_str = "total erosion volume"
+    eroarea, erovol, ero_area_list, wght_area_tot = detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
+
+    return sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini
+
+
+def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, pos_up, plot_n):
+    sbin_length = sthresh[1] - sthresh[0]
+
+    area, volume, sub_area_list, wght_area_tot = detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
+
+    binvol = comp_binned_volumes(numpy.maximum( dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh)
+    
+    if xyzfil != "":
+        # write a table of chainage and volume per width bin to file
+        binvol2 = numpy.stack(binvol)
+        with open(xyzfil, "w") as file:
+            vol_str = " ".join('"{}"'.format(str) for str in wbin_labels)
+            file.write('"chainage" ' + vol_str + "\n")
+            for i in range(binvol2.shape[1]):
+                vol_str = " ".join("{:8.2f}".format(j) for j in binvol2[:,i])
+                file.write("{:8.2f} ".format(kmid[i]) + vol_str + "\n")
+
+    if plotops['plotting']:
+        fig, ax = dfastmi.plotting.plot_sedimentation(
+            kmid,
+            "chainage [km]",
+            binvol,
+            "volume [m3] accumulated per {} m bin alongstream".format(sbin_length),
+            total_str,
+            wbin_labels,
+            positive_up = pos_up,
+        )
+
+        if plotops['saveplot']:
+            figbase = plotops['figdir'] + os.sep + total_str.replace(" ","_")
+            if plotops['saveplot_zoomed']:
+                dfastmi.plotting.zoom_x_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['kmzoom'])
+            figfile = figbase + plotops['plot_ext']
+            dfastmi.plotting.savefig(fig, figfile)
+
+        if plot_n > 0:
+            # plot the figures with details for the N areas with largest volumes
+            volume_mean = volume[1:,:].mean(axis=0)
+            sorted_list = numpy.argsort(volume_mean)[::-1]
+            if len(sorted_list) <= plot_n:
+                vol_thresh = 0.0
+            else:
+                vol_thresh = volume_mean[sorted_list[plot_n]]
+            plot_certain_areas(volume_mean > vol_thresh,  dzgemi, sub_area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops)
+    
+    return area, volume, sub_area_list, wght_area_tot
+
+
+def detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength):
+    sbin_length = sthresh[1] - sthresh[0]
+    nwidth = wthresh[-1] - wthresh[0]
+    sub_areai, n_sub_areas = detect_connected_regions(dzgemi > dzmin, EFCi)
+    print("number of areas detected: ", n_sub_areas)
+
+    area  = numpy.zeros(n_sub_areas)
+    volume = numpy.zeros((3,n_sub_areas))
+    sub_area_list = []
+    
+    for ia in range(n_sub_areas):
+        dzgemi_filtered = dzgemi.copy()
+        dzgemi_filtered[sub_areai != ia] = 0.0
+        sub_area_list.append(sub_areai == ia)
+        
+        #dfastmi.io.log_text("sed_vol",dict = {"ia": ia+1, "nr": 1})
+        volume[1,ia], wght_area_ia = comp_sedimentation_volume1(dzgemi_filtered, dzmin, areai, wbin, siface, afrac, sbin, wthresh, sthresh, slength, sbin_length)
+        wght_area_tot = wght_area_tot + wght_area_ia
+        
+        #dfastmi.io.log_text("sed_vol",dict = {"ia": ia+1, "nr": 2})
+        volume[2,ia], area[ia], volume[0,ia] = comp_sedimentation_volume2(numpy.maximum(dzgemi_filtered,0.0), dzmin, areai, slength, nwidth)
+    
+    sorted_list = numpy.argsort(area)[::-1]
+    area = area[sorted_list]
+    volume = volume[:,sorted_list]
+    sub_area_list = [sub_area_list[ia] for ia in sorted_list]
+    
+    return area, volume, sub_area_list, wght_area_tot
+
+
+def plot_certain_areas(condition, dzgemi, area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops):
+    indices = numpy.where(condition)[0]
+    sbin_length = sthresh[1] - sthresh[0]
+    for ia in indices:
+        dzgemi_filtered = dzgemi.copy()
+        dzgemi_filtered[numpy.invert(area_list[ia])] = 0.0
+        
+        area_binvol = comp_binned_volumes(dzgemi_filtered, areai, wbin, siface, afrac, sbin, wthresh, sthresh)
+        
+        fig, ax = dfastmi.plotting.plot_sedimentation(
+            kmid,
+            "chainage [km]",
+            area_binvol,
+            "volume [m3] accumulated per {} m bin alongstream".format(sbin_length),
+            area_str.format(ia+1),
+            wbin_labels,
+            positive_up = pos_up,
+        )
+        
+        if plotops['saveplot']:
+            figbase = plotops['figdir'] + os.sep + area_str.replace(" ","_").format(ia+1) + "_volumes"
+            if plotops['saveplot_zoomed']:
+                dfastmi.plotting.zoom_x_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['kmzoom'])
+            figfile = figbase + plotops['plot_ext']
+            dfastmi.plotting.savefig(fig, figfile)
+        
 
 def stream_bins(min_s, max_s, ds):
+    """
+    Construct the weighted mapping of cells to chainage bins.
+
+    Arguments
+    ---------
+    min_s : numpy.ndarray
+        Array of length M containing the minimum chainage of a cell [m].
+    max_s : numpy.ndarray
+        Array of length M containing the maximum chainage of a cell [m].
+    ds : float
+        Length of chainage bins [m].
+
+    Returns
+    -------
+    siface : numpy.ndarray
+        Array of length N containing the index of the source cell.
+    afrac : numpy.ndarray
+        Array of length N containing the fraction of the source cell associated with the target chainage bin.
+    sbin : numpy.ndarray
+        Array of length N containing the index of the target chainage bin.
+    sthresh : numpy.ndarray
+        Threshold values between the chainage bins [m].
+    """
+    # determine the minimum and maximum chainage in de data set.
     sbin_min = math.floor(min_s.min()/ds)
     sbin_max = math.ceil(max_s.max()/ds)
+    # determin the chainage bins.
     sthresh = numpy.arange(sbin_min, sbin_max+2) * ds
     
+    # determine for each cell in which bin it starts and ends
     min_sbin = numpy.floor(min_s/ds).astype(numpy.int) - sbin_min
     max_sbin = numpy.floor(max_s/ds).astype(numpy.int) - sbin_min
     
+    # determine in how many chainage bins a cell is located
     nsbin = max_sbin - min_sbin + 1
+    # determine the total number of chainage bin assignments
     nsbin_tot = nsbin.sum()
     
-    iface = numpy.zeros(nsbin_tot, dtype=numpy.int)
+    # determine per cell a mapping from cell iface to the chainage bin sbin,
+    # and determine which fraction of the chainage length associated with the
+    # cell is mapped to this particular chainage bin
+    siface = numpy.zeros(nsbin_tot, dtype=numpy.int)
     afrac = numpy.zeros(nsbin_tot)
     sbin  = numpy.zeros(nsbin_tot, dtype=numpy.int)
     nfaces = len(min_s)
@@ -1390,14 +2079,22 @@ def stream_bins(min_s, max_s, ds):
     for i in range(nfaces):
         s0 = min_s[i]
         s1 = max_s[i]
+        # skip cells that project onto one point (typically they are located outside the length of the line)
+        if s0 == s1:
+            continue
         wght = 1 / (s1 - s0)
         for ib in range(min_sbin[i], max_sbin[i]+1):
-            iface[j] = i
+            siface[j] = i
             afrac[j] = wght * (min(sthresh[ib+1], s1) - max(sthresh[ib], s0))
             sbin[j] = ib
             j = j + 1
 
-    return iface, afrac, sbin, sthresh
+    # make sure that sthresh is not longer than necessary
+    maxbin = sbin.max()
+    if maxbin+2 < len(sthresh):
+        sthresh = sthresh[:maxbin+2]
+    
+    return siface, afrac, sbin, sthresh
 
 
 def min_max_s(s, FNC):
@@ -1452,131 +2149,250 @@ def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndar
     return jbin, wthresh
     
 
-def comp_dredging_volume1(
-    dzgemi: numpy.ndarray,
-    areai: numpy.ndarray,
-    xni: numpy.ndarray,
-    yni: numpy.ndarray,
-    FNCi: numpy.ma.masked_array,
-    xyline: numpy.ndarray,
+def comp_binned_volumes(
+    dzgem: numpy.ndarray,
+    area: numpy.ndarray,
+    wbin: numpy.ndarray,
+    siface: numpy.ndarray,
+    afrac: numpy.ndarray,
+    sbin: numpy.ndarray,
+    wthresh: numpy.ndarray,
+    sthresh: numpy.ndarray,
+) -> List[numpy.ndarray]:
+    """
+    Determine the volume per streamwise bin and width bin.
+
+    Arguments
+    ---------
+    dzgem : numpy.ndarray
+        Array of length M containing the bed level change per cell [m].
+    area : numpy.ndarray
+        Array of length M containing the grid cell area [m2].
+    wbin: numpy.ndarray
+        Array of length N containing the index of the target width bin [-].
+    siface : numpy.ndarray
+        Array of length N containing the index of the source cell (range 0 to M-1) [-].
+    afrac : numpy.ndarray
+        Array of length N containing the fraction of the source cell associated with the target chainage bin [-].
+    sbin : numpy.ndarray
+        Array of length N containing the index of the target chainage bin [-].
+    wthresh : numpy.ndarray
+        Array containing the cross-stream coordinate boundaries between the width bins [m].
+    sthresh : numpy.ndarray
+        Array containing the along-stream coordinate boundaries between the streamwise bins [m].
+
+    Returns
+    -------
+    binvol : List[numpy.ndarray]
+        List of arrays containing the total volume per streamwise bin [m3]. List length corresponds to number of width bins.
+    """    
+    
+    dvol = dzgem * area
+    
+    n_wbin = len(wthresh)-1
+    n_sbin = len(sthresh)-1
+    sedbinvol : List[numpy.ndarray] = []
+    
+    # compute for every width bin the sedimentation volume
+    for iw in range(n_wbin):
+        lw = wbin == iw
+
+        sbin_lw = sbin[lw]
+        dvol_lw = dvol[siface[lw]]
+        afrac_lw = afrac[lw]
+    
+        sedbinvol.append(numpy.bincount(sbin_lw, weights = dvol_lw * afrac_lw, minlength = n_sbin))
+        
+    return sedbinvol
+    
+
+def comp_sedimentation_volume1(
+    dzgem: numpy.ndarray,
+    dzmin: float,
+    area: numpy.ndarray,
+    wbin: numpy.ndarray,
+    siface: numpy.ndarray,
+    afrac: numpy.ndarray,
+    sbin: numpy.ndarray,
+    wthresh: numpy.ndarray,
+    sthresh: numpy.ndarray,
     slength: float,
-    nwidth: float,
-    nwbins: int = 10,
-    sbin_length: float = 10.0
+    sbin_length: float,
 ) -> float:
     """
-    Compute the yearly dredging volume.
+    Compute the initial year sedimentation volume.
     Algorithm 1.
 
     Arguments
     ---------
-    dzgemi : numpy.ndarray
+    dzgem : numpy.ndarray
         Array of length M containing the yearly mean bed level change per cell [m].
-    areai : numpy.ndarray
+    dzmin : float
+        Bed level changes (per cell) less than this threshold value are ignored [m].
+    area : numpy.ndarray
         Array of length M containing the grid cell area [m2].
-    xni : numpy.ndarray
-        Array of length K containing the x-coordinates of the nodes [m].
-    yni : numpy.ndarray
-        Array of length K containing the y-coordinate of the nodes [m2].
-    FNCi : numpy.ma.masked_array
-        Masked M x N array containing the indices of (max N) corner nodes for each of the M cells.
-        Maximum node index is K-1.
-    xyline : numpy.ndarray
-        Array containing the x,y data of a line.
+    wbin: numpy.ndarray
+        Array of length N containing the index of the target width bin [-].
+    siface : numpy.ndarray
+        Array of length N containing the index of the source cell (range 0 to M-1) [-].
+    afrac : numpy.ndarray
+        Array of length N containing the fraction of the source cell associated with the target chainage bin [-].
+    sbin : numpy.ndarray
+        Array of length N containing the index of the target chainage bin [-].
+    wthresh : numpy.ndarray
+        Array containing the cross-stream coordinate boundaries between the width bins [m].
+    sthresh : numpy.ndarray
+        Array containing the along-stream coordinate boundaries between the streamwise bins [m].
     slength : float
         The expected yearly impacted sedimentation length [m].
-    nwidth : float
-        Normal river width (from rivers configuration file) [m].
-    nwbins : int
-        Number of bins to subdivide the normal width into [-].
     sbin_length : float
         Size of bins in streamwise direction [m].
 
     Returns
     -------
     dvol : float
-        Dredging volume [m3].
-    """
-    sni, dni = proj_xy_line(xni, yni, xyline)
+        Sedimentation volume [m3].
+    """    
     
-    dfi = face_mean(dni, FNCi)
-    wbini, wthresh = width_bins(dfi, nwidth, nwbins)
+    dzgem_filtered = dzgem.copy()
+    dzgem_filtered[abs(dzgem) < dzmin] = 0.0
+    dvol = dzgem_filtered * area
     
-    min_sfi, max_sfi = min_max_s(sni, FNCi)
-    iface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
-    
-    wbin = wbini[iface]
-    dvoli = dzgemi * areai
     n_wbin = len(wthresh)-1
-    n_sbin = sbin.max()+1
-    binvol = [None] * n_wbin
-    dredge_vol = 0
+    n_sbin = len(sthresh)-1
+    n_faces = len(dvol)
+    tot_dredge_vol = 0
+    wght_all_dredge = numpy.zeros(dvol.shape)
+    
+    # compute for every width bin the sedimentation volume
     for iw in range(n_wbin):
         lw = wbin == iw
-        bvol = numpy.bincount(sbin[lw], weights = dvoli[iface[lw]] * afrac[lw], minlength = n_sbin)
-        binvol[iw] = bvol
         
-        gap = True
-        dvol = 0
-        for ib in range(len(bvol)):
-            if bvol[ib] > 0:
-                if gap:
-                    s0 = sthresh[ib]
-                    gap = False
-                dvol = dvol + bvol[ib] * (max(0, min(s0 - sthresh[ib] + slength, sbin_length)) / sbin_length)
-            else:
-                if dvol > 0:
-                    #print("width bin {}, start {}, volume {}".format(iw,s0,dvol))
-                    dredge_vol = dredge_vol + dvol
-                    dvol = 0
-                gap = True
-        if dvol > 0:
-            #print("width bin {}, start {}, volume {}".format(iw,s0,dvol))
-            dredge_vol = dredge_vol + dvol
-            dvol = 0
+        tot_dredge_vol_wbin, wght_all_dredge_bin = comp_sedimentation_volume1_one_width_bin(dvol[siface[lw]], sbin[lw], afrac[lw], siface[lw], sthresh, sbin_length, slength)
+        
+        #print("width bin {}, total volume {:.6f} m3".format(iw+1, tot_dredge_vol_wbin))
+        tot_dredge_vol = tot_dredge_vol + tot_dredge_vol_wbin
+        wght_all_dredge = wght_all_dredge + numpy.bincount(siface[lw], weights = wght_all_dredge_bin, minlength = n_faces)
 
-    xfi = face_mean(xni, FNCi)
-    yfi = face_mean(yni, FNCi)
-    #with open("zgem_filtered.xyz", "w") as file:
-    #    for i in range(len(xfi)):
-    #        file.write("{:.2f} {:.2f} {:.6f}\n".format(xfi[i],yfi[i],dzgemi[i]))
+    #print("-------> total volume {:.6f} m3".format(tot_dredge_vol))
 
-    #with open("node_sd_filtered.xyz", "w") as file:
-    #    for i in range(len(sni)):
-    #        file.write("{:.2f} {:.2f} {:.2f} {:.2f}\n".format(sni[i],dni[i],sni[i],dni[i]))
-
-    sfi = face_mean(sni, FNCi)
-    #with open("zgem_sd_filtered.xyz", "w") as file:
-    #    for i in range(len(sfi)):
-    #        file.write("{:.2f} {:.2f} {:.6f} {:.2f} {:.2f}\n".format(sfi[i],dfi[i],dzgemi[i],min_sfi[i],max_sfi[i]))
-
-    binvol2 = numpy.stack(binvol)
-    with open("binned_data.xyz", "w") as file:
-        for i in range(n_sbin):
-            vol_str = " ".join("{:.2f}".format(i) for i in binvol2[:,i])
-            file.write("{:.2f} ".format((sthresh[i] + sthresh[i+1])/2) + vol_str + "\n")
-
-    return dredge_vol
+    return tot_dredge_vol, wght_all_dredge
 
 
-def comp_dredging_volume2(
-    dzgemi: numpy.ndarray,
-    areai: numpy.ndarray,
+def comp_sedimentation_volume1_one_width_bin(
+    dvol: numpy.ndarray,
+    sbin: numpy.ndarray,
+    afrac: numpy.ndarray,
+    siface: numpy.ndarray,
+    sthresh: numpy.ndarray,
+    sbin_length: float,
+    slength: float,
+) -> float:
+    """
+    Compute the initial year sedimentation volume.
+    Algorithm 1.
+
+    Arguments
+    ---------
+
+
+    Returns
+    -------
+    dvol : float
+        Sedimentation volume [m3].
+    """    
+    n_sbin = len(sthresh)-1
+    
+    check_sed = dvol > 0.0
+    dvol_sed = dvol[check_sed]
+    sbin_sed = sbin[check_sed]
+    siface_sed = siface[check_sed]
+    afrac_sed = afrac[check_sed]
+    
+    tot_dredge_vol, wght_all_dredge_sed = comp_sedimentation_volume1_tot(dvol_sed, sbin_sed, afrac_sed, siface_sed, sthresh, sbin_length, slength)
+    
+    wght_all_dredge = numpy.zeros(dvol.shape)
+    wght_all_dredge[check_sed] = wght_all_dredge_sed
+
+    return tot_dredge_vol, wght_all_dredge
+
+    
+def comp_sedimentation_volume1_tot(
+    sedvol: numpy.ndarray,
+    sbin: numpy.ndarray,
+    afrac: numpy.ndarray,
+    siface: numpy.ndarray,
+    sthresh: numpy.ndarray,
+    sbin_length: float,
+    slength: float,
+) -> float:
+    """
+    Compute the initial year sedimentation volume.
+    Algorithm 1.
+
+    Arguments
+    ---------
+
+
+    Returns
+    -------
+    dvol : float
+        Sedimentation volume [m3].
+    sedbinvol : List[Optional[numpy.ndarray]]
+        List of arrays containing the total sedimentation volume per streamwise bin [m3]. List length corresponds to number of width bins.
+    erobinvol : List[Optional[numpy.ndarray]]
+        List of arrays containing the total erosion volume per streamwise bin [m3]. List length corresponds to number of width bins.
+    """    
+    index = numpy.argsort(sbin)
+
+    dredge_vol = 0.0
+    wght = numpy.zeros(siface.shape)
+
+    if len(index) > 0:
+        ibprev = -999
+        s0 = sthresh[sbin[index[0]]]
+        slength1 = slength
+        for i in range(len(index)):
+            ii = index[i]
+            ib = sbin[ii]
+            if ib == ibprev: # same index, same weight
+                pass
+
+            else: # next index
+                s0 = sthresh[ib]
+                frac = max(0.0, min(slength1/sbin_length, 1.0))
+                ibprev = ib
+                slength1 = slength1 - sbin_length
+        
+            if frac != 0.0:
+                wght[ii] = wght[ii] + frac * afrac[ii]
+                dredge_vol = dredge_vol + frac * sedvol[ii] * afrac[ii]
+                #print(siface[ii], frac, sedvol[ii], afrac[ii], frac * sedvol[ii] * afrac[ii],' -> ',dredge_vol)
+        
+    #print(dredge_vol, ' > ', wght)
+
+    return dredge_vol, wght
+
+
+def comp_sedimentation_volume2(
+    dzgem: numpy.ndarray,
+    dzmin: float,
+    area: numpy.ndarray,
     slength: float,
     nwidth: float,
 ) -> float:
     """
-    Compute the yearly dredging volume.
+    Compute the initial year sedimentation volume.
     Algorithm 2.
 
     Arguments
     ---------
-    dzgemi : numpy.ndarray
+    dzgem : numpy.ndarray
         Array of length M containing the yearly mean bed level change per cell [m].
-        Array clipped to values with dzgem > dzmin.
-    areai : numpy.ndarray
+    dzmin : float
+        Bed level changes (per cell) less than this threshold value are ignored [m].
+    area : numpy.ndarray
         Array of length M containing the grid cell area [m2].
-        Array clipped to values with dzgem > dzmin.
     slength : float
         The expected yearly impacted sedimentation length [m].
     nwidth : float
@@ -1585,11 +2401,58 @@ def comp_dredging_volume2(
     Returns
     -------
     dvol : float
-        Dredging volume [m3].
+        Sedimentation volume [m3].
     """
-    dvol_eq = (dzgemi * areai).sum()
-    area_eq = areai.sum()
-    dvol = dvol_eq * (slength * nwidth) / area_eq
+    iface = numpy.where(dzgem > dzmin)
+    dzgem_clip = dzgem[iface]
+    area_clip = area[iface]
+    
+    dvol_eq = (dzgem_clip * area_clip).sum()
+    area_eq = area_clip.sum()
+    dz_eq = dvol_eq / area_eq
+    area_1y = slength * nwidth
+    if area_eq < area_1y:
+        dvol = dvol_eq
+    else:
+        dvol = dz_eq * area_1y
+    
+    print(dzmin)
+    #print("dz_min = {:.6f} m, dz_max = {:.6f} m, dz_thresh = {:.6f} m".format(min(dzgem), max(dzgem), dzmin))
+    print("dz_mean = {:.6f} m, width = {:.6f} m, length = {:.6f} m, volume = {:.6f} m3".format(dz_eq, nwidth, slength, dvol))
+    return dvol, area_eq, dvol_eq
+
+
+def comp_sedimentation_volume3(
+    dz1: numpy.ndarray,
+    dzmin: float,
+    area: numpy.ndarray,
+) -> float:
+    """
+    Compute the initial year sedimentation volume.
+    Algorithm 3.
+
+    Arguments
+    ---------
+    dz1 : numpy.ndarray
+        Array of length M containing the bed level change after one year [m].
+    dzmin : float
+        Bed level changes (per cell) less than this threshold value are ignored [m].
+    area : numpy.ndarray
+        Array of length M containing the grid cell area [m2].
+
+    Returns
+    -------
+    dvol : float
+        Sedimentation volume [m3].
+    """
+    iface = numpy.where(dz1 > dzmin)
+    dz1_clip = dz1[iface]
+    area_clip = area[iface]
+    dvol = (dz1_clip * area_clip).sum()
+
+    #print("dz1_min = {:.6f} m, dz1_max = {:.6f} m, dz_thresh = {:.6f} m".format(min(dz1), max(dz1), dzmin))
+    #print("total area = {:.0f} m2, total volume = {:.6f} m3".format(area_clip.sum(), dvol))
+    
     return dvol
 
 
@@ -1600,7 +2463,26 @@ def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, num
     
     return xn, yn, FNC
 
+
 def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
+    """
+    Compute the surface area of all cells.
+
+    Arguments
+    ---------
+    xn : numpy.ndarray
+        Array of length K containing the x-coordinates of the nodes [m].
+    yn : numpy.ndarray
+        Array of length K containing the y-coordinate of the nodes [m].
+    FNC : numpy.ma.masked_array
+        Masked M x N array containing the indices of (max N) corner nodes for each of the M cells.
+        Maximum node index is K-1.
+
+    Returns
+    -------
+    area : numpy.ndarray
+        Array of length M containing the grid cell area [m2].
+    """
     if FNC.mask.shape == ():
         # all faces have the same number of nodes
         nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
@@ -1622,13 +2504,36 @@ def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> n
     return area
     
 
+def face_all(bn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
+    if FNC.mask.shape == ():
+        # all faces have the same number of nodes
+        bf = bn[FNC].all(axis=1)
+    else:
+        # varying number of nodes
+        fnc = FNC.data
+        fnc[FNC.mask] = 0
+        bfn = numpy.ma.array(bn[fnc], mask=FNC.mask)
+        bf = bfn.all(axis=1)
+    
+    return bf
+
+
 def face_mean(vn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
     if FNC.mask.shape == ():
         # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
+        vf = vn[FNC].mean(axis=1)
     else:
         # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
+        fnc = FNC.data
+        fnc[FNC.mask] = 0
+        vfn = numpy.ma.array(vn[fnc], mask=FNC.mask)
+        vf = vfn.all(axis=1)
+    
+    return vf
+
+
+def old_face_mean(vn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
+    nnodes = count_nodes(FNC)
     nfaces = FNC.shape[0]
     vf = numpy.zeros((nfaces,))
     for i in range(nfaces):
@@ -1640,8 +2545,74 @@ def face_mean(vn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
     return vf
     
 
-def dz_filter(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, dzb: numpy.ndarray, dzbmin: float):
-    iface = numpy.where(dzb > dzbmin)
+def filter_faces_by_node_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, condition: numpy.ndarray) -> [numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    """
+    Reduces the mesh to only those cells in which the condition is True. 
+
+    Arguments
+    ---------
+    xn : numpy.ndarray
+        Array of length K containing the x-coordinates of the mesh nodes [m or deg east].
+    yn : numpy.ndarray
+        Array of length K containing the y-coordinate of the mesh nodes [m or deg north].
+    FNC : numpy.ma.masked_array
+        Masked M x N array containing the indices of (max N) corner nodes for each of the M cells [-].
+        Node indices are 0-based, hence the maximum node index is K-1.
+    condition : numpy.ndarray
+        Array of length K containing the boolean flag on the mesh nodes [-].
+
+    Results
+    -------
+    rxn : numpy.ndarray
+        Array of length K2 <= K containing the x-coordinates of the reduced mesh nodes [m or deg east].
+    ryn : numpy.ndarray
+        Array of length K2 <= K containing the y-coordinate of the reduced mesh nodes [m or deg north].
+    rFNC : numpy.ma.masked_array
+        Masked M2 x N2 array containing the indices of (max N2) corner nodes for each of the M2 <= M cells [-].
+        Node indices are 0-based, hence the maximum node index is K2-1.
+    iface : numpy.ndarray
+        Array of length M2 containing the indices of the faces to keep [-]. 
+    inode : numpy.ndarray
+        Array of length K2 containing the indices of the nodes to keep [-]. 
+    """
+    print("transfer condition")
+    fcondition = face_all(condition, FNC)
+    print("apply face condition")
+    rxn, ryn, rFNC, iface, inode = filter_faces_by_face_condition(xn, yn, FNC, fcondition)
+    return rxn, ryn, rFNC, iface, inode
+
+
+def filter_faces_by_face_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, condition: numpy.ndarray) -> [numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    """
+    Reduces the mesh to only those cells in which the condition is True. 
+
+    Arguments
+    ---------
+    xn : numpy.ndarray
+        Array of length K containing the x-coordinates of the mesh nodes [m or deg east].
+    yn : numpy.ndarray
+        Array of length K containing the y-coordinate of the mesh nodes [m or deg north].
+    FNC : numpy.ma.masked_array
+        Masked M x N array containing the indices of (max N) corner nodes for each of the M cells [-].
+        Node indices are 0-based, hence the maximum node index is K-1.
+    condition : numpy.ndarray
+        Array of length M containing the boolean flag on the mesh cells [-].
+
+    Results
+    -------
+    rxn : numpy.ndarray
+        Array of length K2 <= K containing the x-coordinates of the reduced mesh nodes [m or deg east].
+    ryn : numpy.ndarray
+        Array of length K2 <= K containing the y-coordinate of the reduced mesh nodes [m or deg north].
+    rFNC : numpy.ma.masked_array
+        Masked M2 x N2 array containing the indices of (max N2) corner nodes for each of the M2 <= M cells [-].
+        Node indices are 0-based, hence the maximum node index is K2-1.
+    iface : numpy.ndarray
+        Array of length M2 containing the indices of the faces to keep [-]. 
+    inode : numpy.ndarray
+        Array of length K2 containing the indices of the nodes to keep [-]. 
+    """
+    iface = numpy.where(condition)[0]
     FNCi = FNC[iface]
     inode = numpy.unique(FNCi.flatten())
     if len(inode) == 0:
@@ -1654,19 +2625,147 @@ def dz_filter(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, 
     renum[inode] = range(len(inode))
     rFNCi = numpy.ma.masked_array(renum[FNCi], mask=FNCi.mask)
 
-    return xn[inode], yn[inode], rFNCi, dzb[iface]
+    return xn[inode], yn[inode], rFNCi, iface, inode
+
+
+def distance_to_chainage(sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy.ndarray) -> numpy.ndarray:
+    """
+    Interpolate a quantity 'chainage' along a line to a given set of points.
+
+    Arguments
+    ---------
+    sline : numpy.ndarray
+        Array of length M containing the distance along a line. Distance should be monotoneously increasing.
+    kline : numpy.ndarray
+        Array of length M containing the chainage along a line.
+    spnt : numpy.ndarray
+        Array of length N containing the location of points measured as distance along the same line.
+
+    Results
+    -------
+    kpnt : numpy.ndarray
+        Array of length N containing the location of points expressed as chainage.
+    """
+    M = len(sline)
+    N = len(spnt)
+    
+    # make sure that spnt is sorted
+    isort = numpy.argsort(spnt)
+    unsort = numpy.argsort(isort)
+    spnt_sorted = spnt[isort]
+
+    kpnt = numpy.zeros(N)
+    j = 0
+    for i in range(N):
+        s = spnt_sorted[i]
+        while j < M:
+            if sline[j] < s:
+                j = j+1
+            else:
+                break
+        if j == 0:
+            # distance is less than the distance of the first point, snap to it
+            kpnt[i] = kline[0]
+        elif j == M:
+            # distance is larger than the distance of all the points on the line, snap to the last point
+            kpnt[i] = kline[-1]
+        else:
+            # somewhere in the middle, average the chainage values
+            a = (s - sline[j-1]) / (sline[j] - sline[j-1])
+            kpnt[i] = (1-a) * kline[j-1] + a * kline[j]
+
+    return kpnt[unsort]
+
+
+def distance_along_line(xyline: numpy.ndarray)-> numpy.ndarray:
+    """
+    Compute distance coordinate along the specified line
+
+    Arguments
+    ---------
+    xyline : numpy.ndarray
+        Array of size M x 2 containing the x,y data of a line.
+
+    Results
+    -------
+    sline : numpy.ndarray
+        Array of length M containing the distance along the line.
+    """
+
+    # compute distance coordinate along the line
+    ds = numpy.sqrt(((xyline[1:] - xyline[:-1])**2).sum(axis=1))
+    sline = numpy.cumsum(numpy.concatenate([numpy.zeros(1),ds]))
+
+    return sline
+
+
+def get_direction(xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    """
+    Determine the orientation of a line at a given set of points.
+
+    Arguments
+    ---------
+    xyline : numpy.ndarray
+        Array containing the x,y data of a line.
+    spnt : numpy.ndarray
+        Array of length N containing the location of points measured as distance along the same line.
+
+    Results
+    -------
+    dxpnt : numpy.ndarray
+        Array of length N containing x-component of the unit direction vector at the given points.
+    dypnt : numpy.ndarray
+        Array of length N containing y-component of the unit direction vector at the given points.
+    """
+    sline = distance_along_line(xyline)
+    M = len(sline)
+    N = len(spnt)
+    
+    # make sure that spnt is sorted
+    isort = numpy.argsort(spnt)
+    unsort = numpy.argsort(isort)
+    spnt_sorted = spnt[isort]
+
+    dxpnt = numpy.zeros(N)
+    dypnt = numpy.zeros(N)
+    j = 0
+    for i in range(N):
+        s = spnt_sorted[i]
+        while j < M:
+            if sline[j] < s:
+                j = j+1
+            else:
+                break
+        if j == 0:
+            # distance is less than the distance of the first point, use the direction of the first line segment
+            dxy = xyline[1] - xyline[0]
+        elif j == M:
+            # distance is larger than the distance of all the points on the line, use the direction of the last line segment
+            dxy = xyline[-1] - xyline[-2]
+        else:
+            # somewhere in the middle, get the direction of the line segment
+            dxy = xyline[j] - xyline[j-1]
+        ds = math.sqrt((dxy**2).sum())
+        dxpnt[i] = dxy[0]/ds
+        dypnt[i] = dxy[1]/ds
+
+    return dxpnt[unsort], dypnt[unsort]
+
+
 
 
 def proj_xy_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
-    Project chainage values from source line L1 onto another line L2.
+    Project points onto a line.
 
-    The chainage values are giving along a line L1 (xykm_numpy). For each node
-    of the line L2 (line_xy) on which we would like to know the chainage, first
-    the closest node (discrete set of nodes) on L1 is determined and
-    subsequently the exact chainage isobtained by determining the closest point
-    (continuous line) on L1 for which the chainage is determined using by means
-    of interpolation.
+    For a set of points (xf, yf) the closest point P a line (xyline) is determined.
+    The quantities returned are the distance (sf) measured along the line (xyline)
+    for the closest point P, the signed distance (df) between the original point (xf, yf)
+    and the projected point P. If the original point is located alongsize the line
+    (xyline) then the distance (df) is the normal distance ... if the original point is
+    located before or beyond the line (xyline), it will include an oblique distance component.
+    The sign of the distance (df) is positive for points to the right and negative for points
+    to the left of the line.
 
     Arguments
     ---------
@@ -1692,9 +2791,8 @@ def proj_xy_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) ->
     sf = numpy.zeros(nf)
     df = numpy.zeros(nf)
 
-    # compute coordinate
-    ds = numpy.sqrt(((xyline[1:] - xyline[:-1]) **2).sum(axis=1))
-    sline = numpy.cumsum(numpy.concatenate([numpy.zeros(1),ds]))
+    # compute distance coordinate along the line
+    sline = distance_along_line(xyline)
     
     # get an array with only the x,y coordinates of xyline
     last_node = xyline.shape[0] - 1
@@ -1714,8 +2812,27 @@ def proj_xy_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) ->
         # distance value of that node
         s = sline[imin]
         
-        # if we didn't get the first node
-        if imin > 0:
+        if imin == 0:
+            # we got the first node
+            # check if xyp projects much before the first line segment.
+            p1 = xyline[imin + 1]
+            alpha = (
+                (p1[0] - p0[0]) * (xyp[0] - p0[0])
+                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
+            sgn = ((p1[0] - p0[0]) * (xyp[1] - p0[1])
+                  - (p1[1] - p0[1]) * (xyp[0] - p0[0]))
+            # if the closest point is before the segment ...
+            if alpha < 0:
+                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
+                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
+                ) ** 2
+                dist2end = dist2 - dist2link
+                if dist2end > 100:
+                    dist2 = 1e20
+            
+        else:
+            # we didn't get the first node
             # project xyp onto the line segment before this node
             p1 = xyline[imin - 1]
             alpha = (
@@ -1735,8 +2852,27 @@ def proj_xy_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) ->
                     dist2 = dist2link
                     s = sline[imin] + alpha * (sline[imin - 1] - sline[imin])
 
-        # if we didn't get the last node
-        if imin < last_node:
+        if imin == last_node:
+            # we got the last node
+            # check if xyp projects much beyond the last line segment.
+            p1 = xyline[imin - 1]
+            alpha = (
+                (p1[0] - p0[0]) * (xyp[0] - p0[0])
+                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
+            sgn = ((p0[0] - p1[0]) * (xyp[1] - p0[1])
+                  - (p0[1] - p1[1]) * (xyp[0] - p0[0]))
+            # if the closest point is before the segment ...
+            if alpha < 0:
+                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
+                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
+                ) ** 2
+                dist2end = dist2 - dist2link
+                if dist2end > 100:
+                    dist2 = 1e20
+            
+        else:
+            # we didn't get the last node
             # project rp onto the line segment after this node
             p1 = xyline[imin + 1]
             alpha = (
@@ -1763,3 +2899,226 @@ def proj_xy_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) ->
         df[i] = math.copysign(math.sqrt(dist2), sgn)
         
     return sf,df
+
+
+def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> List[Tuple[float, float]]:
+    """
+    Zoom .
+
+    Arguments
+    ---------
+    km_min : float
+        Minimum value for the chainage range of interest.
+    km_max : float
+        Maximum value for the chainage range of interest.
+    zoom_km_step : float
+        Preferred chainage length of zoom box.
+    xykline : numpy.ndarray 
+        Array containing the x,y and chainage data of a line.
+
+    Returns
+    -------
+    kmzoom : List[Tuple[float, float]]
+        Zoom ranges for plots with chainage along x-axis.
+    xyzoom : List[Tuple[float, float, float, float]]
+        Zoom ranges for xy-plots.
+    """
+
+    zoom_km_bin = (km_min, km_max, zoom_km_step)
+    zoom_km_bnd = get_km_bins(zoom_km_bin, type=0, adjust=True)
+    eps = 0.1 * zoom_km_step
+
+    kmzoom: List[Tuple[float, float]] = []
+    xyzoom: List[Tuple[float, float, float, float]] = []
+    for i in range(len(zoom_km_bnd)-1):
+        km_min = zoom_km_bnd[i] - eps
+        km_max = zoom_km_bnd[i + 1] + eps
+
+        # only append zoom range if there are any chainage points in that range
+        # (might be none if there is a chainage discontinuity in the region of
+        # interest)
+        irange = (xykline[:,2] >= km_min) & (xykline[:,2] <= km_max)
+        if any(irange):
+           kmzoom.append((km_min, km_max))
+           
+           range_crds = xykline[irange, :]
+           x = range_crds[:, 0]
+           y = range_crds[:, 1]
+           xmin = min(x)
+           xmax = max(x)
+           ymin = min(y)
+           ymax = max(y)
+           xyzoom.append((xmin, xmax, ymin, ymax))
+
+    return kmzoom, xyzoom
+
+
+def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool = False) -> numpy.ndarray:
+    """
+    [identical to dfastbe.kernel.get_km_bins]
+    Get an array of representative chainage values.
+    
+    Arguments
+    ---------
+    km_bin : Tuple[float, float, float]
+        Tuple containing (start, end, step) for the chainage bins
+    type : int
+        Type of characteristic chainage values returned
+            0: all bounds (N+1 values)
+            1: lower bounds (N values)
+            2: upper bounds (N values) - default
+            3: mid points (N values)
+    adjust : bool
+        Flag indicating whether the step size should be adjusted to include an integer number of steps
+    
+    Returns
+    -------
+    km : numpy.ndarray
+        Array containing the chainage bin upper bounds
+    """
+    km_step = km_bin[2]
+    nbins = int(math.ceil((km_bin[1] - km_bin[0]) / km_step))
+    
+    lb = 0
+    ub = nbins + 1
+    dx = 0.0
+    
+    if adjust:
+        km_step = (km_bin[1] - km_bin[0]) / nbins
+
+    if type == 0:
+        # all bounds
+        pass
+    elif type == 1:
+        # lower bounds
+        ub = ub - 1
+    elif type == 2:
+        # upper bounds
+        lb = lb + 1
+    elif type == 3:
+        # midpoint values
+        ub = ub - 1
+        dx = km_bin[2] / 2
+
+    km = km_bin[0] + dx + numpy.arange(lb, ub) * km_step
+
+    return km
+
+
+def count_nodes(FNC: numpy.ndarray) -> numpy.ndarray:
+    if FNC.mask.shape == ():
+        # all faces have the same number of nodes
+        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int) * FNC.data.shape[1]
+    else:
+        # varying number of nodes
+        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
+    
+    return nnodes
+
+
+def facenode_to_edgeface(FNC: numpy.ndarray) -> numpy.ndarray:
+    """
+    Derive face 2 face connectivity from face 2 node connectivity.
+    
+    Arguments
+    ---------
+    FNC : numpy.ma.masked_array
+        Masked M x N array containing the indices of (max N) corner nodes for each of the M cells.
+        Maximum node index is K-1.
+    
+    Returns
+    -------
+    FFC : numpy.ma.masked_array
+        Masked K x 2 array containing the indices of neighbouring cell pairs.
+    """
+    nfaces = FNC.shape[0]
+    nnodes = count_nodes(FNC) # nedges equals to nnodes
+    tot_nedges = nnodes.sum()
+    
+    edges = numpy.zeros((tot_nedges, 2), dtype=numpy.int)
+    ie = 0
+    for i in range(nfaces):
+        nni = nnodes[i]
+        fni = FNC[i][0:nni]
+        fni2 = numpy.roll(fni, 1)
+        
+        m_fni = numpy.reshape(fni,(-1,1))
+        m_fni2 = numpy.reshape(fni2,(-1,1))
+        edgesi = numpy.concatenate((m_fni,m_fni2), axis=1)
+        
+        edges[ie + numpy.arange(nni),:] = edgesi
+        ie = ie + nni
+
+    edges = numpy.sort(edges, axis=1)
+    edges, iedge = numpy.unique(edges, axis=0, return_inverse=True)
+    nedges = edges.shape[0]
+    
+    #FEC = FNC.copy()
+    #ie = 0
+    #for i in range(nfaces):
+    #    nni = nnodes[i]
+    #    FEC[i][0:nni] = iedge[ie + numpy.arange(nni)]
+    #    ie = ie + nni
+    
+    EFC = -numpy.ones((nedges, 2), dtype=numpy.int)
+    ie = 0
+    for i in range(nfaces):
+        nni = nnodes[i]
+        for j in range(nni):
+            e = iedge[ie + j]
+            if EFC[e,0]  < 0:
+                EFC[e,0] = i
+            else:
+                EFC[e,1] = i
+        ie = ie + nni
+
+    EFC = EFC[EFC[:,1] > 0,:]
+    return EFC
+
+
+def detect_connected_regions(fcondition: numpy.ndarray, EFC: numpy.ndarray) -> Tuple[numpy.ndarray, int]:
+    """
+    Detect regions of faces for which the fcondition equals True.
+    
+    Arguments
+    ---------
+    fcondition : numpy.ndarray
+        Boolean array of length M: one boolean per face.
+    EFC : numpy.ndarray
+        N x 2 array containing the indices of neighbouring faces.
+        Maximum face index is M-1.
+    
+    Returns
+    -------
+    partition : numpy.ndarray
+        Integer array of length M: for all faces at which fcondition is True, the integer indicates the region that the face assigned to.
+        Contains -1 for faces at which fcondition is False.
+    nregions : int
+        Number of regions detected.
+    """
+    partition = -numpy.ones(fcondition.shape[0], dtype=numpy.int)
+    #print('Total number of cells ', fcondition.shape[0])
+    
+    ncells = fcondition.sum()
+    partition[fcondition] = numpy.arange(ncells)
+    #print('Total number of flagged cells ', ncells)
+    
+    efc = EFC[fcondition[EFC].all(axis=1),:]
+    nlinks = efc.shape[0]
+    #print('Total number of internal flow links ', nlinks)
+    
+    anychange = True
+    while anychange:
+        partEFC = partition[efc]
+        anychange = False
+
+        for j in range(nlinks):
+            m = partition[efc[j]].min()
+            if not (partition[efc[j]] == m).all():
+                anychange = True
+                partition[efc[j]] = m
+    
+    parts, ipart = numpy.unique(partition, return_inverse=True)
+    ipart = ipart-1
+    
+    return ipart, len(parts)-1

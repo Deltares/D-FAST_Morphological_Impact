@@ -63,7 +63,7 @@ def char_discharges(
         A tuple of 3 discharges for which simulations should be run (can later
         be adjusted by the user)
     applyQ : Tuple[bool, bool, bool]
-        A tuple of 3 flags indicating whether each value should be used or not.
+        A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     """
     Q1: float
@@ -132,7 +132,7 @@ def char_times(
     q_stagnant : float
         Discharge below which flow velocity is considered negligible (from rivers configuration file).
     Q : Vector
-        A tuple of 3 discharges for which simulation results are (expected to be) available.
+        A list of 3 discharges for which simulation results are (expected to be) available.
     celerity_hg : float
         Bed celerity during transitional and flood periods (from rivers configuration file).
     celerity_lw : float
@@ -173,14 +173,15 @@ def char_times(
     return t_stagnant_yr, T, rsigma
 
 
-def relax_factors(Q: Vector, T: Vector, q_stagnant: float, cel_q: Vector, cel_c: Vector, nwidth: float) -> Vector:
-    rsigma = [-1.0] * len(Q)
+def relax_factors(Q: Vector, T: Vector, q_stagnant: float, celerity: Vector, nwidth: float) -> Vector:
+    lsigma = [-1.0] * len(Q)
     for i,q in enumerate(Q):
          if q <= q_stagnant:
-             rsigma[i] = 1
+             lsigma[i] = 1.0
          else:
-             c = get_celerity(q, cel_q, cel_c)
-             rsigma[i] = math.exp(-500 * c * T[i] / nwidth)
+             lsigma[i] = math.exp(-500 * celerity[i] * T[i] / nwidth)
+             print("morphological time scale: ", nwidth / 500.0 / celerity[i])
+    rsigma = tuple(s for s in lsigma)
 
     return rsigma
 
@@ -200,7 +201,7 @@ def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
 
 def estimate_sedimentation_length(
     rsigma: Vector,
-    applyQ: Tuple[bool],
+    applyQ: Tuple[bool, ...],
     nwidth: float,
 ) -> float:
     """
@@ -209,7 +210,9 @@ def estimate_sedimentation_length(
     Arguments
     ---------
     rsigma : Vector
-        A tuple of relaxation factors, one for each period.
+        A list of relaxation factors, one for each period.
+    applyQ : Tuple[bool, ...]
+        
     nwidth : float
         Normal river width (from rivers configuration file).
 
@@ -218,17 +221,41 @@ def estimate_sedimentation_length(
     L : float
         The expected yearly impacted sedimentation length.
     """
-    logrsig = [0] * len(rsigma)
+    logrsig = [0.0] * len(rsigma)
     for i in range(len(rsigma)):
         if applyQ[i]:
             logrsig[i] = math.log(rsigma[i])
     length = -sum(logrsig)
     
-    return 2 * nwidth * length
+    return 2.0 * nwidth * length
+
+
+def estimate_sedimentation_length2(
+    tmi: Vector,
+    celerity: Vector,
+) -> float:
+    """
+    This routine computes the sedimentation length in metres.
+
+    Arguments
+    ---------
+    tmi : Vector
+        Morphological impact period of this discharge level [y].
+    celerity : Vector
+        Celerity of this discharge level [km/y].
+
+    Returns
+    -------
+    L : float
+        The expected yearly impacted sedimentation length [m].
+    """
+    Lt = [tmi[i] * celerity[i] for i in range(len(tmi))]
+    
+    return sum(Lt) * 1000
 
 
 def dzq_from_du_and_h(
-    u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float
+    u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float, default: float = numpy.NaN,
 ) -> numpy.ndarray:
     """
     This routine computes dzq from the velocity change and water depth.
@@ -253,7 +280,7 @@ def dzq_from_du_and_h(
         dzq = numpy.where(
             (u0 > ucrit) & (u1 > ucrit) & (u0 < 100),
             h0 * (u0 - u1) / u0,
-            numpy.NaN,
+            default,
         )
     return dzq
 
