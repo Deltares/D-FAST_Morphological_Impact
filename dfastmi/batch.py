@@ -1570,15 +1570,19 @@ def get_values_fm(
             ustream = u0*dx + v0*dy
             
             # positive flow -> flow in downstream direction -> biggest flow in positive direction during peak ebb flow
+            ipos = ustream > 0.
+            t_pos[ipos] = t_pos[ipos] + 1
+            
             ipos = ustream > ustream_pos
             ustream_pos[ipos] = ustream[ipos]
-            t_pos[ipos] = t_pos[ipos] + 1
             dzq_pos[ipos] = dzq1[ipos]
             
             # negative flow -> flow in upstream direction -> biggest flow in negative direction during peak flood flow
+            ineg = ustream < 0.
+            t_neg[ineg] = t_neg[ineg] + 1
+            
             ineg = ustream < ustream_neg
             ustream_neg[ineg] = ustream[ineg]
-            t_neg[ineg] = t_neg[ineg] + 1
             dzq_neg[ineg] = dzq1[ineg]
 
     if n_fields > 1:
