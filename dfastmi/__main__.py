@@ -55,9 +55,9 @@ import _ctypes
 import pandas._libs.tslibs.base
 
 import six
-import mkl
 import netCDF4.utils
 import cftime
+
 # ------------------------------------------------------------------------------
 
 import argparse
