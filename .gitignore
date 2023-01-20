@@ -5,3 +5,5 @@ tests/**/report.txt
 tests/**/verslag.run
 dfastmi_results.nc
 report.txt
+dfastmi.build
+dfastmi.dist
