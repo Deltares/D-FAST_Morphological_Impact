@@ -1,5 +1,5 @@
-nuitka --standalone --python-flag=no_site --show-progress --plugin-enable=numpy --plugin-enable=qt-plugins --file-reference-choice=runtime dfastmi
-rem pause
+nuitka --standalone --python-flag=no_site --show-progress --enable-plugin=pyqt5 --file-reference-choice=runtime dfastmi
+pause
 
 rem Unable to load language file 'messages.UK.ini'
 mkdir dfastmi.dist\dfastmi
@@ -12,7 +12,7 @@ copy dfastmi\Dutch_rivers.ini dfastmi.dist\dfastmi
 rem File "d:\checkouts\D-FAST\D-FAST_Morphological_Impact\dfastmi.dist\pyproj\datadir.py", line 109, in get_data_dir
 rem  pyproj.exceptions.DataDirError: Valid PROJ data directory not found. Either set the path using the environmental variable PROJ_LIB or with `pyproj.datadir.set_data_dir`.
 mkdir dfastmi.dist\proj
-copy ..\envs\dfastbe\Library\share\proj\* dfastmi.dist\proj
+copy .venv\Lib\site-packages\pyproj\proj_dir\share\proj\* dfastmi.dist\proj
 
 rem File "d:\checkouts\D-FAST\D-FAST_Morphological_Impact\dfastmi.dist\rtree\core.py", line 126, in <module rtree.core>
 rem  OSError: could not find or load spatialindex_c-64.dll
@@ -32,7 +32,7 @@ copy ..\envs\dfastbe\Lib\site-packages\geopandas\datasets\natural* dfastmi.dist\
 rem File "d:\checkouts\D-FAST\D-FAST_Morphological_Impact\dfastmi.dist\PyQt5\__init__.py", line 33, in find_qt
 rem  ImportError: unable to find Qt5Core.dll on PATH
 mkdir dfastmi.dist\PyQt5\Qt\bin
-copy ..\envs\dfastbe\Library\bin\Qt5Core* dfastmi.dist\PyQt5\Qt\bin
+copy .venv\Lib\site-packages\PyQt5\Qt5\bin\Qt5Core* dfastmi.dist\PyQt5\Qt\bin
 
 rem '...\dfastmi_usermanual.pdf' is not recognized as an internal or external command, operable program or batch file.
 copy docs\dfastmi_usermanual.pdf dfastmi.dist\dfastmi
