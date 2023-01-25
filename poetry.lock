@@ -469,14 +469,14 @@ test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
 
 [[package]]
 name = "pathspec"
-version = "0.10.3"
+version = "0.11.0"
 description = "Utility library for gitignore style pattern matching of file paths."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pathspec-0.10.3-py3-none-any.whl", hash = "sha256:3c95343af8b756205e2aba76e843ba9520a24dd84f68c22b9f93251507509dd6"},
-    {file = "pathspec-0.10.3.tar.gz", hash = "sha256:56200de4077d9d0791465aa9095a01d421861e405b5096955051deefd697d6f6"},
+    {file = "pathspec-0.11.0-py3-none-any.whl", hash = "sha256:3a66eb970cbac598f9e5ccb5b2cf58930cd8e3ed86d393d541eaf2d8b1705229"},
+    {file = "pathspec-0.11.0.tar.gz", hash = "sha256:64d338d4e0914e91c1792321e6907b5a593f1ab1851de7fc269557a21b30ebbc"},
 ]
 
 [[package]]
@@ -676,14 +676,14 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "66.0.0"
+version = "66.1.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-66.0.0-py3-none-any.whl", hash = "sha256:a78d01d1e2c175c474884671dde039962c9d74c7223db7369771fcf6e29ceeab"},
-    {file = "setuptools-66.0.0.tar.gz", hash = "sha256:bd6eb2d6722568de6d14b87c44a96fac54b2a45ff5e940e639979a3d1792adb6"},
+    {file = "setuptools-66.1.1-py3-none-any.whl", hash = "sha256:6f590d76b713d5de4e49fe4fbca24474469f53c83632d5d0fd056f7ff7e8112b"},
+    {file = "setuptools-66.1.1.tar.gz", hash = "sha256:ac4008d396bc9cd983ea483cb7139c0240a07bbc74ffb6232fceffedc6cf03a8"},
 ]
 
 [package.extras]
@@ -719,6 +719,18 @@ files = [
 ]
 
 [[package]]
+name = "teamcity-messages"
+version = "1.32"
+description = "Send test results to TeamCity continuous integration server from unittest, nose, py.test, twisted trial, behave (Python 2.6+)"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "teamcity-messages-1.32.tar.gz", hash = "sha256:6991d95642c8d067524c90985b650d89caab6ac0bf47b721b931b04951abbfc1"},
+    {file = "teamcity_messages-1.32-py3-none-any.whl", hash = "sha256:1dbd30e24e80ee80083a5ce01d8898c8157a974fd7cd13ee219834b918f4ab8c"},
+]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -745,4 +757,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.13"
-content-hash = "47576af039f634d6eee8c0d0d68d950cfb86fd230ce859e882e81889b4b22eaf"
+content-hash = "5e9ea3f29eca6913bb48ecb76ff2912c49ecf77e4bf7a05e7d32b0495623275d"
