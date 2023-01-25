@@ -1,4 +1,4 @@
-nuitka --standalone --python-flag=no_site --show-progress --enable-plugin=pyqt5 --file-reference-choice=runtime dfastmi
+rem nuitka --standalone --python-flag=no_site --show-progress --enable-plugin=pyqt5 --file-reference-choice=runtime dfastmi
 pause
 
 rem Unable to load language file 'messages.UK.ini'
