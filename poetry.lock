@@ -344,13 +344,13 @@ numpy = ">=1.9"
 
 [[package]]
 name = "nuitka"
-version = "1.4.1"
+version = "1.3.8"
 description = "Python compiler with full language support and CPython compatibility"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "Nuitka-1.4.1.tar.gz", hash = "sha256:38573f0604ac5bb460ac67af54be8ec3cfab4639303002eb6b3f2a923e701367"},
+    {file = "Nuitka-1.3.8.tar.gz", hash = "sha256:9f77cfd6da53f18a0ca29b789e3ed01dc6d6c5f27da1bb094c63d2963c067d95"},
 ]
 
 [[package]]
@@ -757,4 +757,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.12"
-content-hash = "5f1222a53852a5316357ea7525bf000e18328cc14c95082d3a3a5a75eefdd164"
+content-hash = "01ead2a1a7ce74ddfe75e689eaec966d23dcb2f04d43221bac8647f9ded62fa9"
