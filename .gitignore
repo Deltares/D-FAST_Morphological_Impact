@@ -8,6 +8,7 @@ report.txt
 dfastmi.build
 dfastmi.dist
 test.*
+.idea
 docs/**/*.aux
 docs/**/*.mtc
 docs/**/*.mtc0
@@ -16,4 +17,3 @@ docs/**/*.maf
 docs/**/*.nlo
 docs/**/*.pdf
 docs/**/*.toc
-
