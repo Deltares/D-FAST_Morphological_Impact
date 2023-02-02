@@ -1,14 +1,19 @@
-# Byte-compiled / optimized / DLL files
+# Environment and application related files
 __pycache__
+.vscode
+.idea
+
+# Output files
+test.*
+dfastmi.build
+dfastmi.dist
+dfastmi_results.nc
+report.txt
 [!ref]*.out
 tests/**/report.txt
 tests/**/verslag.run
-dfastmi_results.nc
-report.txt
-dfastmi.build
-dfastmi.dist
-test.*
-.idea
+
+# Latex generated files
 docs/**/*.aux
 docs/**/*.mtc
 docs/**/*.mtc0
