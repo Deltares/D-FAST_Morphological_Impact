@@ -1884,7 +1884,6 @@ def comp_sedimentation_volume(
     dzmin = 0.01
     nwbins = 10
     sbin_length = 10.0
-    dnmax = 3000.0
     
     areai = xynode_2_area(xni, yni, FNCi)
     
