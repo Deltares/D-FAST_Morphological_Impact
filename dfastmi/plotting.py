@@ -32,7 +32,6 @@ import shapely
 
 import matplotlib
 import matplotlib.pyplot
-import geopandas
 import numpy
 
 
