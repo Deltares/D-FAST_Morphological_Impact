@@ -1,0 +1,24 @@
+# Environment and application related files
+__pycache__
+.vscode
+.idea
+
+# Output files
+test.*
+dfastmi.build
+dfastmi.dist
+dfastmi_results.nc
+report.txt
+[!ref]*.out
+tests/**/report.txt
+tests/**/verslag.run
+
+# Latex generated files
+docs/**/*.aux
+docs/**/*.mtc
+docs/**/*.mtc0
+docs/**/*.log
+docs/**/*.maf
+docs/**/*.nlo
+docs/**/*.pdf
+docs/**/*.toc
