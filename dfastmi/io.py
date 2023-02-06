@@ -1332,7 +1332,7 @@ def get_progloc() -> str:
 
 def read_xyc(
     filename: str, ncol: int = 2
-) -> shapely.geometry.linestring.LineStringAdapter:
+) -> shapely.geometry.linestring.LineString:
     """
     Read lines from a file.
 
@@ -1345,7 +1345,7 @@ def read_xyc(
 
     Returns
     -------
-    L : shapely.geometry.linestring.LineStringAdapter
+    L : shapely.geometry.linestring.LineString
         Line strings.
     """
     fileroot, ext = os.path.splitext(filename)
@@ -1374,7 +1374,7 @@ def read_xyc(
 
 def get_xykm(
     kmfile: str,
-) -> shapely.geometry.linestring.LineStringAdapter:
+) -> shapely.geometry.linestring.LineString:
     """
 
     Arguments
@@ -1384,7 +1384,7 @@ def get_xykm(
 
     Returns
     -------
-    xykm : shapely.geometry.linestring.LineStringAdapter
+    xykm : shapely.geometry.linestring.LineString
 
     """
     # get the chainage file

@@ -28,7 +28,6 @@ This file is part of D-FAST Bank Erosion: https://github.com/Deltares/D-FAST_Ban
 """
 
 from typing import List, Tuple, Optional, Union
-import shapely
 
 import matplotlib
 import matplotlib.pyplot

@@ -660,7 +660,7 @@ def analyse_and_report(
     nwidth: float,
     ucrit: float,
     filenames: Dict[Any, Tuple[str,str]],
-    xykm: shapely.geometry.linestring.LineStringAdapter,
+    xykm: shapely.geometry.linestring.LineString,
     needs_tide: bool,
     n_fields: int,
     tide_bc: Vector,
@@ -708,7 +708,7 @@ def analyse_and_report(
         results to be processed. The conditions (discharge, wave conditions,
         ...) are the key in the dictionary. Per condition a tuple of two file
         names is given: a reference file and a file with measure.
-    xykm : shapely.geometry.linestring.LineStringAdapter
+    xykm : shapely.geometry.linestring.LineString
         Original river chainage line.
     needs_tide : bool
         Specifies whether the tidal boundary is needed.
@@ -894,7 +894,7 @@ def analyse_and_report_dflowfm(
     nwidth: float,
     ucrit: float,
     filenames: Dict[Any, Tuple[str,str]],
-    xykm: shapely.geometry.linestring.LineStringAdapter,
+    xykm: shapely.geometry.linestring.LineString,
     needs_tide: bool,
     n_fields: int,
     tide_bc: Vector,
@@ -938,7 +938,7 @@ def analyse_and_report_dflowfm(
         results to be processed. The conditions (discharge, wave conditions,
         ...) are the key in the dictionary. Per condition a tuple of two file
         names is given: a reference file and a file with measure.
-    xykm : shapely.geometry.linestring.LineStringAdapter
+    xykm : shapely.geometry.linestring.LineString
         Original river chainage line.
     needs_tide : bool
         Specifies whether the tidal boundary is needed.

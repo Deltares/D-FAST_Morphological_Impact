@@ -17,6 +17,7 @@ ordered-set = "^4.1.0"
 pyproj = "^3.4.1"
 cftime = "1.3.0"
 geopandas = "^0.12.2"
+matplotlib = "^3.6.3"
 
 [tool.poetry.group.dev.dependencies]
 teamcity-messages = "^1.32"
