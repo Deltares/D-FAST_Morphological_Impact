@@ -36,7 +36,7 @@ class Test_batch_mode():
 
     def test_batch_mode_01(self):
         """
-        Testing batch_mode: missing configuration file.
+        Testing batch_mode: running configuration file - Dutch report.
         """
         dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
         rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
@@ -73,7 +73,7 @@ class Test_batch_mode():
 
     def test_batch_mode_02(self):
         """
-        Testing batch_mode: missing configuration file.
+        Testing batch_mode: running configuration file - English report.
         """
         dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
         rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")

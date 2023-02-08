@@ -81,6 +81,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             q_fit,
             q_stagnant,
             Q,
+            applyQ,
             tstag,
             T,
             rsigma,
@@ -275,6 +276,7 @@ def interactive_get_discharges(
     Tuple[float, float],
     float,
     Vector,
+    Tuple[bool, bool, bool],
     float,
     Tuple[float, float, float],
     Tuple[float, float, float],
@@ -317,6 +319,9 @@ def interactive_get_discharges(
         Discharge below which the river flow is negligible.
     Q : Vector
         Tuple of (at most) three characteristic discharges.
+    applyQ : Tuple[bool, bool, bool]
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
     t_stagnant : float
         Fraction of year during which flow velocity is considered negligible.
     T : Tuple[float, float, float]
@@ -406,6 +411,7 @@ def interactive_get_discharges(
         q_fit,
         q_stagnant,
         Q,
+        applyQ,
         tstag,
         T,
         rsigma,

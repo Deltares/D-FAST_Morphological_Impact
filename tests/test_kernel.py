@@ -173,8 +173,8 @@ class Test_char_times():
         celerity_lw = 0.80
         nwidth = 100
         tstag = 0.42124440138751573
-        T = (0.39946547806236565, 0.09720512192621984, 0.08208499862389873, 0.42124440138751573)
-        rsigma = (0.20232865227253677, 0.1696541246824568, 0.2235654146204697, 1)
+        T = (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
+        rsigma = (0.20232865227253677, 0.1696541246824568, 0.2235654146204697)
         assert dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth) == (tstag, T, rsigma)
 
     def test_char_times_03(self):
@@ -198,20 +198,21 @@ class Test_estimate_sedimentation_length():
         Testing char_times for default Bovenrijn conditions.
         """
         rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
+        applyQ = (True, True, True)
         nwidth = 340
-        L = 1384
-        assert dfastmi.kernel.estimate_sedimentation_length(rsigma, nwidth) == L
+        L = 1384.8407327183272
+        assert dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth) == L
 
 class Test_dzq_from_du_and_h():
     def test_dzq_from_du_and_h_01(self):
         """
         Testing dzq_from_du_and_h for situations not resulting in NaN.
         """
-        u0  = numpy.array([0.5,  0.5, 1.0, 1.0,  0.5])
-        h0  = numpy.array([1.0,  1.0, 1.0, 2.0,  1.0])
-        u1  = numpy.array([0.5, -0.5, 0.5, 0.5,  1.0])
+        u0  = numpy.array([0.5, 1.0, 1.0,  0.5])
+        h0  = numpy.array([1.0, 1.0, 2.0,  1.0])
+        u1  = numpy.array([0.5, 0.5, 0.5,  1.0])
         ucrit = 0.3
-        dzq = numpy.array([0.0,  2.0, 0.5, 1.0,  -1.0])
+        dzq = numpy.array([0.0,  0.5, 1.0,  -1.0])
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
         print("dzq reference: ", dzq)
         print("dzq computed : ",dzqc)
@@ -221,9 +222,9 @@ class Test_dzq_from_du_and_h():
         """
         Testing dzq_from_du_and_h for situations resulting in NaN.
         """
-        u0  = numpy.array([0.2, 0.5, 120.0])
-        h0  = numpy.array([1.0, 1.0,   1.0])
-        u1  = numpy.array([0.5, 0.2,   0.5])
+        u0  = numpy.array([ 0.5, 0.2, 0.5, 120.0])
+        h0  = numpy.array([ 1.0, 1.0, 1.0,   1.0])
+        u1  = numpy.array([-0.5, 0.5, 0.2,   0.5])
         ucrit = 0.3
         # dzq = all NaN
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
@@ -241,23 +242,23 @@ class Test_main_computation():
         dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
         dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
         t_stagnant = 0.25
-        T = (0.25, 0.25, 0.25, 0.25)
+        T = (0.25, t_stagnant, 0.25, 0.25)
         rsigma = (0.1, 1, 0.2, 0.4)
 
         zgem = numpy.array([0.1844758064516129, 0.4828629032258065, 0.4828629032258065, 1., 0.])
-        z1o = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
-        z2o = numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.])
+        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
+        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 0.])
 
-        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation([dzq1, dzqS, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzqS, dzq2, dzq3], T, rsigma)
 
         print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
         print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
-        print("z1o  reference: ", numpy.array2string(z1o, floatmode = 'unique'))
-        print("z1o  computed : ", numpy.array2string(z1oc, floatmode = 'unique'))
-        print("z2o  reference: ", numpy.array2string(z2o, floatmode = 'unique'))
-        print("z2o  computed : ", numpy.array2string(z2oc, floatmode = 'unique'))
+        print("zmax reference: ", numpy.array2string(zmax, floatmode = 'unique'))
+        print("zmax computed : ", numpy.array2string(zmaxc, floatmode = 'unique'))
+        print("zmin reference: ", numpy.array2string(zmin, floatmode = 'unique'))
+        print("zmin computed : ", numpy.array2string(zminc, floatmode = 'unique'))
 
-        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(z1o - z1oc) < 1e-13).all() and ((z2o - z2oc) < 1e-13).all() == True
+        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(zmax - zmaxc) < 1e-13).all() and ((zmin - zminc) < 1e-13).all() == True
 
     def test_main_computation_02(self):
         """
@@ -272,19 +273,19 @@ class Test_main_computation():
         rsigma = (0.1, 0.2, 0.4)
         
         zgem = numpy.array([0.25252016129032256, 0.5871975806451613, 0.5871975806451613, 1., 0.])
-        z1o = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
-        z2o = numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.])
+        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
+        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 0.])
         
-        zgemc, z1oc, z2oc = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
         
         print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
         print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
-        print("z1o  reference: ", numpy.array2string(z1o, floatmode = 'unique'))
-        print("z1o  computed : ", numpy.array2string(z1oc, floatmode = 'unique'))
-        print("z2o  reference: ", numpy.array2string(z2o, floatmode = 'unique'))
-        print("z2o  computed : ", numpy.array2string(z2oc, floatmode = 'unique'))
+        print("zmax reference: ", numpy.array2string(zmax, floatmode = 'unique'))
+        print("zmax computed : ", numpy.array2string(zmaxc, floatmode = 'unique'))
+        print("zmin reference: ", numpy.array2string(zmin, floatmode = 'unique'))
+        print("zmin computed : ", numpy.array2string(zminc, floatmode = 'unique'))
 
-        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(z1o - z1oc) < 1e-13).all() and ((z2o - z2oc) < 1e-13).all() == True
+        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(zmax - zmaxc) < 1e-13).all() and ((zmin - zminc) < 1e-13).all() == True
 
 
 if __name__ == '__main__':

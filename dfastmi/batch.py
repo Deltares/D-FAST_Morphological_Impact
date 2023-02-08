@@ -252,20 +252,28 @@ def batch_mode_core(
             filenames = get_filenames(mode, needs_tide, config)
             old_zmin_zmax = False
             kmfile = dfastmi.io.config_get_str(config, "General", "RiverKM", "")
-            xykm = dfastmi.io.get_xykm(kmfile)
-            xykline = numpy.array(xykm)
-            kline = xykline[:,2]
-            kmbounds = dfastmi.io.config_get_range(config, "General", "Boundaries", (min(kline), max(kline)))
-            if display:
-                dfastmi.io.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
+            if kmfile != "":
+                xykm = dfastmi.io.get_xykm(kmfile)
+                xykline = numpy.array(xykm)
+                kline = xykline[:,2]
+                kmbounds = dfastmi.io.config_get_range(config, "General", "Boundaries", (min(kline), max(kline)))
+                if display:
+                    dfastmi.io.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
+            else:
+                kmbounds = (-math.inf, math.inf)
+                xykm = ()
 
             # set plotting flags
             plotting = dfastmi.io.config_get_bool(config, "General", "Plotting", True)
             if plotting:
                 saveplot = dfastmi.io.config_get_bool(config, "General", "SavePlots", True)
-                saveplot_zoomed = dfastmi.io.config_get_bool(config, "General", "SaveZoomPlots", False)
-                zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
-                zoom_km_step = dfastmi.io.config_get_float(config, "General", "ZoomStepKM", zoom_km_step)
+                if kmfile != "":
+                    saveplot_zoomed = dfastmi.io.config_get_bool(config, "General", "SaveZoomPlots", False)
+                    zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
+                    zoom_km_step = dfastmi.io.config_get_float(config, "General", "ZoomStepKM", zoom_km_step)
+                else:
+                    saveplot_zoomed = False
+                    zoom_km_step = 1.0
                 if zoom_km_step < 0.01:
                     saveplot_zoomed = False
                 if saveplot_zoomed:

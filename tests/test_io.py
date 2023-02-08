@@ -168,7 +168,7 @@ class Test_collect_values1():
         key = "A"
         with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values1(config, branches, nreaches, key)
-        assert str(cm.value) == 'Incorrect number of values read from "0.0 0.1". Need 1 values.'
+        assert str(cm.value) == 'Reading A for reach 2 on Branch2 returns "0.0 0.1". Expecting 1 values.'
 
 class Test_collect_values2():
     def test_collect_values2_01(self):
@@ -209,7 +209,7 @@ class Test_collect_values2():
         key = "A"
         with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values2(config, branches, nreaches, key)
-        assert str(cm.value) == 'Incorrect number of values read from "1.0". Need 2 values.'
+        assert str(cm.value) == 'Reading A for reach 2 on Branch1 returns "1.0". Expecting 2 values.'
 
 class Test_collect_values4():
     def test_collect_values4_01(self):
@@ -250,7 +250,7 @@ class Test_collect_values4():
         key = "A"
         with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values4(config, branches, nreaches, key)
-        assert str(cm.value) == 'Incorrect number of values read from "4.0 0.4 -0.04". Need 4 values.'
+        assert str(cm.value) == 'Reading A for reach 3 on Branch2 returns "4.0 0.4 -0.04". Expecting 4 values.'
 
 class Test_write_config():
     def test_write_config_01(self):
