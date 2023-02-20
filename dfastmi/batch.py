@@ -102,17 +102,19 @@ def batch_mode_core(
     applyQ1 : Tuple[bool, bool, bool]
     Q : Tuple[float, ...]
     applyQ : Tuple[bool, ...]
+
+    display = False
     
     # check outputdir
     if rootdir == "":
         rootdir = os.getcwd()
     outputdir = dfastmi.io.config_get_str(config, "General", "OutputDir", rootdir + os.sep + "output")
     if os.path.exists(outputdir):
-        dfastmi.io.log_text("overwrite_dir", dict={"dir": outputdir})
+        if display:
+            dfastmi.io.log_text("overwrite_dir", dict={"dir": outputdir})
     else:
         os.makedirs(outputdir)
     report = open(outputdir + os.sep + dfastmi.io.get_filename("report.out"), "w")
-    display = True
 
     prog_version = dfastmi.__version__
     dfastmi.io.log_text("header", dict={"version": prog_version}, file=report)
@@ -294,9 +296,11 @@ def batch_mode_core(
                 figdir = dfastmi.io.config_get_str(
                     config, "General", "FigureDir", rootdir + os.sep + "figure"
                 )
-                dfastmi.io.log_text("figure_dir", dict={"dir": figdir})
+                if display:
+                    dfastmi.io.log_text("figure_dir", dict={"dir": figdir})
                 if os.path.exists(figdir):
-                    dfastmi.io.log_text("overwrite_dir", dict={"dir": figdir})
+                    if display:
+                        dfastmi.io.log_text("overwrite_dir", dict={"dir": figdir})
                 else:
                     os.makedirs(figdir)
                 plot_ext = dfastmi.io.config_get_str(config, "General", "FigureExt", ".png")
@@ -437,11 +441,6 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
     tvec_mi = numpy.zeros(q.shape)
     tvec_mi[sorted] = tmi
     Tmi = tuple(ti for ti in tvec_mi)
-    
-    print(Q)
-    print(q)
-    print(T)
-    print(Tmi)
 
     return T, Tmi
 
