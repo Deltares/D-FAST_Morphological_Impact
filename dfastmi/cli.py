@@ -91,7 +91,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         if have_files and not all_q:
             break
 
-        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+        slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
         reach = rivers["reaches"][ibranch][ireach]
         if have_files:
@@ -112,24 +112,46 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
 
             dfastmi.io.log_text("", repeat=19)
             filenames = dfastmi.batch.get_filenames(0, False)
+            imode = 0
+            display = True
             old_zmin_zmax = True
+            needs_tide = False
+            n_fields = 0
+            tide_bc = []
+            xykm = None
+            kmbounds = [0,1]
+            outputdir = "."
+            plotops = {}
             missing_data = dfastmi.batch.analyse_and_report(
-                0,
-                True,
+                imode,
+                display,
                 report,
                 reduced_output,
                 reach,
                 q_location,
+                q_threshold,
                 tstag,
                 Q,
                 T,
                 rsigma,
-                nlength,
+                slength,
+                nwidth,
                 ucrit,
                 filenames,
+                xykm,
+                needs_tide,
+                n_fields,
+                tide_bc,
                 old_zmin_zmax,
+                kmbounds,
+                outputdir,
+                plotops,
             )
             if not missing_data:
+                if slength > 1:
+                    nlength = int(slength)
+                else:
+                    nlength = slength
                 dfastmi.io.log_text("")
                 dfastmi.io.log_text("length_estimate", dict={"nlength": nlength})
                 dfastmi.io.log_text(

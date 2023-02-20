@@ -35,14 +35,18 @@ class Test_interactive_mode():
         finally:
             os.chdir(cwd)
         #
-        #for s in outstr:
-        #    print(s)
+        prefixes = ('Dit is versie')
+        #
         self.maxDiff = None
         refstr = open(tstdir + os.sep + "ref_stdout_NL.txt", "r").read().splitlines()
+        outstr = [x for x in outstr if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
         assert outstr == refstr
         #
         result = open(tstdir + os.sep + "verslag.run", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_verslag.run", "r").read().splitlines()
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
         assert result == refstr
         #
         result = open(tstdir + os.sep + "jaargem.out", "r").read().splitlines()
@@ -50,11 +54,11 @@ class Test_interactive_mode():
         assert result == refstr
         #
         result = open(tstdir + os.sep + "maxmorf.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_maxmorf_org.out", "r").read().splitlines()
         assert result == refstr
         #
         result = open(tstdir + os.sep + "minmorf.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_minmorf_org.out", "r").read().splitlines()
         assert result == refstr
 
     def test_interactive_mode_02(self):
@@ -74,14 +78,18 @@ class Test_interactive_mode():
         finally:
             os.chdir(cwd)
         #
-        #for s in outstr:
-        #    print(s)
+        prefixes = ('This is version')
+        #
         self.maxDiff = None
         refstr = open(tstdir + os.sep + "ref_stdout_UK.txt", "r").read().splitlines()
+        outstr = [x for x in outstr if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
         assert outstr == refstr
         #
         result = open(tstdir + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
         assert result == refstr
         #
         result = open(tstdir + os.sep + "yearavg_dzb.out", "r").read().splitlines()
@@ -89,9 +97,9 @@ class Test_interactive_mode():
         assert result == refstr
         #
         result = open(tstdir + os.sep + "max_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_maxmorf_org.out", "r").read().splitlines()
         assert result == refstr
         #
         result = open(tstdir + os.sep + "min_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_minmorf_org.out", "r").read().splitlines()
         assert result == refstr
