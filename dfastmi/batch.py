@@ -1096,14 +1096,19 @@ def analyse_and_report_dflowfm(
                     t = tide_bc[i]
                     key = (q,t)
                 else:
+                    t = 0
                     key = q
                 if rsigma[i] == 1:
                     # no celerity, so ignore field
                     dzq[i] = 0
                 elif key in filenames.keys():
-                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields, dxi, dyi, iface)
+                    if t > 0:
+                        n_fields_request = n_fields
+                    else:
+                        n_fields_request = 1
+                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
                 else:
-                    if needs_tide:
+                    if t > 0:
                         dfastmi.io.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
                     else:
                         dfastmi.io.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
