@@ -48,6 +48,7 @@ if is_nuitka:
     pyproj.datadir.set_data_dir(root + os.sep + "proj")
     import pyproj
 
+import fiona.enums
 import fiona.ogrext
 import fiona._shim
 import fiona.schema
