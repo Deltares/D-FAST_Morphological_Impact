@@ -50,7 +50,6 @@ if is_nuitka:
 
 import fiona.enums
 import fiona.ogrext
-import fiona._shim
 import fiona.schema
 import _ctypes
 import pandas._libs.tslibs.base
