@@ -53,6 +53,7 @@ import fiona.ogrext
 import fiona.schema
 import _ctypes
 import pandas._libs.tslibs.base
+import shapely._geos
 
 import six
 import netCDF4.utils
