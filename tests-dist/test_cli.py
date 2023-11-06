@@ -6,7 +6,8 @@ from contextlib import contextmanager
 from io import StringIO
 import subprocess
 
-dfastexe = "dfast-dist/dfast"
+# dfast binary path relative to tstdir
+dfastexe = "../../dfast-dist/dfast.exe"
 
 @contextmanager
 def captured_output():
