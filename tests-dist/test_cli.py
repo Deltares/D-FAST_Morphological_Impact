@@ -30,7 +30,7 @@ class Test_interactive_mode():
             os.chdir(tstdir)
             with captured_output() as (out, err):
                 with open("waqmorf.in", "r") as input:
-                    subprocess.call([dfastexe,"--mode","CLI"])
+                    subprocess.call([dfastexe,"--mode","CLI","--language","NL"])
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
