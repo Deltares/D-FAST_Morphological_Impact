@@ -1205,6 +1205,12 @@ def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, num
     xn = dfastmi.io.read_fm_map(filename, "x", location="node")
     yn = dfastmi.io.read_fm_map(filename, "y", location="node")
     FNC = dfastmi.io.read_fm_map(filename, "face_node_connectivity")
+    if FNC.mask.shape == ():
+        # all faces have the same number of nodes; empty mask
+        FNC.mask = FNC<0
+    else:
+        # varying number of nodes
+        FNC.mask = numpy.logical_or(FNC.mask,FNC<0)
     
     return xn, yn, FNC
 
