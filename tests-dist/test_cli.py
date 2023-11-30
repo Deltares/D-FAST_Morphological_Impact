@@ -28,10 +28,9 @@ class Test_interactive_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            with captured_output() as (out, err):
-                with open("waqmorf.in", "r") as input:
-                    subprocess.call([dfastexe,"--mode","CLI","--language","NL"])
-            outstr = out.getvalue().splitlines()
+            infile = open("waqmorf.in","r")
+            result = subprocess.run([dfastexe,"--mode","CLI","--language","NL"], stdin=infile, capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
         #
@@ -69,10 +68,9 @@ class Test_interactive_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            with captured_output() as (out, err):
-                with open("waqmorf.in", "r") as input:
-                    subprocess.call([dfastexe,"--mode","CLI"])
-            outstr = out.getvalue().splitlines()
+            infile = open("waqmorf.in","r")
+            result = subprocess.run([dfastexe,"--mode","CLI"], stdin=infile, capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
         #
