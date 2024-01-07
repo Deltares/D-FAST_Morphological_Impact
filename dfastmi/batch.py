@@ -737,10 +737,17 @@ def analyse_and_report_dflowfm(
                 units="m",
             )
             if rsigma[i]<1:
+                # make sure that ugrid_add is always called with a numpy array
+                try:
+                   dzq_float = float(dzq[i])
+                   dzq_loc = dzq_float + numpy.zeros(data_zgem.shape)
+                except:
+                   dzq_loc = dzq[i]
+                   
                 dfastmi.io.ugrid_add(
                     dst,
                     "dzq_{}".format(i),
-                    dzq[i],
+                    dzq_loc,
                     meshname,
                     facedim,
                     long_name="equilibrium bed level change aimed for during period {}".format(i+1),
