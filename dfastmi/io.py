@@ -35,6 +35,7 @@ import configparser
 import os
 import pathlib
 import zlib
+import shapely
 from packaging import version
 
 DataField = List[List[Union[float, List[float]]]]
