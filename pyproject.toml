@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "d-fast_morphological_impact"
-version = "2.2022.1"
+version = "2.0.8"
 description = "A tool to perform a morphological impact analysis based on a number of D-Flow FM simulations."
 authors = ["Stichting Deltares <delft3d.support@deltares.nl>"]
 readme = "README.md"

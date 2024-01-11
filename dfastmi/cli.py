@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
-from dfastmi.kernel import Vector
+from dfastmi.kernel import QRuns
 
 import os
 import numpy
@@ -132,6 +132,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 q_threshold,
                 tstag,
                 Q,
+                applyQ,
                 T,
                 rsigma,
                 slength,
@@ -297,7 +298,7 @@ def interactive_get_discharges(
     float,
     Tuple[float, float],
     float,
-    Vector,
+    QRuns,
     Tuple[bool, bool, bool],
     float,
     Tuple[float, float, float],
@@ -339,7 +340,7 @@ def interactive_get_discharges(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
         Discharge below which the river flow is negligible.
-    Q : Vector
+    Q : QRuns
         Tuple of (at most) three characteristic discharges.
     applyQ : Tuple[bool, bool, bool]
         A list of 3 flags indicating whether each value should be used or not.
@@ -450,7 +451,7 @@ def write_report_nodata(
     q_stagnant: float,
     tstag: float,
     q_fit: Tuple[float, float],
-    Q: Vector,
+    Q: QRuns,
     T: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
@@ -477,7 +478,7 @@ def write_report_nodata(
         Fraction of year that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    Q : Vector
+    Q : QRuns
         Tuple of (at most) three characteristic discharges.
     T : Tuple[float, float, float]
         Fraction of year represented by each characteristic discharge.

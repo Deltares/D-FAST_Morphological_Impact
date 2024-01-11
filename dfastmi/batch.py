@@ -29,11 +29,10 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Union, Dict, Any, Tuple, TextIO
 from dfastmi.io import RiversObject
-from dfastmi.kernel import Vector, QRuns
+from dfastmi.kernel import Vector, BoolVector, QRuns
 
 import sys
 import os
-import math
 import numpy
 import dfastmi.io
 import dfastmi.kernel
@@ -136,7 +135,7 @@ def batch_mode_core(
         ibranch = rivers["branches"].index(branch)
     except:
         dfastmi.io.log_text("invalid_branch", dict={"branch": branch}, file=report)
-        failed = True
+        success = False
     else:
         reach = config["General"]["Reach"]
         try:
@@ -145,7 +144,7 @@ def batch_mode_core(
             dfastmi.io.log_text(
                 "invalid_reach", dict={"reach": reach, "branch": branch}, file=report
             )
-            failed = True
+            success = False
         else:
             nwidth = rivers["normal_width"][ibranch][ireach]
             q_location = rivers["qlocations"][ibranch]
@@ -232,7 +231,12 @@ def batch_mode_core(
             slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
 
             reach = rivers["reaches"][ibranch][ireach]
-            ucrit = rivers["ucritical"][ibranch][ireach]
+            try:
+                ucrit = float(config["General"]["Ucrit"])
+            except:
+                ucrit = rivers["ucritical"][ibranch][ireach]
+            ucritMin = 0.01
+            ucrit = max(ucritMin, ucrit)
             if config["General"]["Mode"] == "WAQUA export":
                 mode = 0
                 dfastmi.io.log_text(
@@ -320,6 +324,7 @@ def batch_mode_core(
                 q_threshold,
                 tstag,
                 Q,
+                applyQ,
                 T,
                 rsigma,
                 slength,
@@ -351,7 +356,7 @@ def batch_mode_core(
 
     dfastmi.io.log_text("end", file=report)
     report.close()
-    return failed
+    return success
 
 
 def countQ(Q: Vector) -> int:
@@ -559,7 +564,6 @@ def batch_get_discharges(
 
 def get_filenames(
     imode: int,
-    needs_tide: bool,
     config: Optional[configparser.ConfigParser] = None,
 ) -> Dict[Any, Tuple[str,str]]:
     """
@@ -569,8 +573,6 @@ def get_filenames(
     ---------
     imode : int
         Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
     config : Optional[configparser.ConfigParser]
         The variable containing the configuration (may be None for imode = 0).
 
@@ -595,23 +597,7 @@ def get_filenames(
                     reference = cfg_get(config, QSTR, "Reference")
                     measure = cfg_get(config, QSTR, "WithMeasure")
                     filenames[i] = (reference, measure)
-        else:
-            i = 0
-            while True:
-                i = i + 1
-                CSTR = "C{}".format(i)
-                if CSTR in config:
-                    Q = float(cfg_get(config, CSTR, "Discharge"))
-                    reference = cfg_get(config, CSTR, "Reference")
-                    measure = cfg_get(config, CSTR, "WithMeasure")
-                    if needs_tide:
-                       T = int(cfg_get(config, CSTR, "TideBC"))
-                       key = (Q,T)
-                    else:
-                       key = Q
-                    filenames[key] = (reference, measure)
-                else:
-                    break
+
     return filenames
 
 
@@ -661,6 +647,7 @@ def analyse_and_report(
     q_threshold: float,
     tstag: float,
     Q: Vector,
+    applyQ: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -702,6 +689,8 @@ def analyse_and_report(
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -734,9 +723,8 @@ def analyse_and_report(
 
     Returns
     -------
-    missing_data : bool
-        Flag indicating whether analysis couldn't be carried out due to missing
-        data.
+    success : bool
+        Flag indicating whether analysis could be carried out.
     """
     if imode == 0:
         return analyse_and_report_waqua(
@@ -747,6 +735,7 @@ def analyse_and_report(
             q_location,
             tstag,
             Q,
+            applyQ,
             T,
             rsigma,
             slength,
@@ -763,6 +752,7 @@ def analyse_and_report(
             q_threshold,
             tstag,
             Q,
+            applyQ,
             T,
             rsigma,
             slength,
@@ -788,6 +778,7 @@ def analyse_and_report_waqua(
     q_location: str,
     tstag: float,
     Q: Vector,
+    applyQ: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -818,6 +809,8 @@ def analyse_and_report_waqua(
         Number of days that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -833,17 +826,16 @@ def analyse_and_report_waqua(
 
     Returns
     -------
-    missing_data : bool
-        Flag indicating whether analysis couldn't be carried out due to missing
-        data.
+    success : bool
+        Flag indicating whether analysis could be carried out.
     """
-    missing_data = False
+    success = True
     first_discharge = True
     
     dzq : List[Optional[Union[float, numpy.ndarray]]]
     dzq = [None] * len(Q)
     for i in range(3):
-        if not missing_data and not Q[i] is None:
+        if success and applyQ[i]:
             if first_discharge:
                 dzq[i], firstm, firstn = get_values_waqua3(
                     i+1, Q[i], ucrit, display, report, reduced_output
@@ -852,11 +844,11 @@ def analyse_and_report_waqua(
             else:
                 dzq[i] = get_values_waqua1(i+1, Q[i], ucrit, display, report, reduced_output)
             if dzq[i] is None:
-                missing_data = True
+                success = False
         else:
             dzq[i] = 0.0
 
-    if not missing_data:
+    if success:
         if display:
             dfastmi.io.log_text("char_bed_changes")
             
@@ -869,7 +861,7 @@ def analyse_and_report_waqua(
         data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.main_computation(
             dzq, T, rsigma
         )
-        if old_zmin_zmax:
+        if True:
             # get old zmax and zmin
             data_zmax = dzb[0]
             data_zmin = dzb[1]
@@ -884,7 +876,7 @@ def analyse_and_report_waqua(
             outputdir + os.sep + dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
         )
 
-    return missing_data
+    return success
 
 
 def analyse_and_report_dflowfm(
@@ -895,6 +887,7 @@ def analyse_and_report_dflowfm(
     q_threshold: float,
     tstag: float,
     Q: Vector,
+    applyQ: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -932,6 +925,8 @@ def analyse_and_report_dflowfm(
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -964,9 +959,8 @@ def analyse_and_report_dflowfm(
 
     Returns
     -------
-    missing_data : bool
-        Flag indicating whether analysis couldn't be carried out due to missing
-        data.
+    success : bool
+        Flag indicating whether analysis could be carried out.
     """
     key: Union[Tuple[float, int], float]
 
@@ -1117,7 +1111,7 @@ def analyse_and_report_dflowfm(
             else:
                 dzq[i] = 0
 
-    if not missing_data:
+    if success:
         if display:
             dfastmi.io.log_text("char_bed_changes")
             
@@ -1352,7 +1346,7 @@ def analyse_and_report_dflowfm(
         )
         
 
-    return missing_data
+    return success
 
 
 def get_values_waqua1(
@@ -1772,7 +1766,7 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     except:
         raise Exception("No version information in the file!")
 
-    if version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2"):
+    if version.parse(file_version) == version.parse("1"):
         section = config["General"]
         branch = section["Branch"]
         reach = section["Reach"]
@@ -2475,6 +2469,12 @@ def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, num
     xn = dfastmi.io.read_fm_map(filename, "x", location="node")
     yn = dfastmi.io.read_fm_map(filename, "y", location="node")
     FNC = dfastmi.io.read_fm_map(filename, "face_node_connectivity")
+    if FNC.mask.shape == ():
+        # all faces have the same number of nodes; empty mask
+        FNC.mask = FNC<0
+    else:
+        # varying number of nodes
+        FNC.mask = numpy.logical_or(FNC.mask,FNC<0)
     
     return xn, yn, FNC
 

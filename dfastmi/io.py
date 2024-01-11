@@ -34,9 +34,7 @@ import netCDF4
 import configparser
 import os
 import pathlib
-import pandas
-import geopandas
-import shapely
+import zlib
 from packaging import version
 
 DataField = List[List[Union[float, List[float]]]]
@@ -237,6 +235,8 @@ def read_rivers(filename: str = "rivers.ini") -> RiversObject:
     else:
         raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
 
+    verify_checksum_rivers(config, filename)
+    
     # parse branches
     branches = [k for k in config.keys()]
     branches.remove("DEFAULT")
@@ -441,6 +441,29 @@ def read_rivers2(config: configparser.ConfigParser, branches: List[str], allreac
                 
 
     return rivers
+    
+def verify_checksum_rivers(
+    config: configparser.ConfigParser,
+    filename: str,
+):
+    chapters = [k for k in config.keys()]
+    checksum = ""
+    checkval = 1
+    for chapter in chapters:
+        keys = [k for k in config[chapter].keys()]
+        for key in keys:
+            str = config[chapter][key]
+            if chapter == "General" and key == "checksum":
+                checksum = str
+            else:
+                checkval = zlib.adler32(str.encode("utf-8"), checkval) & 0xffffffff
+    #print("Expected checksum: ", checkval)
+    if checksum == "":
+        log_text("checksum", dict = {"filename": filename})
+    else:
+        checkval2 = int(checksum)
+        if checkval2 != checkval:
+            raise Exception("Checksum mismatch: configuration file {} has been modified!".format(filename))
 
 
 def collect_values1(
@@ -903,7 +926,6 @@ def read_fm_map(
     filename: str,
     varname: str,
     location: str = "face",
-    ifld: Optional[int] = None,
 ) -> numpy.ndarray:
     """
     Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
@@ -917,8 +939,6 @@ def read_fm_map(
     location : str
         Name of the stagger location at which the data should be located
         (default is "face")
-    ifld : Optional[int]
-        Time step offset index from the last time step written.
 
     Raises
     ------
@@ -998,17 +1018,8 @@ def read_fm_map(
     if var.get_dims()[0].isunlimited():
         # assume that time dimension is unlimited and is the first dimension
         # slice to obtain last time step or earlier as requested
-        if ifld is None:
-            data = var[-1, :]
-        else:
-            data = var[-1-ifld, :]
+        data = var[-1, :]
     else:
-        if not ifld is None:
-            raise Exception(
-                'Trying to access time-independent variable "{}" with time offset {}.'.format(
-                    varname, -1-ifld
-                )
-            )
         data = var[...] - start_index
 
     # close file

@@ -168,7 +168,7 @@ class Test_collect_values1():
         key = "A"
         with pytest.raises(Exception) as cm:
             dfastmi.io.collect_values1(config, branches, nreaches, key)
-        assert str(cm.value) == 'Reading A for reach 2 on Branch2 returns "0.0 0.1". Expecting 1 values.'
+        assert str(cm.value) == 'Incorrect number of values read from "0.0 0.1" for reach 2 on branch "Branch2". Need 1 values.'
 
 class Test_collect_values2():
     def test_collect_values2_01(self):

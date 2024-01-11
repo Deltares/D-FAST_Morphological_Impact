@@ -38,11 +38,12 @@ QLevels = Tuple[float, float, float, float]
 QChange = Tuple[float, float]
 QRuns = Tuple[Optional[float], Optional[float], Optional[float]]
 Vector = Tuple[float, ...]
+BoolVector = Tuple[bool, ...]
 
 
 def char_discharges(
     q_levels: QLevels, dq: QChange, q_threshold: Optional[float], q_bankfull: float
-) -> Tuple[QRuns, Tuple[bool, bool, bool]]:
+) -> Tuple[QRuns, BoolVector]:
     """
     This routine determines the discharges needed for the analysis.
 
@@ -62,8 +63,8 @@ def char_discharges(
     Q : QRuns
         A tuple of 3 discharges for which simulations should be run (can later
         be adjusted by the user)
-    applyQ : Tuple[bool, bool, bool]
-        A list of 3 flags indicating whether each value should be used or not.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     """
     Q1: float
@@ -201,7 +202,7 @@ def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
 
 def estimate_sedimentation_length(
     rsigma: Vector,
-    applyQ: Tuple[bool, ...],
+    applyQ: BoolVector,
     nwidth: float,
 ) -> float:
     """
@@ -210,9 +211,9 @@ def estimate_sedimentation_length(
     Arguments
     ---------
     rsigma : Vector
-        A list of relaxation factors, one for each period.
-    applyQ : Tuple[bool, ...]
-        
+        A tuple of relaxation factors, one for each period.
+    applyQ : BoolVector
+        A tuple of 3 flags indicating whether each value should be used or not.
     nwidth : float
         Normal river width (from rivers configuration file).
 
@@ -317,10 +318,14 @@ def main_computation(
     """
     N = len(dzq)
     # N should also equal len(T) and len(rsigma)
+    firstQ = True
     
     for i in range(len(dzq)):
-        if i == 0:
+        if dzq[i] is None:
+            pass
+        elif firstQ:
             mask = numpy.isnan(dzq[0])
+            firstQ = False
         else:
             mask = mask | numpy.isnan(dzq[i])
     

@@ -249,11 +249,13 @@ def updated_mode(imode: int) -> None:
     # enable file selection if imode == 1 (D-Flow FM map)
     DFlowFM = imode == 1
     for q in range(3):
+        qstr = "q{}".format(q + 1)
+        active = dialog[qstr].isEnabled()
         for f in range(2):
             qstr = "q{}file{}".format(q + 1, f + 1)
-            dialog[qstr].setEnabled(DFlowFM)
-            dialog[qstr + "_txt"].setEnabled(DFlowFM)
-            dialog[qstr + "_openfile"].setEnabled(DFlowFM)
+            dialog[qstr].setEnabled(DFlowFM and active)
+            dialog[qstr + "_txt"].setEnabled(DFlowFM and active)
+            dialog[qstr + "_openfile"].setEnabled(DFlowFM and active)
 
 
 def updated_branch(ibranch: int) -> None:
@@ -377,8 +379,11 @@ def update_qvalues() -> None:
         active = not q is None and applyQ[i]
         dialog[iq].setEnabled(active)
         if DFlowFM:
-            dialog[iq + "file1"].setEnabled(active)
-            dialog[iq + "file2"].setEnabled(active)
+            for f in range(2):
+                qstr = iq + "file{}".format(f + 1)
+                dialog[qstr].setEnabled(active)
+                dialog[qstr + "_txt"].setEnabled(active)
+                dialog[qstr + "_openfile"].setEnabled(active)
 
 
 def close_dialog() -> None:
@@ -532,12 +537,12 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    failed = dfastmi.batch.batch_mode_core(rivers, False, config)
+    success = dfastmi.batch.batch_mode_core(rivers, False, config)
     report = dfastmi.io.get_filename("report.out")
-    if failed:
-        showError(gui_text("error_during_analysis", dict={"report": report},))
-    else:
+    if success:
         showMessage(gui_text("end_of_analysis", dict={"report": report},))
+    else:
+        showError(gui_text("error_during_analysis", dict={"report": report},))
 
 
 def menu_about_self() -> None:

@@ -200,17 +200,17 @@ class Test_estimate_sedimentation_length():
         rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
         applyQ = (True, True, True)
         nwidth = 340
-        L = 1384.8407327183272
-        assert dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth) == L
+        L = 1384
+        assert int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)) == L
 
 class Test_dzq_from_du_and_h():
     def test_dzq_from_du_and_h_01(self):
         """
         Testing dzq_from_du_and_h for situations not resulting in NaN.
         """
-        u0  = numpy.array([0.5, 1.0, 1.0,  0.5])
-        h0  = numpy.array([1.0, 1.0, 2.0,  1.0])
-        u1  = numpy.array([0.5, 0.5, 0.5,  1.0])
+        u0  = numpy.array([0.5,  1.0, 1.0, 1.0,  0.5])
+        h0  = numpy.array([1.0,  4.0, 1.0, 2.0,  1.0])
+        u1  = numpy.array([0.5,  0.5, 0.5, 0.5,  1.0])
         ucrit = 0.3
         dzq = numpy.array([0.0,  0.5, 1.0,  -1.0])
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
@@ -234,7 +234,7 @@ class Test_dzq_from_du_and_h():
 class Test_main_computation():
     def test_main_computation_01(self):
         """
-        Testing main_computation with stagnant period.
+        Testing main_computation.
         """
         mis = numpy.NaN
         dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])

@@ -1,13 +1,14 @@
 import context
-import dfastmi.batch
-import dfastmi.io
 import os
-
 import sys
 import numpy
 import netCDF4
 from contextlib import contextmanager
 from io import StringIO
+import subprocess
+
+# dfast binary path relative to tstdir
+dfastexe = "../../dfastmi.dist/dfastmi.exe"
 
 @contextmanager
 def captured_output():
@@ -25,11 +26,14 @@ class Test_batch_mode():
         """
         Testing batch_mode: missing configuration file.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
-        with captured_output() as (out, err):
-            dfastmi.batch.batch_mode("config.cfg", rivers, False)
-        outstr = out.getvalue().splitlines()
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        try:
+            os.chdir(tstdir)
+            result = subprocess.run([dfastexe,"--mode","BATCH","--config","config.cfg","--language","NL"], capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
+        finally:
+            os.chdir(cwd)
         #
         #for s in outstr:
         #    print(s)
@@ -38,17 +42,14 @@ class Test_batch_mode():
 
     def test_batch_mode_01(self):
         """
-        Testing batch_mode: running configuration file - Dutch report.
+        Testing batch_mode: normal run using WAQUA txt files (NL).
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("c01.cfg", rivers, False)
-            outstr = out.getvalue().splitlines()
+            result = subprocess.run([dfastexe,"--mode","BATCH","--config","c01.cfg","--language","NL"], capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
         #
@@ -57,39 +58,34 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        prefixes = ('Dit is versie')
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "verslag.run", "r").read().splitlines()
+        result = open(tstdir + os.sep + "verslag.run", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_verslag.run", "r").read().splitlines()
-        result = [x for x in result if not x.startswith(prefixes)]
-        refstr = [x for x in refstr if not x.startswith(prefixes)]
-        assert result == refstr
+        assert result[:21] == refstr[:21]
+        # line 22 contains the version number and will thus change
+        assert result[23:] == refstr[23:]
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "jaargem.out", "r").read().splitlines()
+        result = open(tstdir + os.sep + "jaargem.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
         assert result == refstr
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "maxmorf.out", "r").read().splitlines()
+        result = open(tstdir + os.sep + "maxmorf.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
         assert result == refstr
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "minmorf.out", "r").read().splitlines()
+        result = open(tstdir + os.sep + "minmorf.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
         assert result == refstr
 
     def test_batch_mode_02(self):
         """
-        Testing batch_mode: running configuration file - English report.
+        Testing batch_mode: normal run using WAQUA txt files (UK).
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("c01.cfg", rivers, False)
-            outstr = out.getvalue().splitlines()
+            result = subprocess.run([dfastexe,"--mode","BATCH","--config","c01.cfg"], capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
         #
@@ -98,23 +94,21 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        prefixes = ('This is version')
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
+        result = open(tstdir + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
-        result = [x for x in result if not x.startswith(prefixes)]
-        refstr = [x for x in refstr if not x.startswith(prefixes)]
-        assert result == refstr
+        assert result[:21] == refstr[:21]
+        # line 22 contains the version number and will thus change
+        assert result[23:] == refstr[23:]
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "yearavg_dzb.out", "r").read().splitlines()
+        result = open(tstdir + os.sep + "yearavg_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
         assert result == refstr
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "max_dzb.out", "r").read().splitlines()
+        result = open(tstdir + os.sep + "max_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
         assert result == refstr
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "min_dzb.out", "r").read().splitlines()
+        result = open(tstdir + os.sep + "min_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
         assert result == refstr
 
@@ -122,16 +116,13 @@ class Test_batch_mode():
         """
         Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = dfastmi.io.read_rivers("dfastmi/Dutch_rivers.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         refdir = tstdir + os.sep + "ref_Qmin_Q4000"
         try:
             os.chdir(tstdir)
-            with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("Qmin_4000.cfg", rivers, False)
-            outstr = out.getvalue().splitlines()
+            result = subprocess.run([dfastexe,"--mode","BATCH","--config","Qmin_4000.cfg"], capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
         #
