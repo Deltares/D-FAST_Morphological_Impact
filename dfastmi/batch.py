@@ -33,6 +33,7 @@ from dfastmi.kernel import Vector, BoolVector, QRuns
 
 import sys
 import os
+import math
 import numpy
 import dfastmi.io
 import dfastmi.kernel
@@ -340,6 +341,8 @@ def batch_mode_core(
                 outputdir,
                 plotops,
             )
+            success = not failed
+
             if slength > 1:
                 nlength = "{}".format(int(slength))
             else:
@@ -356,6 +359,7 @@ def batch_mode_core(
 
     dfastmi.io.log_text("end", file=report)
     report.close()
+
     return success
 
 
@@ -564,6 +568,7 @@ def batch_get_discharges(
 
 def get_filenames(
     imode: int,
+    needs_tide: bool,
     config: Optional[configparser.ConfigParser] = None,
 ) -> Dict[Any, Tuple[str,str]]:
     """
@@ -573,6 +578,10 @@ def get_filenames(
     ---------
     imode : int
         Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+
+    needs_tide : bool
+        Specifies whether the tidal boundary is needed.
+
     config : Optional[configparser.ConfigParser]
         The variable containing the configuration (may be None for imode = 0).
 
@@ -1111,7 +1120,7 @@ def analyse_and_report_dflowfm(
             else:
                 dzq[i] = 0
 
-    if success:
+    if not missing_data:
         if display:
             dfastmi.io.log_text("char_bed_changes")
             
@@ -1345,8 +1354,7 @@ def analyse_and_report_dflowfm(
             units="1",
         )
         
-
-    return success
+    return not missing_data
 
 
 def get_values_waqua1(

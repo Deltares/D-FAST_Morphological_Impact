@@ -212,7 +212,7 @@ class Test_dzq_from_du_and_h():
         h0  = numpy.array([1.0,  4.0, 1.0, 2.0,  1.0])
         u1  = numpy.array([0.5,  0.5, 0.5, 0.5,  1.0])
         ucrit = 0.3
-        dzq = numpy.array([0.0,  0.5, 1.0,  -1.0])
+        dzq = numpy.array([0.0, 2.0, 0.5, 1.0,  -1.0])
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
         print("dzq reference: ", dzq)
         print("dzq computed : ",dzqc)
