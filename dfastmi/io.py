@@ -34,6 +34,8 @@ import netCDF4
 import configparser
 import os
 import pathlib
+import pandas
+import geopandas
 import zlib
 import shapely
 from packaging import version
@@ -927,6 +929,7 @@ def read_fm_map(
     filename: str,
     varname: str,
     location: str = "face",
+    ifld: Optional[int] = None,
 ) -> numpy.ndarray:
     """
     Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
@@ -940,6 +943,8 @@ def read_fm_map(
     location : str
         Name of the stagger location at which the data should be located
         (default is "face")
+    ifld : Optional[int]
+        Time step offset index from the last time step written.
 
     Raises
     ------
@@ -1019,8 +1024,18 @@ def read_fm_map(
     if var.get_dims()[0].isunlimited():
         # assume that time dimension is unlimited and is the first dimension
         # slice to obtain last time step or earlier as requested
-        data = var[-1, :]
+        if ifld is None:
+            data = var[-1, :]
+        else:
+            data = var[-1 - ifld, :]
     else:
+        if not ifld is None:
+            raise Exception(
+                'Trying to access time-independent variable "{}" with time offset {}.'.format(
+                    varname, -1 - ifld
+                )
+            )
+
         data = var[...] - start_index
 
     # close file
