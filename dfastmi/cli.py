@@ -122,7 +122,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             kmbounds = [0,1]
             outputdir = "."
             plotops = {}
-            Succes = dfastmi.batch.analyse_and_report(
+            Success = dfastmi.batch.analyse_and_report(
                 imode,
                 display,
                 report,
@@ -148,7 +148,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 outputdir,
                 plotops,
             )
-            if Succes:
+            if Success:
                 if slength > 1:
                     nlength = int(slength)
                 else:

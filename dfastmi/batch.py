@@ -315,7 +315,7 @@ def batch_mode_core(
             
             plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
 
-            failed = analyse_and_report(
+            success = analyse_and_report(
                 mode,
                 display,
                 report,
@@ -341,7 +341,6 @@ def batch_mode_core(
                 outputdir,
                 plotops,
             )
-            success = not failed
 
             if slength > 1:
                 nlength = "{}".format(int(slength))
