@@ -869,7 +869,7 @@ def analyse_and_report_waqua(
         data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.main_computation(
             dzq, T, rsigma
         )
-        if True:
+        if old_zmin_zmax:
             # get old zmax and zmin
             data_zmax = dzb[0]
             data_zmin = dzb[1]
