@@ -133,7 +133,7 @@ def char_times(
     q_stagnant : float
         Discharge below which flow velocity is considered negligible (from rivers configuration file).
     Q : Vector
-        A tuple of 3 discharges for which simulation results are (expected to be) available.
+        A list of 3 discharges for which simulation results are (expected to be) available.
     celerity_hg : float
         Bed celerity during transitional and flood periods (from rivers configuration file).
     celerity_lw : float
@@ -174,6 +174,32 @@ def char_times(
     return t_stagnant_yr, T, rsigma
 
 
+def relax_factors(Q: Vector, T: Vector, q_stagnant: float, celerity: Vector, nwidth: float) -> Vector:
+    lsigma = [-1.0] * len(Q)
+    for i,q in enumerate(Q):
+         if q <= q_stagnant:
+             lsigma[i] = 1.0
+         else:
+             lsigma[i] = math.exp(-500 * celerity[i] * T[i] / nwidth)
+             print("morphological time scale: ", nwidth / 500.0 / celerity[i])
+    rsigma = tuple(s for s in lsigma)
+
+    return rsigma
+
+
+def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
+    for i in range(len(cel_q)):
+        if q < cel_q[i]:
+            if i > 0:
+                c = cel_c[i - 1] + (cel_c[i] - cel_c[i - 1]) * (q - cel_q[i - 1]) / (cel_q[i] - cel_q[i - 1])
+            else:
+                c = cel_c[0]
+            break
+    else:
+        c = cel_c[-1]
+    return c
+
+
 def estimate_sedimentation_length(
     rsigma: Vector,
     applyQ: BoolVector,
@@ -196,17 +222,41 @@ def estimate_sedimentation_length(
     L : float
         The expected yearly impacted sedimentation length.
     """
-    logrsig = [0] * len(rsigma)
+    logrsig = [0.0] * len(rsigma)
     for i in range(len(rsigma)):
         if applyQ[i]:
             logrsig[i] = math.log(rsigma[i])
     length = -sum(logrsig)
     
-    return 2 * nwidth * length
+    return 2.0 * nwidth * length
+
+
+def estimate_sedimentation_length2(
+    tmi: Vector,
+    celerity: Vector,
+) -> float:
+    """
+    This routine computes the sedimentation length in metres.
+
+    Arguments
+    ---------
+    tmi : Vector
+        Morphological impact period of this discharge level [y].
+    celerity : Vector
+        Celerity of this discharge level [km/y].
+
+    Returns
+    -------
+    L : float
+        The expected yearly impacted sedimentation length [m].
+    """
+    Lt = [tmi[i] * celerity[i] for i in range(len(tmi))]
+    
+    return sum(Lt) * 1000
 
 
 def dzq_from_du_and_h(
-    u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float
+    u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float, default: float = numpy.NaN,
 ) -> numpy.ndarray:
     """
     This routine computes dzq from the velocity change and water depth.
@@ -231,7 +281,7 @@ def dzq_from_du_and_h(
         dzq = numpy.where(
             (u0 > ucrit) & (u1 > ucrit) & (u0 < 100),
             h0 * (u0 - u1) / u0,
-            numpy.NaN,
+            default,
         )
     return dzq
 

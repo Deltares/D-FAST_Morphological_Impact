@@ -92,7 +92,6 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             break
 
         slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
-        nlength = int(slength)
 
         reach = rivers["reaches"][ibranch][ireach]
         if have_files:
@@ -112,25 +111,48 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                     ucrit = ucritMin
 
             dfastmi.io.log_text("", repeat=19)
-            filenames = dfastmi.batch.get_filenames(0)
-            success = dfastmi.batch.analyse_and_report(
-                0,
-                True,
+            filenames = dfastmi.batch.get_filenames(0, False)
+            imode = 0
+            display = True
+            old_zmin_zmax = True
+            needs_tide = False
+            n_fields = 0
+            tide_bc = []
+            xykm = None
+            kmbounds = [0,1]
+            outputdir = "."
+            plotops = {}
+            Success = dfastmi.batch.analyse_and_report(
+                imode,
+                display,
                 report,
                 reduced_output,
                 reach,
                 q_location,
+                q_threshold,
                 tstag,
                 Q,
                 applyQ,
                 T,
                 rsigma,
-                nlength,
+                slength,
                 nwidth,
                 ucrit,
                 filenames,
+                xykm,
+                needs_tide,
+                n_fields,
+                tide_bc,
+                old_zmin_zmax,
+                kmbounds,
+                outputdir,
+                plotops,
             )
-            if success:
+            if Success:
+                if slength > 1:
+                    nlength = int(slength)
+                else:
+                    nlength = slength
                 dfastmi.io.log_text("")
                 dfastmi.io.log_text("length_estimate", dict={"nlength": nlength})
                 dfastmi.io.log_text(
@@ -277,6 +299,7 @@ def interactive_get_discharges(
     Tuple[float, float],
     float,
     QRuns,
+    Tuple[bool, bool, bool],
     float,
     Tuple[float, float, float],
     Tuple[float, float, float],
@@ -319,6 +342,9 @@ def interactive_get_discharges(
         Discharge below which the river flow is negligible.
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
+    applyQ : Tuple[bool, bool, bool]
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
     t_stagnant : float
         Fraction of year during which flow velocity is considered negligible.
     T : Tuple[float, float, float]
