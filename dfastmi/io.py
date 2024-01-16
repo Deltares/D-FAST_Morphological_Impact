@@ -135,14 +135,14 @@ def log_text(
     -------
     None
     """
-    str = get_text(key)
+    the_text = get_text(key)
     for r in range(repeat):
-        for s in str:
-            sexp = s.format(**dict)
+        for line in the_text:
+            expanded_line = line.format(**dict)
             if file is None:
-                print(sexp)
+                print(expanded_line)
             else:
-                file.write(sexp + "\n")
+                file.write(expanded_line + "\n")
 
 
 def get_filename(key: str) -> str:

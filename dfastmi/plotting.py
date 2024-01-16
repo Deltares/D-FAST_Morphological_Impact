@@ -313,7 +313,8 @@ def plot_overview(
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("mycmap", colors)
     #
     scale = 1000
-    chainage_markers(xykm, ax, ndec=0, scale=scale)
+    if xykm is not None:
+        chainage_markers(xykm, ax, ndec=0, scale=scale)
     dzgem_max = abs(dzgem).max()
     dzgem_min = -dzgem_max
     p = plot_mesh_patches(ax, fn, nnodes, xn, yn, dzgem, dzgem_min, dzgem_max, scale=scale, cmap=cmap)
