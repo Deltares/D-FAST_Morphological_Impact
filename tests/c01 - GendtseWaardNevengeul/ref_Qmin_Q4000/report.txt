@@ -33,7 +33,7 @@ scenario simulations on the same computational mesh.
 
 ================================================================================
 
-The results of this program is one netCDF file named:
+The result of this program is one netCDF file named:
 
     dfastmi_results.nc
 
