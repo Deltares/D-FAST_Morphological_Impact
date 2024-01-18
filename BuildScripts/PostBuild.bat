@@ -7,7 +7,9 @@ call CopyDutchRiversFile.bat
 call CopyUserManualFile.bat
 call CopyProjDirectory.bat
 call CopyShapelyLibsDirectory.bat
-call CopyNetCDF4LibsDirectory
-call CopyFionaLibsDirectory
+call CopyNetCDF4LibsDirectory.bat
+call CopyFionaLibsDirectory.bat
+call CopyGeoPandasDataSetDirectory.bat
+call CopyMatPlotLibLibsDirectory.bat
 
 rem end of post build
