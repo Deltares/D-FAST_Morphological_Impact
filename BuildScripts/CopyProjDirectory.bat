@@ -3,4 +3,6 @@ rem Resolves the following error: pyproj.exceptions.DataDirError: Valid PROJ dat
 cd ..
 mkdir dfastmi.dist\proj
 copy .venv\Lib\site-packages\pyproj\proj_dir\share\proj\* dfastmi.dist\proj
+mkdir dfastmi.dist\pyproj.libs
+copy .venv\Lib\site-packages\pyproj.libs\* dfastmi.dist\pyproj.libs
 cd %~dp0
