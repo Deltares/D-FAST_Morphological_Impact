@@ -697,3 +697,34 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
         else:
             i = i_opt
     return i - 1
+    
+def interactive_get_item_marlon(src: TextIO, type: str, list: List[str]) -> Optional[int]:
+    """
+    Interactively get an item from the user.
+
+    Arguments
+    ---------
+    src : TextIO
+        Source to read from (typically sys.stdin)
+    type : str
+        The type of the items to select from.
+    list : List[str]
+        A list of items.
+
+    Returns
+    -------
+    val : Optional[int]
+        The integer index of the item selected by the user (None if interactive_get_int returns None).
+    """
+    i = 0
+    nitems = len(list)
+    while i < 1 or i > nitems:
+        dfastmi.io.log_text("query_" + type + "_header")
+        for i in range(nitems):
+            dfastmi.io.log_text("query_list", dict={"item": list[i], "index": i + 1})
+        i_opt = interactive_get_int(src, "query_" + type)
+        if i_opt is None:
+            return None
+        else:
+            i = i_opt
+    return i - 1
