@@ -37,27 +37,30 @@ class Test_interactive_mode():
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
+        #
+        prefixes = ('Dit is versie')
+        #
         refstr = open(tstdir + os.sep + "ref_stdout_NL.txt", "r").read().splitlines()
-        assert outstr[:21] == refstr[:21]
-        # line 22 contains the version number and will thus change
-        assert outstr[23:] == refstr[23:]
+        outstr = [x for x in outstr if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert outstr == refstr
         #
         result = open(tstdir + os.sep + "verslag.run", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_verslag.run", "r").read().splitlines()
-        assert result[:21] == refstr[:21]
-        # line 22 contains the version number and will thus change
-        assert result[23:] == refstr[23:]
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "jaargem.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
         assert result == refstr
         #
         result = open(tstdir + os.sep + "maxmorf.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_maxmorf_org.out", "r").read().splitlines()
         assert result == refstr
         #
         result = open(tstdir + os.sep + "minmorf.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_minmorf_org.out", "r").read().splitlines()
         assert result == refstr
 
     def test_interactive_mode_02(self):
@@ -77,25 +80,28 @@ class Test_interactive_mode():
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
+        #
+        prefixes = ('This is version')
+        #
         refstr = open(tstdir + os.sep + "ref_stdout_UK.txt", "r").read().splitlines()
-        assert outstr[:21] == refstr[:21]
-        # line 22 contains the version number and will thus change
-        assert outstr[23:] == refstr[23:]
+        outstr = [x for x in outstr if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert outstr == refstr
         #
         result = open(tstdir + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
-        assert result[:21] == refstr[:21]
-        # line 22 contains the version number and will thus change
-        assert result[23:] == refstr[23:]
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert result == refstr
         #
         result = open(tstdir + os.sep + "yearavg_dzb.out", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
         assert result == refstr
         #
         result = open(tstdir + os.sep + "max_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_maxmorf_org.out", "r").read().splitlines()
         assert result == refstr
         #
         result = open(tstdir + os.sep + "min_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
+        refstr = open(tstdir + os.sep + "ref_minmorf_org.out", "r").read().splitlines()
         assert result == refstr
