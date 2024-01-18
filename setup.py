@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="Bert Jagers",
     author_email="bert.jagers@deltares.nl",
-    description="Rapid Assessment Tool for Morphological Impact of River Training Measures",
+    description="Rapid Assessment Tool for Morphological Impact of River Training Measures.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Deltares/D-FAST_Morphological_Impact",
