@@ -96,7 +96,7 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        prefixes = ('Dit is versie')
+        prefixes = ('This is version')
         #
         result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
@@ -135,7 +135,7 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        prefixes = ('Dit is versie')
+        prefixes = ('This is version')
         #
         result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
         refstr = open(refdir + os.sep + "report.txt", "r").read().splitlines()
