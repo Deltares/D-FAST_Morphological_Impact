@@ -11,7 +11,6 @@ START /B /WAIT poetry run nuitka ^
  --enable-plugin=pyqt5 ^
  --file-reference-choice=runtime ^
  --include-package=pyproj ^
- --include-package=pyproj.proj_dir ^
  --include-module=shapely ^
  --include-package=matplotlib ^
  --include-package=netCDF4 ^
