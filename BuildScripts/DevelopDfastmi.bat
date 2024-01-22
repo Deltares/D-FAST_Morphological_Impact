@@ -1,27 +1,38 @@
 @echo on
 SET CONDA_ENV_NAME=py_3_9_12-dfastmi
-setlocal
+setlocal EnableExtensions DisableDelayedExpansion
 :START
 where conda > nul 2>nul
 if %errorlevel% neq 0 (
-    echo Conda is not installed on this PC.
-    echo Please install Conda and try again.
-	:PROMPT
-	SET /P AREYOUSURE=Are you sure you want to install conda now (Y/[N])?
-	IF /I "%AREYOUSURE%" NEQ "Y" GOTO END
-	CALL CondaInstall.bat
-	GOTO START
+GOTO INSTALLCONDA
 ) else (
     echo Conda is installed on this PC.
 )
-	CALL conda deactivate
-	CALL conda remove -v -y --name %CONDA_ENV_NAME% --all
-	CALL conda create -v -y -n %CONDA_ENV_NAME% python=3.9.12
-	CALL conda activate %CONDA_ENV_NAME%
-	CALL python -m pip install --upgrade pip
-	CALL python -m pip install poetry
-	CALL python -m poetry install --no-root
+GOTO INSTALLENVIRONMENTS
 )
+
+GOTO INSTALLEXTENSIONSVSCODE
+GOTO END
+
+:INSTALLCONDA
+echo Conda is not installed on this PC.
+echo Please install Conda and try again.
+SET /P AREYOUSURE=Are you sure you want to install conda now (Y/[N])?
+IF /I "%AREYOUSURE%" NEQ "Y" GOTO END
+CALL CondaInstall.bat 
+SET PATH=%PATH%;%UserProfile%\Miniconda3;%UserProfile%\Miniconda3\Scripts;%UserProfile%\Miniconda3\Library\bin
+GOTO START
+
+:INSTALLENVIRONMENTS
+CALL conda deactivate
+CALL conda remove -v -y --name %CONDA_ENV_NAME% --all
+CALL conda create -v -y -n %CONDA_ENV_NAME% python=3.9.12
+CALL conda activate %CONDA_ENV_NAME%
+CALL python -m pip install --upgrade pip
+CALL python -m pip install poetry
+CALL python -m poetry install --no-root
+
+:INSTALLEXTENSIONSVSCODE
 where code > nul 2>nul
 if %errorlevel% neq 0 (
     echo visual studio code is not installed on this PC.

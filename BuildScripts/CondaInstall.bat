@@ -1,5 +1,5 @@
 @echo on
-
+setlocal EnableExtensions DisableDelayedExpansion
 rem Set the Miniconda installer file name
 set INSTALLER_FILENAME=Miniconda3-latest-Windows-x86_64.exe
 
@@ -11,4 +11,4 @@ CALL %INSTALLER_FILENAME% /S /InstallationType=JustMe /AddToPath=1 /RegisterPyth
 
 rem Clean up the installer file
 del %INSTALLER_FILENAME%
-
+endlocal
