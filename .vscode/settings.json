@@ -1,0 +1,6 @@
+{
+    "python.testing.pytestEnabled": true,
+    "coverage-gutters.coverageReportFileName": "coverage-reports/coverage.xml",
+    "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.showRulerCoverage": true
+}
