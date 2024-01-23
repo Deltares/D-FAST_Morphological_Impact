@@ -1,6 +1,8 @@
-@echo on
+@echo off
+SET CONDA_INSTALL_DIR=%UserProfile%\Miniconda3
 SET CONDA_ENV_NAME=py_3_9_12-dfastmi
 setlocal EnableExtensions DisableDelayedExpansion
+
 :START
 where conda > nul 2>nul
 if %errorlevel% neq 0 (
@@ -10,18 +12,20 @@ GOTO INSTALLCONDA
 )
 GOTO INSTALLENVIRONMENTS
 )
-
 GOTO INSTALLEXTENSIONSVSCODE
-GOTO END
 
 :INSTALLCONDA
 echo Conda is not installed on this PC.
 echo Please install Conda and try again.
 SET /P AREYOUSURE=Are you sure you want to install conda now (Y/[N])?
 IF /I "%AREYOUSURE%" NEQ "Y" GOTO END
-CALL CondaInstall.bat 
-SET PATH=%PATH%;%UserProfile%\Miniconda3;%UserProfile%\Miniconda3\Scripts;%UserProfile%\Miniconda3\Library\bin
-GOTO START
+CALL CondaInstall.bat %CONDA_INSTALL_DIR%
+SET PATH=%PATH%;%CONDA_INSTALL_DIR%;%CONDA_INSTALL_DIR%\Scripts;%CONDA_INSTALL_DIR%\Library\bin
+CALL conda init --user cmd.exe
+echo Please restart script to continue configuration.
+echo Conda is installed, but the command prompt will need to be refreshed.
+pause
+GOTO END
 
 :INSTALLENVIRONMENTS
 CALL conda deactivate
@@ -47,12 +51,6 @@ if %errorlevel% neq 0 (
 	CALL code --install-extension ms-python.pylint --force
 	CALL code --install-extension ms-python.python --force
 	CALL code --install-extension ms-python.vscode-pylance --force
-	#CALL code --install-extension ms-toolsai.jupyter --force
-	#CALL code --install-extension ms-toolsai.jupyter-keymap --force
-	#CALL code --install-extension ms-toolsai.jupyter-renderers --force
-	#CALL code --install-extension ms-toolsai.vscode-jupyter-cell-tags --force
-	#CALL code --install-extension ms-toolsai.vscode-jupyter-slideshow --force
-	#CALL code --install-extension ms-vscode.live-server --force
 	CALL code --install-extension ms-vscode.test-adapter-converter --force
 	CALL code --install-extension ryanluker.vscode-coverage-gutters --force
 )
