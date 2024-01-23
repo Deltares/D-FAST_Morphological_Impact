@@ -1868,6 +1868,95 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     return config_to_absolute_paths(rootdir, config)
 
 
+def check_configuration(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    """
+    Check if an analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        A dictionary containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    try:
+        cfg_version = config["General"]["Version"]
+        rvr_version = rivers["version"]
+        if version.parse(cfg_version) != version.parse(rvr_version):
+            return False
+        if version.parse(cfg_version) == version.parse("1.0"):
+            return check_configuration_v1(rivers, config)
+        else:
+            return check_configuration_v2(rivers, config)
+        
+    except:
+        return False
+
+
+def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    """
+    Check if a version 1 analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        A dictionary containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    branch = config["General"]["Branch"]
+    ibranch = rivers["branches"].index(branch)
+    reach = config["General"]["Reach"]
+    ireach = rivers["reaches"][ibranch].index(reach)
+    mode = config["General"]["Mode"]
+    return True
+
+
+def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    """
+    Check if a version 2 analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        A dictionary containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    branch = config["General"]["Branch"]
+    ibranch = rivers["branches"].index(branch)
+    reach = config["General"]["Reach"]
+    ireach = rivers["reaches"][ibranch].index(reach)
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    # for now we're only checking if any empty file names are given
+    # this should be replaced by a check if all conditions are specified
+    # and if the files exist
+    for QSTR in config.keys():
+        if "Reference" in config[QSTR]:
+            if config[QSTR]["Reference"] == "":
+                return False
+        if "WithMeasure" in config[QSTR]:
+            if config[QSTR]["WithMeasure"] == "":
+                return False
+            
+    return True
+
+
 def config_to_relative_paths(
     rootdir: str, config: configparser.ConfigParser
 ) -> configparser.ConfigParser:

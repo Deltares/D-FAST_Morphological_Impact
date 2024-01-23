@@ -94,7 +94,41 @@ def create_dialog() -> None:
     dialog["window"] = win
 
     menubar = win.menuBar()
+    createMenus(menubar)
 
+    centralWidget = QtWidgets.QWidget()
+    layout = QtWidgets.QBoxLayout(2, centralWidget)
+    win.setCentralWidget(centralWidget)
+
+    tabs = QtWidgets.QTabWidget(win)
+    dialog["tabs"] = tabs
+    layout.addWidget(tabs)
+
+    buttonBar = QtWidgets.QWidget(win)
+    buttonBarLayout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight, buttonBar)
+    buttonBarLayout.setContentsMargins(0, 0, 0, 0)
+    layout.addWidget(buttonBar)
+
+    run = QtWidgets.QPushButton(gui_text("action_run"), win)
+    run.clicked.connect(run_analysis)
+    buttonBarLayout.addWidget(run)
+
+    done = QtWidgets.QPushButton(gui_text("action_close"), win)
+    done.clicked.connect(close_dialog)
+    buttonBarLayout.addWidget(done)
+    
+    addGeneralTab(tabs, win)
+    
+
+def createMenus(menubar: PyQt5.QtWidgets.QMenuBar) -> None:
+    """
+    Add the menus to the menubar.
+
+    Arguments
+    ---------
+    menubar : PyQt5.QtWidgets.QMenuBar
+        Menubar to which menus should be added.
+    """
     menu = menubar.addMenu(gui_text("File"))
     item = menu.addAction(gui_text("Load"))
     item.triggered.connect(menu_load_configuration)
@@ -113,9 +147,23 @@ def create_dialog() -> None:
     item = menu.addAction(gui_text("AboutQt"))
     item.triggered.connect(menu_about_qt)
 
-    centralWidget = QtWidgets.QWidget()
-    layout = QtWidgets.QFormLayout(centralWidget)
-    win.setCentralWidget(centralWidget)
+
+def addGeneralTab(
+    tabs: PyQt5.QtWidgets.QTabWidget, win: PyQt5.QtWidgets.QMainWindow
+) -> None:
+    """
+    Create the tab for the general settings.
+
+    Arguments
+    ---------
+    tabs : PyQt5.QtWidgets.QTabWidget
+        Tabs object to which the tab should be added.
+    win : PyQt5.QtWidgets.QMainWindow
+        Windows in which the tab item is located.
+    """
+    generalWidget = QtWidgets.QWidget()
+    layout = QtWidgets.QFormLayout(generalWidget)
+    tabs.addTab(generalWidget, "General")
 
     # get the branch
     branch = QtWidgets.QComboBox(win)
@@ -154,27 +202,10 @@ def create_dialog() -> None:
     layout.addRow(gui_text("ucrit"), ucrit)
 
     # show the impact length
-    nlength = QtWidgets.QLabel(win)
-    nlength.setToolTip(gui_text("length_tooltip"))
-    dialog["nlength"] = nlength
-    layout.addRow(gui_text("length"), nlength)
-
-    # choose the flow condition
-    condition_list = QtWidgets.QComboBox(win)
-    condition_list.currentIndexChanged.connect(updated_flow_condition)
-    condition_list.setToolTip(gui_text("condition_list_tooltip"))
-    dialog["condition_list"] = condition_list
-    layout.addRow(gui_text("condition_list"), condition_list)
-
-    # get the reference file
-    q1file1 = QtWidgets.QLineEdit(win)
-    dialog["file1"] = q1file1
-    layout.addRow(gui_text("reference"), openFileLayout(win, q1file1, "file1"))
-
-    # get the file with measure
-    q1file2 = QtWidgets.QLineEdit(win)
-    dialog["file2"] = q1file2
-    layout.addRow(gui_text("measure"), openFileLayout(win, q1file2, "file2"))
+    slength = QtWidgets.QLabel(win)
+    slength.setToolTip(gui_text("length_tooltip"))
+    dialog["slength"] = slength
+    layout.addRow(gui_text("length"), slength)
 
     # get the output directory
     output_dir = QtWidgets.QLineEdit(win)
@@ -182,34 +213,82 @@ def create_dialog() -> None:
     layout.addRow(gui_text("outputDir"), openFileLayout(win, output_dir, "outputDir"))
 
     # plotting
-    make_plots = QtWidgets.QCheckBox(win)
-    make_plots.setToolTip(gui_text("makePlots_tooltip"))
+    make_plots = QtWidgets.QLabel(gui_text("makePlots"), win)
+    make_plots_edit = QtWidgets.QCheckBox(win)
+    make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
+    make_plots_edit.stateChanged.connect(updatePlotting)
     dialog["makePlots"] = make_plots
-    layout.addRow(gui_text("makePlots"), make_plots)
+    dialog["makePlotsEdit"] = make_plots_edit
+    layout.addRow(make_plots, make_plots_edit)
 
-    save_plots = QtWidgets.QCheckBox(win)
-    save_plots.setToolTip(gui_text("savePlots_tooltip"))
+    save_plots = QtWidgets.QLabel(gui_text("savePlots"), win)
+    save_plots.setEnabled(False)
+    save_plots_edit = QtWidgets.QCheckBox(win)
+    save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
+    save_plots_edit.stateChanged.connect(updatePlotting)
+    save_plots_edit.setEnabled(False)
     dialog["savePlots"] = save_plots
-    layout.addRow(gui_text("savePlots"), save_plots)
+    dialog["savePlotsEdit"] = save_plots_edit
+    layout.addRow(save_plots, save_plots_edit)
 
-    figure_dir = QtWidgets.QLineEdit(win)
+    figure_dir = QtWidgets.QLabel(gui_text("figureDir"), win)
+    figure_dir.setEnabled(False)
+    figure_dir_edit = QtWidgets.QLineEdit(win)
+    figure_dir_edit.setEnabled(False)
     dialog["figureDir"] = figure_dir
-    layout.addRow(gui_text("figureDir"), openFileLayout(win, figure_dir, "figureDir"))
+    dialog["figureDirEdit"] = figure_dir_edit
+    layout.addRow(figure_dir, openFileLayout(win, figure_dir_edit, "figureDirEdit"))
+    dialog["figureDirEditFile"].setEnabled(False)
 
-    close_plots = QtWidgets.QCheckBox(win)
-    close_plots.setToolTip(gui_text("closePlots_tooltip"))
+    close_plots = QtWidgets.QLabel(gui_text("closePlots"), win)
+    close_plots.setEnabled(False)
+    close_plots_edit = QtWidgets.QCheckBox(win)
+    close_plots_edit.setToolTip(gui_text("closePlots_tooltip"))
+    close_plots_edit.setEnabled(False)
     dialog["closePlots"] = close_plots
-    layout.addRow(gui_text("closePlots"), close_plots)
+    dialog["closePlotsEdit"] = close_plots_edit
+    layout.addRow(close_plots, close_plots_edit)
 
-    run = QtWidgets.QPushButton(gui_text("action_run"), win)
-    run.clicked.connect(run_analysis)
-    done = QtWidgets.QPushButton(gui_text("action_close"), win)
-    done.clicked.connect(close_dialog)
-    rundone = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
-    rundone.setContentsMargins(0, 0, 0, 0)
-    rundone.addWidget(run)
-    rundone.addWidget(done)
-    layout.addRow("", rundone)
+
+def addConditionTab(
+    prefix: str,
+) -> None:
+    """
+    Create the tab for one flow conditions.
+
+    Arguments
+    ---------
+    prefix : str
+        Prefix for all dialog dictionary entries of this tab.
+    q : float
+        Discharge [m3/s]
+    """
+    generalWidget = QtWidgets.QWidget()
+    layout = QtWidgets.QFormLayout(generalWidget)
+    dialog["tabs"].addTab(generalWidget, prefix+"tab")
+    win = dialog["window"]
+
+    # show the discharge location
+    qloc = QtWidgets.QLabel("", win)
+    qloc.setToolTip(gui_text("qloc"))
+    dialog[prefix+"qloc"] = qloc
+    layout.addRow(gui_text("qloc"), qloc)
+
+    # show the discharge value
+    qval = QtWidgets.QLabel("", win)
+    qval.setToolTip(gui_text("qval"))
+    dialog[prefix+"qval"] = qval
+    layout.addRow(gui_text("qval"), qval)
+
+    # get the reference file
+    q1file1 = QtWidgets.QLineEdit(win)
+    dialog[prefix+"file1"] = q1file1
+    layout.addRow(gui_text("reference"), openFileLayout(win, q1file1, prefix+"file1"))
+
+    # get the file with measure
+    q1file2 = QtWidgets.QLineEdit(win)
+    dialog[prefix+"file2"] = q1file2
+    layout.addRow(gui_text("measure"), openFileLayout(win, q1file2, prefix+"file2"))
 
 
 def activate_dialog() -> None:
@@ -224,31 +303,6 @@ def activate_dialog() -> None:
     win = dialog["window"]
     win.show()
     sys.exit(app.exec_())
-
-
-def updated_mode(imode: int) -> None:
-    """
-    Adjust the GUI for updated run mode selection.
-
-    When in WAQUA mode (imode = 0) the file names are predefined and the user
-    doesn't have to specify anything. When in D-Flow FM mode (imode = 1) the
-    user has to specify the names of the six D-Flow FM map files.
-
-    Arguments
-    ---------
-    imode : int
-        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
-    """
-    # enable file selection if imode == 1 (D-Flow FM map)
-    DFlowFM = imode == 1
-    for q in range(3):
-        qstr = "q{}".format(q + 1)
-        active = dialog[qstr].isEnabled()
-        for f in range(2):
-            qstr = "q{}file{}".format(q + 1, f + 1)
-            dialog[qstr].setEnabled(DFlowFM and active)
-            dialog[qstr + "_txt"].setEnabled(DFlowFM and active)
-            dialog[qstr + "_openfile"].setEnabled(DFlowFM and active)
 
 
 def updated_branch(ibranch: int) -> None:
@@ -284,18 +338,6 @@ def updated_reach(ireach: int) -> None:
     update_qvalues()
 
 
-def updated_flow_condition(icond: int) -> None:
-    """
-    Adjust the GUI for updated reach selection.
-
-    Arguments
-    ---------
-    icond : int
-        Newly selected flow condition.
-    """
-    pass # not yet implemented ... where to store the fields? ... consider using tabs like D-FAST BE
-
-
 def update_qvalues() -> None:
     """
     Adjust the GUI for updated characteristic discharges.
@@ -310,12 +352,53 @@ def update_qvalues() -> None:
         return
 
     hydro_q = rivers["hydro_q"][ibranch][ireach]
+    tabs = dialog["tabs"]
+    for j in range(tabs.count()-2,-1,-1):
+        if j >= len(hydro_q):
+            tabs.removeTab(1+j)
+        else:
+            prefix = str(j)+"_"
+            qval = str(hydro_q[j])
+            dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
+            dialog[prefix+"qval"].setText(qval)
+            tabs.setTabText(1+j,qval+" m3/s")
     
-    conditions = ["Q = {} m3/s".format(q) for q in hydro_q]
+    if len(hydro_q) > tabs.count()-1:
+        for j in range(tabs.count()-1, len(hydro_q)):
+            prefix = str(j)+"_"
+            addConditionTab(prefix)
+            qval = str(hydro_q[j])	
+            dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
+            dialog[prefix+"qval"].setText(qval)
+            tabs.setTabText(1+j,qval+" m3/s")
+            
+    try:
+        slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
+        dialog["slength"].setText(str(slength))
+    except:
+        dialog["slength"].setText("---")
+
+
+def updatePlotting() -> None:
+    """
+    Update the plotting flags.
     
-    condition_list = dialog["condition_list"]
-    condition_list.clear()
-    condition_list.addItems(conditions)
+    Arguments
+    ---------
+    None
+    """
+    plotFlag = dialog["makePlotsEdit"].isChecked()
+    dialog["savePlots"].setEnabled(plotFlag)
+    dialog["savePlotsEdit"].setEnabled(plotFlag)
+
+    saveFlag = dialog["savePlotsEdit"].isChecked() and plotFlag
+
+    dialog["figureDir"].setEnabled(saveFlag)
+    dialog["figureDirEdit"].setEnabled(saveFlag)
+    dialog["figureDirEditFile"].setEnabled(saveFlag)
+
+    dialog["closePlots"].setEnabled(plotFlag)
+    dialog["closePlotsEdit"].setEnabled(plotFlag)
 
 
 def close_dialog() -> None:
@@ -425,11 +508,10 @@ def menu_save_configuration() -> None:
     filename = fil[0]
     if filename != "":
         config = get_configuration()
-        if config is not None:
-            dfastmi.batch.save_configuration_file(filename, config)
+        dfastmi.batch.save_configuration_file(filename, config)
 
 
-def get_configuration() -> Optional[configparser.ConfigParser]:
+def get_configuration() -> configparser.ConfigParser:
     """
     Extract a configuration from the GUI.
 
@@ -442,8 +524,6 @@ def get_configuration() -> Optional[configparser.ConfigParser]:
     config : Optional[configparser.ConfigParser]
         Configuration for the D-FAST Morphological Impact analysis.
     """
-    error = False
-
     config = configparser.ConfigParser()
     config.optionxform = str
     config.add_section("General")
@@ -459,22 +539,18 @@ def get_configuration() -> Optional[configparser.ConfigParser]:
     config["General"]["ClosePlots"] = str(dialog["closePlots"].isChecked())
 
     # loop over conditions cond = "C1", "C2", ...
-    for i in range(1):
+    ibranch = dialog["branch"].currentIndex()
+    ireach = dialog["reach"].currentIndex()
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    for i in range(len(hydro_q)):
         cond = "C{}".format(i+1)
         config.add_section(cond)
-        # get discharge and optional tide
-        # config[cond]["Discharge"] = qstr
-        config[cond]["Reference"] = dialog["file1"].text()
-        config[cond]["WithMeasure"] = dialog["file2"].text()
-        #
-        if config[cond]["Reference"] == "" or config[cond]["WithMeasure"] == "":
-            error = True
+        prefix = str(i)+"_"
+        config[cond]["Discharge"] = dialog[prefix+"qval"].text()
+        config[cond]["Reference"] = dialog[prefix+"file1"].text()
+        config[cond]["WithMeasure"] = dialog[prefix+"file2"].text()
     
-    if error:
-        showMessage(gui_text("analysis_config_incomplete",))
-        return None
-    else:
-        return config
+    return config
 
 
 def run_analysis() -> None:
@@ -486,7 +562,7 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    if config is not None:
+    if dfastmi.batch.check_configuration(rivers, config):
         try:
             success = dfastmi.batch.batch_mode_core(rivers, False, config)
         except:
@@ -496,6 +572,8 @@ def run_analysis() -> None:
             showMessage(gui_text("end_of_analysis", dict={"report": report},))
         else:
             showError(gui_text("error_during_analysis", dict={"report": report},))
+    else:
+        showError(gui_text("analysis_config_incomplete",))
 
 
 def menu_about_self() -> None:
@@ -567,7 +645,7 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
 
 def openFileLayout(win, myWidget, key: str):
     """
-    Add an open line to the dialog. TODO
+    Add an open line to the dialog.
 
     Arguments
     ---------
@@ -588,7 +666,7 @@ def openFileLayout(win, myWidget, key: str):
         PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
     )
     openFile.clicked.connect(partial(selectFile, key))
-    dialog[key + "_openfile"] = openFile
+    dialog[key + "File"] = openFile
     gridly.addWidget(openFile, 0, 2)
 
     return parent
