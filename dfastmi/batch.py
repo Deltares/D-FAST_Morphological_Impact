@@ -1805,7 +1805,7 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     except:
         raise Exception("No version information in the file!")
 
-    if version.parse(file_version) == version.parse("2"):
+    if version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2"):
         section = config["General"]
         branch = section["Branch"]
         reach = section["Reach"]
