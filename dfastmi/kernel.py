@@ -181,7 +181,7 @@ def relax_factors(Q: Vector, T: Vector, q_stagnant: float, celerity: Vector, nwi
              lsigma[i] = 1.0
          else:
              lsigma[i] = math.exp(-500 * celerity[i] * T[i] / nwidth)
-             print("morphological time scale: ", nwidth / 500.0 / celerity[i])
+             # print("morphological time scale: ", nwidth / 500.0 / celerity[i])
     rsigma = tuple(s for s in lsigma)
 
     return rsigma

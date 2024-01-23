@@ -113,7 +113,7 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
         "--rivers",
         help="name of rivers configuration file ('Dutch_rivers.ini' is default)",
     )
-    parser.set_defaults(rivers="Dutch_rivers.ini")
+    parser.set_defaults(rivers="unspecified")
 
     parser.add_argument(
         "--reduced_output",
@@ -128,6 +128,11 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
     config = args.__dict__["config"]
     rivers_file = args.__dict__["rivers"]
     reduced_output = args.__dict__["reduced_output"]
+    if rivers_file == "unspecified":
+        if runmode == "CLI":
+            rivers_file = "Dutch_rivers_v1.ini"
+        else:
+            rivers_file = "Dutch_rivers.ini"
 
     if language not in ["NL", "UK"]:
         raise Exception(

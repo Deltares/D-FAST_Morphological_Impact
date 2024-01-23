@@ -238,7 +238,11 @@ def batch_mode_core(
                 ucrit = rivers["ucritical"][ibranch][ireach]
             ucritMin = 0.01
             ucrit = max(ucritMin, ucrit)
-            if config["General"]["Mode"] == "WAQUA export":
+            try:
+                mode_str = config["General"]["Mode"]
+            except:
+                mode_str = "D-Flow FM map"
+            if mode_str == "WAQUA export":
                 mode = 0
                 dfastmi.io.log_text(
                     "results_with_input_waqua",
@@ -598,13 +602,32 @@ def get_filenames(
     if imode == 0 or config is None:
         pass
     else:
-        if config["General"]["Version"] == "1.0":
+        if version.parse(config["General"]["Version"]) == version.parse("1"):
+            # version 1
             for i in range(3):
                 QSTR = "Q{}".format(i + 1)
                 if QSTR in config:
                     reference = cfg_get(config, QSTR, "Reference")
                     measure = cfg_get(config, QSTR, "WithMeasure")
                     filenames[i] = (reference, measure)
+        else:
+            # version 2
+            i = 0
+            while True:
+                i = i + 1
+                CSTR = "C{}".format(i)
+                if CSTR in config:
+                    Q = float(cfg_get(config, CSTR, "Discharge"))
+                    reference = cfg_get(config, CSTR, "Reference")
+                    measure = cfg_get(config, CSTR, "WithMeasure")
+                    if needs_tide:
+                       T = int(cfg_get(config, CSTR, "TideBC"))
+                       key = (Q,T)
+                    else:
+                       key = Q
+                    filenames[key] = (reference, measure)
+                else:
+                    break
 
     return filenames
 
@@ -1782,7 +1805,7 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     except:
         raise Exception("No version information in the file!")
 
-    if version.parse(file_version) == version.parse("1"):
+    if version.parse(file_version) == version.parse("2"):
         section = config["General"]
         branch = section["Branch"]
         reach = section["Reach"]
