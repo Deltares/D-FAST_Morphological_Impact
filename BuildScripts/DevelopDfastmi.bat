@@ -1,22 +1,22 @@
-@echo off
+@ECHO off
 SET CONDA_INSTALL_DIR=%UserProfile%\Miniconda3
 SET CONDA_ENV_NAME=py_3_9_12-dfastmi
 setlocal EnableExtensions DisableDelayedExpansion
 
 :START
 where conda > nul 2>nul
-if %errorlevel% neq 0 (
+IF %errorlevel% neq 0 (
 GOTO INSTALLCONDA
 ) else (
-    echo Conda is installed on this PC.
+    ECHO Conda is installed on this PC.
 )
 GOTO INSTALLENVIRONMENTS
 )
 GOTO INSTALLEXTENSIONSVSCODE
 
 :INSTALLCONDA
-echo Conda is not installed on this PC.
-echo Please install Conda and try again.
+ECHO Conda is not installed on this PC.
+ECHO Please install Conda and try again.
 SET /P AREYOUSURE=Are you sure you want to install conda now (Y/[N])?
 IF /I "%AREYOUSURE%" NEQ "Y" GOTO END
 CALL %~dp0CondaInstall.bat %CONDA_INSTALL_DIR%
@@ -24,11 +24,12 @@ SET PATH=%PATH%;%CONDA_INSTALL_DIR%;%CONDA_INSTALL_DIR%\Scripts;%CONDA_INSTALL_D
 CALL conda init --user cmd.exe
 CALL conda init --user powershell
 FOR /F %%i IN ('powershell -NoProfile -Command $PROFILE.CurrentUserAllHosts') DO SET PowerShellCondaFile=%%i
-echo %PowerShellCondaFile%
+ECHO %PowerShellCondaFile%
 CALL powershell -ExecutionPolicy Bypass -File %PowerShellCondaFile%
-echo Please restart script to continue configuration.
-echo Conda is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
-echo SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat.
+CALL powershell set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+ECHO Please restart script to continue configuration.
+ECHO Conda is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
+ECHO SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat.
 GOTO END
 
 :INSTALLENVIRONMENTS
@@ -42,12 +43,12 @@ CALL python -m poetry install --no-root
 
 :INSTALLEXTENSIONSVSCODE
 where code > nul 2>nul
-if %errorlevel% neq 0 (
-    echo visual studio code is not installed on this PC.
-    echo Please install visual studio code and try again.
+IF %errorlevel% neq 0 (
+    ECHO visual studio code is not installed on this PC.
+    ECHO Please install visual studio code and try again.
 GOTO INSTALLVSCODE
 ) else (
-    echo visual studio code is installed on this PC.
+    ECHO visual studio code is installed on this PC.
 
 	CALL code --install-extension Cameron.vscode-pytest --force
 	CALL code --install-extension donjayamanne.python-environment-manager --force
@@ -66,9 +67,9 @@ GOTO END
 SET /P AREYOUSUREVSCODE=Are you sure you want to install visual studio code now (Y/[N])?
 IF /I "%AREYOUSUREVSCODE%" NEQ "Y" GOTO END
 CALL %~dp0VSCodeInstall.bat
-echo VSCode has been installed on this PC.
-echo Visual Studio Code is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
-echo SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat script.
+ECHO VSCode has been installed on this PC.
+ECHO Visual Studio Code is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
+ECHO SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat script.
 GOTO END
 
 :END
