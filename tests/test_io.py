@@ -30,6 +30,15 @@ class Test_load_program_texts():
         print("current work directory: ", os.getcwd())
         assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None
 
+    def test_load_program_texts_02(self):
+        """
+        Testing load_program_texts.
+        """
+        print("current work directory: ", os.getcwd())
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.load_program_texts("tests/files/messages.duplicate_keys.ini")
+        assert str(cm.value) == 'Duplicate entry for "checksum" in "tests/files/messages.duplicate_keys.ini".'
+
 class Test_log_text():
     def test_log_text_01(self):
         """
@@ -128,7 +137,22 @@ class Test_read_rivers():
         rivers['version'] = '1.0'
         self.maxDiff = None
         assert dfastmi.io.read_rivers("tests/files/read_rivers_test.ini") == rivers
+    
+    def test_read_rivers_02(self):
+        """
+        Testing read rivers raising an Exception.
+        """        
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.read_rivers("tests/files/read_rivers_test_no_version.ini")
+        assert str(cm.value) == 'No version information in the file tests/files/read_rivers_test_no_version.ini!'
 
+    def test_read_rivers_03(self):
+        """
+        Testing read rivers raising an Exception.
+        """        
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.read_rivers("tests/files/read_rivers_test_wrong_version.ini")
+        assert str(cm.value) == 'Unsupported version number 2.0 in the file tests/files/read_rivers_test_wrong_version.ini!'
 class Test_collect_values1():
     def test_collect_values1_01(self):
         """
