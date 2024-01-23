@@ -41,6 +41,7 @@ where code > nul 2>nul
 if %errorlevel% neq 0 (
     echo visual studio code is not installed on this PC.
     echo Please install visual studio code and try again.
+GOTO INSTALLVSCODE
 ) else (
     echo visual studio code is installed on this PC.
 
@@ -53,7 +54,14 @@ if %errorlevel% neq 0 (
 	CALL code --install-extension ms-python.vscode-pylance --force
 	CALL code --install-extension ms-vscode.test-adapter-converter --force
 	CALL code --install-extension ryanluker.vscode-coverage-gutters --force
+GOTO END
 )
+
+:INSTALLVSCODE
+SET /P AREYOUSUREVSCODE=Are you sure you want to install conda now (Y/[N])?
+IF /I "%AREYOUSUREVSCODE%" NEQ "Y" GOTO END
+CALL VSCodeInstall.bat
+echo VSCode has been installed on this PC.
 
 :END
 endlocal
