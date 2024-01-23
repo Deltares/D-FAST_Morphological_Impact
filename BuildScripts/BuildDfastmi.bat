@@ -11,12 +11,14 @@ START /B /WAIT poetry run nuitka ^
  --enable-plugin=pyqt5 ^
  --file-reference-choice=runtime ^
  --include-package=pyproj ^
+ --include-module=pyproj ^
  --include-module=shapely ^
  --include-package=matplotlib ^
  --include-package=netCDF4 ^
  --include-module=geopandas ^
  --include-package-data=geopandas.datasets ^
  --include-module=fiona ^
+ --include-package=fiona ^
  dfastmi
 
 cd %~dp0
