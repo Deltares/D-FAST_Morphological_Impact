@@ -94,33 +94,33 @@ def create_dialog() -> None:
     dialog["window"] = win
 
     menubar = win.menuBar()
-    createMenus(menubar)
+    create_menus(menubar)
 
-    centralWidget = QtWidgets.QWidget()
-    layout = QtWidgets.QBoxLayout(2, centralWidget)
-    win.setCentralWidget(centralWidget)
+    central_widget = QtWidgets.QWidget()
+    layout = QtWidgets.QBoxLayout(2, central_widget)
+    win.setCentralWidget(central_widget)
 
     tabs = QtWidgets.QTabWidget(win)
     dialog["tabs"] = tabs
     layout.addWidget(tabs)
 
-    buttonBar = QtWidgets.QWidget(win)
-    buttonBarLayout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight, buttonBar)
-    buttonBarLayout.setContentsMargins(0, 0, 0, 0)
-    layout.addWidget(buttonBar)
+    button_bar = QtWidgets.QWidget(win)
+    button_bar_layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight, button_bar)
+    button_bar_layout.setContentsMargins(0, 0, 0, 0)
+    layout.addWidget(button_bar)
 
     run = QtWidgets.QPushButton(gui_text("action_run"), win)
     run.clicked.connect(run_analysis)
-    buttonBarLayout.addWidget(run)
+    button_bar_layout.addWidget(run)
 
     done = QtWidgets.QPushButton(gui_text("action_close"), win)
     done.clicked.connect(close_dialog)
-    buttonBarLayout.addWidget(done)
+    button_bar_layout.addWidget(done)
     
-    addGeneralTab(tabs, win)
+    add_general_tab(tabs, win)
     
 
-def createMenus(menubar: PyQt5.QtWidgets.QMenuBar) -> None:
+def create_menus(menubar: PyQt5.QtWidgets.QMenuBar) -> None:
     """
     Add the menus to the menubar.
 
@@ -148,7 +148,7 @@ def createMenus(menubar: PyQt5.QtWidgets.QMenuBar) -> None:
     item.triggered.connect(menu_about_qt)
 
 
-def addGeneralTab(
+def add_general_tab(
     tabs: PyQt5.QtWidgets.QTabWidget, win: PyQt5.QtWidgets.QMainWindow
 ) -> None:
     """
@@ -161,9 +161,9 @@ def addGeneralTab(
     win : PyQt5.QtWidgets.QMainWindow
         Windows in which the tab item is located.
     """
-    generalWidget = QtWidgets.QWidget()
-    layout = QtWidgets.QFormLayout(generalWidget)
-    tabs.addTab(generalWidget, "General")
+    general_widget = QtWidgets.QWidget()
+    layout = QtWidgets.QFormLayout(general_widget)
+    tabs.addTab(general_widget, "General")
 
     # get the branch
     branch = QtWidgets.QComboBox(win)
@@ -216,7 +216,7 @@ def addGeneralTab(
     make_plots = QtWidgets.QLabel(gui_text("makePlots"), win)
     make_plots_edit = QtWidgets.QCheckBox(win)
     make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
-    make_plots_edit.stateChanged.connect(updatePlotting)
+    make_plots_edit.stateChanged.connect(update_plotting)
     dialog["makePlots"] = make_plots
     dialog["makePlotsEdit"] = make_plots_edit
     layout.addRow(make_plots, make_plots_edit)
@@ -225,7 +225,7 @@ def addGeneralTab(
     save_plots.setEnabled(False)
     save_plots_edit = QtWidgets.QCheckBox(win)
     save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
-    save_plots_edit.stateChanged.connect(updatePlotting)
+    save_plots_edit.stateChanged.connect(update_plotting)
     save_plots_edit.setEnabled(False)
     dialog["savePlots"] = save_plots
     dialog["savePlotsEdit"] = save_plots_edit
@@ -250,7 +250,7 @@ def addGeneralTab(
     layout.addRow(close_plots, close_plots_edit)
 
 
-def addConditionTab(
+def add_condition_tab(
     prefix: str,
 ) -> None:
     """
@@ -263,9 +263,9 @@ def addConditionTab(
     q : float
         Discharge [m3/s]
     """
-    generalWidget = QtWidgets.QWidget()
-    layout = QtWidgets.QFormLayout(generalWidget)
-    dialog["tabs"].addTab(generalWidget, prefix+"tab")
+    general_widget = QtWidgets.QWidget()
+    layout = QtWidgets.QFormLayout(general_widget)
+    dialog["tabs"].addTab(general_widget, prefix+"tab")
     win = dialog["window"]
 
     # show the discharge location
@@ -366,7 +366,7 @@ def update_qvalues() -> None:
     if len(hydro_q) > tabs.count()-1:
         for j in range(tabs.count()-1, len(hydro_q)):
             prefix = str(j)+"_"
-            addConditionTab(prefix)
+            add_condition_tab(prefix)
             qval = str(hydro_q[j])	
             dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
             dialog[prefix+"qval"].setText(qval)
@@ -374,16 +374,15 @@ def update_qvalues() -> None:
             
     try:
         nwidth = rivers["normal_width"][ibranch][ireach]
-        q_stagnant = rivers["qstagnant"][ibranch][ireach]
         q_threshold = float(dialog["qthr"].text())
-        [Q, applyQ, Tmi, tstag, T, rsigma, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
-        slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
+        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
+        slength = dfastmi.kernel.estimate_sedimentation_length2(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
     except:
         dialog["slength"].setText("---")
 
 
-def updatePlotting() -> None:
+def update_plotting() -> None:
     """
     Update the plotting flags.
     
@@ -391,18 +390,18 @@ def updatePlotting() -> None:
     ---------
     None
     """
-    plotFlag = dialog["makePlotsEdit"].isChecked()
-    dialog["savePlots"].setEnabled(plotFlag)
-    dialog["savePlotsEdit"].setEnabled(plotFlag)
+    plot_flag = dialog["makePlotsEdit"].isChecked()
+    dialog["savePlots"].setEnabled(plot_flag)
+    dialog["savePlotsEdit"].setEnabled(plot_flag)
 
-    saveFlag = dialog["savePlotsEdit"].isChecked() and plotFlag
+    save_flag = dialog["savePlotsEdit"].isChecked() and plot_flag
 
-    dialog["figureDir"].setEnabled(saveFlag)
-    dialog["figureDirEdit"].setEnabled(saveFlag)
-    dialog["figureDirEditFile"].setEnabled(saveFlag)
+    dialog["figureDir"].setEnabled(save_flag)
+    dialog["figureDirEdit"].setEnabled(save_flag)
+    dialog["figureDirEditFile"].setEnabled(save_flag)
 
-    dialog["closePlots"].setEnabled(plotFlag)
-    dialog["closePlotsEdit"].setEnabled(plotFlag)
+    dialog["closePlots"].setEnabled(plot_flag)
+    dialog["closePlotsEdit"].setEnabled(plot_flag)
 
 
 def close_dialog() -> None:
