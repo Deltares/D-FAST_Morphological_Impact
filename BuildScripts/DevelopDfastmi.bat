@@ -23,9 +23,11 @@ CALL %~dp0CondaInstall.bat %CONDA_INSTALL_DIR%
 SET PATH=%PATH%;%CONDA_INSTALL_DIR%;%CONDA_INSTALL_DIR%\Scripts;%CONDA_INSTALL_DIR%\Library\bin
 CALL conda init --user cmd.exe
 CALL conda init --user powershell
-rem CALL powershell-ExecutionPolicy Bypass -File 
+FOR /F %%i IN ('powershell -NoProfile -Command $PROFILE.CurrentUserAllHosts') DO SET PowerShellCondaFile=%%i
+echo %PowerShellCondaFile%
+CALL powershell -ExecutionPolicy Bypass -File %PowerShellCondaFile%
 echo Please restart script to continue configuration.
-echo Conda is installed, but the command prompt will need to be refreshed.
+echo Conda is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal 
 pause
 GOTO END
 
