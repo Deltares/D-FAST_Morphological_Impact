@@ -1,0 +1,71 @@
+import context
+import os
+import sys
+
+from contextlib import contextmanager
+from io import StringIO
+import subprocess
+
+# dfast binary path relative to tstdir
+dfastexe = "../../dfastmi.dist/dfastmi.exe"
+
+@contextmanager
+def captured_output():
+    new_out, new_err = StringIO(), StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+class Test_basic():
+    def test_basic_00(self):
+        """
+        Test whether program runs at all.
+        """
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        success = False
+        try:
+            os.chdir(tstdir)
+            result = subprocess.run([dfastexe,"--help"])
+            success = result.returncode == 0
+        finally:
+            os.chdir(cwd)
+        #
+        self.maxDiff = None
+        assert success == True
+
+    def test_basic_01(self):
+        """
+        Testing program help.
+        """
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        try:
+            os.chdir(tstdir)
+            result = subprocess.run([dfastexe,"--help"], capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
+        finally:
+            os.chdir(cwd)
+        #
+        #for s in outstr:
+        #    print(s)
+        self.maxDiff = None
+        assert outstr == [
+            "usage: dfastmi.exe [-h] [--language LANGUAGE] [--mode MODE] [--config CONFIG]",
+            "                   [--rivers RIVERS] [--reduced_output]",
+            "",
+            "D-FAST Morphological Impact.",
+            "",
+            "optional arguments:",
+            "  -h, --help           show this help message and exit",
+            "  --language LANGUAGE  display language 'NL' or 'UK' (UK is default)",
+            "  --mode MODE          run mode 'BATCH', 'CLI' or 'GUI' (GUI is default)",
+            "  --config CONFIG      name of analysis configuration file ('dfastmi.cfg' is",
+            "                       default)",
+            "  --rivers RIVERS      name of rivers configuration file ('Dutch_rivers.ini'",
+            "                       is default)",
+            "  --reduced_output     write reduced M/N range (structured model only)"
+        ]
