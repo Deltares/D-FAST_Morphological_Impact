@@ -27,8 +27,8 @@ FOR /F %%i IN ('powershell -NoProfile -Command $PROFILE.CurrentUserAllHosts') DO
 echo %PowerShellCondaFile%
 CALL powershell -ExecutionPolicy Bypass -File %PowerShellCondaFile%
 echo Please restart script to continue configuration.
-echo Conda is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal 
-pause
+echo Conda is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
+echo SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat.
 GOTO END
 
 :INSTALLENVIRONMENTS
@@ -58,6 +58,7 @@ GOTO INSTALLVSCODE
 	CALL code --install-extension ms-python.vscode-pylance --force
 	CALL code --install-extension ms-vscode.test-adapter-converter --force
 	CALL code --install-extension ryanluker.vscode-coverage-gutters --force
+	CALL code .
 GOTO END
 )
 
@@ -66,7 +67,9 @@ SET /P AREYOUSUREVSCODE=Are you sure you want to install visual studio code now 
 IF /I "%AREYOUSUREVSCODE%" NEQ "Y" GOTO END
 CALL %~dp0VSCodeInstall.bat
 echo VSCode has been installed on this PC.
-GOTO INSTALLEXTENSIONSVSCODE
+echo Visual Studio Code is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
+echo SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat script.
+GOTO END
 
 :END
 endlocal

@@ -8,7 +8,7 @@ rem Download the VS Code installer
 curl -o %INSTALLER_FILENAME% -L "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user"
 
 rem Run the installer with unattended installation
-start /wait %INSTALLER_FILENAME% /NORESTART
+start /wait %INSTALLER_FILENAME% /NORESTART /VERYSILENT /MERGETASKS=!runcode
 
 rem Clean up the installer file
 del %INSTALLER_FILENAME%
