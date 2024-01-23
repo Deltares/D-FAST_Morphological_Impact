@@ -177,29 +177,29 @@ def create_dialog() -> None:
     layout.addRow(gui_text("measure"), openFileLayout(win, q1file2, "file2"))
 
     # get the output directory
-    outputDir = QtWidgets.QLineEdit(win)
-    dialog["outputDir"] = outputDir
-    layout.addRow(gui_text("outputDir"), openFileLayout(win, outputDir, "outputDir"))
+    output_dir = QtWidgets.QLineEdit(win)
+    dialog["outputDir"] = output_dir
+    layout.addRow(gui_text("outputDir"), openFileLayout(win, output_dir, "outputDir"))
 
     # plotting
-    makePlots = QtWidgets.QCheckBox(win)
-    makePlots.setToolTip(gui_text("makePlots_tooltip"))
-    dialog["makePlots"] = makePlots
-    layout.addRow(gui_text("makePlots"), makePlots)
+    make_plots = QtWidgets.QCheckBox(win)
+    make_plots.setToolTip(gui_text("makePlots_tooltip"))
+    dialog["makePlots"] = make_plots
+    layout.addRow(gui_text("makePlots"), make_plots)
 
-    savePlots = QtWidgets.QCheckBox(win)
-    savePlots.setToolTip(gui_text("savePlots_tooltip"))
-    dialog["savePlots"] = savePlots
-    layout.addRow(gui_text("savePlots"), savePlots)
+    save_plots = QtWidgets.QCheckBox(win)
+    save_plots.setToolTip(gui_text("savePlots_tooltip"))
+    dialog["savePlots"] = save_plots
+    layout.addRow(gui_text("savePlots"), save_plots)
 
-    figureDir = QtWidgets.QLineEdit(win)
-    dialog["figureDir"] = figureDir
-    layout.addRow(gui_text("figureDir"), openFileLayout(win, figureDir, "figureDir"))
+    figure_dir = QtWidgets.QLineEdit(win)
+    dialog["figureDir"] = figure_dir
+    layout.addRow(gui_text("figureDir"), openFileLayout(win, figure_dir, "figureDir"))
 
-    closePlots = QtWidgets.QCheckBox(win)
-    closePlots.setToolTip(gui_text("closePlots_tooltip"))
-    dialog["closePlots"] = closePlots
-    layout.addRow(gui_text("closePlots"), closePlots)
+    close_plots = QtWidgets.QCheckBox(win)
+    close_plots.setToolTip(gui_text("closePlots_tooltip"))
+    dialog["closePlots"] = close_plots
+    layout.addRow(gui_text("closePlots"), close_plots)
 
     run = QtWidgets.QPushButton(gui_text("action_run"), win)
     run.clicked.connect(run_analysis)
@@ -292,18 +292,14 @@ def update_qvalues() -> None:
     ---------
     None
     """
-    q_threshold: Optional[float]
-
     ibranch = dialog["branch"].currentIndex()
     ireach = dialog["reach"].currentIndex()
     if ireach < 0:
         return
 
-    q_location = rivers["qlocations"][ibranch]
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
-    q_fit = rivers["qfit"][ibranch][ireach]
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
     
-    conditions = ["Q = 3000 [m3/s]", "Q = 4000 [m3/s]", "Q = 6000 [m3/s]"]
+    conditions = ["Q = {} m3/s".format(q) for q in hydro_q]
     
     condition_list = dialog["condition_list"]
     condition_list.clear()
@@ -438,7 +434,7 @@ def get_configuration() -> Optional[configparser.ConfigParser]:
 
     Returns
     -------
-    config : configparser.ConfigParser
+    config : Optional[configparser.ConfigParser]
         Configuration for the D-FAST Morphological Impact analysis.
     """
     error = False
@@ -458,13 +454,16 @@ def get_configuration() -> Optional[configparser.ConfigParser]:
     config["General"]["ClosePlots"] = str(dialog["closePlots"].isChecked())
 
     # loop over conditions cond = "C1", "C2", ...
-    #error = True
-    config.add_section("C1")
-    config["C1"]["TODO"] = "..."
-    # get discharge and optional tide
-    # config[cond]["Discharge"] = qstr
-    # config[cond]["Reference"] = file1
-    # config[cond]["WithMeasure"] = file2
+    for i in range(1):
+        cond = "C{}".format(i+1)
+        config.add_section(cond)
+        # get discharge and optional tide
+        # config[cond]["Discharge"] = qstr
+        config[cond]["Reference"] = dialog["file1"].text()
+        config[cond]["WithMeasure"] = dialog["file2"].text()
+        #
+        if config[cond]["Reference"] == "" or config[cond]["WithMeasure"] == "":
+            error = True
     
     if error:
         showMessage(gui_text("analysis_config_incomplete",))

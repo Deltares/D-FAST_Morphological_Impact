@@ -238,10 +238,7 @@ def batch_mode_core(
                 ucrit = rivers["ucritical"][ibranch][ireach]
             ucritMin = 0.01
             ucrit = max(ucritMin, ucrit)
-            try:
-                mode_str = config["General"]["Mode"]
-            except:
-                mode_str = "D-Flow FM map"
+            mode_str = config["General"].get("Mode","D-Flow FM map")
             if mode_str == "WAQUA export":
                 mode = 0
                 dfastmi.io.log_text(
@@ -597,37 +594,92 @@ def get_filenames(
         conditions, such as a Discharge and Tide forcing tuple.
     """
     filenames: Dict[Any, Tuple[str,str]]
+    if imode == 0 or config is None:
+        filenames = {}
+    elif version.parse(config["General"]["Version"]) == version.parse("1"):
+        filenames = get_filenames_version1(config)
+    else:
+        filenames = get_filenames_version2(needs_tide, config)
+
+    return filenames
+
+
+def get_filenames_version1(
+    config: Optional[configparser.ConfigParser] = None,
+) -> Dict[Any, Tuple[str,str]]:
+    """
+    Extract the list of six file names from the configuration.
+    This routine is valid for version 1 configuration files.
+
+    Arguments
+    ---------
+    config : Optional[configparser.ConfigParser]
+        The variable containing the configuration (may be None for imode = 0).
+
+    Returns
+    -------
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of string tuples representing the D-Flow FM file names for
+        each reference/with measure pair. The keys of the dictionary vary. They
+        can be the discharge index, discharge value or a tuple of forcing
+        conditions, such as a Discharge and Tide forcing tuple.
+    """
+    filenames: Dict[Any, Tuple[str,str]]
     key: Union[Tuple[float, int], float]
     filenames = {}
-    if imode == 0 or config is None:
-        pass
-    else:
-        if version.parse(config["General"]["Version"]) == version.parse("1"):
-            # version 1
-            for i in range(3):
-                QSTR = "Q{}".format(i + 1)
-                if QSTR in config:
-                    reference = cfg_get(config, QSTR, "Reference")
-                    measure = cfg_get(config, QSTR, "WithMeasure")
-                    filenames[i] = (reference, measure)
+    for i in range(3):
+        QSTR = "Q{}".format(i + 1)
+        if QSTR in config:
+            reference = cfg_get(config, QSTR, "Reference")
+            measure = cfg_get(config, QSTR, "WithMeasure")
+            filenames[i] = (reference, measure)
+
+    return filenames
+
+
+def get_filenames_version2(
+    needs_tide: bool,
+    config: Optional[configparser.ConfigParser] = None,
+) -> Dict[Any, Tuple[str,str]]:
+    """
+    Extract the list of 2N file names from the configuration.
+    This routine is valid for version 2 configuration files.
+
+    Arguments
+    ---------
+    needs_tide : bool
+        Specifies whether the tidal boundary is needed.
+
+    config : Optional[configparser.ConfigParser]
+        The variable containing the configuration (may be None for imode = 0).
+
+    Returns
+    -------
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of string tuples representing the D-Flow FM file names for
+        each reference/with measure pair. The keys of the dictionary vary. They
+        can be the discharge index, discharge value or a tuple of forcing
+        conditions, such as a Discharge and Tide forcing tuple.
+    """
+    filenames: Dict[Any, Tuple[str,str]]
+    key: Union[Tuple[float, int], float]
+    filenames = {}
+    i = 0
+    while True:
+        i = i + 1
+        CSTR = "C{}".format(i)
+        if CSTR in config:
+            Q = float(cfg_get(config, CSTR, "Discharge"))
+            reference = cfg_get(config, CSTR, "Reference")
+            measure = cfg_get(config, CSTR, "WithMeasure")
+            if needs_tide:
+               T = cfg_get(config, CSTR, "TideBC")
+               key = (Q,T)
+            else:
+               key = Q
+            filenames[key] = (reference, measure)
         else:
-            # version 2
-            i = 0
-            while True:
-                i = i + 1
-                CSTR = "C{}".format(i)
-                if CSTR in config:
-                    Q = float(cfg_get(config, CSTR, "Discharge"))
-                    reference = cfg_get(config, CSTR, "Reference")
-                    measure = cfg_get(config, CSTR, "WithMeasure")
-                    if needs_tide:
-                       T = int(cfg_get(config, CSTR, "TideBC"))
-                       key = (Q,T)
-                    else:
-                       key = Q
-                    filenames[key] = (reference, measure)
-                else:
-                    break
+            break
 
     return filenames
 
