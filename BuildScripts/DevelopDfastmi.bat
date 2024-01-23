@@ -19,7 +19,7 @@ echo Conda is not installed on this PC.
 echo Please install Conda and try again.
 SET /P AREYOUSURE=Are you sure you want to install conda now (Y/[N])?
 IF /I "%AREYOUSURE%" NEQ "Y" GOTO END
-CALL CondaInstall.bat %CONDA_INSTALL_DIR%
+CALL %~dp0CondaInstall.bat %CONDA_INSTALL_DIR%
 SET PATH=%PATH%;%CONDA_INSTALL_DIR%;%CONDA_INSTALL_DIR%\Scripts;%CONDA_INSTALL_DIR%\Library\bin
 CALL conda init --user cmd.exe
 echo Please restart script to continue configuration.
