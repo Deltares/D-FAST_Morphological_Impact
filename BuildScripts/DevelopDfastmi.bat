@@ -22,6 +22,8 @@ IF /I "%AREYOUSURE%" NEQ "Y" GOTO END
 CALL %~dp0CondaInstall.bat %CONDA_INSTALL_DIR%
 SET PATH=%PATH%;%CONDA_INSTALL_DIR%;%CONDA_INSTALL_DIR%\Scripts;%CONDA_INSTALL_DIR%\Library\bin
 CALL conda init --user cmd.exe
+CALL conda init --user powershell
+rem CALL powershell-ExecutionPolicy Bypass -File 
 echo Please restart script to continue configuration.
 echo Conda is installed, but the command prompt will need to be refreshed.
 pause
@@ -58,10 +60,11 @@ GOTO END
 )
 
 :INSTALLVSCODE
-SET /P AREYOUSUREVSCODE=Are you sure you want to install conda now (Y/[N])?
+SET /P AREYOUSUREVSCODE=Are you sure you want to install visual studio code now (Y/[N])?
 IF /I "%AREYOUSUREVSCODE%" NEQ "Y" GOTO END
-CALL VSCodeInstall.bat
+CALL %~dp0VSCodeInstall.bat
 echo VSCode has been installed on this PC.
+GOTO INSTALLEXTENSIONSVSCODE
 
 :END
 endlocal
