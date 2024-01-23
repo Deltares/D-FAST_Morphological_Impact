@@ -373,8 +373,12 @@ def update_qvalues() -> None:
             tabs.setTabText(1+j,qval+" m3/s")
             
     try:
+        nwidth = rivers["normal_width"][ibranch][ireach]
+        q_stagnant = rivers["qstagnant"][ibranch][ireach]
+        q_threshold = float(dialog["qthr"].text())
+        [Q, applyQ, Tmi, tstag, T, rsigma, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
         slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
-        dialog["slength"].setText(str(slength))
+        dialog["slength"].setText("{:.0f}".format(slength))
     except:
         dialog["slength"].setText("---")
 
@@ -453,9 +457,8 @@ def load_configuration(filename: str) -> None:
     dialog["reach"].setCurrentText(section["Reach"])
     ireach = dialog["reach"].currentIndex()
 
-    qthr_default = 0 # or qstagnant of branch/reach
     dialog["qthr"].setText(
-        section.get("Qthreshold", qthr_default)
+        section.get("Qthreshold", str(rivers["qstagnant"][ibranch][ireach]))
     )
 
     dialog["ucrit"].setText(
@@ -465,20 +468,33 @@ def load_configuration(filename: str) -> None:
     dialog["outputDir"].setText(
         section.get("OutputDir", "output")
     )
-    dialog["makePlots"].setChecked(
+    dialog["makePlotsEdit"].setChecked(
         str_to_bool(section.get("Plotting", "false"))
     )
-    dialog["savePlots"].setChecked(
+    dialog["savePlotsEdit"].setChecked(
         str_to_bool(section.get("SavePlots", "false"))
     )
-    dialog["figureDir"].setText(
+    dialog["figureDirEdit"].setText(
         section.get("FigureDir", "figure")
     )
-    dialog["closePlots"].setChecked(
+    dialog["closePlotsEdit"].setChecked(
         str_to_bool(section.get("ClosePlots", "false"))
     )
     update_qvalues()
-    # show the correct file names ...
+    
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    for i in range(len(hydro_q)):
+        prefix = str(i)+"_"
+        cond = "C{}".format(i+1)
+        if cond in config.keys():
+            cond_section = config[cond]
+            file1 = cond_section.get("Reference", "")
+            file2 = cond_section.get("WithMeasure", "")
+        else:
+            file1 = ""
+            file2 = ""
+        dialog[prefix+"file1"].setText(file1)
+        dialog[prefix+"file2"].setText(file2)
 
 
 def str_to_bool(x: str) -> bool:
@@ -533,10 +549,10 @@ def get_configuration() -> configparser.ConfigParser:
     config["General"]["Qthreshold"] = dialog["qthr"].text()
     config["General"]["Ucrit"] = dialog["ucrit"].text()
     config["General"]["OutputDir"] = dialog["outputDir"].text()
-    config["General"]["Plotting"] = str(dialog["makePlots"].isChecked())
-    config["General"]["SavePlots"] = str(dialog["savePlots"].isChecked())
-    config["General"]["FigureDir"] = dialog["figureDir"].text()
-    config["General"]["ClosePlots"] = str(dialog["closePlots"].isChecked())
+    config["General"]["Plotting"] = str(dialog["makePlotsEdit"].isChecked())
+    config["General"]["SavePlots"] = str(dialog["savePlotsEdit"].isChecked())
+    config["General"]["FigureDir"] = dialog["figureDirEdit"].text()
+    config["General"]["ClosePlots"] = str(dialog["closePlotsEdit"].isChecked())
 
     # loop over conditions cond = "C1", "C2", ...
     ibranch = dialog["branch"].currentIndex()

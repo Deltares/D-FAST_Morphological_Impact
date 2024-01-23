@@ -149,74 +149,22 @@ def batch_mode_core(
         else:
             nwidth = rivers["normal_width"][ibranch][ireach]
             q_location = rivers["qlocations"][ibranch]
-            q_stagnant = rivers["qstagnant"][ibranch][ireach]
-            if "Qthreshold" in config["General"]:
-                q_threshold = float(config["General"]["Qthreshold"])
-            else:
-                q_threshold = q_stagnant
-            needs_tide = False
-            n_fields = 1
-            tide_bc: Tuple[float, ...] = ()
+            tide_bc: Tuple[str, ...] = ()
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
-                celerity_hg = rivers["proprate_high"][ibranch][ireach]
-                celerity_lw = rivers["proprate_low"][ibranch][ireach]
-
-                (
-                    all_q,
-                    q_threshold,
-                    q_bankfull,
-                    q_fit,
-                    Q1,
-                    applyQ1,
-                    tstag,
-                    T,
-                    rsigma,
-                ) = batch_get_discharges(
-                    rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
-                )
-                Q = Q1
-                applyQ = applyQ1
-                Tmi = tuple(0 if Q[i] is None or Q[i]<=q_stagnant else T[i] for i in range(len(T)))
-                celerity = (celerity_lw, celerity_hg, celerity_hg)
+                [Q, applyQ, q_threshold, Tmi, tstag, T, rsigma, celerity] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+                needs_tide = False
+                n_fields = 1
 
             else:
                 # version 2
-                Q = rivers["hydro_q"][ibranch][ireach]
-                applyQ = (True,) * len(Q)
-                if rivers["autotime"][ibranch][ireach]:
-                    q_fit = rivers["qfit"][ibranch][ireach]
-                    T, Tmi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
+                q_stagnant = rivers["qstagnant"][ibranch][ireach]
+                if "Qthreshold" in config["General"]:
+                    q_threshold = float(config["General"]["Qthreshold"])
                 else:
-                    T = rivers["hydro_t"][ibranch][ireach]
-                    sumT = sum(T)
-                    T = tuple(t / sumT for t in T)
-                    Tmi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
-                
-                # determine the bed celerity based on the input settings
-                cform = rivers["cform"][ibranch][ireach]
-                if cform == 1:
-                    prop_q = rivers["prop_q"][ibranch][ireach]
-                    prop_c = rivers["prop_c"][ibranch][ireach]
-                    celerity = tuple(dfastmi.kernel.get_celerity(q, prop_q, prop_c) for q in Q)
-                elif cform == 2:
-                    cdisch = rivers["cdisch"][ibranch][ireach]
-                    celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
-                
-                # set the celerity equal to 0 for discharges less or equal to q_stagnant
-                celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
-                
-                # check if all celerities are equal to 0. If so, the impact would be 0.
-                all_zero = True
-                for i in range(len(Q)):
-                    if celerity[i] < 0.0:
-                        raise Exception("Invalid negative celerity {} m/s encountered for discharge {} m3/s!".format(celerity[i],Q[i]))
-                    elif celerity[i] > 0.0:
-                        all_zero = False
-                if all_zero:
-                    raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
-                
+                    q_threshold = q_stagnant
+                [Q, applyQ, Tmi, tstag, T, rsigma, celerity] = get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
                 needs_tide = rivers["tide"][ibranch][ireach]
                 if needs_tide:
                     tide_bc = rivers["tide_bc"][ibranch][ireach]
@@ -225,10 +173,7 @@ def batch_mode_core(
                         raise Exception("Unexpected combination of tides and NFields = 1!")
                 else:
                     n_fields = 1
-                rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
-                tstag = 0
 
-            #slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
             slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
 
             reach = rivers["reaches"][ibranch][ireach]
@@ -361,6 +306,146 @@ def batch_mode_core(
     report.close()
 
     return success
+
+
+def get_levels_v1(
+    rivers: RiversObject, ibranch: int, ireach: int, config: configparser.ConfigParser, nwidth: float
+) -> (Vector, Tuple[bool,...], float, Vector, float, Vector, Vector, Vector):
+    """
+    Determine discharges, times, etc. for version 1 analysis
+
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    ibranch : int
+        Number of selected branch.
+    ireach : int
+        Number of selected reach.
+    config : configparser.ConfigParser
+        Configuration of the analysis to be run.
+    nwidth : float
+        Normal river width (from rivers configuration file) [m].
+
+    Return
+    ------
+    Q : Vector
+        Array of discharges; one for each forcing condition [m3/s].
+    applyQ : Tuple[bool,...]
+        A list of flags indicating whether the corresponding entry in Q should be used.
+    q_threshold : float
+        River discharge at which the measure becomes active [m3/s].
+    Tmi : Vector
+        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+    tstag : float
+        Fraction of year during which flow velocity is considered negligible [-].
+    T : Vector
+        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+    rsigma : Vector
+        A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+    celerity : Vector
+        A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+    """
+    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    celerity_hg = rivers["proprate_high"][ibranch][ireach]
+    celerity_lw = rivers["proprate_low"][ibranch][ireach]
+
+    (
+        all_q,
+        q_threshold,
+        q_bankfull,
+        q_fit,
+        Q1,
+        applyQ1,
+        tstag,
+        T,
+        rsigma,
+    ) = batch_get_discharges(
+        rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
+    )
+    Q = Q1
+    applyQ = applyQ1
+    Tmi = tuple(0 if Q[i] is None or Q[i]<=q_stagnant else T[i] for i in range(len(T)))
+    celerity = (celerity_lw, celerity_hg, celerity_hg)
+    
+    return (Q, applyQ, q_threshold, Tmi, tstag, T, rsigma, celerity)
+
+
+def get_levels_v2(
+    rivers: RiversObject, ibranch: int, ireach: int, q_threshold: float, nwidth: float
+) -> (Vector, Tuple[bool,...], Vector, float, Vector, Vector, Vector):
+    """
+    Determine discharges, times, etc. for version 2 analysis
+
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    ibranch : int
+        Number of selected branch.
+    ireach : int
+        Number of selected reach.
+    q_threshold : float
+        River discharge at which the measure becomes active [m3/s].
+    nwidth : float
+        Normal river width (from rivers configuration file) [m].
+
+    Return
+    ------
+    Q : Vector
+        Array of discharges; one for each forcing condition [m3/s].
+    applyQ : Tuple[bool,...]
+        A list of flags indicating whether the corresponding entry in Q should be used.
+    Tmi : Vector
+        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+    tstag : float
+        Fraction of year during which flow velocity is considered negligible [-].
+    T : Vector
+        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+    rsigma : Vector
+        A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+    celerity : Vector
+        A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+    """
+    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    Q = rivers["hydro_q"][ibranch][ireach]
+    applyQ = (True,) * len(Q)
+    if rivers["autotime"][ibranch][ireach]:
+        q_fit = rivers["qfit"][ibranch][ireach]
+        T, Tmi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
+    else:
+        T = rivers["hydro_t"][ibranch][ireach]
+        sumT = sum(T)
+        T = tuple(t / sumT for t in T)
+        Tmi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
+    
+    # determine the bed celerity based on the input settings
+    cform = rivers["cform"][ibranch][ireach]
+    if cform == 1:
+        prop_q = rivers["prop_q"][ibranch][ireach]
+        prop_c = rivers["prop_c"][ibranch][ireach]
+        celerity = tuple(dfastmi.kernel.get_celerity(q, prop_q, prop_c) for q in Q)
+    elif cform == 2:
+        cdisch = rivers["cdisch"][ibranch][ireach]
+        celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
+    
+    # set the celerity equal to 0 for discharges less or equal to q_stagnant
+    celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
+    
+    # check if all celerities are equal to 0. If so, the impact would be 0.
+    all_zero = True
+    for i in range(len(Q)):
+        if celerity[i] < 0.0:
+            raise Exception("Invalid negative celerity {} m/s encountered for discharge {} m3/s!".format(celerity[i],Q[i]))
+        elif celerity[i] > 0.0:
+            all_zero = False
+    if all_zero:
+        raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
+    
+    rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+    tstag = 0
+
+    return (Q, applyQ, Tmi, tstag, T, rsigma, celerity)
 
 
 def countQ(Q: Vector) -> int:
@@ -511,7 +596,7 @@ def batch_get_discharges(
     applyQ : Tuple[bool, bool, bool]
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
-    t_stagnant : float
+    tstag : float
         Fraction of year during which flow velocity is considered negligible [-].
     T : Vector
         A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
@@ -740,7 +825,7 @@ def analyse_and_report(
     xykm: shapely.geometry.linestring.LineString,
     needs_tide: bool,
     n_fields: int,
-    tide_bc: Vector,
+    tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
     kmbounds: Tuple[float,float],
     outputdir: str,
@@ -793,7 +878,7 @@ def analyse_and_report(
         Specifies whether the tidal boundary is needed.
     n_fields : int
         Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Vector
+    tide_bc : Tuple[str, ...]
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
@@ -980,7 +1065,7 @@ def analyse_and_report_dflowfm(
     xykm: shapely.geometry.linestring.LineString,
     needs_tide: bool,
     n_fields: int,
-    tide_bc: Vector,
+    tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
     kmbounds: Tuple[float, float],
     outputdir: str,
@@ -1029,7 +1114,7 @@ def analyse_and_report_dflowfm(
         Specifies whether the tidal boundary is needed.
     n_fields : int
         Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Vector
+    tide_bc : Tuple[str, ...]
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
