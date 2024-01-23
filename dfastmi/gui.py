@@ -161,8 +161,8 @@ def create_dialog() -> None:
 
     # choose the flow condition
     condition_list = QtWidgets.QComboBox(win)
-    #condition_list.currentIndexChanged.connect(updated_flow_condition)
-    #condition_list.setToolTip(gui_text("condition_list_tooltip"))
+    condition_list.currentIndexChanged.connect(updated_flow_condition)
+    condition_list.setToolTip(gui_text("condition_list_tooltip"))
     dialog["condition_list"] = condition_list
     layout.addRow(gui_text("condition_list"), condition_list)
 
@@ -284,6 +284,18 @@ def updated_reach(ireach: int) -> None:
     update_qvalues()
 
 
+def updated_flow_condition(icond: int) -> None:
+    """
+    Adjust the GUI for updated reach selection.
+
+    Arguments
+    ---------
+    icond : int
+        Newly selected flow condition.
+    """
+    pass # not yet implemented ... where to store the fields? ... consider using tabs like D-FAST BE
+
+
 def update_qvalues() -> None:
     """
     Adjust the GUI for updated characteristic discharges.
@@ -304,13 +316,6 @@ def update_qvalues() -> None:
     condition_list = dialog["condition_list"]
     condition_list.clear()
     condition_list.addItems(conditions)
-
-    try:
-        q_threshold = float(dialog["qthr"].text())
-    except:
-        showError(gui_text("error_qthr"))
-        dialog["qthr"].setFocus()
-        return
 
 
 def close_dialog() -> None:
