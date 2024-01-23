@@ -7,7 +7,7 @@ rem Download the Miniconda installer
 curl -O https://repo.anaconda.com/miniconda/%INSTALLER_FILENAME%
 
 rem Run the installer with installation
-CALL %INSTALLER_FILENAME% /InstallationType=JustMe /AddToPath=1 /RegisterPython=1 /NoRegistry=1 /NoDesktop=1 /D=%~1
+CALL %INSTALLER_FILENAME% /InstallationType=JustMe /S /AddToPath=1 /RegisterPython=1 /NoRegistry=1 /NoDesktop=1 /D=%~1
 
 rem Clean up the installer file
 del %INSTALLER_FILENAME%
