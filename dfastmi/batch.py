@@ -736,7 +736,7 @@ def get_filenames_version2(
         Specifies whether the tidal boundary is needed.
 
     config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
+        The variable containing the configuration (may be None for if 0).
 
     Returns
     -------
@@ -2001,11 +2001,52 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
     branch = config["General"]["Branch"]
-    ibranch = rivers["branches"].index(branch)
+    if branch not in rivers["branches"]:
+        return False
+    
     reach = config["General"]["Reach"]
-    ireach = rivers["reaches"][ibranch].index(reach)
-    mode = config["General"]["Mode"]
-    # more checks here using ibranch and ireach
+    ibranch = rivers["branches"].index(branch)
+    if reach not in rivers["reaches"][ibranch]:
+        return False
+    
+    ireach = rivers["reaches"][ibranch].index(reach2)
+    nwidth = rivers["nwidth"][ibranch][ireach]
+    [q_list, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+    
+    mode_str = config["General"].get("Mode", "D-Flow FM map")
+    for i in range(3):
+        if not apply_q[i]:
+            continue
+        
+        cond = "Q" + str(i+1)
+        if mode_str == "WAQUA export":
+            # condition block may not be specified since it doesn't contain any required keys
+            if cond not in config.sections():
+                continue
+
+            if "Discharge" in config[cond]:
+                # if discharge is specified, it must be correct
+                qstr_cond = config[cond]["Discharge"]
+                if qstr != qstr_cond:
+                    return False
+            
+        elif mode_str == "D-Flow FM map":
+            # condition block must be specified since it must contain the Reference and WithMeasure file names
+            if cond not in config.sections():
+                return False
+            
+            if "Discharge" in config[cond]:
+                # if discharge is specified, it must be correct
+                qstr_cond = config[cond]["Discharge"]
+                if qstr != qstr_cond:
+                    return False
+            
+            if "Reference" not in config[cond]:
+                return False
+        
+            if "WithMeasure" not in config[cond]:
+                return False
+                
     return True
 
 
@@ -2026,19 +2067,47 @@ def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigPars
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
     branch = config["General"]["Branch"]
+    if reach not in rivers["reaches"][ibranch]:
+        return False
+
     ibranch = rivers["branches"].index(branch)
     reach = config["General"]["Reach"]
+    if reach not in rivers["reaches"][ibranch]:
+        return False
+
     ireach = rivers["reaches"][ibranch].index(reach)
     hydro_q = rivers["hydro_q"][ibranch][ireach]
-    # for now we're only checking if any empty file names are given
-    # this should be replaced by a check if all conditions are specified
-    # and if the files exist
-    for qstr in config.keys():
-        if "Reference" in config[qstr] and config[qstr]["Reference"] == "":
-            return False
-        if "WithMeasure" in config[qstr] and config[qstr]["WithMeasure"] == "":
-            return False
+    n_cond = len(hydro_q)
+    
+    found = [False]*n_cond
+    
+    for i in range(n_cond):
+        q = hydro_q[i]
+        qstr = str(q)
+        
+        for cond in config.keys():
+            if cond[0] != "C":
+                # not a condition block
+                continue
             
+            if "Discharge" not in config[cond]:
+                return False
+            
+            qstr_cond = config[cond]["Discharge"]
+            if qstr != qstr_cond:
+                continue
+            
+            found[i] = True
+            
+            if "Reference" not in config[cond]:
+                return False
+        
+            if "WithMeasure" not in config[cond]:
+                return False
+    
+    if not all(found):
+        return False
+        
     return True
 
 
