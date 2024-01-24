@@ -11,8 +11,6 @@ GOTO INSTALLCONDA
     ECHO Conda is installed on this PC.
 )
 GOTO INSTALLENVIRONMENTS
-)
-GOTO INSTALLEXTENSIONSVSCODE
 
 :INSTALLCONDA
 ECHO Conda is not installed on this PC.
