@@ -2020,7 +2020,7 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
         if not apply_q[i]:
             continue
         
-        if not check_configuration_v1_cond(config, mode_str, i, hydro_q[i]):
+        if not check_configuration_v1_cond(config, mode_str, i):
             return False
                 
     return True
@@ -2146,7 +2146,7 @@ def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigPars
     found = [False]*n_cond
     
     for i in range(n_cond):
-        success, found[i] = check_configuration_v2_cond(rivers, config, hydro_q[i])
+        success, found[i] = check_configuration_v2_cond(config, hydro_q[i])
         if not success:
             return False
     
@@ -2156,14 +2156,12 @@ def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigPars
     return True
 
 
-def check_configuration_v2_cond(rivers: RiversObject, config: configparser.ConfigParser, q: float) -> (bool, bool):
+def check_configuration_v2_cond(config: configparser.ConfigParser, q: float) -> (bool, bool):
     """
     Check if a version 2 analysis configuration is valid.
 
     Arguments
     ---------
-    rivers: RiversObject
-        A dictionary containing the river data.
     config : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis.
 
