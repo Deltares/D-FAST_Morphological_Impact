@@ -10,15 +10,10 @@ START /B /WAIT poetry run nuitka ^
  --python-flag=no_asserts ^
  --python-flag=no_docstrings ^
  --show-progress ^
- --windows-force-stderr-spec=%PROGRAM%logs.txt ^
- --windows-force-stdout-spec=%PROGRAM%output.txt ^
  --nofollow-import-to=*.tests ^
+ --nofollow-import-to=*test* ^
  --follow-stdlib ^
- --enable-plugin=anti-bloat ^
- --enable-plugin=delvewheel ^
  --enable-plugin=pyqt5 ^
- --enable-plugin=matplotlib ^
- --file-reference-choice=runtime ^
  --include-package=pyproj ^
  --include-package=shapely ^
  --include-package=netCDF4 ^
@@ -38,8 +33,13 @@ START /B /WAIT poetry run nuitka ^
  --file-description="A Python to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
  --trademarks="All indications and logos of, and references to, \"D-FAST\", \"D-FAST Morphological Impact\" and \"D-FAST MI\" are registered trademarks of Stichting Deltares, and remain the property of Stichting Deltares. All rights reserved." ^
  --copyright="Copyright (C) 2020 Stichting Deltares." ^
- --onefile ^
  --force-dll-dependency-cache-update ^
+ --verbose ^
+ --verbose-output=buildLog.txt ^
+ --report=compilation-report.xml ^
  dfastmi
 
 cd %~dp0/../dfastmi.install
+rem --onefile ^
+rem --windows-force-stderr-spec=%PROGRAM%logs.txt ^
+rem --windows-force-stdout-spec=%PROGRAM%output.txt ^
