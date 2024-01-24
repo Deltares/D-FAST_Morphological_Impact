@@ -1978,7 +1978,8 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
             return check_configuration_v1(rivers, config)
         else:
             return check_configuration_v2(rivers, config)
-        
+    except SystemExit as e:
+        raise e
     except:
         return False
 
