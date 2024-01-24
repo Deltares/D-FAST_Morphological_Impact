@@ -2013,7 +2013,7 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
     
     ireach = rivers["reaches"][ibranch].index(reach2)
     nwidth = rivers["nwidth"][ibranch][ireach]
-    [hydro_q, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+    [_, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
     
     mode_str = config["General"].get("Mode", DFLOWFM_MAP)
     for i in range(3):
