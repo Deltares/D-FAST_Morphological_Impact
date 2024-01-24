@@ -3,6 +3,9 @@ SET CONDA_INSTALL_DIR=%UserProfile%\Miniconda3
 SET CONDA_ENV_NAME=py_3_9_12-dfastmi
 setlocal EnableExtensions DisableDelayedExpansion
 
+cd %~dp0
+cd ..
+
 :START
 where conda > nul 2>nul
 IF %errorlevel% neq 0 (
@@ -36,7 +39,7 @@ CALL conda remove -v -y --name %CONDA_ENV_NAME% --all
 CALL conda create -v -y -n %CONDA_ENV_NAME% python=3.9.12
 CALL conda activate %CONDA_ENV_NAME%
 CALL python -m pip install --upgrade pip
-CALL python -m pip install poetry
+CALL python -m pip install poetry --force-reinstall
 CALL python -m poetry install --no-root
 
 :INSTALLEXTENSIONSVSCODE
