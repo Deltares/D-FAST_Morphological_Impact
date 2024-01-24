@@ -25,7 +25,6 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=dfastmi/messages.UK.ini=messages.UK.ini^
  --include-data-files=dfastmi/open.png=open.png^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi_usermanual.pdf^
- --output-dir=dfastmi.install ^
  --company-name=Deltares ^
  --file-version=3.0.0 ^
  --product-version=2024.01.3.0 ^
@@ -43,4 +42,5 @@ rem --windows-force-stdout-spec=%PROGRAM%output.txt ^
 rem --verbose ^
 rem --verbose-output=buildLog.txt ^
 rem --report=compilation-report.xml ^
- 
+rem --output-dir=dfastmi.install ^
+  
