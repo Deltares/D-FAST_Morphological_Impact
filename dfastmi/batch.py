@@ -2020,25 +2020,24 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
         if not apply_q[i]:
             continue
         
-        if not check_configuration_v1_cond(rivers, config, mode_str, i, hydro_q[i]):
+        if not check_configuration_v1_cond(config, mode_str, i, hydro_q[i]):
             return False
                 
     return True
 
 
-def check_configuration_v1_cond(rivers: RiversObject, config: configparser.ConfigParser, mode_str: str, i : int, q : float) -> bool:
+def check_configuration_v1_cond(config: configparser.ConfigParser, mode_str: str, i : int) -> bool:
     """
     Check validity of one condition of a version 1 analysis configuration.
 
     Arguments
     ---------
-    rivers: RiversObject
-        A dictionary containing the river data.
     config : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis.
     mode_str : str
+        String indicating the source of the model data: WAQUA or D-Flow FM.
     i : int
-    q : float
+        Flow condition to be checked.
 
     Returns
     -------
@@ -2046,33 +2045,73 @@ def check_configuration_v1_cond(rivers: RiversObject, config: configparser.Confi
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
     cond = "Q" + str(i+1)
-    qstr = str(q)
     if mode_str == WAQUA_EXPORT:
         # condition block may not be specified since it doesn't contain any required keys
         if cond in config.sections() and "Discharge" in config[cond]:
-            # if discharge is specified, it must be correct
-            qstr_cond = config[cond]["Discharge"]
-            if qstr != qstr_cond:
+            # if discharge is specified, it must be a number
+            if not is_float_str(config[cond]["Discharge"]):
                 return False
         
     elif mode_str == DFLOWFM_MAP:
-        # condition block must be specified since it must contain the Reference and WithMeasure file names
-        if cond not in config.sections():
-            return False
-        
-        if "Discharge" in config[cond]:
-            # if discharge is specified, it must be correct
-            qstr_cond = config[cond]["Discharge"]
-            if qstr != qstr_cond:
-                return False
-        
-        if "Reference" not in config[cond]:
-            return False
-    
-        if "WithMeasure" not in config[cond]:
+        if not check_configuration_v1_cond_fm(config, cond):
             return False
                 
     return True
+
+
+def check_configuration_v1_cond_fm(config: configparser.ConfigParser, cond : str) -> bool:
+    """
+    Check validity of one condition of a version 1 analysis configuration using D-Flow FM results.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+    cond : str
+        Condition block to be checked.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    # condition block must be specified since it must contain the Reference and WithMeasure file names
+    if cond not in config.sections():
+        return False
+    
+    if "Discharge" in config[cond]:
+        # if discharge is specified, it must be a number
+        if not is_float_str(config[cond]["Discharge"]):
+            return False
+    
+    if "Reference" not in config[cond]:
+        return False
+    
+    if "WithMeasure" not in config[cond]:
+        return False
+                
+    return True
+
+
+def is_float_str(string:str) -> bool:
+    """
+    Check if a string represents a (floating point) number.
+
+    Arguments
+    ---------
+    string : str
+        The string to be checked.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the the string can be converted to a number or not.
+    """
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
 
 
 def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
