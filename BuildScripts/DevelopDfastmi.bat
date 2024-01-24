@@ -23,8 +23,8 @@ CALL conda init --user cmd.exe
 CALL conda init --user powershell
 FOR /F %%i IN ('powershell -NoProfile -Command $PROFILE.CurrentUserAllHosts') DO SET PowerShellCondaFile=%%i
 ECHO %PowerShellCondaFile%
+CALL powershell Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 CALL powershell -ExecutionPolicy Bypass -File %PowerShellCondaFile%
-CALL powershell set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ECHO Please restart script to continue configuration.
 ECHO Conda is installed, but the command prompt will need to be refreshed. Please restart the cmd.exe / terminal. 
 ECHO SO CLOSE THIS cmd.exe, START A NEW cmd.exe, SET WORKSPACE TO CURRENT FOLDER, (RE)START DevelopDfastmi.bat.
