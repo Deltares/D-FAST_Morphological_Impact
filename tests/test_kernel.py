@@ -1,4 +1,5 @@
 import context
+import pytest
 import dfastmi.kernel
 import numpy
 
@@ -374,7 +375,19 @@ class Test_relax_factors_calculation():
         
         rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert rsigma == (1.0, 1.0, 1.0, 1.0)
+  
+class Test_estimate_sedimentation_length2():
         
+    @pytest.mark.parametrize("tmi, celerity, expected_length", [
+        ([2],[2],4000),
+        ([2,2],[2,2],8000),
+        ([2,2,2],[2,2,2],12000),
+        ([2,2,2,2],[2,2,2,2],16000),
+        ([2,2,2,2,2],[2,2,2,2,2],20000),
+    ]) 
+    def test_given_tmi_and_celerity_when_estimate_sedimentation_length2_then_return_expected_length(self, tmi, celerity, expected_length):
+        length = dfastmi.kernel.estimate_sedimentation_length2(tmi,celerity)
+        assert length == expected_length
         
 if __name__ == '__main__':
     unittest.main()
