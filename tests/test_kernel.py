@@ -287,6 +287,40 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all() and (abs(zmax - zmaxc) < 1e-13).all() and ((zmin - zminc) < 1e-13).all() == True
 
+class Test_celerity_calculation():
+    
+    def test_GivenFirstElementOfCelqIsSmallerThanQ_WhenGetCelerity_ThenReturnFirstElementOfCelc(self):
+        
+        FirtsElementOfCelc = 10  
+        q = 11.0
+        FirtsElementOfCelq = q-1
+        cel_q = [FirtsElementOfCelq,20,30,40] 
+        cel_c = [FirtsElementOfCelc,20,30,40] 
+        
+        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        assert celerity == 11
+    
+    def test_GivenFirstElementOfCelqIsBiggerThanQ_WhenGetCelerity_ThenReturnFirstElementOfCelc(self):
+        
+        FirtsElementOfCelc = 10  
+        q = 11.0
+        FirtsElementOfCelq = q+1
+        cel_q = [FirtsElementOfCelq,20,30,40] 
+        cel_c = [FirtsElementOfCelc,20,30,40] 
+        
+        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        assert celerity == FirtsElementOfCelc
 
+    def test_GivenQBiggerThanAnyCelq_WhenGetCelerity_ThenReturnLastElementOfCelc(self):
+        
+        LastElementOfCelc = 40
+        
+        q = 50.0
+        cel_q = [10,20,30,40]
+        cel_c = [10,20,30,LastElementOfCelc] 
+        
+        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        assert celerity == LastElementOfCelc
+    
 if __name__ == '__main__':
     unittest.main()
