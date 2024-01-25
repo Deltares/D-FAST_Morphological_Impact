@@ -322,5 +322,59 @@ class Test_celerity_calculation():
         celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
         assert celerity == LastElementOfCelc
     
+class Test_relax_factors_calculation():
+    def test_GivenSingleValueForCalculation_WhenRelaxFactors_ThenReturnRsigmaValueBetweenExpectedValues(self):
+        Q = [2]
+        T = [0.0005]
+        q_stagnant = 1.0
+        celerity = [1.0]
+        nwidth = 1.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert 0.76<= rsigma[0] <= 0.78
+        
+    def test_GivenMultipleValuesForCalculation_WhenRelaxFactors_ThenReturnRsigmaValuesdBetweenExpectedValues(self):
+        Q = [2,2]
+        T = [0.0005,1.0]
+        q_stagnant = 1.0
+        celerity = [1.0,0.0005]
+        nwidth = 1.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert 0.76<= rsigma[0] <= 0.78
+        assert 0.76<= rsigma[1] <= 0.78
+        
+    def test_GivenMultipleValuesForCalculationWithDifferentWidth_WhenRelaxFactors_ThenReturnRsigmaVaryingValuesdBetweenExpectedValues(self):
+        Q = [2,2]
+        T = [0.0005,1.0]
+        q_stagnant = 1.0
+        celerity = [1.0,0.0005]
+        nwidth = 5.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert 0.94<= rsigma[0] <= 0.96
+        assert 0.94<= rsigma[0] <= 0.96
+        
+    def test_GivenQSameAsQStagnant_WhenRelaxFactors_ThenReturnRsigmaValuesOfOne(self):
+        Q = [2,2,2,2] 
+        T = [5,5,5,5] 
+        q_stagnant = 2.0
+        celerity = [5,5,5,5] 
+        nwidth = 2.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert rsigma == (1.0, 1.0, 1.0, 1.0)
+        
+    def test_GivenQSmallerThanQStagnant_WhenRelaxFactors_ThenReturnRsigmaValuesOfOne(self):
+        Q = [2,2,2,2] 
+        T = [5,5,5,5] 
+        q_stagnant = 3.0
+        celerity = [5,5,5,5] 
+        nwidth = 2.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert rsigma == (1.0, 1.0, 1.0, 1.0)
+        
+        
 if __name__ == '__main__':
     unittest.main()
