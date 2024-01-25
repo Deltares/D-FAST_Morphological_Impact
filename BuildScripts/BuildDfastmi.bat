@@ -32,6 +32,7 @@ START /B /WAIT poetry run nuitka ^
  --trademarks="All indications and logos of, and references to, \"D-FAST\", \"D-FAST Morphological Impact\" and \"D-FAST MI\" are registered trademarks of Stichting Deltares, and remain the property of Stichting Deltares. All rights reserved." ^
  --copyright="Copyright (C) 2020 Stichting Deltares." ^
  --force-dll-dependency-cache-update ^
+ --report=compilation-report.xml ^
  dfastmi
 
 cd %~dp0/../dfastmi.install
