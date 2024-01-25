@@ -12,7 +12,6 @@ START /B /WAIT poetry run nuitka ^
  --show-progress ^
  --nofollow-import-to=*.tests ^
  --nofollow-import-to=*test* ^
- --follow-stdlib ^
  --enable-plugin=pyqt5 ^
  --include-package=pyproj ^
  --include-package=shapely ^
@@ -20,11 +19,11 @@ START /B /WAIT poetry run nuitka ^
  --include-package=geopandas ^
  --include-package-data=geopandas.datasets ^
  --include-package=fiona ^
- --include-data-files=dfastmi/Dutch_rivers.ini=Dutch_rivers.ini ^
- --include-data-files=dfastmi/messages.NL.ini=messages.NL.ini^
- --include-data-files=dfastmi/messages.UK.ini=messages.UK.ini^
- --include-data-files=dfastmi/open.png=open.png^
- --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi_usermanual.pdf^
+ --include-data-files=dfastmi/Dutch_rivers.ini=dfastmi/Dutch_rivers.ini ^
+ --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini^
+ --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini^
+ --include-data-files=dfastmi/open.png=dfastmi/open.png^
+ --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf^
  --company-name=Deltares ^
  --file-version=3.0.0 ^
  --product-version=2024.01.3.0 ^
