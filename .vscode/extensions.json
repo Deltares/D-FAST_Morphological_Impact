@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "ryanluker.vscode-coverage-gutters",
+        "ms-python.pylint",
+        "ms-python.python",
+        "donjayamanne.python-environment-manager"
+    ]
+}
