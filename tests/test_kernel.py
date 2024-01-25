@@ -289,29 +289,29 @@ class Test_main_computation():
 
 class Test_celerity_calculation():
     
-    def test_GivenFirstElementOfCelqIsSmallerThanQ_WhenGetCelerity_ThenReturnFirstElementOfCelc(self):
+    def test_given_first_element_Of_celq_is_smaller_than_q_when_get_celerity_then_return_first_element_of_celc(self):
         
-        FirtsElementOfCelc = 10  
+        first_element_of_celc = 10  
         q = 11.0
-        FirtsElementOfCelq = q-1
-        cel_q = [FirtsElementOfCelq,20,30,40] 
-        cel_c = [FirtsElementOfCelc,20,30,40] 
+        first_element_of_celq = q-1
+        cel_q = [first_element_of_celq,20,30,40] 
+        cel_c = [first_element_of_celc,20,30,40] 
         
         celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
         assert celerity == 11
     
-    def test_GivenFirstElementOfCelqIsBiggerThanQ_WhenGetCelerity_ThenReturnFirstElementOfCelc(self):
+    def test_given_first_element_Of_celq_is_bigger_than_q_when_get_celerity_then_return_first_element_of_celc(self):
         
-        FirtsElementOfCelc = 10  
+        first_element_of_celc = 10  
         q = 11.0
-        FirtsElementOfCelq = q+1
-        cel_q = [FirtsElementOfCelq,20,30,40] 
-        cel_c = [FirtsElementOfCelc,20,30,40] 
+        first_element_of_celq = q+1
+        cel_q = [first_element_of_celq,20,30,40] 
+        cel_c = [first_element_of_celc,20,30,40] 
         
         celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
-        assert celerity == FirtsElementOfCelc
+        assert celerity == first_element_of_celc
 
-    def test_GivenQBiggerThanAnyCelq_WhenGetCelerity_ThenReturnLastElementOfCelc(self):
+    def test_given_q_bigger_than_any_celq_when_get_celerity_then_return_last_element_of_celc(self):
         
         LastElementOfCelc = 40
         
@@ -323,7 +323,7 @@ class Test_celerity_calculation():
         assert celerity == LastElementOfCelc
     
 class Test_relax_factors_calculation():
-    def test_GivenSingleValueForCalculation_WhenRelaxFactors_ThenReturnRsigmaValueBetweenExpectedValues(self):
+    def test_given_single_value_for_calculation_when_relax_factors_then_return_rsigma_value_between_expected_values(self):
         Q = [2]
         T = [0.0005]
         q_stagnant = 1.0
@@ -333,7 +333,7 @@ class Test_relax_factors_calculation():
         rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert 0.76<= rsigma[0] <= 0.78
         
-    def test_GivenMultipleValuesForCalculation_WhenRelaxFactors_ThenReturnRsigmaValuesdBetweenExpectedValues(self):
+    def test_given_multiple_values_for_calculation_when_relax_factors_then_return_rsigma_values_between_expected_values(self):
         Q = [2,2]
         T = [0.0005,1.0]
         q_stagnant = 1.0
@@ -344,7 +344,7 @@ class Test_relax_factors_calculation():
         assert 0.76<= rsigma[0] <= 0.78
         assert 0.76<= rsigma[1] <= 0.78
         
-    def test_GivenMultipleValuesForCalculationWithDifferentWidth_WhenRelaxFactors_ThenReturnRsigmaVaryingValuesdBetweenExpectedValues(self):
+    def test_given_multiple_values_for_calculation_with_different_width_when_relax_factors_then_return_rsigma_varying_values_between_expected_values(self):
         Q = [2,2]
         T = [0.0005,1.0]
         q_stagnant = 1.0
@@ -355,7 +355,7 @@ class Test_relax_factors_calculation():
         assert 0.94<= rsigma[0] <= 0.96
         assert 0.94<= rsigma[0] <= 0.96
         
-    def test_GivenQSameAsQStagnant_WhenRelaxFactors_ThenReturnRsigmaValuesOfOne(self):
+    def test_given_q_same_as_q_stagnant_when_relax_factors_then_return_rsigma_values_of_1(self):
         Q = [2,2,2,2] 
         T = [5,5,5,5] 
         q_stagnant = 2.0
@@ -365,7 +365,7 @@ class Test_relax_factors_calculation():
         rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert rsigma == (1.0, 1.0, 1.0, 1.0)
         
-    def test_GivenQSmallerThanQStagnant_WhenRelaxFactors_ThenReturnRsigmaValuesOfOne(self):
+    def test_given_q_smaller_than_q_stagnant_when_relax_factors_then_return_rsigma_values_of_1(self):
         Q = [2,2,2,2] 
         T = [5,5,5,5] 
         q_stagnant = 3.0
