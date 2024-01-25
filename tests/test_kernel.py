@@ -1,150 +1,56 @@
 import context
 import dfastmi.kernel
 import numpy
+import pytest
 
 class Test_char_discharges():
-    def test_char_discharges_01(self):
-        """
-        Testing char_discharges for Qbf = 4000 (default) - no threshold (Qmin = 1000).
-        """
+    
+    @pytest.mark.parametrize("q_bankfull, expected_qruns", [
+        (4000, (3000, 4000, 6000)), #Testing char_discharges for Qbf = 4000 (default) - no threshold (Qmin = 1000).
+        (3500, (3000, 4000, 6000)), #Testing char_discharges for Qbf < 4000 - no threshold. If q_bankfull < q_lvl[1]: no change in the results.
+        (4500, (3000, 4500, 6000)), #Testing char_discharges for 4000 < Qbf < 6000 - no threshold. If q_lvl[1] < q_bankfull < q_lvl[2]: returned discharge[1] is adjusted.
+        (6500, (3000, 4000, 6500)), #Testing char_discharges for Qbf > 6000 - no threshold. If q_lvl[2] < q_bankfull: returned discharge[2] is adjusted.
+    ])
+    def test_given_no_threshold_discharge_with_qbankfull_variable_when_char_discharges_then_return_expected_qruns(self, q_bankfull, expected_qruns):
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_threshold = None
-        q_bankfull = 4000
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((3000, 4000, 6000), (True, True, True))
-
-    def test_char_discharges_02(self):
-        """
-        Testing char_discharges for Qbf < 4000 - no threshold.
-        If q_bankfull < q_lvl[1]: no change in the results.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = None
-        q_bankfull = 3500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((3000, 4000, 6000), (True, True, True))
-
-    def test_char_discharges_03(self):
-        """
-        Testing char_discharges for 4000 < Qbf < 6000 - no threshold.
-        If q_lvl[1] < q_bankfull < q_lvl[2]: returned discharge[1] is adjusted.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = None
-        q_bankfull = 4500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((3000, 4500, 6000), (True, True, True))
-
-    def test_char_discharges_04(self):
-        """
-        Testing char_discharges for Qbf > 6000 - no threshold.
-        If q_lvl[2] < q_bankfull: returned discharge[2] is adjusted.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = None
-        q_bankfull = 6500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((3000, 4000, 6500), (True, True, True))
-
-    def test_char_discharges_05(self):
-        """
-        Testing char_discharges for Qbf = 3500 and Qth = 1500.
-        """
+        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (True, True, True))
+        
+    @pytest.mark.parametrize("q_bankfull, expected_qruns", [
+        (2000, (1500, 2500, 6000)), #Testing char_discharges for Qbf = 2000 and Qth = 1500.
+        (3500, (1500, 3500, 6000)), #Testing char_discharges for Qbf = 3500 and Qth = 1500.
+        (5500, (1500, 5500, 6500)), #Testing char_discharges for Qbf = 5500 and Qth = 1500.
+        (6500, (1500, 4000, 6500)), #Testing char_discharges for Qbf = 6500 and Qth = 1500.
+    ])
+    
+    def test_given_no_threshold_discharge_1500_with_qbankfull_variable_when_char_discharges_then_return_expected_qruns(self, q_bankfull, expected_qruns):
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_threshold = 1500
-        q_bankfull = 3500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((1500, 3500, 6000), (False, True, True))
+        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, True, True))
 
-    def test_char_discharges_06(self):
-        """
-        Testing char_discharges for Qbf = 2000 and Qth = 1500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 1500
-        q_bankfull = 2000
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((1500, 2500, 6000), (False, True, True))
-
-    def test_char_discharges_07(self):
-        """
-        Testing char_discharges for Qbf = 5500 and Qth = 1500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 1500
-        q_bankfull = 5500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((1500, 5500, 6500), (False, True, True))
-
-    def test_char_discharges_08(self):
-        """
-        Testing char_discharges for Qbf = 6500 and Qth = 1500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 1500
-        q_bankfull = 6500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((1500, 4000, 6500), (False, True, True))
-
-    def test_char_discharges_09(self):
-        """
-        Testing char_discharges for Qbf = 4000 and Qth = 3500.
-        """
+    @pytest.mark.parametrize("q_bankfull, expected_qruns", [
+        (4000, (3500, 4500, 6000)), #Testing char_discharges for Qbf = 4000 and Qth = 3500.
+        (6500, (3500, 6500, 6000)), #Testing char_discharges for Qbf = 6500 and Qth = 3500.
+    ])
+    def test_given_no_threshold_discharge_3500_with_qbankfull_variable_when_char_discharges_then_return_expected_qruns(self, q_bankfull, expected_qruns):
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_threshold = 3500
-        q_bankfull = 4000
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((3500, 4500, 6000), (False, True, True))
+        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, True, True))
 
-    def test_char_discharges_10(self):
-        """
-        Testing char_discharges for Qbf = 6500 and Qth = 3500.
-        """
+    @pytest.mark.parametrize("q_threshold, expected_qruns", [
+        (4500, (4500, None, 6000)), #Testing char_discharges for Qth = 4500.
+        (5500, (5500, None, 6500)), #Testing char_discharges for Qth = 5500.
+        (6500, (6500, None, 7500)), #Testing char_discharges for Qth = 6500.
+        (9500, (9500, None, 10000)), #Testing char_discharges for Qth = 9500.
+    ])
+    def test_given_qbankfull_very_large_with_qthreshold_variable_when_char_discharges_then_return_expected_qruns(self, q_threshold, expected_qruns):
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
-        q_threshold = 3500
-        q_bankfull = 6500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((3500, 6500, 6000), (False, True, True))
-
-    def test_char_discharges_11(self):
-        """
-        Testing char_discharges for Qth = 4500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 4500
         q_bankfull = 999999999999
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((4500, None, 6000), (False, False, True))
-
-    def test_char_discharges_12(self):
-        """
-        Testing char_discharges for Qth = 5500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 5500
-        q_bankfull = 999999999999
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((5500, None, 6500), (False, False, True))
-
-    def test_char_discharges_13(self):
-        """
-        Testing char_discharges for Qth = 6500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 6500
-        q_bankfull = 999999999999
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((6500, None, 7500), (False, False, True))
-
-    def test_char_discharges_13(self):
-        """
-        Testing char_discharges for Qth = 9500.
-        """
-        q_lvl = (3000, 4000, 6000, 10000)
-        dq = (1000, 1000)
-        q_threshold = 9500
-        q_bankfull = 999999999999
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == ((9500, None, 10000), (False, False, True))
+        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, False, True))
 
 class Test_char_times():
     def test_char_times_01(self):
