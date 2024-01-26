@@ -7,19 +7,40 @@ START /B /WAIT poetry run nuitka ^
  --standalone ^
  --assume-yes-for-downloads ^
  --python-flag=no_site ^
+ --python-flag=no_asserts ^
+ --python-flag=no_docstrings ^
  --show-progress ^
+ --nofollow-import-to=*.tests ^
+ --nofollow-import-to=*test* ^
  --enable-plugin=pyqt5 ^
- --file-reference-choice=runtime ^
  --include-package=pyproj ^
- --include-module=shapely ^
- --include-package=matplotlib ^
+ --include-package=shapely ^
  --include-package=netCDF4 ^
- --include-module=geopandas ^
+ --include-package=geopandas ^
  --include-package-data=geopandas.datasets ^
- --include-module=fiona ^
+ --include-package=fiona ^
+ --include-data-files=dfastmi/Dutch_rivers.ini=dfastmi/Dutch_rivers.ini ^
+ --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini^
+ --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini^
+ --include-data-files=dfastmi/open.png=dfastmi/open.png^
+ --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf^
+ --company-name=Deltares ^
+ --file-version=3.0.0 ^
+ --product-version=2024.01.3.0 ^
+ --product-name="D-FAST Morphological Impact" ^
+ --file-description="A Python to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
+ --trademarks="All indications and logos of, and references to, \"D-FAST\", \"D-FAST Morphological Impact\" and \"D-FAST MI\" are registered trademarks of Stichting Deltares, and remain the property of Stichting Deltares. All rights reserved." ^
+ --copyright="Copyright (C) 2020 Stichting Deltares." ^
+ --force-dll-dependency-cache-update ^
+ --report=compilation-report.xml ^
  dfastmi
 
-cd %~dp0
-call PostBuild.bat
-
-rem end of build
+cd %~dp0/../dfastmi.install
+rem --onefile ^
+rem --windows-force-stderr-spec=%PROGRAM%logs.txt ^
+rem --windows-force-stdout-spec=%PROGRAM%output.txt ^
+rem --verbose ^
+rem --verbose-output=buildLog.txt ^
+rem --report=compilation-report.xml ^
+rem --output-dir=dfastmi.install ^
+  
