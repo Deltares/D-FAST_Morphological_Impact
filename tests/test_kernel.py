@@ -125,32 +125,24 @@ class Test_estimate_sedimentation_length():
         assert  result == expected_length
 
 class Test_dzq_from_du_and_h():
-    def test_dzq_from_du_and_h_01(self):
-        """
-        Testing dzq_from_du_and_h for situations not resulting in NaN.
-        """
+    def test_given_situations_resulting_in_valid_values_when_dzq_from_du_and_h_then_all_values_returned_are_expected_values(self):
         u0  = numpy.array([0.5,  1.0, 1.0, 1.0,  0.5])
         h0  = numpy.array([1.0,  4.0, 1.0, 2.0,  1.0])
         u1  = numpy.array([0.5,  0.5, 0.5, 0.5,  1.0])
         ucrit = 0.3
+        
         dzq = numpy.array([0.0, 2.0, 0.5, 1.0,  -1.0])
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
-        print("dzq reference: ", dzq)
-        print("dzq computed : ",dzqc)
-        assert (dzqc == dzq).all() == True
+        assert (dzqc == dzq).all()
 
-    def test_dzq_from_du_and_h_02(self):
-        """
-        Testing dzq_from_du_and_h for situations resulting in NaN.
-        """
+    def test_given_situations_resulting_in_nans_when_dzq_from_du_and_h_then_all_values_returned_are_nan(self):
         u0  = numpy.array([ 0.5, 0.2, 0.5, 120.0])
         h0  = numpy.array([ 1.0, 1.0, 1.0,   1.0])
         u1  = numpy.array([-0.5, 0.5, 0.2,   0.5])
         ucrit = 0.3
-        # dzq = all NaN
+
         dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
-        print("dzq computed : ",dzqc)
-        assert numpy.isnan(dzqc).all() == True
+        assert numpy.isnan(dzqc).all()
    
 class Test_main_computation():
     def test_main_computation_01(self):
