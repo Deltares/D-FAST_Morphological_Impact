@@ -1,4 +1,3 @@
-import context
 import dfastmi.kernel
 import numpy
 import pytest
@@ -53,50 +52,48 @@ class Test_char_discharges():
         assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, False, True))
 
 class Test_char_times():
-    def test_char_times_01(self):
-        """
-        Testing char_times for default Bovenrijn conditions.
-        """
+    
+    def test_given_default_bovenrijn_conditions_when_char_times_then_return_expected_tstag_t_rsigma(self):
         q_fit = (800, 1280)
         q_stagnant = 800
         Q = (3000, 4000, 6000)
         celerity_hg = 3.65
         celerity_lw = 0.89
         nwidth = 340
-        tstag = 0.0
-        T = (0.8207098794498814, 0.09720512192621984, 0.08208499862389877)
-        rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
-        assert dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth) == (tstag, T, rsigma)
 
-    def test_char_times_02(self):
-        """
-        Testing char_times for default Nederrijn stuwpand Driel conditions.
-        """
-        q_fit = (800, 1280)
-        q_stagnant = 1500
-        Q = (3000, 4000, 6000)
-        celerity_hg = 3.65
-        celerity_lw = 0.80
-        nwidth = 100
-        tstag = 0.42124440138751573
-        T = (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
-        rsigma = (0.20232865227253677, 0.1696541246824568, 0.2235654146204697)
-        assert dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth) == (tstag, T, rsigma)
-
-    def test_char_times_03(self):
-        """
-        Testing char_times for adjusted Bovenrijn conditions.
-        """
+        result_tstag, result_T, result_rsigma = dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
+        
+        assert result_tstag == 0.0
+        assert result_T == (0.8207098794498814, 0.09720512192621984, 0.08208499862389877)
+        assert result_rsigma == (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
+        
+    def test_given_adjusted_q_bovenrijn_conditions_when_char_times_then_return_expected_tstag_t_rsigma(self):   
         q_fit = (800, 1280)
         q_stagnant = 800
         Q = (4500, None, 6000)
         celerity_hg = 3.65
         celerity_lw = 0.89
         nwidth = 340
-        tstag = 0.0
-        T = (0.9444585116689311, 0.0, 0.05554148833106887)
-        rsigma = (0.29050644338024023, 1.0, 0.7422069944312727)
-        assert dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth) == (tstag, T, rsigma)
+
+        result_tstag, result_T, result_rsigma = dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
+        
+        assert result_tstag == 0.0
+        assert result_T == (0.9444585116689311, 0.0, 0.05554148833106887)
+        assert result_rsigma == (0.29050644338024023, 1.0, 0.7422069944312727)
+
+    def test_given_default_nederrijn_stuwpad_driel_conditions_when_char_times_then_return_expected_tstag_t_rsigma(self):       
+        q_fit = (800, 1280)
+        q_stagnant = 1500
+        Q = (3000, 4000, 6000)
+        celerity_hg = 3.65
+        celerity_lw = 0.80
+        nwidth = 100
+        
+        result_tstag, result_T, result_rsigma = dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
+        
+        assert result_tstag == 0.42124440138751573
+        assert result_T == (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
+        assert result_rsigma == (0.20232865227253677, 0.1696541246824568, 0.2235654146204697)
 
 class Test_estimate_sedimentation_length():
     def test_estimate_sedimentation_length_01(self):
