@@ -95,16 +95,34 @@ class Test_char_times():
         assert result_T == (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
         assert result_rsigma == (0.20232865227253677, 0.1696541246824568, 0.2235654146204697)
 
-class Test_estimate_sedimentation_length():
-    def test_estimate_sedimentation_length_01(self):
-        """
-        Testing char_times for default Bovenrijn conditions.
-        """
+class Test_estimate_sedimentation_length():        
+    @pytest.mark.parametrize("applyQ, expected_length", [
+        ((True, True, True), 1384),
+        ((False, False, False),0),
+        ((True, False, False),730),
+        ((False, True, False),354),
+        ((True, True, False),1085),
+        ((False, True, True),654),
+        ((False, False, True),299),
+    ])
+    def test_given_varying_applyq_when_estimate_sedimentation_length_then_return_expected_length_as_int(self, applyQ, expected_length):
+        rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
+        nwidth = 340
+        
+        result = int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth))
+        assert  result == expected_length
+        
+    @pytest.mark.parametrize("nwidth, expected_length", [
+        (0, 0),
+        (500, 2036),
+        (2000, 8146),
+    ])
+    def test_given_varying_nwidth_when_estimate_sedimentation_length_then_return_expected_length_as_int(self, nwidth, expected_length):
         rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
         applyQ = (True, True, True)
-        nwidth = 340
-        L = 1384
-        assert int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)) == L
+        
+        result = int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth))
+        assert  result == expected_length
 
 class Test_dzq_from_du_and_h():
     def test_dzq_from_du_and_h_01(self):
