@@ -50,8 +50,6 @@ class Test_basic():
         finally:
             os.chdir(cwd)
         #
-        #for s in outstr:
-        #    print(s)
         self.maxDiff = None
         assert outstr == [
             "usage: dfastmi.exe [-h] [--language LANGUAGE] [--mode MODE] [--config CONFIG]",

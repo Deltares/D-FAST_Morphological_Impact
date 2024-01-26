@@ -650,7 +650,6 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
     rivers = rivers_configuration
     create_dialog()
     dialog["branch"].addItems(rivers["branches"])
-    #dialog["reach"].addItems(rivers["reaches"][0])
 
     if not config is None:
         load_configuration(config)
