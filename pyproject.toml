@@ -29,6 +29,12 @@ pytest-cov = "^4.1.0"
 black = "^22.12.0"
 teamcity-messages = "^1.32"
 
+[tool.coverage.run]
+source = ["dfastmi"]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report=term --cov-report=xml:coverage-reports/coverage.xml "
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
