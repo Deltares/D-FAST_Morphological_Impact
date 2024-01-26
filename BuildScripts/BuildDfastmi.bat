@@ -17,9 +17,11 @@ START /B /WAIT poetry run nuitka ^
  --include-module=geopandas ^
  --include-package-data=geopandas.datasets ^
  --include-module=fiona ^
+ --include-data-files=dfastmi/Dutch_rivers.ini=dfastmi/Dutch_rivers.ini ^
+ --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini ^
+ --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini ^
+ --include-data-files=dfastmi/open.png=dfastmi/open.png ^
+ --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
  dfastmi
-
-cd %~dp0
-call PostBuild.bat
 
 rem end of build
