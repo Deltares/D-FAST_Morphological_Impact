@@ -132,7 +132,7 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
         if runmode == "CLI":
             rivers_file = "Dutch_rivers_v1.ini"
         else:
-            rivers_file = "Dutch_rivers.ini"
+            rivers_file = "Dutch_rivers_v2.ini"
 
     if language not in ["NL", "UK"]:
         raise Exception(
