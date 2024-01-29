@@ -145,61 +145,197 @@ class Test_dzq_from_du_and_h():
         assert numpy.isnan(dzqc).all()
    
 class Test_main_computation():
-    def test_main_computation_01(self):
+    def test_given_varying_values_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
+        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, 1.0])
+        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
+        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        T = (0.5, 0.25, 0.25)
+        rsigma = (0.1, 0.2, 0.4)
+        
+        zgem = numpy.array([0.25252016129032256, 0.5871975806451613, 0.5871975806451613, 1., 1.])
+        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 1.])
+        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 1.])
+        
+        zdzb = [numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 1.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 1.]),
+                numpy.array([0.012096774193548387, 0.8185483870967742, 0.8185483870967742, 1., 1.])]
+        
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        
+        self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)
+
+        assert (abs(zgemc - zgem) < 1e-13).all()
+        assert (abs(zmax - zmaxc) < 1e-13).all()
+        assert ((zmin - zminc) < 1e-13).all()
+        
+        assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
+        assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
+        
+    def test_given_one_miss_value_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
+        mis = numpy.NaN
+        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
+        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
+        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        T = (0.5, 0.25, 0.25)
+        rsigma = (0.1, 0.2, 0.4)
+        
+        zgem = numpy.array([0.25252016129032256, 0.5871975806451613, 0.5871975806451613, 1., .0])
+        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., .0])
+        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., .0])
+        
+        zdzb = [numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.]),
+                numpy.array([0.012096774193548387, 0.8185483870967742, 0.8185483870967742, 1., 0.])]
+        
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        
+        self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)
+
+        assert (abs(zgemc - zgem) < 1e-13).all()
+        assert (abs(zmax - zmaxc) < 1e-13).all()
+        assert ((zmin - zminc) < 1e-13).all()
+        
+        assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
+        assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
+        
+    def test_given_one_miss_value_stagnant_t_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
+        mis = numpy.NaN
+        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
+        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
+        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        t_stagnant = 0.25
+        T = (t_stagnant, t_stagnant, t_stagnant, t_stagnant)
+        rsigma = (0.1, 0.2, 0.4)
+        
+        zgem = numpy.array([0.1693548387096774, 0.45967741935483875, 0.45967741935483875, .75, 0.])
+        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1.0000000000000002, 0.])
+        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 0.])
+        
+        zdzb = [numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.]),
+                numpy.array([0.012096774193548387, 0.8185483870967742, 0.8185483870967742, 1., 0.])]
+        
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        
+        self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)
+
+        assert (abs(zgemc - zgem) < 1e-13).all()
+        assert (abs(zmax - zmaxc) < 1e-13).all()
+        assert ((zmin - zminc) < 1e-13).all()
+        
+        assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
+        assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
+        
+    def test_given_stagnant_t_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
         """
         Testing main_computation.
         """
+        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, 1.0])
+        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
+        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        t_stagnant = 0.25
+        T = (t_stagnant, t_stagnant, t_stagnant, t_stagnant)
+        rsigma = (0.1, 1, 0.2, 0.4)
+        
+        zgem = numpy.array([0.24489795918367346, 0.24489795918367346, 0.24489795918367346, 0.75, 0.75])
+        zmax = numpy.array([0.8163265306122449, 0.8163265306122449, 0.8163265306122449, 1., 1.])
+        zmin = numpy.array([0.08163265306122451,0.08163265306122451, 0.08163265306122451, 1., 1.])
+        
+        zdzb = [numpy.array([0.8163265306122449, 0.8163265306122449, 0.8163265306122449, 1., 1.]),
+                numpy.array([0.08163265306122451, 0.08163265306122451, 0.08163265306122451, 1., 1.]),
+                numpy.array([0.08163265306122451, 0.08163265306122451, 0.08163265306122451, 1., 1.])]
+        
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        
+        self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)    
+
+        assert (abs(zgemc - zgem) < 1e-13).all()
+        assert (abs(zmax - zmaxc) < 1e-13).all()
+        assert ((zmin - zminc) < 1e-13).all()
+        
+        assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
+        assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
+        
+    def test_given_dummy_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
+        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, 1.0])
+        dummy = numpy.array([-1.0, -1.0, -1.0, -1.0, -1.0]) 
+        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
+        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
+
+        T = (0.5, 0.25, 0.25, 0.25)
+        rsigma = (0.1, 1, 0.2, 0.4)
+        
+        zgem = numpy.array([0.26764112903225806, 0.610383064516129 ,0.610383064516129, 1.25, 1.25])
+        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1.0000000000000002, 1.0000000000000002])
+        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 1.])
+        
+        zdzb = [numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 1.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 1.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 1.])]
+        
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dummy, dzq2, dzq3], T, rsigma)
+        
+        self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)   
+
+        assert (abs(zgemc - zgem) < 1e-13).all()
+        assert (abs(zmax - zmaxc) < 1e-13).all()
+        assert ((zmin - zminc) < 1e-13).all()
+        
+        assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
+        assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
+        
+    def test_given_stagnant_t_one_miss_value_one_dummy_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
         mis = numpy.NaN
         dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
         dzqS = numpy.array([-1.0, -1.0, -1.0, -1.0, -1.0]) # dummy
         dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
         dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
         t_stagnant = 0.25
-        T = (0.25, t_stagnant, 0.25, 0.25)
+        T = (t_stagnant, t_stagnant, t_stagnant, t_stagnant)
         rsigma = (0.1, 1, 0.2, 0.4)
-
+        
         zgem = numpy.array([0.1844758064516129, 0.4828629032258065, 0.4828629032258065, 1., 0.])
         zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
         zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 0.])
+        
+        zdzb = [numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.]),
+                numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.])]
 
         zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzqS, dzq2, dzq3], T, rsigma)
+        
+        self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)   
 
-        print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
-        print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
-        print("zmax reference: ", numpy.array2string(zmax, floatmode = 'unique'))
-        print("zmax computed : ", numpy.array2string(zmaxc, floatmode = 'unique'))
-        print("zmin reference: ", numpy.array2string(zmin, floatmode = 'unique'))
-        print("zmin computed : ", numpy.array2string(zminc, floatmode = 'unique'))
-
-        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(zmax - zmaxc) < 1e-13).all() and ((zmin - zminc) < 1e-13).all() == True
-
-    def test_main_computation_02(self):
+        assert (abs(zgemc - zgem) < 1e-13).all()
+        assert (abs(zmax - zmaxc) < 1e-13).all()
+        assert ((zmin - zminc) < 1e-13).all()
+        
+        assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
+        assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()        
+        
+    def print_values_floatmode_unique(self, zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb):
         """
-        Testing main_computation without stagnant period.
+        Helper method to print the reference and computed values with their respective unique precision.
         """
-        mis = numpy.NaN
-        dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
-        dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
-        dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
-        t_stagnant = 0.0
-        T = (0.5, 0.25, 0.25)
-        rsigma = (0.1, 0.2, 0.4)
+        print("zdzb 0 reference: ", numpy.array2string(zdzb[0], floatmode = 'unique'))
+        print("dzb 0 computed  : ", numpy.array2string(dzb[0], floatmode = 'unique'))
+        print("zdzb 1 reference: ", numpy.array2string(zdzb[1], floatmode = 'unique'))
+        print("dzb 1 computed  : ", numpy.array2string(dzb[1], floatmode = 'unique'))
+        print("zdzb 2 reference: ", numpy.array2string(zdzb[2], floatmode = 'unique'))
+        print("dzb 2 computed  : ", numpy.array2string(dzb[2], floatmode = 'unique'))
         
-        zgem = numpy.array([0.25252016129032256, 0.5871975806451613, 0.5871975806451613, 1., 0.])
-        zmax = numpy.array([0.6048387096774194, 0.9274193548387097, 0.9274193548387097, 1., 0.])
-        zmin = numpy.array([0.012096774193548387, 0.09274193548387097, 0.09274193548387097, 1., 0.])
-        
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
-        
-        print("zgem reference: ", numpy.array2string(zgem, floatmode = 'unique'))
-        print("zgem computed : ", numpy.array2string(zgemc, floatmode = 'unique'))
-        print("zmax reference: ", numpy.array2string(zmax, floatmode = 'unique'))
-        print("zmax computed : ", numpy.array2string(zmaxc, floatmode = 'unique'))
-        print("zmin reference: ", numpy.array2string(zmin, floatmode = 'unique'))
-        print("zmin computed : ", numpy.array2string(zminc, floatmode = 'unique'))
-
-        assert (abs(zgemc - zgem) < 1e-13).all() and (abs(zmax - zmaxc) < 1e-13).all() and ((zmin - zminc) < 1e-13).all() == True
-
+        print("zgem reference  : ", numpy.array2string(zgem, floatmode = 'unique'))
+        print("zgem computed   : ", numpy.array2string(zgemc, floatmode = 'unique'))
+        print("zmax reference  : ", numpy.array2string(zmax, floatmode = 'unique'))
+        print("zmax computed   : ", numpy.array2string(zmaxc, floatmode = 'unique'))
+        print("zmin reference  : ", numpy.array2string(zmin, floatmode = 'unique'))
+        print("zmin computed   : ", numpy.array2string(zminc, floatmode = 'unique'))
 
 if __name__ == '__main__':
     unittest.main()
