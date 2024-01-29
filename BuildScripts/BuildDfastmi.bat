@@ -24,9 +24,11 @@ START /B /WAIT poetry run nuitka ^
  --file-description="A Python tool to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
  --trademarks="All indications and logos of, and references to, \"D-FAST\", \"D-FAST Morphological Impact\" and \"D-FAST MI\" are registered trademarks of Stichting Deltares, and remain the property of Stichting Deltares. All rights reserved." ^
  --copyright="Copyright (C) 2020 Stichting Deltares." ^
+ --include-data-files=dfastmi/Dutch_rivers.ini=dfastmi/Dutch_rivers.ini ^
+ --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini ^
+ --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini ^
+ --include-data-files=dfastmi/open.png=dfastmi/open.png ^
+ --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
  dfastmi
-
-cd %~dp0
-call PostBuild.bat
 
 rem end of build
