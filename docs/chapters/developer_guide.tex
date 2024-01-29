@@ -7,15 +7,112 @@ This chapter gives an overview of how \dfastmi can be setup for development.
 The development setup and configuration is done for usage of the visual studio code IDE. More information about visual studio code can be found on the internet.
 The development of python code project within Deltares is mostly done in with this tool. Visual Studio Code is free for private or commercial use. See the \href{https://code.visualstudio.com/license}{product license}) for details.
 
+\begin{Remark}
+	\item This configuration can not be used to build a standalone executable with nuitka tooling. It is for development purposes only.
+\end{Remark}
+
 \section{Configuration}
 The tool can be configured with a batch script which will configure using installed tools or ask the user to download and install the tools which can be used for them. The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
 
-The batch file will check for installed tooling for anaconda/miniconda. If not installed it will ask the user to install the anaconda/miniconda tooling for you. \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the conda tooling for the command line and powershell (used in VSCode).
+The batch file will check for installed tooling for anaconda/miniconda. If not installed it will ask the user to install the anaconda/miniconda tooling for you. 
+\begin{Remark}
+	\item \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the conda tooling for the command line and powershell (used in VSCode).
+\end{Remark}
 
-The batch file will check for installed tooling for VSCode. If not installed it will ask the user to install the VSCode tooling for you. \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the conda tooling for the command line and powershell (used in VSCode).
+The batch file will check for installed tooling for VSCode. If not installed it will ask the user to install the VSCode tooling for you. 
+
+\begin{Remark}
+	\item \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the VS Code tooling for the command line.
+\end{Remark}
+
+
+\section{Configuration files}
+As stated earlier we use conda to create a clean python environment to develop the \dfastmi application in. We also use poetry to setup the needed packages for the development environment. Poetry uses a toml\footnote{TOML : Tom's Obvious Minimal Language. A config file format file} file for the configuration (\textbf{poetry.toml}) and a lock file (\textbf{poetry.lock}) which i have no clue why it is there. Also we use a \textbf{setup.py} file used by the setup tools package to setup the application for development. And last but not least a python tools / interpreter configuration \textbf{pyproject.toml}. This file configures the way python packages should behave.
 
 \subsection{Conda environment}
 We setup a conda environment on the client pc so we have the python interpreter we expect to be used by developers.
+\begin{table}[]
+	\caption{Default packages for conda environment with python interpreter v3.9.13.}
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Package}    & \textbf{Remark} \\ \hline
+		ca-certificates     &                 \\ \hline
+		openssl             &                 \\ \hline
+		pip                 &                 \\ \hline
+		python              &                 \\ \hline
+		setuptools          &                 \\ \hline
+		sqlite              &                 \\ \hline
+		tzdata              &                 \\ \hline
+		vc                  &                 \\ \hline
+		vs2015\_runtime     &                 \\ \hline
+		wheel               &                 \\ \hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{Conda / Python packages needed for \dfastmi}
+\begin{longtable}{|l|l|}
+	\caption{Packages for developing.} \\
+	\hline
+	\textbf{Package} & \textbf{Remark} \\ \hline
+	\endfirsthead
+	%
+	\multicolumn{2}{c}%
+	{{\bfseries Packages for developing \thetable\ continued from previous page.}} \\
+	\hline
+	\textbf{Package} & \textbf{Remark} \\ \hline
+	\endhead
+	%
+	click (8.1.7)                 &                 \\ \hline
+	colorama (0.4.6)              &                 \\ \hline
+	six (1.16.0)                  &                 \\ \hline
+	attrs (23.2.0)                &                 \\ \hline
+	certifi (2023.11.17)          &                 \\ \hline
+	click-plugins (1.1.1)         &                 \\ \hline
+	cligj (0.7.2)                 &                 \\ \hline
+	exceptiongroup (1.2.0)        &                 \\ \hline
+	iniconfig (2.0.0)             &                 \\ \hline
+	munch (4.0.0)                 &                 \\ \hline
+	numpy (1.26.3)                &                 \\ \hline
+	packaging (23.2)              &                 \\ \hline
+	pluggy (1.3.0)                &                 \\ \hline
+	python-dateutil (2.8.2)       &                 \\ \hline
+	pytz (2023.3.post1)           &                 \\ \hline
+	tomli (2.0.1)                 &                 \\ \hline
+	zipp (3.17.0)                 &                 \\ \hline
+	cftime (1.3.0)                &                 \\ \hline
+	contourpy (1.2.0)             &                 \\ \hline
+	coverage (7.4.0)              &                 \\ \hline
+	fiona (1.9.0)                 &                 \\ \hline
+	fonttools (4.47.2)            &                 \\ \hline
+	importlib-resources (6.1.1)   &                 \\ \hline
+	cycler (0.12.1)               &                 \\ \hline
+	intel-openmp (2021.4.0)       &                 \\ \hline
+	kiwisolver (1.4.5)            &                 \\ \hline
+	pandas (1.5.3)                &                 \\ \hline
+	ordered-set (4.1.0)           &                 \\ \hline
+	mypy-extensions (1.0.0)       &                 \\ \hline
+	pathspec (0.12.1)             &                 \\ \hline
+	pillow (10.2.0)               &                 \\ \hline
+	platformdirs (4.1.0)          &                 \\ \hline
+	pyparsing (3.1.1)             &                 \\ \hline
+	pyproj (3.6.1)                &                 \\ \hline
+	pyqt5-qt5 (5.15.2)            &                 \\ \hline
+	pyqt5-sip (12.13.0)           &                 \\ \hline
+	pytest (7.4.4)                &                 \\ \hline
+	shapely (2.0.2)               &                 \\ \hline
+	tbb (2021.7.1)                &                 \\ \hline
+	typing-extensions (4.9.0)     &                 \\ \hline
+	zstandard (0.22.0)            &                 \\ \hline
+	black (22.12.0)               &                 \\ \hline
+	geopandas (0.14.2)            &                 \\ \hline
+	matplotlib (3.8.2)            &                 \\ \hline
+	mkl (2021.4.0)                &                 \\ \hline
+	nuitka (1.9.7)                &                 \\ \hline
+	pyqt5 (5.15.10)               &                 \\ \hline
+	netcdf4 (1.6.5)               &                 \\ \hline
+	pytest-cov (4.1.0)            &                 \\ \hline
+	teamcity-messages (1.32)      &                 \\ \hline
+\end{longtable}
 
 \section{Tooling}
 The tool is using:
@@ -35,23 +132,45 @@ We use several other batch scripts.
 
 \subsection{VSCode Extensions}
 In VSCode we use extensions to find python unit test, visualize coverage and debug our code. To do this we install the following extensions.
-\begin{enumerate}
-	\item \keyw{Cameron.vscode-pytest}
-	\item \keyw{donjayamanne.python-environment-manager}
-	\item \keyw{hbenl.vscode-test-explorer}
-	\item \keyw{littlefoxteam.vscode-python-test-adapter}
-	\item \keyw{ms-python.pylint}
-	\item \keyw{ms-python.python}
-	\item \keyw{ms-python.vscode-pylance}
-	\item \keyw{ms-vscode.test-adapter-converter}
-	\item \keyw{ryanluker.vscode-coverage-gutters}
-\end{enumerate}
+\begin{longtable}{|l|l|}
+	\caption{Extensions for developing with VS Code.} \\
+	\hline
+	\textbf{VS Code extension} & \textbf{Remark} \\ \hline
+	\endfirsthead
+	%
+	\multicolumn{2}{c}%
+	{{\bfseries Extensions for developing with VS Code \thetable\ continued from previous page}} \\
+	\hline
+	\textbf{VS Code extension} & \textbf{Remark} \\ \hline
+	\endhead
+	%
+	Cameron.vscode-pytest                 		&                 \\ \hline
+	donjayamanne.python-environment-manager     &                 \\ \hline
+	hbenl.vscode-test-explorer                 	&                 \\ \hline
+	littlefoxteam.vscode-python-test-adapter    &                 \\ \hline
+	ms-python.pylint                 			&                 \\ \hline
+	ms-python.python                 			&                 \\ \hline
+	ms-python.vscode-pylance                 	&                 \\ \hline
+	ms-vscode.test-adapter-converter            &                 \\ \hline
+	ryanluker.vscode-coverage-gutters           &                 \\ \hline
+\end{longtable}
+
 
 \subsection{VSCode userfiles}
 The user files can be found in subfolder \textbf{.vscode}
 \begin{enumerate}
-	\item \keyw{extensions.json} 
-	\item \keyw{launch.json} 
-	\item \keyw{settings.json} 
+	\item \keyw{extensions.json} will reference the expected and recommended visual studio code extensions. It will not install them but inform the user what is missing to start developing.
+	\item \keyw{launch.json} will configure VS Code what to do when an user will debug unit tests or start debugging the application.
+	\item \keyw{settings.json} configured settings for 
 \end{enumerate}
+
+\subsection{Python/TOML}
+This file is used by the python interpreter to configure the application. The TOML file itself has nothing to do with python, poetry or VS Code but it is a configuration file which is easy to read.
+Added configuration settings to the \textbf{pyproject.toml} file
+\begin{enumerate}
+	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS code / python / python coverage tooling where to expect the coverage to apply to.
+	\item In section [tool.pytest.ini\_options] \keyw{addopts = "---cov ---cov-report=term 
+		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS code / python / python test tooling to apply coverage and generate output report to.
+\end{enumerate}
+
 
