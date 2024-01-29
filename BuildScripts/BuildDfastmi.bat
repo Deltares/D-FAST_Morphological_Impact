@@ -21,7 +21,7 @@ START /B /WAIT poetry run nuitka ^
  --file-version=3.0.0 ^
  --product-version=2024.01.3.0 ^
  --product-name="D-FAST Morphological Impact" ^
- --file-description="A Python to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
+ --file-description="A Python tool to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
  --trademarks="All indications and logos of, and references to, \"D-FAST\", \"D-FAST Morphological Impact\" and \"D-FAST MI\" are registered trademarks of Stichting Deltares, and remain the property of Stichting Deltares. All rights reserved." ^
  --copyright="Copyright (C) 2020 Stichting Deltares." ^
  dfastmi
