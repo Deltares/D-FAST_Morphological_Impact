@@ -436,6 +436,3 @@ class Test_estimate_sedimentation_length2():
     def test_given_tmi_and_celerity_when_estimate_sedimentation_length2_then_return_expected_length(self, tmi, celerity, expected_length):
         length = dfastmi.kernel.estimate_sedimentation_length2(tmi,celerity)
         assert length == expected_length
-        
-if __name__ == '__main__':
-    unittest.main()
