@@ -166,7 +166,7 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all()
         assert (abs(zmax - zmaxc) < 1e-13).all()
-        assert ((zmin - zminc) < 1e-13).all()
+        assert (abs(zmin - zminc) < 1e-13).all()
         
         assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
         assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
@@ -194,7 +194,7 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all()
         assert (abs(zmax - zmaxc) < 1e-13).all()
-        assert ((zmin - zminc) < 1e-13).all()
+        assert (abs(zmin - zminc) < 1e-13).all()
         
         assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
         assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
@@ -223,16 +223,13 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all()
         assert (abs(zmax - zmaxc) < 1e-13).all()
-        assert ((zmin - zminc) < 1e-13).all()
+        assert (abs(zmin - zminc) < 1e-13).all()
         
         assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
         assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
         assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
         
     def test_given_stagnant_t_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(self):
-        """
-        Testing main_computation.
-        """
         dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, 1.0])
         dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
         dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
@@ -254,7 +251,7 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all()
         assert (abs(zmax - zmaxc) < 1e-13).all()
-        assert ((zmin - zminc) < 1e-13).all()
+        assert (abs(zmin - zminc) < 1e-13).all()
         
         assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
         assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
@@ -283,7 +280,7 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all()
         assert (abs(zmax - zmaxc) < 1e-13).all()
-        assert ((zmin - zminc) < 1e-13).all()
+        assert (abs(zmin - zminc) < 1e-13).all()
         
         assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
         assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
@@ -313,11 +310,11 @@ class Test_main_computation():
 
         assert (abs(zgemc - zgem) < 1e-13).all()
         assert (abs(zmax - zmaxc) < 1e-13).all()
-        assert ((zmin - zminc) < 1e-13).all()
+        assert (abs(zmin - zminc) < 1e-13).all()
         
         assert ((abs(zdzb[0]-dzb[0])) < 1e-13).all()
         assert ((abs(zdzb[1]-dzb[1])) < 1e-13).all()
-        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()        
+        assert ((abs(zdzb[2]-dzb[2])) < 1e-13).all()
         
     def print_values_floatmode_unique(self, zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb):
         """
