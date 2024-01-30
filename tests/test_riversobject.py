@@ -120,7 +120,7 @@ class Test_read_rivers2():
         """
         with pytest.raises(Exception) as cm:
             dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_cform.ini") 
-        assert str(cm.value) == 'Length of "PropQ" and "PropC" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 0 values read respectively.'
+        assert str(cm.value) == 'Length of "PropQ" and "PropC" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 1 values read respectively.'
     
     def test_read_rivers2_08(self):
         """
