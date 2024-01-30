@@ -331,47 +331,105 @@ def main_computation(
         vsigma_tmp[mask] = 1
         vsigma.append( vsigma_tmp )
 
-    # compute denominator
+    den = __compute_denominator__(N, vsigma)
+
+    # compute dzb at beginning of each period
+    dzb: List[numpy.ndarray] = []
+    for i in range(N):
+        enm = __compute_enumerator__(dzq, N, i, vsigma)
+        
+        # divide by denominator
+        with numpy.errstate(divide="ignore", invalid="ignore"):
+            dzb.append(numpy.where(den != 0, enm / den, 0))
+            
+    blc = BedLevelCalculator()
+                
+    dzmax = blc.get_element_wise_maximum(dzb)
+    dzmin = blc.get_element_wise_minimum(dzb)
+    dzgem = blc.linear_average(T, N, dzb)
+    
+    return dzgem, dzmax, dzmin, dzb
+
+def __compute_enumerator__(dzq, N, i, vsigma):
+    for j in range(N):
+        jr = (i + j) % N
+        dzb_tmp = dzq[jr] * (1 - vsigma[jr])
+        for k in range(j+1,N):
+            kr = (i + k) % N
+            dzb_tmp = dzb_tmp * vsigma[kr]
+        if j == 0:
+            enm = dzb_tmp
+        else:
+            enm = enm + dzb_tmp
+    return enm
+
+def __compute_denominator__(N, vsigma):
     for i in range(N):
         if i == 0:
              den = vsigma[0]
         else:
              den = den * vsigma[i]
     den = 1 - den
+    return den
 
-    # compute dzb at beginning of each period
-    dzb: List[numpy.ndarray]
-    dzb = []
-    for i in range(N):
-        # compute enumerator
-        for j in range(N):
-            jr = (i + j) % N
-            dzb_tmp = dzq[jr] * (1 - vsigma[jr])
-            for k in range(j+1,N):
-                kr = (i + k) % N
-                dzb_tmp = dzb_tmp * vsigma[kr]
-            if j == 0:
-                enm = dzb_tmp
-            else:
-                enm = enm + dzb_tmp
-        
-        # divide by denominator
-        with numpy.errstate(divide="ignore", invalid="ignore"):
-            dzb.append(numpy.where(den != 0, enm / den, 0))
-        
-        # element-wise minimum and maximum
-        if i == 0:
-            dzmax = dzb[0]
-            dzmin = dzb[0]
-        else:
-            dzmax = numpy.maximum(dzmax, dzb[i])
-            dzmin = numpy.minimum(dzmin, dzb[i])
-
-    # linear average
-    for i in range(N):
-        if i == 0:
-            dzgem = dzb[0] * (T[0] + T[-1]) / 2
-        else:
-            dzgem = dzgem + dzb[i] * (T[i] + T[i-1]) / 2
+class BedLevelCalculator:
+    """
+    This class is used to calculate bed level related values.
+    """
     
-    return dzgem, dzmax, dzmin, dzb
+    def get_element_wise_maximum(self, dzb: List[numpy.ndarray]):
+        """
+        This method gets the element wise maximum from the given bed levels.
+
+        Arguments
+        ---------
+        dzb   : List[numpy.ndarray]
+            List of arrays containing the bed level change at the beginning of each respective discharge period.
+
+        Returns
+        -------
+        dzmax : numpy.ndarray
+            Maximum bed level change.
+        """
+        return numpy.maximum.reduce(dzb)
+
+    def get_element_wise_minimum(self, dzb: List[numpy.ndarray]):
+        """
+        This method gets the element wise minimum from the given bed levels.
+
+        Arguments
+        ---------
+        dzb   : List[numpy.ndarray]
+            List of arrays containing the bed level change at the beginning of each respective discharge period.
+
+        Returns
+        -------
+        dzmin : numpy.ndarray
+            minimum bed level change.
+        """
+        return numpy.minimum.reduce(dzb)
+    
+    def linear_average(self, T, N, dzb):
+        """
+        This method gets the linear average from the given bed levels.
+
+        Arguments
+        ---------
+        T     : Vector
+            A vector of periods indicating the number of days during which each discharge applies.
+        N     : int
+            Amount of the equilibrium bed level change for each respective discharge period available.
+        dzb   : List[numpy.ndarray]
+            List of arrays containing the bed level change at the beginning of each respective discharge period.
+
+        Returns
+        -------
+        dzgem : numpy.ndarray
+            Yearly mean bed level change.
+        """
+        for i in range(N):
+            if i == 0:
+                dzgem = dzb[0] * (T[0] + T[-1]) / 2
+            else:
+                dzgem = dzgem + dzb[i] * (T[i] + T[i-1]) / 2
+        return dzgem
