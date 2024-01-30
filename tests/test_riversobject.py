@@ -82,6 +82,62 @@ class Test_read_rivers2():
         self.maxDiff = None
         assert dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test.ini") == rivers
     
+    def test_read_rivers2_03(self):
+        """
+        Testing read_rivers2, all defaults results in failing CeleryQ
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_CelerQ.ini") 
+        assert str(cm.value) == 'The parameter "CelerQ" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 2.'
+        
+    def test_read_rivers2_04(self):
+        """
+        Testing read_rivers2, setting AutoTime true expects QFit to be set
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_HydroQ.ini") 
+        assert str(cm.value) == 'The parameter "QFit" must be specified for branch "Branch1", reach "Branch1 R1" since "AutoTime" is set to True.'
+    
+    def test_read_rivers2_05(self):
+        """
+        Testing read_rivers2, with setting AutoTime false expects HydroT to be set with same consistency as HydroQ
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_HydroT.ini") 
+        assert str(cm.value) == 'Length of "HydroQ" and "HydroT" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 1 values read respectively.'
+    
+    def test_read_rivers2_06(self):
+        """
+        Testing read_rivers2, with setting AutoTime false & Tide true expects HydroQ to be set with same consistency as TideBC 
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_TideBC.ini") 
+        assert str(cm.value) == 'Length of "HydroQ" and "TideBC" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 1 values read respectively.'
+    
+    def test_read_rivers2_07(self):
+        """
+        Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ to be set with same consistency as PropC
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_cform.ini") 
+        assert str(cm.value) == 'Length of "PropQ" and "PropC" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 0 values read respectively.'
+    
+    def test_read_rivers2_08(self):
+        """
+        Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ and PropC to be set 
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_noPropQC.ini") 
+        assert str(cm.value) == 'The parameters "PropQ" and "PropC" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 1.'
+    
+    def test_read_rivers2_09(self):
+        """
+        Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ and PropC to be set 
+        """
+        with pytest.raises(Exception) as cm:
+            dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test_failing_wrongcform.ini") 
+        assert str(cm.value) == 'Invalid value 8 specified for "CelerForm" for branch "Branch1", reach "Branch1 R1"; only 1 and 2 are supported.'
+    
             
 class Test_collect_values1():
     def test_collect_values1_01(self):
