@@ -44,6 +44,8 @@ import shapely
 from packaging import version
 import netCDF4
 
+WAQUA_EXPORT = "WAQUA export"
+DFLOWFM_MAP = "D-Flow FM map"
 
 def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> None:
     """
@@ -99,9 +101,9 @@ def batch_mode_core(
         Flag indicating whether the analysis could be completed successfully.
     """
     Q1 : QRuns
-    applyQ1 : Tuple[bool, bool, bool]
-    Q : Tuple[float, ...]
-    applyQ : Tuple[bool, ...]
+    apply_q1 : Tuple[bool, bool, bool]
+    Q : Vector
+    apply_q : BoolVector
 
     display = False
     
@@ -149,74 +151,22 @@ def batch_mode_core(
         else:
             nwidth = rivers["normal_width"][ibranch][ireach]
             q_location = rivers["qlocations"][ibranch]
-            q_stagnant = rivers["qstagnant"][ibranch][ireach]
-            if "Qthreshold" in config["General"]:
-                q_threshold = float(config["General"]["Qthreshold"])
-            else:
-                q_threshold = q_stagnant
-            needs_tide = False
-            n_fields = 1
-            tide_bc: Tuple[float, ...] = ()
+            tide_bc: Tuple[str, ...] = ()
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
-                celerity_hg = rivers["proprate_high"][ibranch][ireach]
-                celerity_lw = rivers["proprate_low"][ibranch][ireach]
-
-                (
-                    all_q,
-                    q_threshold,
-                    q_bankfull,
-                    q_fit,
-                    Q1,
-                    applyQ1,
-                    tstag,
-                    T,
-                    rsigma,
-                ) = batch_get_discharges(
-                    rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
-                )
-                Q = Q1
-                applyQ = applyQ1
-                Tmi = tuple(0 if Q[i] is None or Q[i]<=q_stagnant else T[i] for i in range(len(T)))
-                celerity = (celerity_lw, celerity_hg, celerity_hg)
+                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+                needs_tide = False
+                n_fields = 1
 
             else:
                 # version 2
-                Q = rivers["hydro_q"][ibranch][ireach]
-                applyQ = (True,) * len(Q)
-                if rivers["autotime"][ibranch][ireach]:
-                    q_fit = rivers["qfit"][ibranch][ireach]
-                    T, Tmi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
+                q_stagnant = rivers["qstagnant"][ibranch][ireach]
+                if "Qthreshold" in config["General"]:
+                    q_threshold = float(config["General"]["Qthreshold"])
                 else:
-                    T = rivers["hydro_t"][ibranch][ireach]
-                    sumT = sum(T)
-                    T = tuple(t / sumT for t in T)
-                    Tmi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
-                
-                # determine the bed celerity based on the input settings
-                cform = rivers["cform"][ibranch][ireach]
-                if cform == 1:
-                    prop_q = rivers["prop_q"][ibranch][ireach]
-                    prop_c = rivers["prop_c"][ibranch][ireach]
-                    celerity = tuple(dfastmi.kernel.get_celerity(q, prop_q, prop_c) for q in Q)
-                elif cform == 2:
-                    cdisch = rivers["cdisch"][ibranch][ireach]
-                    celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
-                
-                # set the celerity equal to 0 for discharges less or equal to q_stagnant
-                celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
-                
-                # check if all celerities are equal to 0. If so, the impact would be 0.
-                all_zero = True
-                for i in range(len(Q)):
-                    if celerity[i] < 0.0:
-                        raise Exception("Invalid negative celerity {} m/s encountered for discharge {} m3/s!".format(celerity[i],Q[i]))
-                    elif celerity[i] > 0.0:
-                        all_zero = False
-                if all_zero:
-                    raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
-                
+                    q_threshold = q_stagnant
+                [Q, apply_q, time_mi, tstag, T, rsigma, celerity] = get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
                 needs_tide = rivers["tide"][ibranch][ireach]
                 if needs_tide:
                     tide_bc = rivers["tide_bc"][ibranch][ireach]
@@ -225,11 +175,8 @@ def batch_mode_core(
                         raise Exception("Unexpected combination of tides and NFields = 1!")
                 else:
                     n_fields = 1
-                rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
-                tstag = 0
 
-            #slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
-            slength = dfastmi.kernel.estimate_sedimentation_length2(Tmi, celerity)
+            slength = dfastmi.kernel.estimate_sedimentation_length2(time_mi, celerity)
 
             reach = rivers["reaches"][ibranch][ireach]
             try:
@@ -238,7 +185,8 @@ def batch_mode_core(
                 ucrit = rivers["ucritical"][ibranch][ireach]
             ucritMin = 0.01
             ucrit = max(ucritMin, ucrit)
-            if config["General"]["Mode"] == "WAQUA export":
+            mode_str = config["General"].get("Mode",DFLOWFM_MAP)
+            if mode_str == WAQUA_EXPORT:
                 mode = 0
                 dfastmi.io.log_text(
                     "results_with_input_waqua",
@@ -325,7 +273,7 @@ def batch_mode_core(
                 q_threshold,
                 tstag,
                 Q,
-                applyQ,
+                apply_q,
                 T,
                 rsigma,
                 slength,
@@ -360,6 +308,146 @@ def batch_mode_core(
     report.close()
 
     return success
+
+
+def get_levels_v1(
+    rivers: RiversObject, ibranch: int, ireach: int, config: configparser.ConfigParser, nwidth: float
+) -> (Vector, BoolVector, float, Vector, float, Vector, Vector, Vector):
+    """
+    Determine discharges, times, etc. for version 1 analysis
+
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    ibranch : int
+        Number of selected branch.
+    ireach : int
+        Number of selected reach.
+    config : configparser.ConfigParser
+        Configuration of the analysis to be run.
+    nwidth : float
+        Normal river width (from rivers configuration file) [m].
+
+    Return
+    ------
+    Q : Vector
+        Array of discharges; one for each forcing condition [m3/s].
+    apply_q : BoolVector
+        A list of flags indicating whether the corresponding entry in Q should be used.
+    q_threshold : float
+        River discharge at which the measure becomes active [m3/s].
+    time_mi : Vector
+        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+    tstag : float
+        Fraction of year during which flow velocity is considered negligible [-].
+    T : Vector
+        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+    rsigma : Vector
+        A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+    celerity : Vector
+        A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+    """
+    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    celerity_hg = rivers["proprate_high"][ibranch][ireach]
+    celerity_lw = rivers["proprate_low"][ibranch][ireach]
+
+    (
+        all_q,
+        q_threshold,
+        q_bankfull,
+        q_fit,
+        Q1,
+        apply_q1,
+        tstag,
+        T,
+        rsigma,
+    ) = batch_get_discharges(
+        rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
+    )
+    Q = Q1
+    apply_q = apply_q1
+    time_mi = tuple(0 if Q[i] is None or Q[i]<=q_stagnant else T[i] for i in range(len(T)))
+    celerity = (celerity_lw, celerity_hg, celerity_hg)
+    
+    return (Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity)
+
+
+def get_levels_v2(
+    rivers: RiversObject, ibranch: int, ireach: int, q_threshold: float, nwidth: float
+) -> (Vector, BoolVector, Vector, float, Vector, Vector, Vector):
+    """
+    Determine discharges, times, etc. for version 2 analysis
+
+    Arguments
+    ---------
+    rivers : RiversObject
+        A dictionary containing the river data.
+    ibranch : int
+        Number of selected branch.
+    ireach : int
+        Number of selected reach.
+    q_threshold : float
+        River discharge at which the measure becomes active [m3/s].
+    nwidth : float
+        Normal river width (from rivers configuration file) [m].
+
+    Return
+    ------
+    Q : Vector
+        Array of discharges; one for each forcing condition [m3/s].
+    apply_q : BoolVector
+        A list of flags indicating whether the corresponding entry in Q should be used.
+    time_mi : Vector
+        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+    tstag : float
+        Fraction of year during which flow velocity is considered negligible [-].
+    T : Vector
+        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+    rsigma : Vector
+        A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+    celerity : Vector
+        A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+    """
+    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    Q = rivers["hydro_q"][ibranch][ireach]
+    apply_q = (True,) * len(Q)
+    if rivers["autotime"][ibranch][ireach]:
+        q_fit = rivers["qfit"][ibranch][ireach]
+        T, time_mi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
+    else:
+        T = rivers["hydro_t"][ibranch][ireach]
+        sumT = sum(T)
+        T = tuple(t / sumT for t in T)
+        time_mi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
+    
+    # determine the bed celerity based on the input settings
+    cform = rivers["cform"][ibranch][ireach]
+    if cform == 1:
+        prop_q = rivers["prop_q"][ibranch][ireach]
+        prop_c = rivers["prop_c"][ibranch][ireach]
+        celerity = tuple(dfastmi.kernel.get_celerity(q, prop_q, prop_c) for q in Q)
+    elif cform == 2:
+        cdisch = rivers["cdisch"][ibranch][ireach]
+        celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
+    
+    # set the celerity equal to 0 for discharges less or equal to q_stagnant
+    celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
+    
+    # check if all celerities are equal to 0. If so, the impact would be 0.
+    all_zero = True
+    for i in range(len(Q)):
+        if celerity[i] < 0.0:
+            raise Exception("Invalid negative celerity {} m/s encountered for discharge {} m3/s!".format(celerity[i],Q[i]))
+        elif celerity[i] > 0.0:
+            all_zero = False
+    if all_zero:
+        raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
+    
+    rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+    tstag = 0
+
+    return (Q, apply_q, time_mi, tstag, T, rsigma, celerity)
 
 
 def countQ(Q: Vector) -> int:
@@ -398,7 +486,7 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
     -------
     T : Vector
         A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
-    Tmi : Vector
+    time_mi : Vector
         A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
     """
     
@@ -448,9 +536,9 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
 
     tvec_mi = numpy.zeros(q.shape)
     tvec_mi[sorted] = tmi
-    Tmi = tuple(ti for ti in tvec_mi)
+    time_mi = tuple(ti for ti in tvec_mi)
 
-    return T, Tmi
+    return T, time_mi
 
 
 def batch_get_discharges(
@@ -507,10 +595,10 @@ def batch_get_discharges(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file) [m3/s].
     Q : QRuns
         Tuple of (at most) three characteristic discharges [m3/s].
-    applyQ : Tuple[bool, bool, bool]
+    apply_q : Tuple[bool, bool, bool]
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
-    t_stagnant : float
+    tstag : float
         Fraction of year during which flow velocity is considered negligible [-].
     T : Vector
         A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
@@ -537,7 +625,7 @@ def batch_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, applyQ = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, apply_q = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
     tstag, T, rsigma = dfastmi.kernel.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
@@ -545,7 +633,7 @@ def batch_get_discharges(
 
     QList = list(Q)
     for iq in range(3):
-        if applyQ[iq]:
+        if apply_q[iq]:
             QList[iq] = float(config["Q{}".format(iq + 1)]["Discharge"])
         else:
             QList[iq] = None
@@ -558,7 +646,7 @@ def batch_get_discharges(
         q_bankfull,
         q_fit,
         Q,
-        applyQ,
+        apply_q,
         tstag,
         T,
         rsigma,
@@ -593,18 +681,92 @@ def get_filenames(
         conditions, such as a Discharge and Tide forcing tuple.
     """
     filenames: Dict[Any, Tuple[str,str]]
+    if imode == 0 or config is None:
+        filenames = {}
+    elif version.parse(config["General"]["Version"]) == version.parse("1"):
+        filenames = get_filenames_version1(config)
+    else:
+        filenames = get_filenames_version2(needs_tide, config)
+
+    return filenames
+
+
+def get_filenames_version1(
+    config: Optional[configparser.ConfigParser] = None,
+) -> Dict[Any, Tuple[str,str]]:
+    """
+    Extract the list of six file names from the configuration.
+    This routine is valid for version 1 configuration files.
+
+    Arguments
+    ---------
+    config : Optional[configparser.ConfigParser]
+        The variable containing the configuration (may be None for imode = 0).
+
+    Returns
+    -------
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of string tuples representing the D-Flow FM file names for
+        each reference/with measure pair. The keys of the dictionary vary. They
+        can be the discharge index, discharge value or a tuple of forcing
+        conditions, such as a Discharge and Tide forcing tuple.
+    """
+    filenames: Dict[Any, Tuple[str,str]]
     key: Union[Tuple[float, int], float]
     filenames = {}
-    if imode == 0 or config is None:
-        pass
-    else:
-        if config["General"]["Version"] == "1.0":
-            for i in range(3):
-                QSTR = "Q{}".format(i + 1)
-                if QSTR in config:
-                    reference = cfg_get(config, QSTR, "Reference")
-                    measure = cfg_get(config, QSTR, "WithMeasure")
-                    filenames[i] = (reference, measure)
+    for i in range(3):
+        qstr = "Q{}".format(i + 1)
+        if qstr in config:
+            reference = cfg_get(config, qstr, "Reference")
+            measure = cfg_get(config, qstr, "WithMeasure")
+            filenames[i] = (reference, measure)
+
+    return filenames
+
+
+def get_filenames_version2(
+    needs_tide: bool,
+    config: Optional[configparser.ConfigParser] = None,
+) -> Dict[Any, Tuple[str,str]]:
+    """
+    Extract the list of 2N file names from the configuration.
+    This routine is valid for version 2 configuration files.
+
+    Arguments
+    ---------
+    needs_tide : bool
+        Specifies whether the tidal boundary is needed.
+
+    config : Optional[configparser.ConfigParser]
+        The variable containing the configuration (may be None for if 0).
+
+    Returns
+    -------
+    filenames : Dict[Any, Tuple[str,str]]
+        Dictionary of string tuples representing the D-Flow FM file names for
+        each reference/with measure pair. The keys of the dictionary vary. They
+        can be the discharge index, discharge value or a tuple of forcing
+        conditions, such as a Discharge and Tide forcing tuple.
+    """
+    filenames: Dict[Any, Tuple[str,str]]
+    key: Union[Tuple[float, int], float]
+    filenames = {}
+    i = 0
+    while True:
+        i = i + 1
+        CSTR = "C{}".format(i)
+        if CSTR in config:
+            Q = float(cfg_get(config, CSTR, "Discharge"))
+            reference = cfg_get(config, CSTR, "Reference")
+            measure = cfg_get(config, CSTR, "WithMeasure")
+            if needs_tide:
+               T = cfg_get(config, CSTR, "TideBC")
+               key = (Q,T)
+            else:
+               key = Q
+            filenames[key] = (reference, measure)
+        else:
+            break
 
     return filenames
 
@@ -655,7 +817,7 @@ def analyse_and_report(
     q_threshold: float,
     tstag: float,
     Q: Vector,
-    applyQ: BoolVector,
+    apply_q: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -665,7 +827,7 @@ def analyse_and_report(
     xykm: shapely.geometry.linestring.LineString,
     needs_tide: bool,
     n_fields: int,
-    tide_bc: Vector,
+    tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
     kmbounds: Tuple[float,float],
     outputdir: str,
@@ -697,7 +859,7 @@ def analyse_and_report(
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
-    applyQ : BoolVector
+    apply_q : BoolVector
         A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
@@ -718,7 +880,7 @@ def analyse_and_report(
         Specifies whether the tidal boundary is needed.
     n_fields : int
         Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Vector
+    tide_bc : Tuple[str, ...]
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
@@ -743,7 +905,7 @@ def analyse_and_report(
             q_location,
             tstag,
             Q,
-            applyQ,
+            apply_q,
             T,
             rsigma,
             slength,
@@ -760,7 +922,7 @@ def analyse_and_report(
             q_threshold,
             tstag,
             Q,
-            applyQ,
+            apply_q,
             T,
             rsigma,
             slength,
@@ -786,7 +948,7 @@ def analyse_and_report_waqua(
     q_location: str,
     tstag: float,
     Q: Vector,
-    applyQ: BoolVector,
+    apply_q: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -817,7 +979,7 @@ def analyse_and_report_waqua(
         Number of days that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
-    applyQ : BoolVector
+    apply_q : BoolVector
         A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
@@ -843,7 +1005,7 @@ def analyse_and_report_waqua(
     dzq : List[Optional[Union[float, numpy.ndarray]]]
     dzq = [None] * len(Q)
     for i in range(3):
-        if success and applyQ[i]:
+        if success and apply_q[i]:
             if first_discharge:
                 dzq[i], firstm, firstn = get_values_waqua3(
                     i+1, Q[i], ucrit, display, report, reduced_output
@@ -895,7 +1057,7 @@ def analyse_and_report_dflowfm(
     q_threshold: float,
     tstag: float,
     Q: Vector,
-    applyQ: BoolVector,
+    apply_q: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -905,7 +1067,7 @@ def analyse_and_report_dflowfm(
     xykm: shapely.geometry.linestring.LineString,
     needs_tide: bool,
     n_fields: int,
-    tide_bc: Vector,
+    tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
     kmbounds: Tuple[float, float],
     outputdir: str,
@@ -933,7 +1095,7 @@ def analyse_and_report_dflowfm(
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
-    applyQ : BoolVector
+    apply_q : BoolVector
         A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
@@ -954,7 +1116,7 @@ def analyse_and_report_dflowfm(
         Specifies whether the tidal boundary is needed.
     n_fields : int
         Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Vector
+    tide_bc : Tuple[str, ...]
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
@@ -1742,14 +1904,14 @@ def config_to_absolute_paths(
             config["General"][key] = dfastmi.io.absolute_path(
                 rootdir, config["General"][key]
             )
-    for QSTR in config.keys():
-        if "Reference" in config[QSTR]:
-            config[QSTR]["Reference"] = dfastmi.io.absolute_path(
-                rootdir, config[QSTR]["Reference"]
+    for qstr in config.keys():
+        if "Reference" in config[qstr]:
+            config[qstr]["Reference"] = dfastmi.io.absolute_path(
+                rootdir, config[qstr]["Reference"]
             )
-        if "WithMeasure" in config[QSTR]:
-            config[QSTR]["WithMeasure"] = dfastmi.io.absolute_path(
-                rootdir, config[QSTR]["WithMeasure"]
+        if "WithMeasure" in config[qstr]:
+            config[qstr]["WithMeasure"] = dfastmi.io.absolute_path(
+                rootdir, config[qstr]["WithMeasure"]
             )
     return config
 
@@ -1782,7 +1944,7 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     except:
         raise Exception("No version information in the file!")
 
-    if version.parse(file_version) == version.parse("1"):
+    if version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2"):
         section = config["General"]
         branch = section["Branch"]
         reach = section["Reach"]
@@ -1791,6 +1953,249 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
 
     rootdir = os.path.dirname(filename)
     return config_to_absolute_paths(rootdir, config)
+
+
+def check_configuration(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    """
+    Check if an analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        A dictionary containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    try:
+        cfg_version = config["General"]["Version"]
+        rvr_version = rivers["version"]
+        if version.parse(cfg_version) != version.parse(rvr_version):
+            return False
+        if version.parse(cfg_version) == version.parse("1.0"):
+            return check_configuration_v1(rivers, config)
+        else:
+            return check_configuration_v2(rivers, config)
+    except SystemExit as e:
+        raise e
+    except:
+        return False
+
+
+def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    """
+    Check if a version 1 analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        A dictionary containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    branch = config["General"]["Branch"]
+    if branch not in rivers["branches"]:
+        return False
+    
+    reach = config["General"]["Reach"]
+    ibranch = rivers["branches"].index(branch)
+    if reach not in rivers["reaches"][ibranch]:
+        return False
+    
+    ireach = rivers["reaches"][ibranch].index(reach2)
+    nwidth = rivers["nwidth"][ibranch][ireach]
+    [_, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+    
+    mode_str = config["General"].get("Mode", DFLOWFM_MAP)
+    for i in range(3):
+        if not apply_q[i]:
+            continue
+        
+        if not check_configuration_v1_cond(config, mode_str, i):
+            return False
+                
+    return True
+
+
+def check_configuration_v1_cond(config: configparser.ConfigParser, mode_str: str, i : int) -> bool:
+    """
+    Check validity of one condition of a version 1 analysis configuration.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+    mode_str : str
+        String indicating the source of the model data: WAQUA or D-Flow FM.
+    i : int
+        Flow condition to be checked.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    cond = "Q" + str(i+1)
+    if mode_str == WAQUA_EXPORT:
+        # condition block may not be specified since it doesn't contain any required keys
+        if cond in config.sections() and "Discharge" in config[cond]:
+            # if discharge is specified, it must be a number
+            if not is_float_str(config[cond]["Discharge"]):
+                return False
+        
+    elif mode_str == DFLOWFM_MAP:
+        if not check_configuration_v1_cond_fm(config, cond):
+            return False
+                
+    return True
+
+
+def check_configuration_v1_cond_fm(config: configparser.ConfigParser, cond : str) -> bool:
+    """
+    Check validity of one condition of a version 1 analysis configuration using D-Flow FM results.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+    cond : str
+        Condition block to be checked.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    # condition block must be specified since it must contain the Reference and WithMeasure file names
+    if cond not in config.sections():
+        return False
+    
+    if "Discharge" in config[cond]:
+        # if discharge is specified, it must be a number
+        if not is_float_str(config[cond]["Discharge"]):
+            return False
+    
+    if "Reference" not in config[cond]:
+        return False
+    
+    if "WithMeasure" not in config[cond]:
+        return False
+                
+    return True
+
+
+def is_float_str(string:str) -> bool:
+    """
+    Check if a string represents a (floating point) number.
+
+    Arguments
+    ---------
+    string : str
+        The string to be checked.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the the string can be converted to a number or not.
+    """
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
+
+
+def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    """
+    Check if a version 2 analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        A dictionary containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    branch = config["General"]["Branch"]
+    if branch not in rivers["branches"]:
+        return False
+
+    ibranch = rivers["branches"].index(branch)
+    reach = config["General"]["Reach"]
+    if reach not in rivers["reaches"][ibranch]:
+        return False
+
+    ireach = rivers["reaches"][ibranch].index(reach)
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    n_cond = len(hydro_q)
+    
+    found = [False]*n_cond
+    
+    for i in range(n_cond):
+        success, found[i] = check_configuration_v2_cond(config, hydro_q[i])
+        if not success:
+            return False
+    
+    if not all(found):
+        return False
+        
+    return True
+
+
+def check_configuration_v2_cond(config: configparser.ConfigParser, q: float) -> (bool, bool):
+    """
+    Check if a version 2 analysis configuration is valid.
+
+    Arguments
+    ---------
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    found : bool
+        Flag indicating whether the condition has been found.
+    """
+    qstr = str(q)
+    found = False
+    
+    for cond in config.keys():
+        if cond[0] != "C":
+            # not a condition block
+            continue
+        
+        if "Discharge" not in config[cond]:
+            return False, found
+        
+        qstr_cond = config[cond]["Discharge"]
+        if qstr != qstr_cond:
+            continue
+        
+        found = True
+        
+        if "Reference" not in config[cond]:
+            return False, found
+    
+        if "WithMeasure" not in config[cond]:
+            return False, found        
+
+    return True, found
 
 
 def config_to_relative_paths(
@@ -1816,14 +2221,14 @@ def config_to_relative_paths(
             config["General"][key] = dfastmi.io.relative_path(
                 rootdir, config["General"][key]
             )
-    for QSTR in config.keys():
-        if "Reference" in config[QSTR]:
-            config[QSTR]["Reference"] = dfastmi.io.relative_path(
-                rootdir, config[QSTR]["Reference"]
+    for qstr in config.keys():
+        if "Reference" in config[qstr]:
+            config[qstr]["Reference"] = dfastmi.io.relative_path(
+                rootdir, config[qstr]["Reference"]
             )
-        if "WithMeasure" in config[QSTR]:
-            config[QSTR]["WithMeasure"] = dfastmi.io.relative_path(
-                rootdir, config[QSTR]["WithMeasure"]
+        if "WithMeasure" in config[qstr]:
+            config[qstr]["WithMeasure"] = dfastmi.io.relative_path(
+                rootdir, config[qstr]["WithMeasure"]
             )
     return config
 

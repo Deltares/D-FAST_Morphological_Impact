@@ -41,7 +41,7 @@ def run(
     language: str = "UK",
     runmode: str = "GUI",
     configfile: str = "dfastmi.cfg",
-    rivers_file: str = "Dutch_rivers.ini",
+    rivers_file: str = "Dutch_rivers_v2.ini",
     reduced_output: bool = False,
 ) -> None:
     """
@@ -56,7 +56,7 @@ def run(
     configfile: str
         Configuration file ('dfastmi.cfg' is default)
     rivers_file : str
-        Name of rivers configuration file ('Dutch_rivers.ini' is default).
+        Name of rivers configuration file ('Dutch_rivers_v2.ini' is default).
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only (False is default).

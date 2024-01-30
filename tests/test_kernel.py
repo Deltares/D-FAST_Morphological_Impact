@@ -336,6 +336,106 @@ class Test_main_computation():
         print("zmax computed   : ", numpy.array2string(zmaxc, floatmode = 'unique'))
         print("zmin reference  : ", numpy.array2string(zmin, floatmode = 'unique'))
         print("zmin computed   : ", numpy.array2string(zminc, floatmode = 'unique'))
+class Test_celerity_calculation():
+    
+    def test_given_first_element_Of_celq_is_smaller_than_q_when_get_celerity_then_return_first_element_of_celc(self):
+        
+        first_element_of_celc = 10  
+        q = 11.0
+        first_element_of_celq = q-1
+        cel_q = [first_element_of_celq,20,30,40] 
+        cel_c = [first_element_of_celc,20,30,40] 
+        
+        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        assert celerity == 11
+    
+    def test_given_first_element_Of_celq_is_bigger_than_q_when_get_celerity_then_return_first_element_of_celc(self):
+        
+        first_element_of_celc = 10  
+        q = 11.0
+        first_element_of_celq = q+1
+        cel_q = [first_element_of_celq,20,30,40] 
+        cel_c = [first_element_of_celc,20,30,40] 
+        
+        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        assert celerity == first_element_of_celc
 
+    def test_given_q_bigger_than_any_celq_when_get_celerity_then_return_last_element_of_celc(self):
+        
+        LastElementOfCelc = 40
+        
+        q = 50.0
+        cel_q = [10,20,30,40]
+        cel_c = [10,20,30,LastElementOfCelc] 
+        
+        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        assert celerity == LastElementOfCelc
+    
+class Test_relax_factors_calculation():
+    def test_given_single_value_for_calculation_when_relax_factors_then_return_rsigma_value_between_expected_values(self):
+        Q = [2]
+        T = [0.0005]
+        q_stagnant = 1.0
+        celerity = [1.0]
+        nwidth = 1.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert 0.76<= rsigma[0] <= 0.78
+        
+    def test_given_multiple_values_for_calculation_when_relax_factors_then_return_rsigma_values_between_expected_values(self):
+        Q = [2,2]
+        T = [0.0005,1.0]
+        q_stagnant = 1.0
+        celerity = [1.0,0.0005]
+        nwidth = 1.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert 0.76<= rsigma[0] <= 0.78
+        assert 0.76<= rsigma[1] <= 0.78
+        
+    def test_given_multiple_values_for_calculation_with_different_width_when_relax_factors_then_return_rsigma_varying_values_between_expected_values(self):
+        Q = [2,2]
+        T = [0.0005,1.0]
+        q_stagnant = 1.0
+        celerity = [1.0,0.0005]
+        nwidth = 5.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert 0.94<= rsigma[0] <= 0.96
+        assert 0.94<= rsigma[0] <= 0.96
+        
+    def test_given_q_same_as_q_stagnant_when_relax_factors_then_return_rsigma_values_of_1(self):
+        Q = [2,2,2,2] 
+        T = [5,5,5,5] 
+        q_stagnant = 2.0
+        celerity = [5,5,5,5] 
+        nwidth = 2.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert rsigma == (1.0, 1.0, 1.0, 1.0)
+        
+    def test_given_q_smaller_than_q_stagnant_when_relax_factors_then_return_rsigma_values_of_1(self):
+        Q = [2,2,2,2] 
+        T = [5,5,5,5] 
+        q_stagnant = 3.0
+        celerity = [5,5,5,5] 
+        nwidth = 2.0
+        
+        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        assert rsigma == (1.0, 1.0, 1.0, 1.0)
+  
+class Test_estimate_sedimentation_length2():
+        
+    @pytest.mark.parametrize("tmi, celerity, expected_length", [
+        ([2],[2],4000),
+        ([2,2],[2,2],8000),
+        ([2,2,2],[2,2,2],12000),
+        ([2,2,2,2],[2,2,2,2],16000),
+        ([2,2,2,2,2],[2,2,2,2,2],20000),
+    ]) 
+    def test_given_tmi_and_celerity_when_estimate_sedimentation_length2_then_return_expected_length(self, tmi, celerity, expected_length):
+        length = dfastmi.kernel.estimate_sedimentation_length2(tmi,celerity)
+        assert length == expected_length
+        
 if __name__ == '__main__':
     unittest.main()
