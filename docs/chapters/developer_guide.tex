@@ -5,16 +5,17 @@
 This chapter gives an overview of how \dfastmi can be setup for development.
 
 The development setup and configuration is done for usage of the visual studio code IDE. More information about visual studio code can be found on the internet.
-The development of python code project within Deltares is mostly done in with this tool. Visual Studio Code is free for private or commercial use. See the \href{https://code.visualstudio.com/license}{product license}) for details.
+The development of python code project within Deltares is mostly done with this tool. Visual Studio Code is free for private or commercial use. See the \href{https://code.visualstudio.com/license}{product license} for details.
 
 \begin{Remark}
 	\item This configuration can not be used to build a standalone executable with nuitka tooling. It is for development purposes only.
 \end{Remark}
 
 \section{Configuration}
-The tool can be configured with a batch script which will configure using installed tools or ask the user to download and install the tools which can be used for them. The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
+The DFAST Morphological Impact developer environment can be configured with a batch script. This script will configure and install recommended tools. User input is required to download and install these tools. The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
 
 The batch file will check for installed tooling for anaconda/miniconda. If not installed it will ask the user to install the anaconda/miniconda tooling for you. 
+
 \begin{Remark}
 	\item \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the conda tooling for the command line and powershell (used in VSCode).
 \end{Remark}
@@ -115,7 +116,7 @@ We setup a conda environment on the client pc so we have the python interpreter 
 \end{longtable}
 
 \section{Tooling}
-The tool is using:
+DFAST Morphological Impact is using:
 \begin{enumerate}
 \item \keyw{anaconda} / \keyw{miniconda} /\keyw{conda} to setup its python environment. 
 \item \keyw{poetry} to install the python packages for the environment
@@ -161,11 +162,11 @@ The user files can be found in subfolder \textbf{.vscode}
 \begin{enumerate}
 	\item \keyw{extensions.json} will reference the expected and recommended visual studio code extensions. It will not install them but inform the user what is missing to start developing.
 	\item \keyw{launch.json} will configure VS Code what to do when an user will debug unit tests or start debugging the application.
-	\item \keyw{settings.json} configured settings for 
+	\item \keyw{settings.json} configured settings for visual studio code.
 \end{enumerate}
 
-\subsection{Python/TOML}
-This file is used by the python interpreter to configure the application. The TOML file itself has nothing to do with python, poetry or VS Code but it is a configuration file which is easy to read.
+\subsection{TOML}
+This filetype is used by the python interpreter to configure the application. The TOML file itself has nothing to do with python, poetry or VS Code but it is a configuration file which is easy to read.
 Added configuration settings to the \textbf{pyproject.toml} file
 \begin{enumerate}
 	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS code / python / python coverage tooling where to expect the coverage to apply to.
