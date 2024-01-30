@@ -48,7 +48,7 @@ class Test_batch_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            result = subprocess.run([dfastexe,"--mode","BATCH","--config","c01.cfg","--language","NL"], capture_output=True)
+            result = subprocess.run([dfastexe,"--mode","BATCH","--rivers","Dutch_rivers_v1.ini","--config","c01.cfg","--language","NL"], capture_output=True)
             outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
@@ -86,7 +86,7 @@ class Test_batch_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            result = subprocess.run([dfastexe,"--mode","BATCH","--config","c01.cfg"], capture_output=True)
+            result = subprocess.run([dfastexe,"--mode","BATCH","--rivers","Dutch_rivers_v1.ini","--config","c01.cfg"], capture_output=True)
             outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
@@ -125,7 +125,7 @@ class Test_batch_mode():
         refdir = tstdir + os.sep + "ref_Qmin_Q4000"
         try:
             os.chdir(tstdir)
-            result = subprocess.run([dfastexe,"--mode","BATCH","--config","Qmin_4000.cfg"], capture_output=True)
+            result = subprocess.run([dfastexe,"--mode","BATCH","--rivers","Dutch_rivers_v1.ini","--config","Qmin_4000.cfg"], capture_output=True)
             outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)

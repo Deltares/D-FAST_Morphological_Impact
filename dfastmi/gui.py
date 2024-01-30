@@ -94,7 +94,41 @@ def create_dialog() -> None:
     dialog["window"] = win
 
     menubar = win.menuBar()
+    create_menus(menubar)
 
+    central_widget = QtWidgets.QWidget()
+    layout = QtWidgets.QBoxLayout(2, central_widget)
+    win.setCentralWidget(central_widget)
+
+    tabs = QtWidgets.QTabWidget(win)
+    dialog["tabs"] = tabs
+    layout.addWidget(tabs)
+
+    button_bar = QtWidgets.QWidget(win)
+    button_bar_layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight, button_bar)
+    button_bar_layout.setContentsMargins(0, 0, 0, 0)
+    layout.addWidget(button_bar)
+
+    run = QtWidgets.QPushButton(gui_text("action_run"), win)
+    run.clicked.connect(run_analysis)
+    button_bar_layout.addWidget(run)
+
+    done = QtWidgets.QPushButton(gui_text("action_close"), win)
+    done.clicked.connect(close_dialog)
+    button_bar_layout.addWidget(done)
+    
+    add_general_tab(tabs, win)
+    
+
+def create_menus(menubar: PyQt5.QtWidgets.QMenuBar) -> None:
+    """
+    Add the menus to the menubar.
+
+    Arguments
+    ---------
+    menubar : PyQt5.QtWidgets.QMenuBar
+        Menubar to which menus should be added.
+    """
     menu = menubar.addMenu(gui_text("File"))
     item = menu.addAction(gui_text("Load"))
     item.triggered.connect(menu_load_configuration)
@@ -113,89 +147,54 @@ def create_dialog() -> None:
     item = menu.addAction(gui_text("AboutQt"))
     item.triggered.connect(menu_about_qt)
 
-    centralWidget = QtWidgets.QWidget()
-    layout = QtWidgets.QFormLayout(centralWidget)
-    win.setCentralWidget(centralWidget)
 
-    mode = QtWidgets.QComboBox(win)
-    mode.addItems(["WAQUA export", "D-Flow FM map"])
-    mode.setCurrentIndex(1)
-    mode.currentIndexChanged.connect(updated_mode)
-    mode.setToolTip(gui_text("mode_tooltip"))
-    dialog["mode"] = mode
-    layout.addRow(gui_text("mode"), mode)
+def add_general_tab(
+    tabs: PyQt5.QtWidgets.QTabWidget, win: PyQt5.QtWidgets.QMainWindow
+) -> None:
+    """
+    Create the tab for the general settings.
 
+    Arguments
+    ---------
+    tabs : PyQt5.QtWidgets.QTabWidget
+        Tabs object to which the tab should be added.
+    win : PyQt5.QtWidgets.QMainWindow
+        Windows in which the tab item is located.
+    """
+    general_widget = QtWidgets.QWidget()
+    layout = QtWidgets.QFormLayout(general_widget)
+    tabs.addTab(general_widget, "General")
+
+    # get the branch
     branch = QtWidgets.QComboBox(win)
     branch.currentIndexChanged.connect(updated_branch)
     branch.setToolTip(gui_text("branch_tooltip"))
     dialog["branch"] = branch
     layout.addRow(gui_text("branch"), branch)
 
+    # get the reach
     reach = QtWidgets.QComboBox(win)
     reach.currentIndexChanged.connect(updated_reach)
     reach.setToolTip(gui_text("reach_tooltip"))
     dialog["reach"] = reach
     layout.addRow(gui_text("reach"), reach)
 
+    # show the discharge location
     qloc = QtWidgets.QLabel("", win)
     qloc.setToolTip(gui_text("qloc"))
     dialog["qloc"] = qloc
     layout.addRow(gui_text("qloc"), qloc)
 
-    # stroomvoerend bij getrokken stuwen?
-    # stroomvoerend vanaf qmin?
-    qmin = QtWidgets.QCheckBox("", win)
-    qmin.setToolTip(gui_text("qmin1_tooltip"))
-    qmin.setChecked(True)
-    qmin.stateChanged.connect(update_qvalues)
-    qmintxt = QtWidgets.QLabel(gui_text("qmin1"), win)
-    dialog["qmin"] = qmin
-    dialog["qmin_txt"] = qmintxt
-    layout.addRow(qmintxt, qmin)
-
+    # get minimum flow-carrying discharge
     qthr = QtWidgets.QLineEdit(win)
     qthr.setValidator(PyQt5.QtGui.QDoubleValidator())
     qthr.editingFinished.connect(update_qvalues)
     qthr.setToolTip(gui_text("qthr_tooltip"))
     qthrtxt = QtWidgets.QLabel(gui_text("qthr"), win)
     dialog["qthr"] = qthr
-    dialog["qthr_txt"] = qthrtxt
     layout.addRow(qthrtxt, qthr)
 
-    # bankvullend vanaf qbank?
-    qbf = QtWidgets.QLineEdit(win)
-    qbf.setValidator(PyQt5.QtGui.QDoubleValidator())
-    qbf.editingFinished.connect(update_qvalues)
-    qbf.setToolTip(gui_text("qbf_tooltip"))
-    qbftxt = QtWidgets.QLabel(gui_text("qbf"), win)
-    dialog["qbf"] = qbf
-    dialog["qbf_txt"] = qbftxt
-    layout.addRow(qbftxt, qbf)
-
-    for q in range(3):
-        qstr = "q{}".format(q + 1)
-
-        q1 = QtWidgets.QLineEdit(win)
-        q1.setValidator(PyQt5.QtGui.QDoubleValidator())
-        q1.setToolTip(gui_text(qstr + "_tooltip"))
-        q1txt = QtWidgets.QLabel(gui_text(qstr), win)
-        dialog[qstr] = q1
-        dialog[qstr + "_txt"] = q1txt
-        layout.addRow(q1txt, q1)
-
-        q1file1 = QtWidgets.QLineEdit(win)
-        q1f1txt = QtWidgets.QLabel(gui_text(qstr + "_reference"), win)
-        dialog[qstr + "file1"] = q1file1
-        dialog[qstr + "file1_txt"] = q1f1txt
-        layout.addRow(q1f1txt, openFileLayout(win, q1file1, qstr + "file1"))
-
-        q1file2 = QtWidgets.QLineEdit(win)
-        q1f2txt = QtWidgets.QLabel(gui_text(qstr + "_measure"), win)
-        dialog[qstr + "file2"] = q1file2
-        dialog[qstr + "file2_txt"] = q1f2txt
-        layout.addRow(q1f2txt, openFileLayout(win, q1file2, qstr + "file2"))
-
-    # default UCrit acceptable?
+    # get critical flow velocity
     ucrit = QtWidgets.QLineEdit(win)
     ucrit.setValidator(PyQt5.QtGui.QDoubleValidator())
     ucrit.setToolTip(gui_text("ucrit_tooltip"))
@@ -203,20 +202,93 @@ def create_dialog() -> None:
     layout.addRow(gui_text("ucrit"), ucrit)
 
     # show the impact length
-    nlength = QtWidgets.QLabel(win)
-    nlength.setToolTip(gui_text("length_tooltip"))
-    dialog["nlength"] = nlength
-    layout.addRow(gui_text("length"), nlength)
+    slength = QtWidgets.QLabel(win)
+    slength.setToolTip(gui_text("length_tooltip"))
+    dialog["slength"] = slength
+    layout.addRow(gui_text("length"), slength)
 
-    run = QtWidgets.QPushButton(gui_text("action_run"), win)
-    run.clicked.connect(run_analysis)
-    done = QtWidgets.QPushButton(gui_text("action_close"), win)
-    done.clicked.connect(close_dialog)
-    rundone = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
-    rundone.setContentsMargins(0, 0, 0, 0)
-    rundone.addWidget(run)
-    rundone.addWidget(done)
-    layout.addRow("", rundone)
+    # get the output directory
+    output_dir = QtWidgets.QLineEdit(win)
+    dialog["outputDir"] = output_dir
+    layout.addRow(gui_text("outputDir"), openFileLayout(win, output_dir, "outputDir"))
+
+    # plotting
+    make_plots = QtWidgets.QLabel(gui_text("makePlots"), win)
+    make_plots_edit = QtWidgets.QCheckBox(win)
+    make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
+    make_plots_edit.stateChanged.connect(update_plotting)
+    dialog["makePlots"] = make_plots
+    dialog["makePlotsEdit"] = make_plots_edit
+    layout.addRow(make_plots, make_plots_edit)
+
+    save_plots = QtWidgets.QLabel(gui_text("savePlots"), win)
+    save_plots.setEnabled(False)
+    save_plots_edit = QtWidgets.QCheckBox(win)
+    save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
+    save_plots_edit.stateChanged.connect(update_plotting)
+    save_plots_edit.setEnabled(False)
+    dialog["savePlots"] = save_plots
+    dialog["savePlotsEdit"] = save_plots_edit
+    layout.addRow(save_plots, save_plots_edit)
+
+    figure_dir = QtWidgets.QLabel(gui_text("figureDir"), win)
+    figure_dir.setEnabled(False)
+    figure_dir_edit = QtWidgets.QLineEdit(win)
+    figure_dir_edit.setEnabled(False)
+    dialog["figureDir"] = figure_dir
+    dialog["figureDirEdit"] = figure_dir_edit
+    layout.addRow(figure_dir, openFileLayout(win, figure_dir_edit, "figureDirEdit"))
+    dialog["figureDirEditFile"].setEnabled(False)
+
+    close_plots = QtWidgets.QLabel(gui_text("closePlots"), win)
+    close_plots.setEnabled(False)
+    close_plots_edit = QtWidgets.QCheckBox(win)
+    close_plots_edit.setToolTip(gui_text("closePlots_tooltip"))
+    close_plots_edit.setEnabled(False)
+    dialog["closePlots"] = close_plots
+    dialog["closePlotsEdit"] = close_plots_edit
+    layout.addRow(close_plots, close_plots_edit)
+
+
+def add_condition_tab(
+    prefix: str,
+) -> None:
+    """
+    Create the tab for one flow conditions.
+
+    Arguments
+    ---------
+    prefix : str
+        Prefix for all dialog dictionary entries of this tab.
+    q : float
+        Discharge [m3/s]
+    """
+    general_widget = QtWidgets.QWidget()
+    layout = QtWidgets.QFormLayout(general_widget)
+    dialog["tabs"].addTab(general_widget, prefix+"tab")
+    win = dialog["window"]
+
+    # show the discharge location
+    qloc = QtWidgets.QLabel("", win)
+    qloc.setToolTip(gui_text("qloc"))
+    dialog[prefix+"qloc"] = qloc
+    layout.addRow(gui_text("qloc"), qloc)
+
+    # show the discharge value
+    qval = QtWidgets.QLabel("", win)
+    qval.setToolTip(gui_text("qval"))
+    dialog[prefix+"qval"] = qval
+    layout.addRow(gui_text("qval"), qval)
+
+    # get the reference file
+    q1file1 = QtWidgets.QLineEdit(win)
+    dialog[prefix+"file1"] = q1file1
+    layout.addRow(gui_text("reference"), openFileLayout(win, q1file1, prefix+"file1"))
+
+    # get the file with measure
+    q1file2 = QtWidgets.QLineEdit(win)
+    dialog[prefix+"file2"] = q1file2
+    layout.addRow(gui_text("measure"), openFileLayout(win, q1file2, prefix+"file2"))
 
 
 def activate_dialog() -> None:
@@ -231,31 +303,6 @@ def activate_dialog() -> None:
     win = dialog["window"]
     win.show()
     sys.exit(app.exec_())
-
-
-def updated_mode(imode: int) -> None:
-    """
-    Adjust the GUI for updated run mode selection.
-
-    When in WAQUA mode (imode = 0) the file names are predefined and the user
-    doesn't have to specify anything. When in D-Flow FM mode (imode = 1) the
-    user has to specify the names of the six D-Flow FM map files.
-
-    Arguments
-    ---------
-    imode : int
-        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
-    """
-    # enable file selection if imode == 1 (D-Flow FM map)
-    DFlowFM = imode == 1
-    for q in range(3):
-        qstr = "q{}".format(q + 1)
-        active = dialog[qstr].isEnabled()
-        for f in range(2):
-            qstr = "q{}file{}".format(q + 1, f + 1)
-            dialog[qstr].setEnabled(DFlowFM and active)
-            dialog[qstr + "_txt"].setEnabled(DFlowFM and active)
-            dialog[qstr + "_openfile"].setEnabled(DFlowFM and active)
 
 
 def updated_branch(ibranch: int) -> None:
@@ -285,8 +332,8 @@ def updated_reach(ireach: int) -> None:
     """
     ibranch = dialog["branch"].currentIndex()
 
-    dialog["qthr"].setText(str(rivers["qmin"][ibranch][ireach]))
-    dialog["qbf"].setText(str(rivers["qbankfull"][ibranch][ireach]))
+    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    dialog["qthr"].setText(str(q_stagnant))
     dialog["ucrit"].setText(str(rivers["ucritical"][ibranch][ireach]))
     update_qvalues()
 
@@ -299,91 +346,62 @@ def update_qvalues() -> None:
     ---------
     None
     """
-    q_threshold: Optional[float]
-
     ibranch = dialog["branch"].currentIndex()
     ireach = dialog["reach"].currentIndex()
     if ireach < 0:
         return
 
-    q_location = rivers["qlocations"][ibranch]
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
-    q_min = rivers["qmin"][ibranch][ireach]
-    q_fit = rivers["qfit"][ibranch][ireach]
-    q_levels = rivers["qlevels"][ibranch][ireach]
-
-    if q_stagnant > q_fit[0]:
-        dialog["qmin"].setToolTip(gui_text("qmin1_tooltip"))
-        dialog["qmin_txt"].setText(gui_text("qmin1"))
-    else:
-        dialog["qmin"].setToolTip(
-            gui_text("qmin2_tooltip", dict={"border": q_location, "qmin": int(q_min)})
-        )
-        dialog["qmin_txt"].setText(gui_text("qmin2", dict={"qmin": int(q_min)}))
-
-    qthrEnabled = not dialog["qmin"].isChecked()
-    dialog["qthr"].setEnabled(qthrEnabled)
-    dialog["qthr_txt"].setEnabled(qthrEnabled)
-    if not qthrEnabled:
-        dialog["qthr"].setText(str(q_levels[0]))
-
-    if dialog["qthr"].isEnabled():
-        try:
-            q_threshold = float(dialog["qthr"].text())
-        except:
-            showError(gui_text("error_qthr"))
-            dialog["qthr"].setFocus()
-            return
-    else:
-        q_threshold = None
-
-    if q_threshold is None or q_threshold < q_levels[1]:
-        dialog["qbf"].setEnabled(True)
-        dialog["qbf_txt"].setEnabled(True)
-
-        try:
-            q_bankfull = float(dialog["qbf"].text())
-        except:
-            showError(gui_text("error_qbf"))
-            dialog["qbf"].setFocus()
-            return
-    else:
-        dialog["qbf"].setEnabled(False)
-        dialog["qbf_txt"].setEnabled(False)
-
-        q_bankfull = 0
-
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    tabs = dialog["tabs"]
+    for j in range(tabs.count()-2,-1,-1):
+        if j >= len(hydro_q):
+            tabs.removeTab(1+j)
+        else:
+            prefix = str(j)+"_"
+            qval = str(hydro_q[j])
+            dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
+            dialog[prefix+"qval"].setText(qval)
+            tabs.setTabText(1+j,qval+" m3/s")
+    
+    if len(hydro_q) > tabs.count()-1:
+        for j in range(tabs.count()-1, len(hydro_q)):
+            prefix = str(j)+"_"
+            add_condition_tab(prefix)
+            qval = str(hydro_q[j])	
+            dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
+            dialog[prefix+"qval"].setText(qval)
+            tabs.setTabText(1+j,qval+" m3/s")
+            
     try:
-        dq = rivers["dq"][ibranch][ireach]
-        Q, applyQ = dfastmi.kernel.char_discharges(
-            q_levels, dq, q_threshold, q_bankfull
-        )
-
-        celerity_hg = rivers["proprate_high"][ibranch][ireach]
-        celerity_lw = rivers["proprate_low"][ibranch][ireach]
         nwidth = rivers["normal_width"][ibranch][ireach]
-        tstag, T, rsigma = dfastmi.kernel.char_times(
-            q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
-        )
-        nlength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
-        dialog["nlength"].setText(str(nlength))
+        q_threshold = float(dialog["qthr"].text())
+        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
+        slength = dfastmi.kernel.estimate_sedimentation_length2(time_mi, celerity)
+        dialog["slength"].setText("{:.0f}".format(slength))
     except:
-        Q = (None, None, None)
-        applyQ = (False, False, False)
-        dialog["nlength"].setText("---")
+        dialog["slength"].setText("---")
 
-    DFlowFM = dialog["mode"].currentIndex() == 1
-    for iq, i in {"q1": 0, "q2": 1, "q3": 2}.items():
-        q = Q[i]
-        dialog[iq].setText(str(q))
-        active = not q is None and applyQ[i]
-        dialog[iq].setEnabled(active)
-        if DFlowFM:
-            for f in range(2):
-                qstr = iq + "file{}".format(f + 1)
-                dialog[qstr].setEnabled(active)
-                dialog[qstr + "_txt"].setEnabled(active)
-                dialog[qstr + "_openfile"].setEnabled(active)
+
+def update_plotting() -> None:
+    """
+    Update the plotting flags.
+    
+    Arguments
+    ---------
+    None
+    """
+    plot_flag = dialog["makePlotsEdit"].isChecked()
+    dialog["savePlots"].setEnabled(plot_flag)
+    dialog["savePlotsEdit"].setEnabled(plot_flag)
+
+    save_flag = dialog["savePlotsEdit"].isChecked() and plot_flag
+
+    dialog["figureDir"].setEnabled(save_flag)
+    dialog["figureDirEdit"].setEnabled(save_flag)
+    dialog["figureDirEditFile"].setEnabled(save_flag)
+
+    dialog["closePlots"].setEnabled(plot_flag)
+    dialog["closePlotsEdit"].setEnabled(plot_flag)
 
 
 def close_dialog() -> None:
@@ -433,41 +451,62 @@ def load_configuration(filename: str) -> None:
         return
 
     section = config["General"]
-    try:
-        dialog["mode"].setCurrentText(section["Mode"])
-    except:
-        dialog["mode"].setCurrentIndex(1)
     dialog["branch"].setCurrentText(section["Branch"])
     ibranch = dialog["branch"].currentIndex()
     dialog["reach"].setCurrentText(section["Reach"])
     ireach = dialog["reach"].currentIndex()
 
-    if section.get("Qthreshold") is None:
-        dialog["qmin"].setChecked(True)
-        update_qvalues()
-    else:
-        dialog["qmin"].setChecked(False)
-        dialog["qthr"].setText(section.get("Qthreshold"))
-
-    dialog["qbf"].setText(
-        section.get("Qbankfull", str(rivers["qbankfull"][ibranch][ireach]))
+    dialog["qthr"].setText(
+        section.get("Qthreshold", str(rivers["qstagnant"][ibranch][ireach]))
     )
+
     dialog["ucrit"].setText(
         section.get("Ucrit", str(rivers["ucritical"][ibranch][ireach]))
     )
-
+    
+    dialog["outputDir"].setText(
+        section.get("OutputDir", "output")
+    )
+    dialog["makePlotsEdit"].setChecked(
+        str_to_bool(section.get("Plotting", "false"))
+    )
+    dialog["savePlotsEdit"].setChecked(
+        str_to_bool(section.get("SavePlots", "false"))
+    )
+    dialog["figureDirEdit"].setText(
+        section.get("FigureDir", "figure")
+    )
+    dialog["closePlotsEdit"].setChecked(
+        str_to_bool(section.get("ClosePlots", "false"))
+    )
     update_qvalues()
-    for iQ in ["Q1", "Q2", "Q3"]:
-        iq = iQ.lower()
-        if config.has_section(iQ):
-            section = config[iQ]
-            # discharge
-            dialog[iq].setText(section.get("Discharge", ""))
-            dialog[iq + "file1"].setText(section.get("Reference", ""))
-            dialog[iq + "file2"].setText(section.get("WithMeasure", ""))
+    
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    for i in range(len(hydro_q)):
+        prefix = str(i)+"_"
+        cond = "C{}".format(i+1)
+        if cond in config.keys():
+            cond_section = config[cond]
+            file1 = cond_section.get("Reference", "")
+            file2 = cond_section.get("WithMeasure", "")
         else:
-            dialog[iq + "file1"].setText("")
-            dialog[iq + "file2"].setText("")
+            file1 = ""
+            file2 = ""
+        dialog[prefix+"file1"].setText(file1)
+        dialog[prefix+"file2"].setText(file2)
+
+
+def str_to_bool(x: str) -> bool:
+    """
+    Convert a string to a boolean.
+
+    Arguments
+    ---------
+    x : str
+        String to be interpreted.
+    """
+    val = x.lower() in ['true', '1', 't', 'y', 'yes']
+    return val
 
 
 def menu_save_configuration() -> None:
@@ -497,34 +536,35 @@ def get_configuration() -> configparser.ConfigParser:
 
     Returns
     -------
-    config : configparser.ConfigParser
+    config : Optional[configparser.ConfigParser]
         Configuration for the D-FAST Morphological Impact analysis.
     """
     config = configparser.ConfigParser()
     config.optionxform = str
     config.add_section("General")
-    config["General"]["Version"] = "1.0"
+    config["General"]["Version"] = "2.0"
     config["General"]["Branch"] = dialog["branch"].currentText()
     config["General"]["Reach"] = dialog["reach"].currentText()
-    config["General"]["Mode"] = dialog["mode"].currentText()
-    if not dialog["qmin"].isChecked():
-        config["General"]["Qthreshold"] = dialog["qthr"].text()
-    if dialog["qbf"].isEnabled():
-        config["General"]["Qbankfull"] = dialog["qbf"].text()
+    config["General"]["Qthreshold"] = dialog["qthr"].text()
     config["General"]["Ucrit"] = dialog["ucrit"].text()
+    config["General"]["OutputDir"] = dialog["outputDir"].text()
+    config["General"]["Plotting"] = str(dialog["makePlotsEdit"].isChecked())
+    config["General"]["SavePlots"] = str(dialog["savePlotsEdit"].isChecked())
+    config["General"]["FigureDir"] = dialog["figureDirEdit"].text()
+    config["General"]["ClosePlots"] = str(dialog["closePlotsEdit"].isChecked())
 
-    DFlowFM = dialog["mode"].currentIndex() == 1
-    for q in range(3):
-        qstr = "q{}".format(q + 1)
-        qval = dialog[qstr].text()
-        if not qval == "None":
-            QSTR = qstr.upper()
-            config.add_section(QSTR)
-            config[QSTR]["Discharge"] = qval
-            if DFlowFM:
-                config[QSTR]["Reference"] = dialog[qstr + "file1"].text()
-                config[QSTR]["WithMeasure"] = dialog[qstr + "file2"].text()
-
+    # loop over conditions cond = "C1", "C2", ...
+    ibranch = dialog["branch"].currentIndex()
+    ireach = dialog["reach"].currentIndex()
+    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    for i in range(len(hydro_q)):
+        cond = "C{}".format(i+1)
+        config.add_section(cond)
+        prefix = str(i)+"_"
+        config[cond]["Discharge"] = dialog[prefix+"qval"].text()
+        config[cond]["Reference"] = dialog[prefix+"file1"].text()
+        config[cond]["WithMeasure"] = dialog[prefix+"file2"].text()
+    
     return config
 
 
@@ -537,12 +577,18 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    success = dfastmi.batch.batch_mode_core(rivers, False, config)
-    report = dfastmi.io.get_filename("report.out")
-    if success:
-        showMessage(gui_text("end_of_analysis", dict={"report": report},))
+    if dfastmi.batch.check_configuration(rivers, config):
+        try:
+            success = dfastmi.batch.batch_mode_core(rivers, False, config)
+        except:
+            success = False
+        report = dfastmi.io.get_filename("report.out")
+        if success:
+            showMessage(gui_text("end_of_analysis", dict={"report": report},))
+        else:
+            showError(gui_text("error_during_analysis", dict={"report": report},))
     else:
-        showError(gui_text("error_during_analysis", dict={"report": report},))
+        showError(gui_text("analysis_config_incomplete",))
 
 
 def menu_about_self() -> None:
@@ -604,7 +650,6 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
     rivers = rivers_configuration
     create_dialog()
     dialog["branch"].addItems(rivers["branches"])
-    dialog["reach"].addItems(rivers["reaches"][0])
 
     if not config is None:
         load_configuration(config)
@@ -614,7 +659,7 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
 
 def openFileLayout(win, myWidget, key: str):
     """
-    Add an open line to the dialog. TODO
+    Add an open line to the dialog.
 
     Arguments
     ---------
@@ -635,7 +680,7 @@ def openFileLayout(win, myWidget, key: str):
         PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
     )
     openFile.clicked.connect(partial(selectFile, key))
-    dialog[key + "_openfile"] = openFile
+    dialog[key + "File"] = openFile
     gridly.addWidget(openFile, 0, 2)
 
     return parent
