@@ -379,6 +379,75 @@ class Test_write_simona_box():
         self.maxDiff = None
         assert all_lines == all_lines_ref
 
+class Test_collect_int_values1():
+    def test_collect_int_values1_01(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        generalGroup = "General"
+        config.add_section(generalGroup)
+        globalKey = "KEY"
+        globalVal = "YES"
+        branches = ["branch1","branch2"]
+        nreaches = [2, 3]
+        config[generalGroup][globalKey] = globalVal
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.collect_int_values1(config, branches, nreaches, globalKey)
+        assert str(cm.value) == 'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(globalKey, 1, "branch1", globalVal, 1)
+    
+    def test_collect_int_values1_02(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        generalGroup = "General"
+        config.add_section(generalGroup)
+        globalKey = "KEY"
+        globalVal = "1"
+        branches = ["branch1","branch2"]
+        nreaches = [2, 3]
+        config[generalGroup][globalKey] = globalVal
+        intValues = dfastmi.io.collect_int_values1(config, branches, nreaches, globalKey)
+        assert intValues == [[1,1],[1,1,1]]
+
+    def test_collect_int_values1_03(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        generalGroup = "General"
+        config.add_section(generalGroup)
+        key = "KEY"
+        branches = ["branch1","branch2"]
+        nreaches = [2, 3]
+        intValues = dfastmi.io.collect_int_values1(config, branches, nreaches, key, 1)
+        assert intValues == [[1,1],[1,1,1]]
+
+    def test_collect_int_values1_04(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        generalGroup = "General"
+        config.add_section(generalGroup)
+        key = "KEY"
+        branch1 = "branch1"
+        branch2 = "branch2"
+        branches = [branch1, branch2]
+        nreaches = [2, 3]
+        config.add_section(branch1)
+        config[branch1][key + "1"] = "2"
+        config[branch1][key + "2"] = "3"
+
+        config.add_section(branch2)
+        config[branch2][key + "1"] = "4"
+        config[branch2][key + "2"] = "5"
+        config[branch2][key + "3"] = "6"
+
+        intValues = dfastmi.io.collect_int_values1(config, branches, nreaches, key)
+        assert intValues == [[2,3],[4,5,6]]
+
 class Test_config_get_bool():
     def test_config_get_bool_01(self):
         """
