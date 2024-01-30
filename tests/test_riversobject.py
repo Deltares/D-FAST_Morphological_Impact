@@ -45,13 +45,43 @@ class Test_read_rivers():
         assert str(cm.value) == 'Unsupported version number 0.0 in the file tests/files/read_rivers_test_wrong_version.ini!'
 
 class Test_read_rivers2():    
-    def test_read_rivers_01(self):
+    def test_read_rivers2_01(self):
         """
         Testing version
         """
         print("current work directory: ", os.getcwd())
         rivers = dfastmi.RiversObject.read_rivers("tests/files/read_rivers_test_2_0_version.ini")
         assert rivers['version'] == '2.0'
+    
+    def test_read_rivers2_02(self):
+        """
+        Testing read_rivers2, collect_values1, collect_values2 and collect_values4.
+        """
+        print("current work directory: ", os.getcwd())
+        rivers = {}
+        rivers['branches'] = ['Branch1', 'Branch2']
+        rivers['reaches'] = [['Branch1 R1'], ['Branch2 R1', 'Branch2 R2']]
+        rivers['qlocations'] = ['L1', 'L2']
+        rivers['normal_width'] = [[250.0], [250.0, 100.0]]
+        rivers['ucritical'] = [[0.3], [0.3, 0.3]]
+        rivers['qstagnant'] = [[50.0], [0.0, 1500.0]]
+        rivers['qfit'] = [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
+        
+        rivers['version'] = '2.0'
+        
+        rivers['autotime'] = [[False], [False, False]]
+        rivers['cdisch'] = [[(11.0, 21.0)], [(11.0, 21.0), (11.0, 21.0)]]
+        rivers['cform'] = [[2], [2, 2]]
+        rivers['hydro_q'] = [[()], [(), ()]]
+        rivers['hydro_t'] = [[()], [(), ()]]
+        rivers['prop_c'] = [[()], [(), ()]]
+        rivers['prop_q'] = [[()], [(), ()]]
+        rivers['tide'] = [[True], [True, True]]
+        rivers['tide_bc'] = [[()], [(), ()]]
+
+        self.maxDiff = None
+        assert dfastmi.RiversObject.read_rivers("tests/files/read_riversv2_test.ini") == rivers
+    
             
 class Test_collect_values1():
     def test_collect_values1_01(self):
