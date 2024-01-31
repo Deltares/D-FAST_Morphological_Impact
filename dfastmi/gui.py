@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Dict, Any, Optional
-from dfastmi.io import RiversObject
+from dfastmi.RiversObject import RiversObject
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui

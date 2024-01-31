@@ -33,7 +33,14 @@ teamcity-messages = "^1.32"
 source = ["dfastmi"]
 
 [tool.pytest.ini_options]
-addopts = "--cov --cov-report=term --cov-report=xml:coverage-reports/coverage.xml "
+addopts = [ "--ignore=tests-dist",
+            "--cov",
+            "--cov-report=term",
+            "--cov-report=xml:coverage-reports/coverage.xml",
+]
+
+[tool.pytest]
+testpaths="tests"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
