@@ -17,31 +17,60 @@ Each file type is addressed separately in the following subsections.
 
 The rivers configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
-The initial version number will be \keyw{1.0}.
+The version number should be \keyw{2.0}.
 
-Besides the \keyw{[General]} block version 1.0 files should only contain data blocks for the river branches (in Dutch: takken).
+Besides the \keyw{[General]} block version 2.0 files should only contain data blocks identifying the river branches (in Dutch: takken).
 The names of those blocks will be used as branch names.
 For instance, a block [My branch] will be processed as a branch called "My branch".
-The order of the branches will correspond to the order of the blocks in the file.
+The order of the branches in the gui will correspond to the order of the blocks in the file.
 The branch block defines the reaches (in Dutch: stukken) to be distinguished as well as the branch or reach specific parameter settings.
-The \keyw{[General]} block may contain default values for the 
+The \keyw{[General]} block may contain default values for the various parameters.
 Further details follow below.
 
-\begin{tabular}{l|l|p{8cm}}
+\begin{longtable}{l|l|p{8cm}}
+\caption{xxx} \\
 Block & Keyword & Description \\ \hline
-\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0} \\
-BranchName<i> & \keyw{Reach<j>} & Name of reach <j> within branch <i> \\
+\endfirsthead
+\multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
+Block & Keyword & Description \\ \hline
+\endhead
+\hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
+\endfoot
+\endlastfoot
+\keyw{General} & \keyw{Version} & Version number.
+Must be \keyw{2.0}. \\
+\keyw{General} & \keyw{Checksum} & Checksum of the rivers configuration file.
+Used to verify that the rivers configuration file wasn't accidentally modified. \\
 BranchName<i> & \keyw{QLocation} & Location at which discharges for branch <i> are defined \\
-\keyw{*} & \keyw{QStagnant} & Discharge \unitbrackets{m\textsuperscript{3}/s} below which main channel flow can be assumed stagnant \\
-\keyw{*} & \keyw{QMin} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which measure becomes active \\
-\keyw{*} & \keyw{QFit} & Two discharges \unitbrackets{m\textsuperscript{3}/s} used for representing the exceedance curve \\
-\keyw{*} & \keyw{QLevels} & Four characteristic discharges \unitbrackets{m\textsuperscript{3}/s} used by algorithm \\
-\keyw{*} & \keyw{dQ} & Two discharge adjustments \unitbrackets{m\textsuperscript{3}/s} used by algorithm \\
+BranchName<i> & \keyw{Reach<j>} & Name of reach <j> within branch <i> \\
 \keyw{*} & \keyw{NWidth} & Normal width \unitbrackets{m} of main channel \\
-\keyw{*} & \keyw{PRLow} & Low flow propagation rate \unitbrackets{km/yr} \\
-\keyw{*} & \keyw{PRHigh} & High flow propagation rate \unitbrackets{km/yr} \\
-\keyw{*} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport
-\end{tabular}
+\keyw{*} & \keyw{QStagnant} & Discharge \unitbrackets{m\textsuperscript{3}/s} below which main channel flow can be assumed stagnant \\
+\keyw{*} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport \\
+
+\keyw{*} & \keyw{HydroQ} & Series of discharges \unitbrackets{\SI{}{\metre\cubed\per\second}} representing each stage of the ``hydrograph'' \\
+\keyw{*} & \keyw{Tide} & Flag to indicate whether the stages of the ``hydrograph'' are represented by discharge only (False) or by a combination of discharge and tide (True). \\
+\keyw{*} & \keyw{TideBC} & Series of other tidal conditions representing the stages of the ``hydrograph''.
+Only used in case \keyw{Tide} equals True. \\
+
+\keyw{*} & \keyw{AutoTime} & Flag to indicate whether the duration of each discharge period should automatically be derived from the exceedance curve given by \keyw{QFit}.
+The default value is False. \\
+\keyw{*} & \keyw{HydroT} & Series of values specifying the duration of each stage of the ``hydrograph''.
+The unit used for specifying the durations is arbitrary: the sum of all durations is assumed to be equivalent to 1 year.
+The length of the series should be equal to the length of the series of discharges specified for \keyw{HydroQ}.
+Only used in case \keyw{AutoTime} equals False. \\
+\keyw{*} & \keyw{QFit} & Two discharges \unitbrackets{\SI{}{\metre\cubed\per\second}} used for representing the exceedance curve in case \keyw{AutoTime} equals True. \\
+
+\keyw{*} & \keyw{CelerForm} & Flag to indicate the method used for determining the bed celerity.
+The options are 1 (series of discharge, bed celerity pairs) and 2 (power-law relation between celerity and discharge).
+The default value is 2. \\
+\keyw{*} & \keyw{PropQ} & Strictly-monotonous increasing list of discharges \unitbrackets{\SI{}{\metre\cubed\per\second}} for which the bed celerity is given.
+Only used in case \keyw{CelerForm} equals 1. \\
+\keyw{*} & \keyw{PropC} & List of bed celerities \unitbrackets{\SI{}{\metre\per\second}} one value for each discharge specified by \keyw{PropQ}.
+The length of the lists given by \keyw{PropQ} and \keyw{PropC} should be equal.
+Only used in case \keyw{CelerForm} equals 1. \\
+\keyw{*} & \keyw{CelerQ} & Two values representing the multiplication scalar and exponent of the power-law relation of the bed celerity \unitbrackets{\SI{}{\metre\per\second}} as function of the discharge \unitbrackets{\SI{}{\metre\cubed\per\second}}.
+Only used in case \keyw{CelerForm} equals 2.
+\end{longtable}
 
 The second value of \keyw{QLevels} corresponds to the typical bankfull discharge.
 All keywords listed for block \keyw{*} may occur either in the \keyw{[General]} block or in one of the branch specific blocks where they may optionally be concatenated with the reach number <j>.
@@ -50,7 +79,7 @@ Those keywords may thus occur in three flavours:
 \begin{enumerate}
 \item Plain keyword in block \keyw{[General]}: global default value valid for all branches
 \item Plain keyword in branch specific block: default value for that branch (overrules any global default)
-\item Keyword followed by reach number <j> in branch specific block: value valid for that reach on that branch.
+\item Keyword followed by reach number <j> in branch specific block: value valid for that specific reach (on that branch).
 \end{enumerate}
 
 \subsubsection*{Example}
@@ -142,40 +171,39 @@ The header string contains one placeholder, namely \keyw{{version}} for the the 
     ... continued ...
 \end{Verbatim}
 
-\section{analysis configuration file}
+\section{analysis configuration file}\label{app:config}
 
 The analysis configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
-The initial version number will be \keyw{1.0}.
+The version number should be \keyw{2.0}.
 
-Version 1.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the measure is located.
+Version 2.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the measure is located.
 The specified names may be shortened, but they should uniquely identify the branch and reach amongst the names of the other branches and reaches.
-Optionally, the same block may also contain \keyw{Qmin}, \keyw{QBankfull} and \keyw{UCrit} values representative for this particular measure if they differ from those typical for the selected reach.
-These items are sufficient for a basic analysis.
-For a full spatial analysis the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without measure (reference) and with measure for the selected discharges Q1, Q2, and Q3.
+The same block may also contain \keyw{QThreshold} and \keyw{UCrit} values representative for this particular measure if they differ from those typical for the selected reach.
+Furthermore, this block may contain \keyw{FigureDir} and \keyw{OutputDir} specifying where the figures and other output files should be written.
+The \keyw{RiverKM} keyword to specify the chainage along the reach of interest is needed for estimating the initial year dredging volumes.
+Last but not least, the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without measure (reference) and with measure for the selected flow conditions.
+These names must be specified in a continuous sequences of numbered blocks named \keyw{C1}, \keyw{C2}, etc.
+The order of the blocks is not important: the relevant blocks are identified by means of the \keyw{Discharge} and optionally \keyw{TideBC} specified per block.
+There should be a match for every stage of the configured ``hydrograph'' for the selected branch/reach.
+The file names may be specified using relative or absolute paths.
 
 \begin{tabular}{l|l|p{8cm}}
 Block & Keyword & Description \\ \hline
-\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0} \\
-\keyw{General} & \keyw{Mode} & \keyw{WAQUA export} or \keyw{D-Flow FM map} (the latter is the default) \\
+\keyw{General} & \keyw{Version} & Version number.
+Must be \keyw{2.0} \\
 \keyw{General} & \keyw{Branch} & Name of the selected branch \\
 \keyw{General} & \keyw{Reach} & Name of the selected reach \\
-\keyw{General} & \keyw{QMin} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which measure becomes active \\
-\keyw{General} & \keyw{QBankfull} & Discharge \unitbrackets{m\textsuperscript{3}/s} at which measure reaches bankfull \\
-\keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport \\
-\keyw{Q1} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the low flow simulation \\
-\keyw{Q1} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q1 \\
-\keyw{Q1} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure at Q1 \\
-\keyw{Q2} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the transitional regime \\
-\keyw{Q2} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q2 \\
-\keyw{Q2} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure at Q2 \\
-\keyw{Q3} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the high flow simulation \\
-\keyw{Q3} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q3 \\
-\keyw{Q3} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure at Q3 \\
+\keyw{General} & \keyw{QThreshold} & Minimum discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} at which measure becomes active \\
+\keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{\SI{}{\metre\per\second}} for sediment transport \\
+\keyw{General} & \keyw{RiverKM} & Name of file with river chainage \unitbrackets{\SI{}{\kilo\metre}} and corresponding xy-coordinates \\
+\keyw{General} & \keyw{FigureDir} & Directory for storing figures (default relative to work dir: figure) \\
+\keyw{General} & \keyw{OutputDir} & Directory for storing output files \\
+\keyw{C}<i> & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of condition <i> \\
+\keyw{C}<i> & \keyw{TideBC} & Tidal boundary of condition <i> \\
+\keyw{C}<i> & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition <i> \\
+\keyw{C}<i> & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure <i> \\
 \end{tabular}
-
-The file names may be specified using relative or absolute paths.
-The \keyw{Reference} and \keyw{WithMeasure} keywords are *not* used when the \keyw{Mode} equals \keyw{WAQUA export}; in that case the file name are standardized as \keyw{xyz\_<quantity>-zeta.00<1/2>.Q<i>}.
 
 \subsubsection*{Example}
 
@@ -259,9 +287,6 @@ The length and content of the report vary depending on the availability of the s
 
 
 \section{spatial output file}
-
-The WAQMORF program wrote the spatial output in SIMONA BOX-file format which could be visualize when combined with the curvilinear grid of the original simulation.
-\dfastmi still generates such files when run based on WAQUA results.
 
 \dfastmi generates one UGRID netCDF file containing the spatial results of the analysis.
 The mesh information is copied from the D-Flow FM map file and the three data fields (erosion and sedimentation patterns for mean, minimum, and maximum impact) follow standardized conventions for data stored at cell centres (\keyw{face}-values) on an unstructured mesh.

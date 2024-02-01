@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, Tuple
+from dfastmi.RiversObject import RiversObject
 
 import sys
 import os
@@ -41,7 +42,7 @@ def run(
     language: str = "UK",
     runmode: str = "GUI",
     configfile: str = "dfastmi.cfg",
-    rivers_file: str = "Dutch_rivers.ini",
+    rivers_file: str = "Dutch_rivers_v2.ini",
     reduced_output: bool = False,
 ) -> None:
     """
@@ -56,7 +57,7 @@ def run(
     configfile: str
         Configuration file ('dfastmi.cfg' is default)
     rivers_file : str
-        Name of rivers configuration file ('Dutch_rivers.ini' is default).
+        Name of rivers configuration file ('Dutch_rivers_v2.ini' is default).
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only (False is default).
@@ -78,7 +79,7 @@ def run(
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
         abs_rivers_file = dfastmi.io.absolute_path(progloc, rivers_file)
-        rivers = dfastmi.io.read_rivers(abs_rivers_file)
+        rivers = dfastmi.RiversObject.read_rivers(abs_rivers_file)
         if runmode == "BATCH":
             dfastmi.batch.batch_mode(configfile, rivers, reduced_output)
         elif runmode == "CLI":
