@@ -10,7 +10,6 @@ START /B /WAIT poetry run nuitka ^
  --python-flag=no_asserts ^
  --python-flag=no_docstrings ^
  --nofollow-import-to=*.tests ^
- --nofollow-import-to=*test* ^
  --report=compilation-report.xml ^
  --show-progress ^
  --enable-plugin=pyqt5 ^
