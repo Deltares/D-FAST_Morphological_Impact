@@ -25,21 +25,36 @@ def captured_output():
 
 
 class Test_load_program_texts():
-    def test_load_program_texts_01(self):
+     def test_load_program_texts_in_global_PROGTEXT(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\ncontent\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+            assert dfastmi.io.PROGTEXTS['header'] == ['content']
+         
+     def test_load_program_texts_multiline_in_global_PROGTEXT(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\ncontent\r\ncontent2\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+            assert dfastmi.io.PROGTEXTS['header'] == ['content', 'content2']
+         
+     def test_load_program_texts_line_header_in_global_PROGTEXT(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\n[otherheader]\r\ncontent\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+            assert dfastmi.io.PROGTEXTS['header'] == []
+            assert dfastmi.io.PROGTEXTS['otherheader'] == ['content']
+         
+     def test_load_program_texts_double_header_throws_exception(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\n[header]\r\ncontent\r\n")) as mock_file:
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.load_program_texts("")
+            assert str(cm.value) == 'Duplicate entry for "header" in "".'
+         
+    
+class Test_data_access_load_program_texts():
+    def test_load_program_texts_load_default_uk_messages_file(self):
         """
         Testing load_program_texts.
         """
         print("current work directory: ", os.getcwd())
-        assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None
-
-    def test_load_program_texts_02(self):
-        """
-        Testing load_program_texts.
-        """
-        print("current work directory: ", os.getcwd())
-        with pytest.raises(Exception) as cm:
-            dfastmi.io.load_program_texts("tests/files/messages.duplicate_keys.ini")
-        assert str(cm.value) == 'Duplicate entry for "checksum" in "tests/files/messages.duplicate_keys.ini".'
+        assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None    
     
 class Test_log_text():
     @pytest.fixture
