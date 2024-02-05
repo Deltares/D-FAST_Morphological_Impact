@@ -30,7 +30,7 @@ class Test_batch_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            result = subprocess.run([dfastexe,"--mode","BATCH","--config","config.cfg","--language","NL"], capture_output=True)
+            result = subprocess.run([dfastexe,"--mode","BATCH","--rivers","Dutch_rivers_v1.ini","--config","config.cfg","--language","NL"], capture_output=True)
             outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)
