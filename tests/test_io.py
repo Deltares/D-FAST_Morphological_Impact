@@ -1,3 +1,5 @@
+import io
+import mock
 import context
 import dfastmi.io
 import configparser
@@ -38,13 +40,13 @@ class Test_load_program_texts():
         with pytest.raises(Exception) as cm:
             dfastmi.io.load_program_texts("tests/files/messages.duplicate_keys.ini")
         assert str(cm.value) == 'Duplicate entry for "checksum" in "tests/files/messages.duplicate_keys.ini".'
-
-@pytest.fixture
-def setup_data():
-    dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-
+    
 class Test_log_text():
-    def test_log_text_01(self, setup_data):
+    @pytest.fixture
+    def setup_data(self):
+        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
+
+    def test_log_text_01(self, setup_data: None):
         """
         Testing standard output of a single text without expansion.
         """
@@ -55,7 +57,7 @@ class Test_log_text():
         strref = ['Confirm using "y" ...', '']
         assert outstr == strref
 
-    def test_log_text_02(self, setup_data):
+    def test_log_text_02(self, setup_data: None):
         """
         Testing standard output of a repeated text without expansion.
         """
@@ -67,7 +69,7 @@ class Test_log_text():
         strref = ['', '', '']
         assert outstr == strref
 
-    def test_log_text_03(self, setup_data):
+    def test_log_text_03(self, setup_data: None):
         """
         Testing standard output of a text with expansion.
         """
@@ -79,7 +81,7 @@ class Test_log_text():
         strref = ['The measure is located on reach ABC']
         assert outstr == strref
 
-    def test_log_text_04(self, setup_data):
+    def test_log_text_04(self, setup_data: None):
         """
         Testing file output of a text with expansion.
         """
@@ -101,19 +103,23 @@ class Test_get_filename():
         assert dfastmi.io.get_filename("report.out") == "report.txt"
 
 class Test_get_text():
+    @pytest.fixture
+    def setup_data(self):
+        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
+
     def test_get_text_01(self):
         """
         Testing get_text: key not found.
         """
         assert dfastmi.io.get_text("@") == ["No message found for @"]
 
-    def test_get_text_02(self, setup_data):
+    def test_get_text_02(self, setup_data: None):
         """
         Testing get_text: empty line key.
         """
         assert dfastmi.io.get_text("") == [""]
 
-    def test_get_text_03(self, setup_data):
+    def test_get_text_03(self, setup_data: None):
         """
         Testing get_text: "confirm" key.
         """
@@ -740,89 +746,159 @@ class Test_get_xykm():
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
 class Test_read_xyc():
-    def test_read_xyc_01(self):
+    @pytest.fixture
+    def setup_data(self):
+        with mock.patch('os.path.splitext') as mock_splitext:
+            mock_splitext.return_value = ("c:\\", ".XYC")
+            yield self
+
+    def test_read_xyc_read_waqua_xyz_test_xyc_file(self):
         """
-        read .xyc file with val
+        Read WAQUA xyz file columns 2 and 3 = X & Y, column 1 is chainage. 
         """
         line = dfastmi.io.read_xyc("tests/files/read_waqua_xyz_test.xyc", 3, ",", True)
 
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
+        
+    def test_read_xyc_with_header_with_chainages_custom_separator(self, setup_data):
+        """
+        read .xyc file with chainage
+        With custom header and seperator.
+        """
+        data_string = '''\
+                        "A", "B", "C"
+                        1, 2, 3
+                        4, 5, 6
+                        7, 8, 9
+                        10, 11, 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 3, ",", True)        
+        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
-    def test_read_xyc_02(self):
+    def test_read_xyc_with_header_without_chainages_custom_separator(self, setup_data):
         """
-        read .xyc file without val (X,Y only)
+        read .xyc file without chainage (X,Y only)
+        With custom header and seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_waqua_xyz_test.xyc", 2, ",", True)
+        data_string = '''\
+                        "A", "B"
+                        2, 3
+                        5, 6
+                        8, 9
+                        11, 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 2, ",", True)
+        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
+
+    def test_read_xyc_with_header_with_chainages_no_custom_separator(self, setup_data):
+        """
+        read .xyc file with chainage
+        With custom header and seperator.
+        """
+        data_string = '''\
+                        "A" "B" "C"
+                        1 2 3
+                        4 5 6
+                        7 8 9
+                        10 11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 3, hasHeader=True)        
+        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
+
+    def test_read_xyc_with_header_without_chainages_no_custom_separator(self, setup_data):
+        """
+        read .xyc file without chainage (X,Y only)
+        With custom header and seperator.
+        """
+        data_string = '''\
+                        "A" "B"
+                        2 3
+                        5 6
+                        8 9
+                        11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 2, hasHeader=True)
         assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
     
-    def test_read_xyc_03(self):
+    def test_read_xyc_no_header_with_chainages_no_custom_separator(self, setup_data):
         """
-        read .xyc file with val
+        read .xyc file with chainage
+        No header and no custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test.xyc", 3)
+        data_string = '''\
+                        1 2 3
+                        4 5 6
+                        7 8 9
+                        10 11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 3)
 
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
-    def test_read_xyc_04(self):
+    def test_read_xyc_no_header_without_chainages_no_custom_separator(self, setup_data):
         """
-        read .xyc file without val (X,Y only)
+        read .xyc file without chainage
+        No header and no custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test.xyc", 2)
+        data_string = '''\
+                        2 3
+                        5 6
+                        8 9
+                        11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 2)
+        
         assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
     
-    def test_read_xyc_05(self):
+    def test_read_xyc_no_header_with_chainages_custom_separator(self, setup_data):
         """
-        read .xyc file with val
+        read .xyc file with chainage
+        No header and custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter.xyc", 3, ";")
+        data_string = '''\
+                        1;2;3
+                        4;5;6
+                        7;8;9
+                        10;11;12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 3, ";")
 
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
-    def test_read_xyc_06(self):
+    def test_read_xyc_no_header_without_chainages_custom_separator(self, setup_data):
         """
-        read .xyc file without val (X,Y only)
+        read .xyc file without chainage (X,Y only)
+        No header and custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter.xyc", 2, ";")
-        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
+        data_string = '''\
+                        2;3
+                        5;6
+                        8;9
+                        11;12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 2, ";")
+        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'    
 
-    def test_read_xyc_07(self):
-        """
-        read .xyc file with val
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter_header.xyc", 3, ";", True)
-
-        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
-
-    def test_read_xyc_08(self):
-        """
-        read .xyc file without val (X,Y only)
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter_header.xyc", 2, ";", True)
-        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
-    
-    def test_read_xyc_09(self):
-        """
-        read .xyc file with val
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_nodelimiter_header.xyc", 3, hasHeader=True)
-
-        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
-
-    def test_read_xyc_10(self):
-        """
-        read .xyc file without val (X,Y only)
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_nodelimiter_header.xyc", 2, hasHeader=True)
-        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
-
-    def test_read_xyc_11(self):
+    def test_read_xyc_read_kml_file(self):
         """
         read .kml file with val
         """
         line = dfastmi.io.read_xyc("tests/files/cta_rail_lines.kml")
         assert line.wkt == 'MULTILINESTRING Z ((-87.77678526964958 41.8708863930319 0, -87.77826234150609 41.87097820122218 0, -87.78251583439344 41.87130129991005 0, -87.78418294588424 41.87145055520308 0, -87.7872369165933 41.8717239119163 0, -87.79160214925886 41.87210797280065 0))'
     
-    def test_read_xyc_12(self):
+    def test_read_xyc_read_shp_file(self):
         """
         read .shp file with val 
         """
