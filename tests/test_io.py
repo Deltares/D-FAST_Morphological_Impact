@@ -182,13 +182,21 @@ class Test_data_access_log_text():
         assert all_lines == strref
 
 class Test_get_filename():
-    def test_get_filename_01(self):
+    def test_get_filename_get_filename_from_uk_keys(self):
+        """
+        Testing get_filename wrapper for get_text.
+        """
+        dfastmi.io.PROGTEXTS = {"filename_report.out": ["report.txt"]}
+        file = dfastmi.io.get_filename("report.out")
+        assert  file == "report.txt"
+
+class Test_data_access_get_filename():
+    def test_get_filename_get_filename_from_uk_keys(self):
         """
         Testing get_filename wrapper for get_text.
         """
         dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
         assert dfastmi.io.get_filename("report.out") == "report.txt"
-
 class Test_get_text():
     def test_get_text_from_empty_global_PROGTEXTS_results_in_no_message_found(self):
         """
