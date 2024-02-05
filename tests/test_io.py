@@ -304,7 +304,6 @@ class Test_data_access_write_config():
                          '[Group 3]',
                          '  longkey = 3']
         assert all_lines == all_lines_ref
-
 class Test_read_fm_map():
 
     def test_read_fm_map_mock_2_2dmeshes_in_file_raises_exception(self):
