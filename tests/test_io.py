@@ -197,6 +197,7 @@ class Test_data_access_get_filename():
         """
         dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
         assert dfastmi.io.get_filename("report.out") == "report.txt"
+
 class Test_get_text():
     def test_get_text_from_empty_global_PROGTEXTS_results_in_no_message_found(self):
         """
@@ -226,19 +227,19 @@ class Test_data_access_get_text():
     def setup_data(self):
         dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
 
-    def test_get_text_01(self):
+    def test_get_text_messages_uk_loaded_key_not_found(self):
         """
         Testing get_text: key not found.
         """
         assert dfastmi.io.get_text("@") == ["No message found for @"]
 
-    def test_get_text_02(self, setup_data: None):
+    def test_get_text_messages_uk_loaded_key_empty(self, setup_data: None):
         """
         Testing get_text: empty line key.
         """
         assert dfastmi.io.get_text("") == [""]
 
-    def test_get_text_03(self, setup_data: None):
+    def test_get_text_messages_uk_loaded_key_confirm_returns_value(self, setup_data: None):
         """
         Testing get_text: "confirm" key.
         """
