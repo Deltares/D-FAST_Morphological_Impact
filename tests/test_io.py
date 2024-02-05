@@ -35,7 +35,7 @@ class Test_load_program_texts():
             dfastmi.io.load_program_texts("")
             assert dfastmi.io.PROGTEXTS['header'] == ['content', 'content2']
          
-     def test_load_program_texts_line_header_in_global_PROGTEXT(self):
+     def test_load_program_texts_line_header_with_no_value_in_global_PROGTEXT(self):
          with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\n[otherheader]\r\ncontent\r\n")) as mock_file:
             dfastmi.io.load_program_texts("")
             assert dfastmi.io.PROGTEXTS['header'] == []
@@ -55,13 +55,85 @@ class Test_data_access_load_program_texts():
         """
         print("current work directory: ", os.getcwd())
         assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None    
-    
+
 class Test_log_text():
+    @pytest.fixture
+    def setup_data(self):
+        dfastmi.io.PROGTEXTS = {}        
+        
+    def test_log_text_no_key_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key)
+        outstr = out.getvalue().splitlines()
+        strref = "No message found for " + key
+        assert outstr[0] == strref
+    
+    def test_log_text_with_key_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key)
+        outstr = out.getvalue().splitlines()
+        strref = "Confirm key found"
+        assert outstr[0] == strref
+
+    def test_log_text_with_key_and_variable_id_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        dict = {"value": "ABC"}
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found with {value}\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key,dict=dict)
+        outstr = out.getvalue().splitlines()
+        strref = "Confirm key found with ABC"
+        assert outstr[0] == strref
+    
+    def test_log_text_two_times_with_key_and_variable_id_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        dict = {"value": "ABC"}
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found with {value}\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key, dict=dict, repeat=2)
+        outstr = out.getvalue().splitlines()
+        strref = "Confirm key found with ABC"
+        assert outstr[0] == strref
+        assert outstr[1] == strref
+
+    def test_log_text_with_key_and_variable_id_in_global_PROGTEXT_write_in_file(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        dict = {"value": "ABC"}
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found with {value}\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+
+        with mock.patch("builtins.open") as mock_file:
+            dfastmi.io.log_text(key, dict=dict, file=mock_file)
+            assert mock_file.write.called
+            mock_file.write.assert_called_once_with("Confirm key found with ABC\n")            
+
+class Test_data_access_log_text():
     @pytest.fixture
     def setup_data(self):
         dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
 
-    def test_log_text_01(self, setup_data: None):
+    def test_log_text_check_content_messages_uk(self, setup_data: None):
         """
         Testing standard output of a single text without expansion.
         """
@@ -72,7 +144,7 @@ class Test_log_text():
         strref = ['Confirm using "y" ...', '']
         assert outstr == strref
 
-    def test_log_text_02(self, setup_data: None):
+    def test_log_text_empty_keys(self, setup_data: None):
         """
         Testing standard output of a repeated text without expansion.
         """
@@ -84,7 +156,7 @@ class Test_log_text():
         strref = ['', '', '']
         assert outstr == strref
 
-    def test_log_text_03(self, setup_data: None):
+    def test_log_text_replace_variable_id_with_provided_value_in_dictionary(self, setup_data: None):
         """
         Testing standard output of a text with expansion.
         """
@@ -96,7 +168,7 @@ class Test_log_text():
         strref = ['The measure is located on reach ABC']
         assert outstr == strref
 
-    def test_log_text_04(self, setup_data: None):
+    def test_log_text_replace_variable_id_with_provided_value_in_dictionary_and_write_in_file(self, setup_data: None):
         """
         Testing file output of a text with expansion.
         """
