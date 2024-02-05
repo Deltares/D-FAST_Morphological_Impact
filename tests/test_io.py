@@ -198,6 +198,7 @@ class Test_data_access_get_filename():
         """
         dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
         assert dfastmi.io.get_filename("report.out") == "report.txt"
+
 class Test_get_text():
     def test_get_text_from_empty_global_PROGTEXTS_results_in_no_message_found(self):
         """
