@@ -29,17 +29,12 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-
 from typing import Tuple, List, Optional
+
 import math
 import numpy
 
-QLevels = Tuple[float, float, float, float]
-QChange = Tuple[float, float]
-QRuns = Tuple[Optional[float], Optional[float], Optional[float]]
-Vector = Tuple[float, ...]
-BoolVector = Tuple[bool, ...]
-
+from dfastmi.kernel.typehints import QLevels, QChange, QRuns, Vector, BoolVector
 
 def char_discharges(
     q_levels: QLevels, dq: QChange, q_threshold: Optional[float], q_bankfull: float
