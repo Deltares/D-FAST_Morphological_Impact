@@ -1,5 +1,5 @@
-import numpy
 from typing import List
+import numpy
 from dfastmi.kernel.typehints import Vector
 
 
@@ -50,16 +50,14 @@ class BedLevelCalculator:
         """
         return numpy.minimum.reduce(dzb)
 
-    def linear_average(self, T, dzb):
+    def linear_average(self, number_of_days, dzb):
         """
         This method gets the linear average from the given bed levels.
 
         Arguments
         ---------
-        T     : Vector
+        number_of_days : Vector
             A vector of periods indicating the number of days during which each discharge applies.
-        N     : int
-            Amount of the equilibrium bed level change for each respective discharge period available.
         dzb   : List[numpy.ndarray]
             List of arrays containing the bed level change at the beginning of each respective discharge period.
 
@@ -70,9 +68,9 @@ class BedLevelCalculator:
         """
         for i in range(self.number_of_periods):
             if i == 0:
-                dzgem = dzb[0] * (T[0] + T[-1]) / 2
+                dzgem = dzb[0] * (number_of_days[0] + number_of_days[-1]) / 2
             else:
-                dzgem = dzgem + dzb[i] * (T[i] + T[i-1]) / 2
+                dzgem = dzgem + dzb[i] * (number_of_days[i] + number_of_days[i-1]) / 2
         return dzgem
 
     def get_bed_level_changes(self, dzq: List[numpy.ndarray], rsigma: Vector):
@@ -100,13 +98,13 @@ class BedLevelCalculator:
         return dzb
 
     def __get_mask__(self, dzq):
-        firstQ = True
+        first_q = True
         for i in range(self.number_of_periods):
             if dzq[i] is None:
                 pass
-            elif firstQ:
+            elif first_q:
                 mask = numpy.isnan(dzq[0])
-                firstQ = False
+                first_q = False
             else:
                 mask = mask | numpy.isnan(dzq[i])
         return mask
@@ -121,8 +119,8 @@ class BedLevelCalculator:
             vsigma.append( vsigma_tmp )
         return vsigma
 
-    def __compute_denominator__(self, N, vsigma):
-        for i in range(N):
+    def __compute_denominator__(self, number_of_periods, vsigma):
+        for i in range(number_of_periods):
             if i == 0:
                 den = vsigma[0]
             else:
@@ -140,12 +138,12 @@ class BedLevelCalculator:
                 dzb.append(numpy.where(den != 0, enm / den, 0))
         return dzb
 
-    def __compute_enumerator__(self, dzq, N, i, vsigma):
-        for j in range(N):
-            jr = (i + j) % N
+    def __compute_enumerator__(self, dzq, number_of_periods, i, vsigma):
+        for j in range(number_of_periods):
+            jr = (i + j) % number_of_periods
             dzb_tmp = dzq[jr] * (1 - vsigma[jr])
-            for k in range(j+1,N):
-                kr = (i + k) % N
+            for k in range(j+1,number_of_periods):
+                kr = (i + k) % number_of_periods
                 dzb_tmp = dzb_tmp * vsigma[kr]
             if j == 0:
                 enm = dzb_tmp
