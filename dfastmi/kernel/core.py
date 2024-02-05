@@ -34,7 +34,7 @@ from typing import Tuple, List, Optional
 import math
 import numpy
 
-from dfastmi.BedLevelCalculator import BedLevelCalculator
+from dfastmi.kernel.BedLevelCalculator import BedLevelCalculator
 from dfastmi.kernel.typehints import QLevels, QChange, QRuns, Vector, BoolVector
 
 def char_discharges(
