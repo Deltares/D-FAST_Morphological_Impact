@@ -1081,7 +1081,6 @@ class Test_config_get_range():
         config[myGroup][myKey] = myVal
         assert dfastmi.io.config_get_range(config, myGroup, myKey) == (0.0,10.0)
 
-    @pytest.mark.skip(reason="Other exception is thrown")
     def test_config_get_range_03(self):
         """
         
@@ -1095,7 +1094,7 @@ class Test_config_get_range():
         config[myGroup][myKey] = myVal #even on not setting this value we expect the exception
         with pytest.raises(Exception) as cm:
             dfastmi.io.config_get_range(config, myGroup, myKey)
-        assert range(cm.value) == 'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format("", myKey, myGroup)
+        assert str(cm.value) == 'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format(myVal, myKey, myGroup)
  
     def test_config_get_range_04(self):
         """
