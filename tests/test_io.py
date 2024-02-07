@@ -1341,6 +1341,15 @@ class Test_absolute_path():
         afile = os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         assert dfastmi.io.absolute_path(rootdir, rfile) == afile
+    
+    def test_absolute_path_05(self):
+        """
+        When can't convert, return relative path back
+        """
+        rootdir = None
+        afile = os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
+        rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
+        assert dfastmi.io.absolute_path(rootdir, rfile) == rfile
 
 class Test_relative_path():
     def test_relative_path_01(self):
