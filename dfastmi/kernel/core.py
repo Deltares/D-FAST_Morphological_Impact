@@ -311,7 +311,8 @@ def main_computation(
     dzb   : List[numpy.ndarray]
         List of arrays containing the bed level change at the beginning of each respective discharge period.
     """  
-    blc = BedLevelCalculator(dzq)
+    number_of_periods = len(dzq)
+    blc = BedLevelCalculator(number_of_periods)
     dzb = blc.get_bed_level_changes(dzq, rsigma)
     dzmax = blc.get_element_wise_maximum(dzb)
     dzmin = blc.get_element_wise_minimum(dzb)

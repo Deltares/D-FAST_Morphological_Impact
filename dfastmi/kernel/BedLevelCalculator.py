@@ -8,7 +8,7 @@ class BedLevelCalculator:
     This class is used to calculate bed level related values.
     """
 
-    def __init__(self, dzq:List[numpy.ndarray]):
+    def __init__(self, number_of_periods: int):
         """
         dzq : List[numpy.ndarray]
         A list of arrays containing the equilibrium bed level change for each respective discharge period.
@@ -16,7 +16,7 @@ class BedLevelCalculator:
         number_of_periods
             Amount of the equilibrium bed level change for each respective discharge period available.
         """
-        self.number_of_periods = len(dzq)
+        self.number_of_periods = number_of_periods
 
     def get_element_wise_maximum(self, dzb: List[numpy.ndarray]):
         """
