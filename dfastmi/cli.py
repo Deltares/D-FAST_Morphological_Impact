@@ -29,12 +29,12 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.RiversObject import RiversObject
-from dfastmi.kernel import QRuns
+from dfastmi.kernel.core import QRuns
 
 import os
 import numpy
 import dfastmi.io
-import dfastmi.kernel
+import dfastmi.kernel.core
 import dfastmi.batch
 import configparser
 
@@ -91,7 +91,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         if have_files and not all_q:
             break
 
-        slength = dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+        slength = dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
         reach = rivers["reaches"][ibranch][ireach]
         if have_files:
@@ -390,9 +390,9 @@ def interactive_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, applyQ = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, applyQ = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-    tstag, T, rsigma = dfastmi.kernel.char_times(
+    tstag, T, rsigma = dfastmi.kernel.core.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
     )
 

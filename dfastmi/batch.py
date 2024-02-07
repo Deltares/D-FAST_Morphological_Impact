@@ -29,14 +29,14 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Union, Dict, Any, Tuple, TextIO
 from dfastmi.RiversObject import RiversObject
-from dfastmi.kernel import Vector, BoolVector, QRuns
+from dfastmi.kernel.core import Vector, BoolVector, QRuns
 
 import sys
 import os
 import math
 import numpy
 import dfastmi.io
-import dfastmi.kernel
+import dfastmi.kernel.core
 import dfastmi.plotting
 import matplotlib
 import configparser
@@ -176,7 +176,7 @@ def batch_mode_core(
                 else:
                     n_fields = 1
 
-            slength = dfastmi.kernel.estimate_sedimentation_length2(time_mi, celerity)
+            slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
 
             reach = rivers["reaches"][ibranch][ireach]
             try:
@@ -426,7 +426,7 @@ def get_levels_v2(
     if cform == 1:
         prop_q = rivers["prop_q"][ibranch][ireach]
         prop_c = rivers["prop_c"][ibranch][ireach]
-        celerity = tuple(dfastmi.kernel.get_celerity(q, prop_q, prop_c) for q in Q)
+        celerity = tuple(dfastmi.kernel.core.get_celerity(q, prop_q, prop_c) for q in Q)
     elif cform == 2:
         cdisch = rivers["cdisch"][ibranch][ireach]
         celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
@@ -444,7 +444,7 @@ def get_levels_v2(
     if all_zero:
         raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
     
-    rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+    rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
     tstag = 0
 
     return (Q, apply_q, time_mi, tstag, T, rsigma, celerity)
@@ -625,9 +625,9 @@ def batch_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, apply_q = dfastmi.kernel.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, apply_q = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-    tstag, T, rsigma = dfastmi.kernel.char_times(
+    tstag, T, rsigma = dfastmi.kernel.core.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
     )
 
@@ -1028,7 +1028,7 @@ def analyse_and_report_waqua(
             rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
         
         # main_computation now returns new pointwise zmin and zmax
-        data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.main_computation(
+        data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.core.main_computation(
             dzq, T, rsigma
         )
         if old_zmin_zmax:
@@ -1303,7 +1303,7 @@ def analyse_and_report_dflowfm(
             rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
             
         # main_computation now returns new pointwise zmin and zmax
-        dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.main_computation(
+        dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
             dzq, T, rsigma
         )
         if old_zmin_zmax:
@@ -1649,7 +1649,7 @@ def get_values_waqua3(
     h0 = h0.reshape(sz)
     u1 = u1.reshape(sz)
 
-    dzq = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+    dzq = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, ucrit)
     if display:
         dfastmi.io.log_text("---")
     return dzq, firstm, firstn
@@ -1748,7 +1748,7 @@ def get_values_fm(
         v1 = dfastmi.io.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
         umag1 = numpy.sqrt(u1**2 + v1**2)
 
-        dzq1 = dfastmi.kernel.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
+        dzq1 = dfastmi.kernel.core.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
 
         if n_fields > 1:
             ustream = u0*dx + v0*dy

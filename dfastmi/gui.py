@@ -34,7 +34,7 @@ from PyQt5 import QtWidgets
 import PyQt5.QtGui
 import dfastmi.batch
 import dfastmi.io
-import dfastmi.kernel
+import dfastmi.kernel.core
 import pathlib
 import sys
 import os
@@ -376,7 +376,7 @@ def update_qvalues() -> None:
         nwidth = rivers["normal_width"][ibranch][ireach]
         q_threshold = float(dialog["qthr"].text())
         [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
-        slength = dfastmi.kernel.estimate_sedimentation_length2(time_mi, celerity)
+        slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
     except:
         dialog["slength"].setText("---")

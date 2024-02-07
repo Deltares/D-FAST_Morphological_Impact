@@ -1,4 +1,4 @@
-import dfastmi.kernel
+import dfastmi.kernel.core
 import numpy
 import pytest
 
@@ -14,7 +14,7 @@ class Test_char_discharges():
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_threshold = None
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (True, True, True))
+        assert dfastmi.kernel.core.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (True, True, True))
         
     @pytest.mark.parametrize("q_bankfull, expected_qruns", [
         (2000, (1500, 2500, 6000)), #Testing char_discharges for Qbf = 2000 and Qth = 1500.
@@ -27,7 +27,7 @@ class Test_char_discharges():
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_threshold = 1500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, True, True))
+        assert dfastmi.kernel.core.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, True, True))
 
     @pytest.mark.parametrize("q_bankfull, expected_qruns", [
         (4000, (3500, 4500, 6000)), #Testing char_discharges for Qbf = 4000 and Qth = 3500.
@@ -37,7 +37,7 @@ class Test_char_discharges():
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_threshold = 3500
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, True, True))
+        assert dfastmi.kernel.core.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, True, True))
 
     @pytest.mark.parametrize("q_threshold, expected_qruns", [
         (4500, (4500, None, 6000)), #Testing char_discharges for Qth = 4500.
@@ -49,7 +49,7 @@ class Test_char_discharges():
         q_lvl = (3000, 4000, 6000, 10000)
         dq = (1000, 1000)
         q_bankfull = 999999999999
-        assert dfastmi.kernel.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, False, True))
+        assert dfastmi.kernel.core.char_discharges(q_lvl, dq, q_threshold, q_bankfull) == (expected_qruns, (False, False, True))
 
 class Test_char_times():
     
@@ -61,7 +61,7 @@ class Test_char_times():
         celerity_lw = 0.89
         nwidth = 340
 
-        result_tstag, result_T, result_rsigma = dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
+        result_tstag, result_T, result_rsigma = dfastmi.kernel.core.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
         
         assert result_tstag == 0.0
         assert result_T == (0.8207098794498814, 0.09720512192621984, 0.08208499862389877)
@@ -75,7 +75,7 @@ class Test_char_times():
         celerity_lw = 0.89
         nwidth = 340
 
-        result_tstag, result_T, result_rsigma = dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
+        result_tstag, result_T, result_rsigma = dfastmi.kernel.core.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
         
         assert result_tstag == 0.0
         assert result_T == (0.9444585116689311, 0.0, 0.05554148833106887)
@@ -89,7 +89,7 @@ class Test_char_times():
         celerity_lw = 0.80
         nwidth = 100
         
-        result_tstag, result_T, result_rsigma = dfastmi.kernel.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
+        result_tstag, result_T, result_rsigma = dfastmi.kernel.core.char_times(q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth)
         
         assert result_tstag == 0.42124440138751573
         assert result_T == (0.39946547806236565, 0.09720512192621984, 0.08208499862389873)
@@ -109,7 +109,7 @@ class Test_estimate_sedimentation_length():
         rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
         nwidth = 340
         
-        result = int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth))
+        result = int(dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth))
         assert  result == expected_length
         
     @pytest.mark.parametrize("nwidth, expected_length", [
@@ -121,7 +121,7 @@ class Test_estimate_sedimentation_length():
         rsigma = (0.3415830625333821, 0.5934734581592429, 0.6436479901670012)
         applyQ = (True, True, True)
         
-        result = int(dfastmi.kernel.estimate_sedimentation_length(rsigma, applyQ, nwidth))
+        result = int(dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth))
         assert  result == expected_length
 
 class Test_dzq_from_du_and_h():
@@ -132,7 +132,7 @@ class Test_dzq_from_du_and_h():
         ucrit = 0.3
         
         dzq = numpy.array([0.0, 2.0, 0.5, 1.0,  -1.0])
-        dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+        dzqc = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, ucrit)
         assert (dzqc == dzq).all()
 
     def test_given_situations_resulting_in_nans_when_dzq_from_du_and_h_then_all_values_returned_are_nan(self):
@@ -141,7 +141,7 @@ class Test_dzq_from_du_and_h():
         u1  = numpy.array([-0.5, 0.5, 0.2,   0.5])
         ucrit = 0.3
 
-        dzqc = dfastmi.kernel.dzq_from_du_and_h(u0, h0, u1, ucrit)
+        dzqc = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, ucrit)
         assert numpy.isnan(dzqc).all()
    
 class Test_main_computation():
@@ -160,7 +160,7 @@ class Test_main_computation():
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 1.]),
                 numpy.array([0.012096774193548387, 0.8185483870967742, 0.8185483870967742, 1., 1.])]
         
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.core.main_computation([dzq1, dzq2, dzq3], T, rsigma)
         
         self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)
 
@@ -188,7 +188,7 @@ class Test_main_computation():
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.]),
                 numpy.array([0.012096774193548387, 0.8185483870967742, 0.8185483870967742, 1., 0.])]
         
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.core.main_computation([dzq1, dzq2, dzq3], T, rsigma)
         
         self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)
 
@@ -217,7 +217,7 @@ class Test_main_computation():
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.]),
                 numpy.array([0.012096774193548387, 0.8185483870967742, 0.8185483870967742, 1., 0.])]
         
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.core.main_computation([dzq1, dzq2, dzq3], T, rsigma)
         
         self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)
 
@@ -245,7 +245,7 @@ class Test_main_computation():
                 numpy.array([0.08163265306122451, 0.08163265306122451, 0.08163265306122451, 1., 1.]),
                 numpy.array([0.08163265306122451, 0.08163265306122451, 0.08163265306122451, 1., 1.])]
         
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.core.main_computation([dzq1, dzq2, dzq3], T, rsigma)
         
         self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)    
 
@@ -274,7 +274,7 @@ class Test_main_computation():
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 1.]),
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 1.])]
         
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dummy, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.core.main_computation([dzq1, dummy, dzq2, dzq3], T, rsigma)
         
         self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)   
 
@@ -304,7 +304,7 @@ class Test_main_computation():
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.]),
                 numpy.array([0.06048387096774193, 0.09274193548387097, 0.09274193548387097, 1., 0.])]
 
-        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.main_computation([dzq1, dzqS, dzq2, dzq3], T, rsigma)
+        zgemc, zmaxc, zminc, dzb = dfastmi.kernel.core.main_computation([dzq1, dzqS, dzq2, dzq3], T, rsigma)
         
         self.print_values_floatmode_unique(zgem, zgemc, zmax, zmaxc, zmin, zminc, zdzb, dzb)   
 
@@ -343,7 +343,7 @@ class Test_celerity_calculation():
         cel_q = [first_element_of_celq,20,30,40] 
         cel_c = [first_element_of_celc,20,30,40] 
         
-        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        celerity = dfastmi.kernel.core.get_celerity(q, cel_q, cel_c)
         assert celerity == 11
     
     def test_given_first_element_Of_celq_is_bigger_than_q_when_get_celerity_then_return_first_element_of_celc(self):
@@ -354,7 +354,7 @@ class Test_celerity_calculation():
         cel_q = [first_element_of_celq,20,30,40] 
         cel_c = [first_element_of_celc,20,30,40] 
         
-        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        celerity = dfastmi.kernel.core.get_celerity(q, cel_q, cel_c)
         assert celerity == first_element_of_celc
 
     def test_given_q_bigger_than_any_celq_when_get_celerity_then_return_last_element_of_celc(self):
@@ -365,7 +365,7 @@ class Test_celerity_calculation():
         cel_q = [10,20,30,40]
         cel_c = [10,20,30,LastElementOfCelc] 
         
-        celerity = dfastmi.kernel.get_celerity(q, cel_q, cel_c)
+        celerity = dfastmi.kernel.core.get_celerity(q, cel_q, cel_c)
         assert celerity == LastElementOfCelc
     
 class Test_relax_factors_calculation():
@@ -376,7 +376,7 @@ class Test_relax_factors_calculation():
         celerity = [1.0]
         nwidth = 1.0
         
-        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert 0.76<= rsigma[0] <= 0.78
         
     def test_given_multiple_values_for_calculation_when_relax_factors_then_return_rsigma_values_between_expected_values(self):
@@ -386,7 +386,7 @@ class Test_relax_factors_calculation():
         celerity = [1.0,0.0005]
         nwidth = 1.0
         
-        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert 0.76<= rsigma[0] <= 0.78
         assert 0.76<= rsigma[1] <= 0.78
         
@@ -397,7 +397,7 @@ class Test_relax_factors_calculation():
         celerity = [1.0,0.0005]
         nwidth = 5.0
         
-        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert 0.94<= rsigma[0] <= 0.96
         assert 0.94<= rsigma[0] <= 0.96
         
@@ -408,7 +408,7 @@ class Test_relax_factors_calculation():
         celerity = [5,5,5,5] 
         nwidth = 2.0
         
-        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert rsigma == (1.0, 1.0, 1.0, 1.0)
         
     def test_given_q_smaller_than_q_stagnant_when_relax_factors_then_return_rsigma_values_of_1(self):
@@ -418,7 +418,7 @@ class Test_relax_factors_calculation():
         celerity = [5,5,5,5] 
         nwidth = 2.0
         
-        rsigma = dfastmi.kernel.relax_factors(Q, T, q_stagnant, celerity, nwidth)
+        rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
         assert rsigma == (1.0, 1.0, 1.0, 1.0)
   
 class Test_estimate_sedimentation_length2():
@@ -431,5 +431,5 @@ class Test_estimate_sedimentation_length2():
         ([2,2,2,2,2],[2,2,2,2,2],20000),
     ]) 
     def test_given_tmi_and_celerity_when_estimate_sedimentation_length2_then_return_expected_length(self, tmi, celerity, expected_length):
-        length = dfastmi.kernel.estimate_sedimentation_length2(tmi,celerity)
+        length = dfastmi.kernel.core.estimate_sedimentation_length2(tmi,celerity)
         assert length == expected_length
