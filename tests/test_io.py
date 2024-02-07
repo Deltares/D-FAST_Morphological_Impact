@@ -855,6 +855,7 @@ class Test_collect_int_values1():
 
         intValues = dfastmi.io.collect_int_values1(config, branches, nreaches, key)
         assert intValues == [[2,3],[4,5,6]]
+class Test_collect_values_logical():
 
 class Test_config_get_bool():
     def test_config_get_bool_01(self):
