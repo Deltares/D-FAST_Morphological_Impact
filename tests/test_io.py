@@ -633,6 +633,23 @@ class Test_get_mesh_and_facedim_names():
         """
         Testing get_mesh_and_facedim_names.
         """
+        filename = "mocked_file_name.nc"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_mesh = mock.MagicMock(name="mesh2d", spec=netCDF4.Variable)
+            mock_mesh.getncattr.return_value = "aVar"
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_mesh, mock_mesh]
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.get_mesh_and_facedim_names(filename)
+            assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."
+            
+            
+
+class Test_data_access_get_mesh_and_facedim_names():
+    def test_get_mesh_and_facedim_names_01(self):
+        """
+        Testing get_mesh_and_facedim_names.
+        """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         name_and_dim = dfastmi.io.get_mesh_and_facedim_names(filename)
         assert name_and_dim == ("mesh2d", "mesh2d_nFaces")
