@@ -10,15 +10,12 @@ class BedLevelCalculator:
 
     def __init__(self, number_of_periods: int):
         """
-        dzq : List[numpy.ndarray]
-        A list of arrays containing the equilibrium bed level change for each respective discharge period.
-
-        number_of_periods
-            Amount of the equilibrium bed level change for each respective discharge period available.
+        number_of_periods : int
+         Amount of the equilibrium bed level change for each respective discharge period available.
         """
         self.number_of_periods = number_of_periods
 
-    def get_element_wise_maximum(self, dzb: List[numpy.ndarray]):
+    def get_element_wise_maximum(self, dzb: List[numpy.ndarray]) -> numpy.ndarray:
         """
         This method gets the element wise maximum from the given bed levels.
 
@@ -34,7 +31,7 @@ class BedLevelCalculator:
         """
         return numpy.maximum.reduce(dzb)
 
-    def get_element_wise_minimum(self, dzb: List[numpy.ndarray]):
+    def get_element_wise_minimum(self, dzb: List[numpy.ndarray]) -> numpy.ndarray:
         """
         This method gets the element wise minimum from the given bed levels.
 
@@ -50,7 +47,7 @@ class BedLevelCalculator:
         """
         return numpy.minimum.reduce(dzb)
 
-    def linear_average(self, number_of_days, dzb):
+    def get_linear_average(self, number_of_days: Vector, dzb: List[numpy.ndarray]) -> numpy.ndarray:
         """
         This method gets the linear average from the given bed levels.
 
@@ -66,14 +63,12 @@ class BedLevelCalculator:
         dzgem : numpy.ndarray
             Yearly mean bed level change.
         """
+        dzgem = 0
         for i in range(self.number_of_periods):
-            if i == 0:
-                dzgem = dzb[0] * (number_of_days[0] + number_of_days[-1]) / 2
-            else:
-                dzgem = dzgem + dzb[i] * (number_of_days[i] + number_of_days[i-1]) / 2
+            dzgem += dzb[i] * (number_of_days[i] + number_of_days[i-1]) / 2
         return dzgem
 
-    def get_bed_level_changes(self, dzq: List[numpy.ndarray], rsigma: Vector):
+    def get_bed_level_changes(self, dzq: List[numpy.ndarray], rsigma: Vector) -> List[numpy.ndarray]:
         """
         This routine computes the bed level changes.
         This routine requires that dzq and rsigma have the same length.
@@ -95,15 +90,8 @@ class BedLevelCalculator:
         den = self.__compute_denominator__(self.number_of_periods, vsigma)
         dzb = self.__compute_dzb_at_the_beginning_of_each_period__(dzq, vsigma, den)
         return dzb
-    
-    def __get_mask__(self, dzq):
-        mask = numpy.zeros_like(self.number_of_periods, dtype=bool)
-        for dzq_value in dzq:
-            if dzq_value is not None:
-                mask = mask | numpy.isnan(dzq_value)
-        return mask
 
-    def __compute_vsigma__(self, rsigma : List[float], dzq) -> List[numpy.ndarray]:
+    def __compute_vsigma__(self, rsigma : List[float], dzq):
         vsigma = []
         
         mask = self.__get_mask__(dzq)
@@ -114,6 +102,13 @@ class BedLevelCalculator:
             vsigma.append( vsigma_tmp )
             
         return vsigma
+    
+    def __get_mask__(self, dzq):
+        mask = numpy.zeros_like(self.number_of_periods, dtype=bool)
+        for dzq_value in dzq:
+            if dzq_value is not None:
+                mask = mask | numpy.isnan(dzq_value)
+        return mask
 
     def __compute_denominator__(self, number_of_periods, vsigma):
         for i in range(number_of_periods):

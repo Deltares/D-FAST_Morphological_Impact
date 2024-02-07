@@ -41,7 +41,7 @@ class Test_BedLevelCalculator():
                 numpy.array([25, 30, 35, 1., 0.]),
                 numpy.array([40, 45, 50, 1., 0.])]
         
-        linear_average = blc.linear_average(number_of_days, dzb)
+        linear_average = blc.get_linear_average(number_of_days, dzb)
         assert numpy.array_equal(linear_average, linear_average_array)
       
       
