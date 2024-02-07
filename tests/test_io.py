@@ -856,7 +856,48 @@ class Test_collect_int_values1():
         intValues = dfastmi.io.collect_int_values1(config, branches, nreaches, key)
         assert intValues == [[2,3],[4,5,6]]
 class Test_collect_values_logical():
+    def test_collect_values_logical_01(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "YES"
+        config[myGroup][myKey] = myVal
+        branches = ['Channel1','Channel2','Channel3']
+        nreaches  = [2,1,3]
 
+        assert dfastmi.io.collect_values_logical(config, branches, nreaches, myKey) == [[True,True],[True],[True, True, True]]
+    
+    def test_collect_values_logical_02(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = ""
+        config[myGroup][myKey] = myVal
+        branches = ['Channel1','Channel2','Channel3']
+        nreaches  = [2,1,3]
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.collect_values_logical(config, branches, nreaches, myKey)
+        assert str(cm.value) == 'Reading KEY for reach 1 on Channel1 returns "". Expecting 1 values.'
+
+    def test_collect_values_logical_03(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myKey = "KEY"
+        branches = ['Channel1','Channel2','Channel3']
+        nreaches  = [2,1,3]
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.collect_values_logical(config, branches, nreaches, myKey)
+        assert str(cm.value) == 'Reading KEY for reach 1 on Channel1 returns "". Expecting 1 values.'
 class Test_config_get_bool():
     def test_config_get_bool_01(self):
         """
