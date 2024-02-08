@@ -3,7 +3,7 @@ from dfastmi.kernel.typehints import Vector, BoolVector
 
 def estimate_sedimentation_length(
     rsigma: Vector,
-    applyQ: BoolVector,
+    apply_q: BoolVector,
     nwidth: float,
 ) -> float:
     """
@@ -14,7 +14,7 @@ def estimate_sedimentation_length(
     ---------
     rsigma : Vector
         A tuple of relaxation factors, one for each period.
-    applyQ : BoolVector
+    apply_q : BoolVector
         A tuple of 3 flags indicating whether each value should be used or not.
     nwidth : float
         Normal river width (from rivers configuration file).
@@ -26,7 +26,7 @@ def estimate_sedimentation_length(
     """
     logrsig = [0.0] * len(rsigma)
     for i in range(len(rsigma)):
-        if applyQ[i]:
+        if apply_q[i]:
             logrsig[i] = math.log(rsigma[i])
     length = -sum(logrsig)
     
