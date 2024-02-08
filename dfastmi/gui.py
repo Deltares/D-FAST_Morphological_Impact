@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Dict, Any, Optional
-from dfastmi.RiversObject import RiversObject
+from dfastmi.io.RiversObject import RiversObject
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
@@ -316,9 +316,9 @@ def updated_branch(ibranch: int) -> None:
     """
     reach = dialog["reach"]
     reach.clear()
-    reach.addItems(rivers["reaches"][ibranch])
+    reach.addItems(rivers.reaches[ibranch])
 
-    dialog["qloc"].setText(rivers["qlocations"][ibranch])
+    dialog["qloc"].setText(rivers.qlocations[ibranch])
 
 
 def updated_reach(ireach: int) -> None:
@@ -332,9 +332,9 @@ def updated_reach(ireach: int) -> None:
     """
     ibranch = dialog["branch"].currentIndex()
 
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
+    q_stagnant = rivers.qstagnant[ibranch][ireach]
     dialog["qthr"].setText(str(q_stagnant))
-    dialog["ucrit"].setText(str(rivers["ucritical"][ibranch][ireach]))
+    dialog["ucrit"].setText(str(rivers.ucritical[ibranch][ireach]))
     update_qvalues()
 
 
@@ -351,7 +351,7 @@ def update_qvalues() -> None:
     if ireach < 0:
         return
 
-    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    hydro_q = rivers.hydro_q[ibranch][ireach]
     tabs = dialog["tabs"]
     for j in range(tabs.count()-2,-1,-1):
         if j >= len(hydro_q):
@@ -359,7 +359,7 @@ def update_qvalues() -> None:
         else:
             prefix = str(j)+"_"
             qval = str(hydro_q[j])
-            dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
+            dialog[prefix+"qloc"].setText(rivers.qlocations[ibranch])
             dialog[prefix+"qval"].setText(qval)
             tabs.setTabText(1+j,qval+" m3/s")
     
@@ -368,12 +368,12 @@ def update_qvalues() -> None:
             prefix = str(j)+"_"
             add_condition_tab(prefix)
             qval = str(hydro_q[j])	
-            dialog[prefix+"qloc"].setText(rivers["qlocations"][ibranch])
+            dialog[prefix+"qloc"].setText(rivers.qlocations[ibranch])
             dialog[prefix+"qval"].setText(qval)
             tabs.setTabText(1+j,qval+" m3/s")
             
     try:
-        nwidth = rivers["normal_width"][ibranch][ireach]
+        nwidth = rivers.normal_width[ibranch][ireach]
         q_threshold = float(dialog["qthr"].text())
         [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
         slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
@@ -457,11 +457,11 @@ def load_configuration(filename: str) -> None:
     ireach = dialog["reach"].currentIndex()
 
     dialog["qthr"].setText(
-        section.get("Qthreshold", str(rivers["qstagnant"][ibranch][ireach]))
+        section.get("Qthreshold", str(rivers.qstagnant[ibranch][ireach]))
     )
 
     dialog["ucrit"].setText(
-        section.get("Ucrit", str(rivers["ucritical"][ibranch][ireach]))
+        section.get("Ucrit", str(rivers.ucritical[ibranch][ireach]))
     )
     
     dialog["outputDir"].setText(
@@ -481,7 +481,7 @@ def load_configuration(filename: str) -> None:
     )
     update_qvalues()
     
-    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    hydro_q = rivers.hydro_q[ibranch][ireach]
     for i in range(len(hydro_q)):
         prefix = str(i)+"_"
         cond = "C{}".format(i+1)
@@ -556,7 +556,7 @@ def get_configuration() -> configparser.ConfigParser:
     # loop over conditions cond = "C1", "C2", ...
     ibranch = dialog["branch"].currentIndex()
     ireach = dialog["reach"].currentIndex()
-    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    hydro_q = rivers.hydro_q[ibranch][ireach]
     for i in range(len(hydro_q)):
         cond = "C{}".format(i+1)
         config.add_section(cond)
@@ -628,7 +628,7 @@ def menu_open_manual():
     ---------
     None
     """
-    progloc = dfastmi.io.get_progloc()
+    progloc = dfastmi.io.FileUtils.get_progloc()
     filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
     subprocess.Popen(filename, shell=True)
 
@@ -649,7 +649,7 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
 
     rivers = rivers_configuration
     create_dialog()
-    dialog["branch"].addItems(rivers["branches"])
+    dialog["branch"].addItems(rivers.branches)
 
     if not config is None:
         load_configuration(config)

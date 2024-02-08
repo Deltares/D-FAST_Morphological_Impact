@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, Tuple
-from dfastmi.RiversObject import RiversObject
+from dfastmi.io.RiversObject import RiversObject
 
 import sys
 import os
@@ -63,9 +63,9 @@ def run(
         interest only (False is default).
     """
 
-    progloc = dfastmi.io.get_progloc()
+    progloc = dfastmi.io.FileUtils.get_progloc()
     try:
-        dfastmi.io.load_program_texts(
+        dfastmi.io.ApplicationSettingsHelper.load_program_texts(
             progloc + os.path.sep + "messages." + language + ".ini"
         )
     except:
@@ -78,13 +78,13 @@ def run(
         else:
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
-        abs_rivers_file = dfastmi.io.absolute_path(progloc, rivers_file)
-        rivers = dfastmi.RiversObject.read_rivers(abs_rivers_file)
+        abs_rivers_file = dfastmi.io.FileUtils.absolute_path(progloc, rivers_file)
+        rivers = dfastmi.io.RiversObject(abs_rivers_file)
         if runmode == "BATCH":
             dfastmi.batch.batch_mode(configfile, rivers, reduced_output)
         elif runmode == "CLI":
             if configfile != "dfastmi.cfg":
-                dfastmi.io.log_text("ignoring_config")
+                dfastmi.io.ApplicationSettingsHelper.log_text("ignoring_config")
             dfastmi.cli.interactive_mode(sys.stdin, rivers, reduced_output)
         elif runmode == "GUI":
             dfastmi.gui.main(rivers, configfile)
