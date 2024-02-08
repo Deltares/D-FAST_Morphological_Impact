@@ -35,6 +35,7 @@ import os
 import numpy
 import dfastmi.io
 import dfastmi.kernel.core
+import dfastmi.kernel.legacy
 import dfastmi.batch
 import configparser
 
@@ -91,7 +92,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         if have_files and not all_q:
             break
 
-        slength = dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+        slength = dfastmi.kernel.legacy.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
         reach = rivers["reaches"][ibranch][ireach]
         if have_files:

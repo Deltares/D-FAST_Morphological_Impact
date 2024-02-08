@@ -376,7 +376,7 @@ def update_qvalues() -> None:
         nwidth = rivers["normal_width"][ibranch][ireach]
         q_threshold = float(dialog["qthr"].text())
         [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
-        slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
+        slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
     except:
         dialog["slength"].setText("---")

@@ -193,39 +193,7 @@ def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
         c = cel_c[-1]
     return c
 
-
 def estimate_sedimentation_length(
-    rsigma: Vector,
-    applyQ: BoolVector,
-    nwidth: float,
-) -> float:
-    """
-    This routine computes the sedimentation length in metres.
-
-    Arguments
-    ---------
-    rsigma : Vector
-        A tuple of relaxation factors, one for each period.
-    applyQ : BoolVector
-        A tuple of 3 flags indicating whether each value should be used or not.
-    nwidth : float
-        Normal river width (from rivers configuration file).
-
-    Returns
-    -------
-    L : float
-        The expected yearly impacted sedimentation length.
-    """
-    logrsig = [0.0] * len(rsigma)
-    for i in range(len(rsigma)):
-        if applyQ[i]:
-            logrsig[i] = math.log(rsigma[i])
-    length = -sum(logrsig)
-    
-    return 2.0 * nwidth * length
-
-
-def estimate_sedimentation_length2(
     tmi: Vector,
     celerity: Vector,
 ) -> float:
@@ -247,7 +215,6 @@ def estimate_sedimentation_length2(
     Lt = [tmi[i] * celerity[i] for i in range(len(tmi))]
     
     return sum(Lt) * 1000
-
 
 def dzq_from_du_and_h(
     u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float, default: float = numpy.NaN,
