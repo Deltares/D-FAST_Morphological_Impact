@@ -64,9 +64,9 @@ class RiversObject():
 
 
     def __init__(self, filename: str = "rivers.ini"):
-        self._read_rivers(filename=filename)
+        self._read_rivers_file(filename)
 
-    def _read_rivers(self, filename: str = "rivers.ini"):
+    def _read_rivers_file(self, filename):
         """
         Read a configuration file containing the river data.
 

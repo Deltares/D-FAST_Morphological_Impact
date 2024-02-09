@@ -27,7 +27,7 @@ class Test_read_rivers():
         rivers = RiversObject("tests/files/read_rivers_test.ini")
         
         assert rivers.branches == ['Branch1', 'Branch2']
-        assert rivers.reaches == [['Branch1 R1'], ['Branch2 R1', 'Branch2 R2']]
+        assert rivers.allreaches == [['Branch1 R1'], ['Branch2 R1', 'Branch2 R2']]
         assert rivers.qlocations == ['L1', 'L2']
         assert rivers.proprate_high == [[3.14], [3.65, 3.65]]
         assert rivers.proprate_low == [[0.8], [0.8, 0.9]]
@@ -71,29 +71,27 @@ class Test_read_rivers2():
         Testing read_rivers2, collect_values1, collect_values2 and collect_values4.
         """
         print("current work directory: ", os.getcwd())
-        rivers = {}
-        rivers.branches = ['Branch1', 'Branch2']
-        rivers.reaches = [['Branch1 R1'], ['Branch2 R1', 'Branch2 R2']]
-        rivers.qlocations = ['L1', 'L2']
-        rivers.normal_width = [[250.0], [250.0, 100.0]]
-        rivers.ucritical = [[0.3], [0.3, 0.3]]
-        rivers.qstagnant = [[50.0], [0.0, 1500.0]]
-        rivers.qfit = [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
+        rivers = RiversObject("tests/files/read_riversv2_test.ini")
+        assert rivers.branches == ['Branch1', 'Branch2']
+        assert rivers.allreaches == [['Branch1 R1'], ['Branch2 R1', 'Branch2 R2']]
+        assert rivers.qlocations == ['L1', 'L2']
+        assert rivers.normal_width == [[250.0], [250.0, 100.0]]
+        assert rivers.ucritical == [[0.3], [0.3, 0.3]]
+        assert rivers.qstagnant == [[50.0], [0.0, 1500.0]]
+        assert rivers.qfit == [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
         
-        rivers.version = '2.0'
+        assert rivers.version == '2.0'
         
-        rivers.autotime = [[False], [False, False]]
-        rivers.cdisch = [[(11.0, 21.0)], [(11.0, 21.0), (11.0, 21.0)]]
-        rivers.cform = [[2], [2, 2]]
-        rivers.hydro_q = [[()], [(), ()]]
-        rivers.hydro_t = [[()], [(), ()]]
-        rivers.prop_c = [[()], [(), ()]]
-        rivers.prop_q = [[()], [(), ()]]
-        rivers.tide = [[True], [True, True]]
-        rivers.tide_bc = [[()], [(), ()]]
-
-        self.maxDiff = None
-        assert RiversObject("tests/files/read_riversv2_test.ini") == rivers
+        assert rivers.autotime == [[False], [False, False]]
+        assert rivers.cdisch == [[(11.0, 21.0)], [(11.0, 21.0), (11.0, 21.0)]]
+        assert rivers.cform == [[2], [2, 2]]
+        assert rivers.hydro_q == [[()], [(), ()]]
+        assert rivers.hydro_t == [[()], [(), ()]]
+        assert rivers.prop_c == [[()], [(), ()]]
+        assert rivers.prop_q == [[()], [(), ()]]
+        assert rivers.tide == [[True], [True, True]]
+        assert rivers.tide_bc == [[()], [(), ()]]
+        
     
     def test_read_rivers2_03(self):
         """
