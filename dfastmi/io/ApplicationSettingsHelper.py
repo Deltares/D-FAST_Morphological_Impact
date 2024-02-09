@@ -96,10 +96,10 @@ class ApplicationSettingsHelper:
         """
 
         try:
-            str = ApplicationSettingsHelper.PROGTEXTS[key]
+            application_setting = ApplicationSettingsHelper.PROGTEXTS[key]
         except:
-            str = ["No message found for " + key]
-        return str
+            application_setting = ["No message found for " + key]
+        return application_setting
 
 
     @staticmethod
