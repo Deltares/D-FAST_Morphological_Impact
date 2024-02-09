@@ -90,5 +90,5 @@ class FileUtils:
         ---------
         None
         """
-        progloc = str(pathlib.Path(__file__).parent.absolute())
+        progloc = str(pathlib.Path(__file__).parent.parent.absolute())
         return progloc
