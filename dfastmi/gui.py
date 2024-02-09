@@ -316,7 +316,7 @@ def updated_branch(ibranch: int) -> None:
     """
     reach = dialog["reach"]
     reach.clear()
-    reach.addItems(rivers.reaches[ibranch])
+    reach.addItems(rivers.allreaches[ibranch])
 
     dialog["qloc"].setText(rivers.qlocations[ibranch])
 

@@ -91,7 +91,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
 
         slength = dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
-        reach = rivers.reaches[ibranch][ireach]
+        reach = rivers.allreaches[ibranch][ireach]
         if have_files:
             # determine critical flow velocity
             ucrit = rivers.ucritical[ibranch][ireach]
@@ -262,7 +262,7 @@ def interactive_get_location(
         Number of selected reach (None if user cancels).
     """
     branches = rivers.branches
-    reaches = rivers.reaches
+    reaches = rivers.allreaches
 
     accept = False
     ibranch = interactive_get_item(src, "branch", branches)

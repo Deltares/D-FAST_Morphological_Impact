@@ -148,7 +148,7 @@ def batch_mode_core(
     else:
         reach = config["General"]["Reach"]
         try:
-            ireach = rivers.reaches[ibranch].index(reach)
+            ireach = rivers.allreaches[ibranch].index(reach)
         except:
             ApplicationSettingsHelper.log_text(
                 "invalid_reach", dict={"reach": reach, "branch": branch}, file=report
@@ -184,7 +184,7 @@ def batch_mode_core(
 
             slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
 
-            reach = rivers.reaches[ibranch][ireach]
+            reach = rivers.allreaches[ibranch][ireach]
             try:
                 ucrit = float(config["General"]["Ucrit"])
             except:
@@ -2015,10 +2015,10 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
     
     reach = config["General"]["Reach"]
     ibranch = rivers.branches.index(branch)
-    if reach not in rivers.reaches[ibranch]:
+    if reach not in rivers.allreaches[ibranch]:
         return False
     
-    ireach = rivers.reaches[ibranch].index(reach)
+    ireach = rivers.allreaches[ibranch].index(reach)
     nwidth = rivers.nwidth[ibranch][ireach]
     [_, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
     
@@ -2143,10 +2143,10 @@ def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigPars
 
     ibranch = rivers.branches.index(branch)
     reach = config["General"]["Reach"]
-    if reach not in rivers.reaches[ibranch]:
+    if reach not in rivers.allreaches[ibranch]:
         return False
 
-    ireach = rivers.reaches[ibranch].index(reach)
+    ireach = rivers.allreaches[ibranch].index(reach)
     hydro_q = rivers.hydro_q[ibranch][ireach]
     n_cond = len(hydro_q)
     
