@@ -28,19 +28,19 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Dict, Any, Optional
-from dfastmi.io.RiversObject import RiversObject
-
-from PyQt5 import QtWidgets
-import PyQt5.QtGui
-import dfastmi.batch
-import dfastmi.io
-import dfastmi.kernel.core
-import pathlib
 import sys
 import os
 import configparser
 import subprocess
 from functools import partial
+import pathlib
+from PyQt5 import QtWidgets
+import PyQt5.QtGui
+import dfastmi.batch
+import dfastmi.kernel.core
+from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.FileUtils import FileUtils
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 rivers: RiversObject
 dialog: Dict[str, PyQt5.QtCore.QObject]
@@ -68,9 +68,9 @@ def gui_text(key: str, prefix: str = "gui_", dict: Dict[str, Any] = {}):
     -------
         The first line of the text in the dictionary expanded with the keys.
     """
-    cstr = dfastmi.io.get_text(prefix + key)
-    str = cstr[0].format(**dict)
-    return str
+    cstr = ApplicationSettingsHelper.get_text(prefix + key)
+    application_setting = cstr[0].format(**dict)
+    return application_setting
 
 
 def create_dialog() -> None:
@@ -582,7 +582,7 @@ def run_analysis() -> None:
             success = dfastmi.batch.batch_mode_core(rivers, False, config)
         except:
             success = False
-        report = dfastmi.io.get_filename("report.out")
+        report = ApplicationSettingsHelper.get_filename("report.out")
         if success:
             showMessage(gui_text("end_of_analysis", dict={"report": report},))
         else:
@@ -628,7 +628,7 @@ def menu_open_manual():
     ---------
     None
     """
-    progloc = dfastmi.io.FileUtils.get_progloc()
+    progloc = FileUtils.get_progloc()
     filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
     subprocess.Popen(filename, shell=True)
 

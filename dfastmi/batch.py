@@ -1630,7 +1630,7 @@ def get_values_waqua3(
     m = u0temp[:, 1].astype(int) - 1
     n = u0temp[:, 2].astype(int) - 1
     u0temp = u0temp[:, 0]
-    h0temp = dfastmi.DataTextFileOperations.read_waqua_xyz(files[1])
+    h0temp = DataTextFileOperations.read_waqua_xyz(files[1])
     u1temp = DataTextFileOperations.read_waqua_xyz(files[2])
 
     if reduced_output:
