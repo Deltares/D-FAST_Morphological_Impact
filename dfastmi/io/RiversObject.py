@@ -64,7 +64,7 @@ class RiversObject():
 
 
     def __init__(self, filename: str = "rivers.ini"):
-        self._read_rivers(filename)
+        self._read_rivers(filename=filename)
 
     def _read_rivers(self, filename: str = "rivers.ini"):
         """
@@ -110,7 +110,7 @@ class RiversObject():
             self._read_rivers_legacy()
             
         else: # iversion == 2
-            self._read_rivers(config) 
+            self._read_rivers() 
 
     def _parse_reaches_and_discharge_locations(self, config):
         self.allreaches = []
