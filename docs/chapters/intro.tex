@@ -1,36 +1,32 @@
 \chapter{Introduction}
 
-This manual describes \dfastmi which provides a first estimate of the bed level changes to be anticipated in the main channel due to the implementation of local river adjustments outside the main channel (so-called measures).
-The program implements the rule of thumb developed in the context of Rijkswaterstaat programme Stroomlijn by \citep{Sieben2008} which is only valid for the estimation of the effect of individual measures (at most one flood plain section in length) on the bed level of the main channel.
-It assumes a seasonal discharge variation that can be represented by means of three stages (normal/low flow, flood flow, and transitional flow) and it adopts a pragmatic approach to the spatial structure.
+This manual describes \dfastmi version 3 which provides a first estimate of the bed level changes to be anticipated in the main channel due to the implementation of local river adjustments outside the main channel (so-called measures).
+The program is a successor to the WAQMORF and \dfastmi version 2 programs that implemented the rule of thumb developed in the context of Rijkswaterstaat programme Stroomlijn by \citep{Sieben2008}.
+This new version follows the same conceptual approach, but uses a fixed set of flow conditions independent of the measure instead of three measure-dependent flow conditions.
+It assumes a seasonal discharge variation that can be represented by means of series of flow conditions.
 Bed level changes outside the immediate vicinity of influence of the measure are ignored in this analysis.
 The bed level changes are indicative for the effects over a sufficiently long cycle of high and low flow seasons.
 
 The typical analysis cycle consists of the following steps:
 
 \begin{enumerate}
-\item Use \dfastmi to determine the steady-state hydrodynamic simulations that will provide the necessary input for the morphological impact analysis.
-\dfastmi provides the discharge values for those conditions.
+\item Use \dfastmi or check \Autoref{Chp:steps} to determine the hydrodynamic simulations that will provide the necessary input for the morphological impact analysis.
 
-\item For the discharges obtained in step 1, steady-state simulations will be run using WAQUA or \dflowfm for both the reference situation and the scenario with only the measure to be evaluated implemented.
-All simulations need to be carried out using the same mesh and the same hydrodynamic model.
-In case of WAQUA simulations the result files need to be processed before continuing with step 3.
+\item For the conditions obtained in step 1, simulations will be run using \dflowfm for both the reference situation and the scenario with only the measure to be evaluated implemented.
+All simulations need to be carried out using the same base mesh.
 
-\item Using the (processed) simulation results of step 2, \dfastmi determines an estimate of the
+\item Using the simulation results of step 2, \dfastmi determines an estimate of the
 \begin{itemize}
 \item year-averaged bed level changes,
 \item maximum bed level changes (representative for the end of flood season) and
 \item minimum bed level changes (representative for the end of low flow season).
 \end{itemize}
-The \dfastmi analysis can be adjusted for any deviations between the discharges proposed by \dfastmi in step 1 and the actual simulated discharges in step 2.
 \end{enumerate}
 
 The methodology provides an indication of magnitude and location of the bed level changes, but can't always replace a complete morphodynamic simulation.
 The purpose of the rule of thumb is to provide a simple and consistent first estimate to avoid unnecessary morphodynamic simulations or to identify critical aspects in the design of the measure early on and to underpin the need for more extensive analysis.
 
 The appropriate use of the results -- the estimated bed level changes -- for the Dutch rivers is described in the ``rivierkundig beoordelingskader''.
-\dfastmi is the second implementation of the rule of thumb.
-It replaces the initial implementation (\texttt{WAQMORF}) which could only perform the analysis using WAQUA simulations.
 An evaluation of the rule of thumb \citep{Paarlberg2009} states the following
 
 \begin{itemize}
