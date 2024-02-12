@@ -119,6 +119,7 @@ class Test_batch_mode():
     def test_batch_mode_03(self):
         """
         Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
+        Version 1 configuration files.
         """
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
@@ -126,6 +127,43 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             result = subprocess.run([dfastexe,"--mode","BATCH","--rivers","Dutch_rivers_v1.ini","--config","Qmin_4000.cfg"], capture_output=True)
+            outstr = result.stdout.decode('UTF-8').splitlines()
+        finally:
+            os.chdir(cwd)
+        #
+        #for s in outstr:
+        #    print(s)
+        self.maxDiff = None
+        assert outstr == []
+        #
+        prefixes = ('This is version')
+        #
+        result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
+        refstr = open(refdir + os.sep + "report.txt", "r").read().splitlines()
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert result == refstr
+        #
+        ncRes = netCDF4.Dataset(tstdir + os.sep + "output" + os.sep + "dfastmi_results.nc")
+        ncRef = netCDF4.Dataset(refdir + os.sep + "dfastmi_results.nc")
+        
+        fields = ["avgdzb", "mindzb", "maxdzb"]
+        for f in fields:
+            result = ncRes.variables[f]
+            refdat = ncRef.variables[f]
+            assert (result[...] == refdat[...]).all()
+
+    def test_batch_mode_04(self):
+        """
+        Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
+        Version 2 configuration files ... special backward consistent river configuration.
+        """
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        refdir = tstdir + os.sep + "ref_Qmin_Q4000"
+        try:
+            os.chdir(tstdir)
+            result = subprocess.run([dfastexe,"--mode","BATCH","--rivers","rivers_Q4000_v2.ini","--config","Qmin_4000_v2.cfg"], capture_output=True)
             outstr = result.stdout.decode('UTF-8').splitlines()
         finally:
             os.chdir(cwd)

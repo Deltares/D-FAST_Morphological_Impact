@@ -186,7 +186,7 @@ def read_rivers2(config: configparser.ConfigParser, branches: List[str], allreac
     # for AutoTime = False
     rivers["hydro_t"] = collect_valuesN(config, branches, nreaches, "HydroT")
 
-    rivers["tide"] = collect_values_logical(config, branches, nreaches, "Tide")
+    rivers["tide"] = collect_values_logical(config, branches, nreaches, "Tide", False)
     # for Tide = True
     rivers["tide_bc"] = collect_valuesN(config, branches, nreaches, "TideBC")
 
