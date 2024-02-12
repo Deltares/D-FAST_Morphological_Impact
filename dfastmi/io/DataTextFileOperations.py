@@ -37,6 +37,8 @@ import shapely.geometry
 
 fiona.supported_drivers['kml'] = 'rw' # enable KML support which is disabled by default
 fiona.supported_drivers['KML'] = 'rw' # enable KML support which is disabled by default
+fiona.supported_drivers['libkml'] = 'rw' # enable KML support which is disabled by default
+fiona.supported_drivers['LIBKML'] = 'rw' # enable KML support which is disabled by default
 
 
 class DataTextFileOperations:

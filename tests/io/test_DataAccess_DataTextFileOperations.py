@@ -1,9 +1,10 @@
 import sys
 from contextlib import contextmanager
 from io import StringIO
+import numpy
 import mock
 import pytest
-import numpy
+
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 
 @contextmanager
