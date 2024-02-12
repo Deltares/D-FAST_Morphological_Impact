@@ -26,16 +26,14 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-
-from typing import Optional, Tuple
-from dfastmi.RiversObject import RiversObject
-
 import sys
 import os
-import numpy
 import dfastmi.cli
 import dfastmi.gui
-import dfastmi.io
+
+from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.FileUtils import FileUtils
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 
 def run(
@@ -63,9 +61,9 @@ def run(
         interest only (False is default).
     """
 
-    progloc = dfastmi.io.get_progloc()
+    progloc = FileUtils.get_progloc()
     try:
-        dfastmi.io.load_program_texts(
+        ApplicationSettingsHelper.load_program_texts(
             progloc + os.path.sep + "messages." + language + ".ini"
         )
     except:
@@ -78,13 +76,13 @@ def run(
         else:
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
-        abs_rivers_file = dfastmi.io.absolute_path(progloc, rivers_file)
-        rivers = dfastmi.RiversObject.read_rivers(abs_rivers_file)
+        abs_rivers_file = FileUtils.absolute_path(progloc, rivers_file)
+        rivers = RiversObject(abs_rivers_file)
         if runmode == "BATCH":
             dfastmi.batch.batch_mode(configfile, rivers, reduced_output)
         elif runmode == "CLI":
             if configfile != "dfastmi.cfg":
-                dfastmi.io.log_text("ignoring_config")
+                ApplicationSettingsHelper.log_text("ignoring_config")
             dfastmi.cli.interactive_mode(sys.stdin, rivers, reduced_output)
         elif runmode == "GUI":
             dfastmi.gui.main(rivers, configfile)

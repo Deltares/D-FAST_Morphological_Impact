@@ -1,6 +1,6 @@
 import context
 import dfastmi.batch
-import dfastmi.io
+
 import os
 
 import sys
@@ -8,6 +8,8 @@ import numpy
 import netCDF4
 from contextlib import contextmanager
 from io import StringIO
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.RiversObject import RiversObject
 
 @contextmanager
 def captured_output():
@@ -25,8 +27,8 @@ class Test_batch_mode():
         """
         Testing batch_mode: missing configuration file.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.RiversObject.read_rivers("dfastmi/Dutch_rivers_v1.ini")
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         with captured_output() as (out, err):
             dfastmi.batch.batch_mode("config.cfg", rivers, False)
         outstr = out.getvalue().splitlines()
@@ -40,8 +42,8 @@ class Test_batch_mode():
         """
         Testing batch_mode: running configuration file - Dutch report.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.RiversObject.read_rivers("dfastmi/Dutch_rivers_v1.ini")
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
@@ -81,8 +83,8 @@ class Test_batch_mode():
         """
         Testing batch_mode: running configuration file - English report.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = dfastmi.RiversObject.read_rivers("dfastmi/Dutch_rivers_v1.ini")
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
@@ -122,8 +124,8 @@ class Test_batch_mode():
         """
         Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = dfastmi.RiversObject.read_rivers("dfastmi/Dutch_rivers_v1.ini")
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         refdir = tstdir + os.sep + "ref_Qmin_Q4000"

@@ -28,14 +28,19 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, List, Union, Dict, Any, Tuple, TextIO
-from dfastmi.RiversObject import RiversObject
-from dfastmi.kernel.core import Vector, BoolVector, QRuns
-
 import sys
+from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.core import Vector, BoolVector, QRuns
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.RiverParameterData import RiverParameterData
+from dfastmi.io.DataTextFileOperations import DataTextFileOperations
+from dfastmi.io.GridOperations import GridOperations
+from dfastmi.io.FileUtils import FileUtils
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+
 import os
 import math
 import numpy
-import dfastmi.io
 import dfastmi.kernel.core
 import dfastmi.plotting
 import matplotlib
@@ -64,7 +69,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
         interest only.
     """
     if reduced_output:
-        dfastmi.io.log_text("reduce_output")
+        ApplicationSettingsHelper.log_text("reduce_output")
 
     try:
         config = load_configuration_file(config_file)
@@ -106,25 +111,26 @@ def batch_mode_core(
     apply_q : BoolVector
 
     display = False
+    data = RiverParameterData(config)
     
     # check outputdir
     if rootdir == "":
         rootdir = os.getcwd()
-    outputdir = dfastmi.io.config_get_str(config, "General", "OutputDir", rootdir + os.sep + "output")
+    outputdir = data.config_get_str("General", "OutputDir", rootdir + os.sep + "output")
     if os.path.exists(outputdir):
         if display:
-            dfastmi.io.log_text("overwrite_dir", dict={"dir": outputdir})
+            ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": outputdir})
     else:
         os.makedirs(outputdir)
-    report = open(outputdir + os.sep + dfastmi.io.get_filename("report.out"), "w")
+    report = open(outputdir + os.sep + ApplicationSettingsHelper.get_filename("report.out"), "w")
 
     prog_version = dfastmi.__version__
-    dfastmi.io.log_text("header", dict={"version": prog_version}, file=report)
-    dfastmi.io.log_text("limits", file=report)
-    dfastmi.io.log_text("===", file=report)
+    ApplicationSettingsHelper.log_text("header", dict={"version": prog_version}, file=report)
+    ApplicationSettingsHelper.log_text("limits", file=report)
+    ApplicationSettingsHelper.log_text("===", file=report)
 
     cfg_version = config["General"]["Version"]
-    rvr_version = rivers["version"]
+    rvr_version = rivers.version
     if version.parse(cfg_version) != version.parse(rvr_version):
         raise Exception(
             "Version number of configuration file ({}) must match version number of rivers file ({})".format(
@@ -135,22 +141,22 @@ def batch_mode_core(
     
     branch = config["General"]["Branch"]
     try:
-        ibranch = rivers["branches"].index(branch)
+        ibranch = rivers.branches.index(branch)
     except:
-        dfastmi.io.log_text("invalid_branch", dict={"branch": branch}, file=report)
+        ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch}, file=report)
         success = False
     else:
         reach = config["General"]["Reach"]
         try:
-            ireach = rivers["reaches"][ibranch].index(reach)
+            ireach = rivers.allreaches[ibranch].index(reach)
         except:
-            dfastmi.io.log_text(
+            ApplicationSettingsHelper.log_text(
                 "invalid_reach", dict={"reach": reach, "branch": branch}, file=report
             )
             success = False
         else:
-            nwidth = rivers["normal_width"][ibranch][ireach]
-            q_location = rivers["qlocations"][ibranch]
+            nwidth = rivers.normal_width[ibranch][ireach]
+            q_location = rivers.qlocations[ibranch]
             tide_bc: Tuple[str, ...] = ()
             
             if version.parse(cfg_version) == version.parse("1"):
@@ -161,15 +167,15 @@ def batch_mode_core(
 
             else:
                 # version 2
-                q_stagnant = rivers["qstagnant"][ibranch][ireach]
+                q_stagnant = rivers.qstagnant[ibranch][ireach]
                 if "Qthreshold" in config["General"]:
                     q_threshold = float(config["General"]["Qthreshold"])
                 else:
                     q_threshold = q_stagnant
                 [Q, apply_q, time_mi, tstag, T, rsigma, celerity] = get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
-                needs_tide = rivers["tide"][ibranch][ireach]
+                needs_tide = rivers.tide[ibranch][ireach]
                 if needs_tide:
-                    tide_bc = rivers["tide_bc"][ibranch][ireach]
+                    tide_bc = rivers.tide_bc[ibranch][ireach]
                     n_fields = int(config["General"]["NFields"])
                     if n_fields == 1:
                         raise Exception("Unexpected combination of tides and NFields = 1!")
@@ -178,54 +184,55 @@ def batch_mode_core(
 
             slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
 
-            reach = rivers["reaches"][ibranch][ireach]
+            reach = rivers.allreaches[ibranch][ireach]
             try:
                 ucrit = float(config["General"]["Ucrit"])
             except:
-                ucrit = rivers["ucritical"][ibranch][ireach]
+                ucrit = rivers.ucritical[ibranch][ireach]
             ucritMin = 0.01
             ucrit = max(ucritMin, ucrit)
             mode_str = config["General"].get("Mode",DFLOWFM_MAP)
             if mode_str == WAQUA_EXPORT:
                 mode = 0
-                dfastmi.io.log_text(
+                ApplicationSettingsHelper.log_text(
                     "results_with_input_waqua",
                     file=report,
                     dict={
-                        "avgdzb": dfastmi.io.get_filename("avgdzb.out"),
-                        "maxdzb": dfastmi.io.get_filename("maxdzb.out"),
-                        "mindzb": dfastmi.io.get_filename("mindzb.out"),
+                        "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
+                        "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
+                        "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
                     },
                 )
             else:
                 mode = 1
-                dfastmi.io.log_text(
+                ApplicationSettingsHelper.log_text(
                     "results_with_input_dflowfm",
                     file=report,
-                    dict={"netcdf": dfastmi.io.get_filename("netcdf.out")},
+                    dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
                 )
             filenames = get_filenames(mode, needs_tide, config)
             old_zmin_zmax = False
-            kmfile = dfastmi.io.config_get_str(config, "General", "RiverKM", "")
+            kmfile = data.config_get_str("General", "RiverKM", "")
             if kmfile != "":
-                xykm = dfastmi.io.get_xykm(kmfile)
+                xykm = DataTextFileOperations.get_xykm(kmfile)
                 xykline = numpy.array(xykm)
                 kline = xykline[:,2]
-                kmbounds = dfastmi.io.config_get_range(config, "General", "Boundaries", (min(kline), max(kline)))
+                kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
                 if display:
-                    dfastmi.io.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
+                    ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
             else:
                 kmbounds = (-math.inf, math.inf)
                 xykm = None
 
             # set plotting flags
-            plotting = dfastmi.io.config_get_bool(config, "General", "Plotting", False)
+            
+            plotting = data.config_get_bool("General", "Plotting", False)
             if plotting:
-                saveplot = dfastmi.io.config_get_bool(config, "General", "SavePlots", True)
+                saveplot = data.config_get_bool("General", "SavePlots", True)
                 if kmfile != "":
-                    saveplot_zoomed = dfastmi.io.config_get_bool(config, "General", "SaveZoomPlots", False)
+                    saveplot_zoomed = data.config_get_bool("General", "SaveZoomPlots", False)
                     zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
-                    zoom_km_step = dfastmi.io.config_get_float(config, "General", "ZoomStepKM", zoom_km_step)
+                    zoom_km_step = data.config_get_float("General", "ZoomStepKM", zoom_km_step)
                 else:
                     saveplot_zoomed = False
                     zoom_km_step = 1.0
@@ -236,7 +243,7 @@ def batch_mode_core(
                 else:
                     kmzoom = []
                     xyzoom = []
-                closeplot = dfastmi.io.config_get_bool(config, "General", "ClosePlots", False)
+                closeplot = data.config_get_bool("General", "ClosePlots", False)
             else:
                 saveplot = False
                 saveplot_zoomed = False
@@ -246,17 +253,17 @@ def batch_mode_core(
     
             # as appropriate check output dir for figures and file format
             if saveplot:
-                figdir = dfastmi.io.config_get_str(
-                    config, "General", "FigureDir", rootdir + os.sep + "figure"
+                figdir = data.config_get_str(
+                    "General", "FigureDir", rootdir + os.sep + "figure"
                 )
                 if display:
-                    dfastmi.io.log_text("figure_dir", dict={"dir": figdir})
+                    ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": figdir})
                 if os.path.exists(figdir):
                     if display:
-                        dfastmi.io.log_text("overwrite_dir", dict={"dir": figdir})
+                        ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": figdir})
                 else:
                     os.makedirs(figdir)
-                plot_ext = dfastmi.io.config_get_str(config, "General", "FigureExt", ".png")
+                plot_ext = data.config_get_str("General", "FigureExt", ".png")
             else:
                 figdir = ''
                 plot_ext = ''
@@ -294,7 +301,7 @@ def batch_mode_core(
                 nlength = "{}".format(int(slength))
             else:
                 nlength = "{}".format(slength)
-            dfastmi.io.log_text(
+            ApplicationSettingsHelper.log_text(
                 "length_estimate", dict={"nlength": nlength}, file=report
             )
 
@@ -304,7 +311,7 @@ def batch_mode_core(
                 else:
                     matplotlib.pyplot.show(block=not gui)
 
-    dfastmi.io.log_text("end", file=report)
+    ApplicationSettingsHelper.log_text("end", file=report)
     report.close()
 
     return success
@@ -348,9 +355,9 @@ def get_levels_v1(
     celerity : Vector
         A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
     """
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
-    celerity_hg = rivers["proprate_high"][ibranch][ireach]
-    celerity_lw = rivers["proprate_low"][ibranch][ireach]
+    q_stagnant = rivers.qstagnant[ibranch][ireach]
+    celerity_hg = rivers.proprate_high[ibranch][ireach]
+    celerity_lw = rivers.proprate_low[ibranch][ireach]
 
     (
         all_q,
@@ -409,26 +416,26 @@ def get_levels_v2(
     celerity : Vector
         A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
     """
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
-    Q = rivers["hydro_q"][ibranch][ireach]
+    q_stagnant = rivers.qstagnant[ibranch][ireach]
+    Q = rivers.hydro_q[ibranch][ireach]
     apply_q = (True,) * len(Q)
-    if rivers["autotime"][ibranch][ireach]:
-        q_fit = rivers["qfit"][ibranch][ireach]
+    if rivers.autotime[ibranch][ireach]:
+        q_fit = rivers.qfit[ibranch][ireach]
         T, time_mi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
     else:
-        T = rivers["hydro_t"][ibranch][ireach]
+        T = rivers.hydro_t[ibranch][ireach]
         sumT = sum(T)
         T = tuple(t / sumT for t in T)
         time_mi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
     
     # determine the bed celerity based on the input settings
-    cform = rivers["cform"][ibranch][ireach]
+    cform = rivers.cform[ibranch][ireach]
     if cform == 1:
-        prop_q = rivers["prop_q"][ibranch][ireach]
-        prop_c = rivers["prop_c"][ibranch][ireach]
+        prop_q = rivers.prop_q[ibranch][ireach]
+        prop_c = rivers.prop_c[ibranch][ireach]
         celerity = tuple(dfastmi.kernel.core.get_celerity(q, prop_q, prop_c) for q in Q)
     elif cform == 2:
-        cdisch = rivers["cdisch"][ibranch][ireach]
+        cdisch = rivers.cdisch[ibranch][ireach]
         celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
     
     # set the celerity equal to 0 for discharges less or equal to q_stagnant
@@ -607,14 +614,14 @@ def batch_get_discharges(
     """
     q_threshold: Optional[float]
 
-    stages = dfastmi.io.get_text("stage_descriptions")
+    stages = ApplicationSettingsHelper.get_text("stage_descriptions")
 
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
-    q_fit = rivers["qfit"][ibranch][ireach]
-    q_levels = rivers["qlevels"][ibranch][ireach]
-    dq = rivers["dq"][ibranch][ireach]
+    q_stagnant = rivers.qstagnant[ibranch][ireach]
+    q_fit = rivers.qfit[ibranch][ireach]
+    q_levels = rivers.qlevels[ibranch][ireach]
+    dq = rivers.dq[ibranch][ireach]
 
-    q_min = rivers["qmin"][ibranch][ireach]
+    q_min = rivers.qmin[ibranch][ireach]
     try:
         q_threshold = float(config["General"]["Qthreshold"])
     except:
@@ -1020,7 +1027,7 @@ def analyse_and_report_waqua(
 
     if success:
         if display:
-            dfastmi.io.log_text("char_bed_changes")
+            ApplicationSettingsHelper.log_text("char_bed_changes")
             
         if tstag > 0:
             dzq = [dzq[0], 0.0, dzq[1], dzq[2]]
@@ -1036,14 +1043,14 @@ def analyse_and_report_waqua(
             data_zmax = dzb[0]
             data_zmin = dzb[1]
 
-        dfastmi.io.write_simona_box(
-            outputdir + os.sep + dfastmi.io.get_filename("avgdzb.out"), data_zgem, firstm, firstn
+        DataTextFileOperations.write_simona_box(
+            outputdir + os.sep + ApplicationSettingsHelper.get_filename("avgdzb.out"), data_zgem, firstm, firstn
         )
-        dfastmi.io.write_simona_box(
-            outputdir + os.sep + dfastmi.io.get_filename("maxdzb.out"), data_zmax, firstm, firstn
+        DataTextFileOperations.write_simona_box(
+            outputdir + os.sep + ApplicationSettingsHelper.get_filename("maxdzb.out"), data_zmax, firstm, firstn
         )
-        dfastmi.io.write_simona_box(
-            outputdir + os.sep + dfastmi.io.get_filename("mindzb.out"), data_zmin, firstm, firstn
+        DataTextFileOperations.write_simona_box(
+            outputdir + os.sep + ApplicationSettingsHelper.get_filename("mindzb.out"), data_zmin, firstm, firstn
         )
 
     return success
@@ -1161,10 +1168,10 @@ def analyse_and_report_dflowfm(
                     break
                 else:
                     if needs_tide:
-                        dfastmi.io.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
                     else:
-                        dfastmi.io.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                    dfastmi.io.log_text("end_program", file=report)
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
+                    ApplicationSettingsHelper.log_text("end_program", file=report)
                     missing_data = True
 
     if one_fm_filename is None:
@@ -1175,7 +1182,7 @@ def analyse_and_report_dflowfm(
         return missing_data
     
     if display:
-        dfastmi.io.log_text('-- load mesh')
+        ApplicationSettingsHelper.log_text('-- load mesh')
     xn, yn, FNC = get_xynode_connect(one_fm_filename)
     
     if xykm is None:
@@ -1193,7 +1200,7 @@ def analyse_and_report_dflowfm(
     else:
         dnmax = 3000.0    
         if display:
-            dfastmi.io.log_text('-- identify region of interest')
+            ApplicationSettingsHelper.log_text('-- identify region of interest')
         # add call to dfastbe.io.clip_path_to_kmbounds?
         print("buffer")
         xybuffer = xykm.buffer(dnmax)
@@ -1218,7 +1225,7 @@ def analyse_and_report_dflowfm(
         interest_region[iface] = 1
     
         #if display:
-        #    dfastmi.io.log_text('-- get centres') # note that this should be the circumference point
+        #    ApplicationSettingsHelper.log_text('-- get centres') # note that this should be the circumference point
         #xfi = face_mean(xni, FNCi)
         #yfi = face_mean(yni, FNCi)
     
@@ -1237,23 +1244,23 @@ def analyse_and_report_dflowfm(
         # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
         # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
         if display:
-            dfastmi.io.log_text('-- project')
+            ApplicationSettingsHelper.log_text('-- project')
         sni, nni = proj_xy_line(xni, yni, xyline)
         sfi = face_mean(sni, FNCi)
         #nfi = face_mean(nni, FNCi)
     
         # determine chainage values of each cell
         if display:
-            dfastmi.io.log_text('-- chainage')
+            ApplicationSettingsHelper.log_text('-- chainage')
         kfi = distance_to_chainage(sline, xykline[:,2], sfi)
     
         # determine line direction for each cell
         if display:
-            dfastmi.io.log_text('-- direction')
+            ApplicationSettingsHelper.log_text('-- direction')
         dxi, dyi = get_direction(xyline, sfi)
     
         if display:
-            dfastmi.io.log_text('-- done')
+            ApplicationSettingsHelper.log_text('-- done')
     
     dzq = [None] * len(Q)
     if 0 in filenames.keys(): # the keys are 0,1,2
@@ -1285,17 +1292,17 @@ def analyse_and_report_dflowfm(
                     dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
                 else:
                     if t > 0:
-                        dfastmi.io.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
                     else:
-                        dfastmi.io.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                    dfastmi.io.log_text("end_program", file=report)
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
+                    ApplicationSettingsHelper.log_text("end_program", file=report)
                     missing_data = True
             else:
                 dzq[i] = 0
 
     if not missing_data:
         if display:
-            dfastmi.io.log_text("char_bed_changes")
+            ApplicationSettingsHelper.log_text("char_bed_changes")
             
         if tstag > 0:
             dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
@@ -1317,14 +1324,14 @@ def analyse_and_report_dflowfm(
             zmin_str = "minimum value of bed level change without dredging"
         
         if display:
-            dfastmi.io.log_text('writing_output')
-        meshname, facedim = dfastmi.io.get_mesh_and_facedim_names(one_fm_filename)
-        dst = outputdir + os.sep + dfastmi.io.get_filename("netcdf.out")
-        dfastmi.io.copy_ugrid(one_fm_filename, meshname, dst)
+            ApplicationSettingsHelper.log_text('writing_output')
+        meshname, facedim = GridOperations.get_mesh_and_facedim_names(one_fm_filename)
+        dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
+        GridOperations.copy_ugrid(one_fm_filename, meshname, dst)
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
         dzgem[iface]=dzgemi
-        dfastmi.io.ugrid_add(
+        GridOperations.ugrid_add(
             dst,
             "avgdzb",
             dzgem,
@@ -1335,7 +1342,7 @@ def analyse_and_report_dflowfm(
         )
         dzmax = numpy.repeat(nc_fill, FNC.shape[0])
         dzmax[iface]=dzmaxi
-        dfastmi.io.ugrid_add(
+        GridOperations.ugrid_add(
             dst,
             "maxdzb",
             dzmax,
@@ -1346,7 +1353,7 @@ def analyse_and_report_dflowfm(
         )
         dzmin = numpy.repeat(nc_fill, FNC.shape[0])
         dzmin[iface]=dzmini
-        dfastmi.io.ugrid_add(
+        GridOperations.ugrid_add(
             dst,
             "mindzb",
             dzmin,
@@ -1359,7 +1366,7 @@ def analyse_and_report_dflowfm(
             j = (i + 1) % len(dzbi)
             dzb = numpy.repeat(nc_fill, FNC.shape[0])
             dzb[iface]=dzbi[j]
-            dfastmi.io.ugrid_add(
+            GridOperations.ugrid_add(
                 dst,
                 "dzb_{}".format(i),
                 dzb,
@@ -1371,7 +1378,7 @@ def analyse_and_report_dflowfm(
             if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
                 dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
                 dzq_full[iface]=dzq[i]
-                dfastmi.io.ugrid_add(
+                GridOperations.ugrid_add(
                     dst,
                     "dzq_{}".format(i),
                     dzq_full,
@@ -1382,8 +1389,8 @@ def analyse_and_report_dflowfm(
                 )
         
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
-        dfastmi.io.copy_ugrid(one_fm_filename, meshname, projmesh)
-        dfastmi.io.ugrid_add(
+        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
+        GridOperations.ugrid_add(
             projmesh,
             "avgdzb",
             dzgem,
@@ -1436,7 +1443,7 @@ def analyse_and_report_dflowfm(
                 dfastmi.plotting.savefig(fig, figfile)
 
         if display:
-            dfastmi.io.log_text('compute_initial_year_dredging')
+            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
 
         if xykm is not None:
             sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
@@ -1464,8 +1471,8 @@ def analyse_and_report_dflowfm(
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
             projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
-            dfastmi.io.copy_ugrid(one_fm_filename, meshname, projmesh)
-            dfastmi.io.ugrid_add(
+            GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
+            GridOperations.ugrid_add(
                 projmesh,
                 "interest_region",
                 interest_region,
@@ -1478,7 +1485,7 @@ def analyse_and_report_dflowfm(
         
             for i in range(len(sed_area_list)):
                 sed_area[iface[sed_area_list[i] == 1]] = i+1
-            dfastmi.io.ugrid_add(
+            GridOperations.ugrid_add(
                 projmesh,
                 "sed_area",
                 sed_area,
@@ -1491,7 +1498,7 @@ def analyse_and_report_dflowfm(
         
             for i in range(len(ero_area_list)):
                 ero_area[iface[ero_area_list[i] == 1]] = i+1
-            dfastmi.io.ugrid_add(
+            GridOperations.ugrid_add(
                 projmesh,
                 "ero_area",
                 ero_area,
@@ -1502,7 +1509,7 @@ def analyse_and_report_dflowfm(
             )
             wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
             wght_estimate1[iface] = wght_estimate1i
-            dfastmi.io.ugrid_add(
+            GridOperations.ugrid_add(
                 projmesh,
                 "wght_estimate1",
                 wght_estimate1,
@@ -1513,7 +1520,7 @@ def analyse_and_report_dflowfm(
             )
             wbin = numpy.repeat(nc_fill, FNC.shape[0])
             wbin[iface] = wbini
-            dfastmi.io.ugrid_add(
+            GridOperations.ugrid_add(
                 projmesh,
                 "wbin",
                 wbin,
@@ -1592,39 +1599,39 @@ def get_values_waqua3(
     """
     cblok = str(stage)
     if display:
-        dfastmi.io.log_text("input_xyz", dict={"stage": stage, "q": q})
-        dfastmi.io.log_text("---")
-        dfastmi.io.log_text("")
+        ApplicationSettingsHelper.log_text("input_xyz", dict={"stage": stage, "q": q})
+        ApplicationSettingsHelper.log_text("---")
+        ApplicationSettingsHelper.log_text("")
 
-    discriptions = dfastmi.io.get_text("file_descriptions")
+    discriptions = ApplicationSettingsHelper.get_text("file_descriptions")
     quantities = ["velocity-zeta.001", "waterdepth-zeta.001", "velocity-zeta.002"]
     files = []
     for i in range(3):
         if display:
-            dfastmi.io.log_text("input_xyz_name", dict={"name": discriptions[i]})
+            ApplicationSettingsHelper.log_text("input_xyz_name", dict={"name": discriptions[i]})
         cifil = "xyz_" + quantities[i] + ".Q" + cblok + ".xyz"
         if display:
             print(cifil)
         if not os.path.isfile(cifil):
-            dfastmi.io.log_text("file_not_found", dict={"name": cifil})
-            dfastmi.io.log_text("file_not_found", dict={"name": cifil}, file=report)
-            dfastmi.io.log_text("end_program", file=report)
+            ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil})
+            ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil}, file=report)
+            ApplicationSettingsHelper.log_text("end_program", file=report)
             return numpy.array([]), 0, 0
         else:
             if display:
-                dfastmi.io.log_text("input_xyz_found", dict={"name": cifil})
+                ApplicationSettingsHelper.log_text("input_xyz_found", dict={"name": cifil})
         files.extend([cifil])
         if display:
-            dfastmi.io.log_text("")
+            ApplicationSettingsHelper.log_text("")
 
     if display:
-        dfastmi.io.log_text("input_xyz_read", dict={"stage": stage})
-    u0temp = dfastmi.io.read_waqua_xyz(files[0], cols=(2, 3, 4))
+        ApplicationSettingsHelper.log_text("input_xyz_read", dict={"stage": stage})
+    u0temp = DataTextFileOperations.read_waqua_xyz(files[0], cols=(2, 3, 4))
     m = u0temp[:, 1].astype(int) - 1
     n = u0temp[:, 2].astype(int) - 1
     u0temp = u0temp[:, 0]
-    h0temp = dfastmi.io.read_waqua_xyz(files[1])
-    u1temp = dfastmi.io.read_waqua_xyz(files[2])
+    h0temp = DataTextFileOperations.read_waqua_xyz(files[1])
+    u1temp = DataTextFileOperations.read_waqua_xyz(files[2])
 
     if reduced_output:
         firstm = min(m)
@@ -1651,7 +1658,7 @@ def get_values_waqua3(
 
     dzq = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, ucrit)
     if display:
-        dfastmi.io.log_text("---")
+        ApplicationSettingsHelper.log_text("---")
     return dzq, firstm, firstn
 
 
@@ -1699,20 +1706,20 @@ def get_values_fm(
 
     # reference file
     if filenames[0] == "":
-        dfastmi.io.log_text("no_file_specified", dict={"q": q}, file=report)
-        dfastmi.io.log_text("end_program", file=report)
+        ApplicationSettingsHelper.log_text("no_file_specified", dict={"q": q}, file=report)
+        ApplicationSettingsHelper.log_text("end_program", file=report)
         return None
     elif not os.path.isfile(filenames[0]):
-        dfastmi.io.log_text("file_not_found", dict={"name": filenames[0]}, file=report)
-        dfastmi.io.log_text("end_program", file=report)
+        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filenames[0]}, file=report)
+        ApplicationSettingsHelper.log_text("end_program", file=report)
         return None
     else:
         pass
 
     # file with measure implemented
     if not os.path.isfile(filenames[1]):
-        dfastmi.io.log_text("file_not_found", dict={"name": filenames[1]}, file=report)
-        dfastmi.io.log_text("end_program", file=report)
+        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filenames[1]}, file=report)
+        ApplicationSettingsHelper.log_text("end_program", file=report)
         return None
     else:
         pass
@@ -1730,7 +1737,7 @@ def get_values_fm(
         wght_pos = numpy.zeros(dx.shape)
         wght_neg = numpy.zeros(dx.shape)
 
-    ref = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=0)
+    ref = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=0)
     
     for ifld in range(n_fields):
         # if last time step is needed, pass None to allow for files without time specification
@@ -1738,14 +1745,14 @@ def get_values_fm(
             ifld = None
 
         # reference data
-        u0 = dfastmi.io.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)[iface]
-        v0 = dfastmi.io.read_fm_map(filenames[0], "sea_water_y_velocity", ifld=ifld)[iface]
+        u0 = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)[iface]
+        v0 = GridOperations.read_fm_map(filenames[0], "sea_water_y_velocity", ifld=ifld)[iface]
         umag0 = numpy.sqrt(u0 ** 2 + v0 ** 2)
-        h0 = dfastmi.io.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
+        h0 = GridOperations.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
 
         # data with measure
-        u1 = dfastmi.io.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)[iface]
-        v1 = dfastmi.io.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
+        u1 = GridOperations.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)[iface]
+        v1 = GridOperations.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
         umag1 = numpy.sqrt(u1**2 + v1**2)
 
         dzq1 = dfastmi.kernel.core.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
@@ -1822,27 +1829,27 @@ def write_report(
     -------
     None
     """
-    dfastmi.io.log_text("", file=report)
-    dfastmi.io.log_text("reach", dict={"reach": reach}, file=report)
-    dfastmi.io.log_text("", file=report)
+    ApplicationSettingsHelper.log_text("", file=report)
+    ApplicationSettingsHelper.log_text("reach", dict={"reach": reach}, file=report)
+    ApplicationSettingsHelper.log_text("", file=report)
     if not q_threshold is None:
-        dfastmi.io.log_text(
+        ApplicationSettingsHelper.log_text(
             "report_qthreshold",
             dict={"q": q_threshold, "border": q_location},
             file=report,
         )
-    dfastmi.io.log_text(
+    ApplicationSettingsHelper.log_text(
         "report_qbankfull", dict={"q": q_bankfull, "border": q_location}, file=report,
     )
-    dfastmi.io.log_text("", file=report)
+    ApplicationSettingsHelper.log_text("", file=report)
     if q_stagnant > q_fit[0]:
-        dfastmi.io.log_text(
+        ApplicationSettingsHelper.log_text(
             "closed_barriers", dict={"ndays": int(365 * tstag)}, file=report
         )
-        dfastmi.io.log_text("", file=report)
+        ApplicationSettingsHelper.log_text("", file=report)
     for i in range(3):
         if not Q[i] is None:
-            dfastmi.io.log_text(
+            ApplicationSettingsHelper.log_text(
                 "char_discharge",
                 dict={"n": i + 1, "q": Q[i], "border": q_location},
                 file=report,
@@ -1853,32 +1860,32 @@ def write_report(
                 tdays = max(
                     0, 365 - int(365 * t[0]) - int(365 * t[1]) - int(365 * tstag)
                 )
-            dfastmi.io.log_text(
+            ApplicationSettingsHelper.log_text(
                 "char_period", dict={"n": i + 1, "ndays": tdays}, file=report
             )
             if i < 2:
-                dfastmi.io.log_text("", file=report)
+                ApplicationSettingsHelper.log_text("", file=report)
             else:
-                dfastmi.io.log_text("---", file=report)
+                ApplicationSettingsHelper.log_text("---", file=report)
     nQ = countQ(Q)
     if nQ == 1:
-        dfastmi.io.log_text("need_single_input", dict={"reach": reach}, file=report)
+        ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach}, file=report)
     else:
-        dfastmi.io.log_text(
+        ApplicationSettingsHelper.log_text(
             "need_multiple_input", dict={"reach": reach, "numq": nQ}, file=report,
         )
     for i in range(3):
         if not Q[i] is None:
-            dfastmi.io.log_text(
+            ApplicationSettingsHelper.log_text(
                 stagename(i), dict={"q": Q[i], "border": q_location}, file=report
             )
-    dfastmi.io.log_text("---", file=report)
+    ApplicationSettingsHelper.log_text("---", file=report)
     if slength > 1:
         nlength = int(slength)
     else:
         nlength = slength
-    dfastmi.io.log_text("length_estimate", dict={"nlength": nlength}, file=report)
-    dfastmi.io.log_text("prepare_input", file=report)
+    ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength}, file=report)
+    ApplicationSettingsHelper.log_text("prepare_input", file=report)
 
 
 def config_to_absolute_paths(
@@ -1901,16 +1908,16 @@ def config_to_absolute_paths(
     """
     for key in ("RiverKM", "FigureDir", "OutputDir"):
         if key in config["General"]:
-            config["General"][key] = dfastmi.io.absolute_path(
+            config["General"][key] = FileUtils.absolute_path(
                 rootdir, config["General"][key]
             )
     for qstr in config.keys():
         if "Reference" in config[qstr]:
-            config[qstr]["Reference"] = dfastmi.io.absolute_path(
+            config[qstr]["Reference"] = FileUtils.absolute_path(
                 rootdir, config[qstr]["Reference"]
             )
         if "WithMeasure" in config[qstr]:
-            config[qstr]["WithMeasure"] = dfastmi.io.absolute_path(
+            config[qstr]["WithMeasure"] = FileUtils.absolute_path(
                 rootdir, config[qstr]["WithMeasure"]
             )
     return config
@@ -1973,7 +1980,7 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
     """
     try:
         cfg_version = config["General"]["Version"]
-        rvr_version = rivers["version"]
+        rvr_version = rivers.version
         if version.parse(cfg_version) != version.parse(rvr_version):
             return False
         if version.parse(cfg_version) == version.parse("1.0"):
@@ -2003,16 +2010,16 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
     branch = config["General"]["Branch"]
-    if branch not in rivers["branches"]:
+    if branch not in rivers.branches:
         return False
     
     reach = config["General"]["Reach"]
-    ibranch = rivers["branches"].index(branch)
-    if reach not in rivers["reaches"][ibranch]:
+    ibranch = rivers.branches.index(branch)
+    if reach not in rivers.allreaches[ibranch]:
         return False
     
-    ireach = rivers["reaches"][ibranch].index(reach2)
-    nwidth = rivers["nwidth"][ibranch][ireach]
+    ireach = rivers.allreaches[ibranch].index(reach)
+    nwidth = rivers.nwidth[ibranch][ireach]
     [_, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
     
     mode_str = config["General"].get("Mode", DFLOWFM_MAP)
@@ -2131,16 +2138,16 @@ def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigPars
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
     branch = config["General"]["Branch"]
-    if branch not in rivers["branches"]:
+    if branch not in rivers.branches:
         return False
 
-    ibranch = rivers["branches"].index(branch)
+    ibranch = rivers.branches.index(branch)
     reach = config["General"]["Reach"]
-    if reach not in rivers["reaches"][ibranch]:
+    if reach not in rivers.allreaches[ibranch]:
         return False
 
-    ireach = rivers["reaches"][ibranch].index(reach)
-    hydro_q = rivers["hydro_q"][ibranch][ireach]
+    ireach = rivers.allreaches[ibranch].index(reach)
+    hydro_q = rivers.hydro_q[ibranch][ireach]
     n_cond = len(hydro_q)
     
     found = [False]*n_cond
@@ -2218,16 +2225,16 @@ def config_to_relative_paths(
     """
     for key in ("RiverKM", "FigureDir", "OutputDir"):
         if key in config["General"]:
-            config["General"][key] = dfastmi.io.relative_path(
+            config["General"][key] = FileUtils.relative_path(
                 rootdir, config["General"][key]
             )
     for qstr in config.keys():
         if "Reference" in config[qstr]:
-            config[qstr]["Reference"] = dfastmi.io.relative_path(
+            config[qstr]["Reference"] = FileUtils.relative_path(
                 rootdir, config[qstr]["Reference"]
             )
         if "WithMeasure" in config[qstr]:
-            config[qstr]["WithMeasure"] = dfastmi.io.relative_path(
+            config[qstr]["WithMeasure"] = FileUtils.relative_path(
                 rootdir, config[qstr]["WithMeasure"]
             )
     return config
@@ -2250,7 +2257,7 @@ def save_configuration_file(filename: str, config):
     """
     rootdir = os.path.dirname(filename)
     config = config_to_relative_paths(rootdir, config)
-    dfastmi.io.write_config(filename, config)
+    ConfigFileOperations.write_config(filename, config)
 
 
 def stagename(i: int) -> str:
@@ -2417,11 +2424,11 @@ def detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, sifac
         dzgemi_filtered[sub_areai != ia] = 0.0
         sub_area_list.append(sub_areai == ia)
         
-        #dfastmi.io.log_text("sed_vol",dict = {"ia": ia+1, "nr": 1})
+        #ApplicationSettingsHelper.log_text("sed_vol",dict = {"ia": ia+1, "nr": 1})
         volume[1,ia], wght_area_ia = comp_sedimentation_volume1(dzgemi_filtered, dzmin, areai, wbin, siface, afrac, sbin, wthresh, sthresh, slength, sbin_length)
         wght_area_tot = wght_area_tot + wght_area_ia
         
-        #dfastmi.io.log_text("sed_vol",dict = {"ia": ia+1, "nr": 2})
+        #ApplicationSettingsHelper.log_text("sed_vol",dict = {"ia": ia+1, "nr": 2})
         volume[2,ia], area[ia], volume[0,ia] = comp_sedimentation_volume2(numpy.maximum(dzgemi_filtered,0.0), dzmin, areai, slength, nwidth)
     
     sorted_list = numpy.argsort(area)[::-1]
@@ -2887,9 +2894,9 @@ def comp_sedimentation_volume3(
 
 
 def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-    xn = dfastmi.io.read_fm_map(filename, "x", location="node")
-    yn = dfastmi.io.read_fm_map(filename, "y", location="node")
-    FNC = dfastmi.io.read_fm_map(filename, "face_node_connectivity")
+    xn = GridOperations.read_fm_map(filename, "x", location="node")
+    yn = GridOperations.read_fm_map(filename, "y", location="node")
+    FNC = GridOperations.read_fm_map(filename, "face_node_connectivity")
     if FNC.mask.shape == ():
         # all faces have the same number of nodes; empty mask
         FNC.mask = FNC<0

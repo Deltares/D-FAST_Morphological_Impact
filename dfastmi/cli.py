@@ -28,15 +28,13 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
-from dfastmi.RiversObject import RiversObject
-from dfastmi.kernel.core import QRuns
-
-import os
-import numpy
-import dfastmi.io
 import dfastmi.kernel.core
 import dfastmi.batch
-import configparser
+
+from dfastmi.kernel.core import QRuns
+from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+
 
 
 def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) -> None:
@@ -56,9 +54,9 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         interest only.
     """
     if reduced_output:
-        dfastmi.io.log_text("reduce_output")
+        ApplicationSettingsHelper.log_text("reduce_output")
 
-    report = open(dfastmi.io.get_filename("report.out"), "w")
+    report = open(ApplicationSettingsHelper.get_filename("report.out"), "w")
 
     version = dfastmi.__version__
     have_files = interactive_mode_opening(src, version, report)
@@ -69,9 +67,9 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         while ibranch is None:
             ibranch, ireach = interactive_get_location(src, rivers)
 
-        celerity_hg = rivers["proprate_high"][ibranch][ireach]
-        celerity_lw = rivers["proprate_low"][ibranch][ireach]
-        nwidth = rivers["normal_width"][ibranch][ireach]
+        celerity_hg = rivers.proprate_high[ibranch][ireach]
+        celerity_lw = rivers.proprate_low[ibranch][ireach]
+        nwidth = rivers.normal_width[ibranch][ireach]
 
         (
             all_q,
@@ -93,24 +91,24 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
 
         slength = dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth)
 
-        reach = rivers["reaches"][ibranch][ireach]
+        reach = rivers.allreaches[ibranch][ireach]
         if have_files:
             # determine critical flow velocity
-            ucrit = rivers["ucritical"][ibranch][ireach]
+            ucrit = rivers.ucritical[ibranch][ireach]
             ucritMin = 0.01
-            dfastmi.io.log_text("", repeat=3)
-            dfastmi.io.log_text("default_ucrit", dict={"uc": ucrit, "reach": reach})
+            ApplicationSettingsHelper.log_text("", repeat=3)
+            ApplicationSettingsHelper.log_text("default_ucrit", dict={"uc": ucrit, "reach": reach})
             tdum = interactive_get_bool(src, "confirm_or")
             if not tdum:
                 ucrit = interactive_get_float(src, "query_ucrit")
                 if ucrit < ucritMin:
-                    dfastmi.io.log_text("ucrit_too_low", dict={"uc": ucritMin})
-                    dfastmi.io.log_text(
+                    ApplicationSettingsHelper.log_text("ucrit_too_low", dict={"uc": ucritMin})
+                    ApplicationSettingsHelper.log_text(
                         "ucrit_too_low", dict={"uc": ucritMin}, file=report
                     )
                     ucrit = ucritMin
 
-            dfastmi.io.log_text("", repeat=19)
+            ApplicationSettingsHelper.log_text("", repeat=19)
             filenames = dfastmi.batch.get_filenames(0, False)
             imode = 0
             display = True
@@ -153,9 +151,9 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                     nlength = int(slength)
                 else:
                     nlength = slength
-                dfastmi.io.log_text("")
-                dfastmi.io.log_text("length_estimate", dict={"nlength": nlength})
-                dfastmi.io.log_text(
+                ApplicationSettingsHelper.log_text("")
+                ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
+                ApplicationSettingsHelper.log_text(
                     "length_estimate", dict={"nlength": nlength}, file=report
                 )
                 tdum = interactive_get_bool(src, "confirm_to_close")
@@ -176,8 +174,8 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 nlength,
             )
 
-    dfastmi.io.log_text("end")
-    dfastmi.io.log_text("end", file=report)
+    ApplicationSettingsHelper.log_text("end")
+    ApplicationSettingsHelper.log_text("end", file=report)
     report.close()
 
 
@@ -200,46 +198,46 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
         Flag indicating whether the user specified that the simulation results
         are available or not.
     """
-    dfastmi.io.log_text("header", dict={"version": version})
+    ApplicationSettingsHelper.log_text("header", dict={"version": version})
     tdum = interactive_get_bool(src, "confirm")
 
-    dfastmi.io.log_text("limits")
-    dfastmi.io.log_text("qblocks")
+    ApplicationSettingsHelper.log_text("limits")
+    ApplicationSettingsHelper.log_text("qblocks")
     tdum = False
     while not tdum:
-        dfastmi.io.log_text("query_input-available")
+        ApplicationSettingsHelper.log_text("query_input-available")
         have_files = interactive_get_bool(src, "confirm_or")
 
-        dfastmi.io.log_text("---")
+        ApplicationSettingsHelper.log_text("---")
         if have_files:
-            dfastmi.io.log_text(
+            ApplicationSettingsHelper.log_text(
                 "results_with_input_waqua",
                 dict={
-                    "avgdzb": dfastmi.io.get_filename("avgdzb.out"),
-                    "maxdzb": dfastmi.io.get_filename("maxdzb.out"),
-                    "mindzb": dfastmi.io.get_filename("mindzb.out"),
+                    "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
+                    "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
+                    "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
                 },
             )
         else:
-            dfastmi.io.log_text("results_without_input")
-        dfastmi.io.log_text("---")
+            ApplicationSettingsHelper.log_text("results_without_input")
+        ApplicationSettingsHelper.log_text("---")
         tdum = interactive_get_bool(src, "confirm_or_restart")
 
-    dfastmi.io.log_text("header", dict={"version": version}, file=report)
-    dfastmi.io.log_text("limits", file=report)
-    dfastmi.io.log_text("===", file=report)
+    ApplicationSettingsHelper.log_text("header", dict={"version": version}, file=report)
+    ApplicationSettingsHelper.log_text("limits", file=report)
+    ApplicationSettingsHelper.log_text("===", file=report)
     if have_files:
-        dfastmi.io.log_text(
+        ApplicationSettingsHelper.log_text(
             "results_with_input_waqua",
             file=report,
             dict={
-                "avgdzb": dfastmi.io.get_filename("avgdzb.out"),
-                "maxdzb": dfastmi.io.get_filename("maxdzb.out"),
-                "mindzb": dfastmi.io.get_filename("mindzb.out"),
+                "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
+                "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
+                "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
             },
         )
     else:
-        dfastmi.io.log_text("results_without_input", file=report)
+        ApplicationSettingsHelper.log_text("results_without_input", file=report)
     return have_files
 
 
@@ -263,18 +261,18 @@ def interactive_get_location(
     ireach : Optional[int]
         Number of selected reach (None if user cancels).
     """
-    branches = rivers["branches"]
-    reaches = rivers["reaches"]
+    branches = rivers.branches
+    reaches = rivers.allreaches
 
     accept = False
     ibranch = interactive_get_item(src, "branch", branches)
     if not ibranch is None:
         ireach = interactive_get_item(src, "reach", reaches[ibranch])
-        dfastmi.io.log_text("---")
+        ApplicationSettingsHelper.log_text("---")
         if not ireach is None:
             reach = reaches[ibranch][ireach]
-            dfastmi.io.log_text("reach", dict={"reach": reach})
-            dfastmi.io.log_text("---")
+            ApplicationSettingsHelper.log_text("reach", dict={"reach": reach})
+            ApplicationSettingsHelper.log_text("---")
             accept = interactive_get_bool(src, "confirm_location")
     if accept:
         return ibranch, ireach
@@ -352,20 +350,20 @@ def interactive_get_discharges(
     rsigma : Tuple[float, float, float]
         A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
     """
-    stages = dfastmi.io.get_text("stage_descriptions")
+    stages = ApplicationSettingsHelper.get_text("stage_descriptions")
 
-    q_location = rivers["qlocations"][ibranch]
-    q_stagnant = rivers["qstagnant"][ibranch][ireach]
-    q_min = rivers["qmin"][ibranch][ireach]
-    q_fit = rivers["qfit"][ibranch][ireach]
-    q_levels = rivers["qlevels"][ibranch][ireach]
-    dq = rivers["dq"][ibranch][ireach]
+    q_location = rivers.qlocations[ibranch]
+    q_stagnant = rivers.qstagnant[ibranch][ireach]
+    q_min = rivers.qmin[ibranch][ireach]
+    q_fit = rivers.qfit[ibranch][ireach]
+    q_levels = rivers.qlevels[ibranch][ireach]
+    dq = rivers.dq[ibranch][ireach]
 
-    dfastmi.io.log_text("intro-measure")
+    ApplicationSettingsHelper.log_text("intro-measure")
     if q_stagnant > q_fit[0]:
-        dfastmi.io.log_text("query_flowing_when_barriers_open")
+        ApplicationSettingsHelper.log_text("query_flowing_when_barriers_open")
     else:
-        dfastmi.io.log_text(
+        ApplicationSettingsHelper.log_text(
             "query_flowing_above_qmin", dict={"border": q_location, "qmin": int(q_min)},
         )
     tdrem = interactive_get_bool(src, "confirm_or")
@@ -377,7 +375,7 @@ def interactive_get_discharges(
         )
 
     if q_threshold is None or q_threshold < q_levels[1]:
-        dfastmi.io.log_text("query_flowing", dict={"qborder": int(q_levels[1])})
+        ApplicationSettingsHelper.log_text("query_flowing", dict={"qborder": int(q_levels[1])})
         tdum = interactive_get_bool(src, "confirm_or")
         if tdum:
             q_bankfull = q_levels[1]
@@ -490,21 +488,21 @@ def write_report_nodata(
     all_done : bool
         Flag indicating whether the program should be closed.
     """
-    dfastmi.io.log_text("---")
+    ApplicationSettingsHelper.log_text("---")
     nQ = dfastmi.batch.countQ(Q)
     if nQ == 1:
-        dfastmi.io.log_text("need_single_input", dict={"reach": reach})
+        ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
-        dfastmi.io.log_text("need_multiple_input", dict={"reach": reach, "numq": nQ})
+        ApplicationSettingsHelper.log_text("need_multiple_input", dict={"reach": reach, "numq": nQ})
     if not Q[0] is None:
-        dfastmi.io.log_text("lowwater", dict={"border": q_location, "q": Q[0]})
+        ApplicationSettingsHelper.log_text("lowwater", dict={"border": q_location, "q": Q[0]})
     if not Q[1] is None:
-        dfastmi.io.log_text("transition", dict={"border": q_location, "q": Q[1]})
+        ApplicationSettingsHelper.log_text("transition", dict={"border": q_location, "q": Q[1]})
     if not Q[2] is None:
-        dfastmi.io.log_text("highwater", dict={"border": q_location, "q": Q[2]})
-    dfastmi.io.log_text("length_estimate", dict={"nlength": nlength})
-    dfastmi.io.log_text("---")
-    dfastmi.io.log_text("canclose")
+        ApplicationSettingsHelper.log_text("highwater", dict={"border": q_location, "q": Q[2]})
+    ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
+    ApplicationSettingsHelper.log_text("---")
+    ApplicationSettingsHelper.log_text("canclose")
     all_done = interactive_get_bool(src, "confirm_or_repeat")
     if all_done:
         dfastmi.batch.write_report(
@@ -521,9 +519,9 @@ def write_report_nodata(
             nlength,
         )
     else:
-        dfastmi.io.log_text("", repeat=10)
-        dfastmi.io.log_text("===", file=report)
-        dfastmi.io.log_text("repeat_input", file=report)
+        ApplicationSettingsHelper.log_text("", repeat=10)
+        ApplicationSettingsHelper.log_text("===", file=report)
+        ApplicationSettingsHelper.log_text("repeat_input", file=report)
     return all_done
 
 
@@ -552,8 +550,8 @@ def interactive_check_discharge(
         Final discharge.
     """
     Q1: Optional[float]
-    dfastmi.io.log_text("")
-    dfastmi.io.log_text("input_avail", dict={"i": i, "q": Q})
+    ApplicationSettingsHelper.log_text("")
+    ApplicationSettingsHelper.log_text("input_avail", dict={"i": i, "q": Q})
     tdum = interactive_get_bool(src, "confirm_or")
     Q1 = Q
     if not tdum:
@@ -562,11 +560,11 @@ def interactive_check_discharge(
             if Q1 is None:
                 break
             elif Q1 < Qp:
-                dfastmi.io.log_text("")
+                ApplicationSettingsHelper.log_text("")
                 if i == 1:
-                    dfastmi.io.log_text("qavail_too_small_1")
+                    ApplicationSettingsHelper.log_text("qavail_too_small_1")
                 else:
-                    dfastmi.io.log_text(
+                    ApplicationSettingsHelper.log_text(
                         "qavail_too_small_2",
                         dict={"p": i - 1, "pname": pname, "qp": Qp, "i": i},
                     )
@@ -593,13 +591,13 @@ def interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bo
     val : bool
         The boolean entered by the user (True if the user entered "j" or "y", False otherwise).
     """
-    dfastmi.io.log_text(key, dict=dict)
+    ApplicationSettingsHelper.log_text(key, dict=dict)
     str = src.readline().lower()
     bool = str == "j\n" or str == "y\n"
     if bool:
-        dfastmi.io.log_text("yes")
+        ApplicationSettingsHelper.log_text("yes")
     else:
-        dfastmi.io.log_text("no")
+        ApplicationSettingsHelper.log_text("no")
     return bool
 
 
@@ -625,7 +623,7 @@ def interactive_get_int(
     """
     val: Optional[int]
 
-    dfastmi.io.log_text(key, dict=dict)
+    ApplicationSettingsHelper.log_text(key, dict=dict)
     str = src.readline()
     print(str)
     try:
@@ -657,7 +655,7 @@ def interactive_get_float(
     """
     val: Optional[float]
 
-    dfastmi.io.log_text(key, dict=dict)
+    ApplicationSettingsHelper.log_text(key, dict=dict)
     str = src.readline()
     print(str)
     try:
@@ -688,9 +686,9 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
     i = 0
     nitems = len(list)
     while i < 1 or i > nitems:
-        dfastmi.io.log_text("query_" + type + "_header")
+        ApplicationSettingsHelper.log_text("query_" + type + "_header")
         for i in range(nitems):
-            dfastmi.io.log_text("query_list", dict={"item": list[i], "index": i + 1})
+            ApplicationSettingsHelper.log_text("query_list", dict={"item": list[i], "index": i + 1})
         i_opt = interactive_get_int(src, "query_" + type)
         if i_opt is None:
             return None
