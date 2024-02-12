@@ -26,7 +26,6 @@ class Test_data_access_read_fm_map():
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "x"
-        #location = "face"
         datac = GridOperations.read_fm_map(filename, varname)
         dataref = 41.24417604888325
         assert datac[1] == dataref
