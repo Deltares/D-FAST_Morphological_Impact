@@ -109,7 +109,7 @@ class Test_ugrid_add():
     @pytest.fixture
     def setup_data(self):
         """
-        Foreach test setup test netcdf file
+        Foreach test setup test netcdf file, clean up after test is run
         """
         if os.path.exists(self.dst_filename):
             os.remove(self.dst_filename)
@@ -125,6 +125,15 @@ class Test_ugrid_add():
             mesh2d.setncattr('topology_dimension', 2)
         finally:
             nc_file.close()
+        yield
+        
+        print("Trying to remove created NetCDF file 'test.nc'.")
+        if os.path.exists(self.dst_filename):            
+            try:
+                os.remove(self.dst_filename)
+                print("NetCDF file 'test.nc' removed successfully.")
+            except Exception as e:
+                print("Failed to remove created NetCDF file 'test.nc'. Exception thrown : "+ str(e))
         
 
     def test_ugrid_add_01(self, setup_data):
@@ -175,7 +184,7 @@ class Test_copy_var():
     @pytest.fixture
     def setup_data(self):
         """
-        Foreach test setup test netcdf file
+        Foreach test setup test netcdf file, clean up after test is run
         """
         
         if os.path.exists(self.dst_filename):            
@@ -197,6 +206,15 @@ class Test_copy_var():
 
         finally:
             nc_file.close()
+        yield
+        
+        print("Trying to remove created NetCDF file 'test.nc'.")
+        if os.path.exists(self.dst_filename):            
+            try:
+                os.remove(self.dst_filename)
+                print("NetCDF file 'test.nc' removed successfully.")
+            except Exception as e:
+                print("Failed to remove created NetCDF file 'test.nc'. Exception thrown : "+ str(e))        
 
     def test_copy_var_01(self, setup_data):
         """
@@ -218,18 +236,34 @@ class Test_copy_var():
 
 
 class Test_copy_ugrid():
-    def test_copy_ugrid_01(self):
+    dst_filename = "test.nc"
+    
+    @pytest.fixture
+    def setup_data(self):
+        """
+        Foreach test clean up after test is run
+        """        
+        yield
+        
+        print("Trying to remove created NetCDF file 'test.nc'.")
+        if os.path.exists(self.dst_filename):            
+            try:
+                os.remove(self.dst_filename)
+                print("NetCDF file 'test.nc' removed successfully.")
+            except Exception as e:
+                print("Failed to remove created NetCDF file 'test.nc'. Exception thrown : "+ str(e))        
+
+    def test_copy_ugrid_01(self, setup_data):
         """
         Testing copy_ugrid (depends on copy_var).
         """
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        dst_filename = "tests.nc"
         
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(src_filename)
-        GridOperations.copy_ugrid(src_filename, meshname, dst_filename)
+        GridOperations.copy_ugrid(src_filename, meshname, self.dst_filename)
         #
         varname = "face_node_connectivity"
-        datac = GridOperations.read_fm_map(dst_filename, varname)
+        datac = GridOperations.read_fm_map(self.dst_filename, varname)
         dataref = 2352
         assert datac[-1][1] == dataref
 
