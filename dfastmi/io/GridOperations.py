@@ -193,7 +193,10 @@ class GridOperations:
 
         # default
         facedim = fnc.dimensions[0]
-        return mesh2d[0].name, facedim
+        mesh2d_name = mesh2d[0].name
+
+        rootgrp.close()        
+        return mesh2d_name, facedim
 
     @staticmethod
     def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
