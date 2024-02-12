@@ -57,7 +57,7 @@ class Test_batch_mode():
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
-        #DIT WAS NIET ZO, BESPREKEN MET BERT! assert outstr == []
+        assert outstr == []
         #
         prefixes = ('Dit is versie')
         #
@@ -98,7 +98,7 @@ class Test_batch_mode():
         #for s in outstr:
         #    print(s)
         self.maxDiff = None
-        #DIT WAS NIET ZO, BESPREKEN MET BERT! assert outstr == []
+        assert outstr == []
         #
         prefixes = ('This is version')
         #
