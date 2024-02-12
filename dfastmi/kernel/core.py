@@ -212,9 +212,9 @@ def estimate_sedimentation_length(
     L : float
         The expected yearly impacted sedimentation length [m].
     """
-    yearly_sedimentation_lengths = [tmi[i] * celerity[i] for i in range(len(tmi))]
-    
-    return sum(yearly_sedimentation_lengths) * 1000
+    sedimentation_length_contributions  = [tmi[i] * celerity[i] for i in range(len(tmi))]
+    KM_TO_M = 1000
+    return sum(sedimentation_length_contributions ) * KM_TO_M
 
 def dzq_from_du_and_h(
     u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float, default: float = numpy.NaN,
