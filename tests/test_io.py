@@ -1,9 +1,12 @@
+import io
+import mock
 import context
 import dfastmi.io
 import configparser
 import os
 import numpy
 import netCDF4
+import tempfile
 
 import pytest
 
@@ -23,28 +26,115 @@ def captured_output():
 
 
 class Test_load_program_texts():
-    def test_load_program_texts_01(self):
+     def test_load_program_texts_in_global_PROGTEXT(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\ncontent\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+            assert dfastmi.io.PROGTEXTS['header'] == ['content']
+         
+     def test_load_program_texts_multiline_in_global_PROGTEXT(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\ncontent\r\ncontent2\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+            assert dfastmi.io.PROGTEXTS['header'] == ['content', 'content2']
+         
+     def test_load_program_texts_line_header_with_no_value_in_global_PROGTEXT(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\n[otherheader]\r\ncontent\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+            assert dfastmi.io.PROGTEXTS['header'] == []
+            assert dfastmi.io.PROGTEXTS['otherheader'] == ['content']
+         
+     def test_load_program_texts_double_header_throws_exception(self):
+         with mock.patch("builtins.open", mock.mock_open(read_data="[header]\r\n[header]\r\ncontent\r\n")) as mock_file:
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.load_program_texts("")
+            assert str(cm.value) == 'Duplicate entry for "header" in "".'
+         
+    
+class Test_data_access_load_program_texts():
+    def test_load_program_texts_load_default_uk_messages_file(self):
         """
         Testing load_program_texts.
         """
         print("current work directory: ", os.getcwd())
-        assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None
-
-    def test_load_program_texts_02(self):
-        """
-        Testing load_program_texts.
-        """
-        print("current work directory: ", os.getcwd())
-        with pytest.raises(Exception) as cm:
-            dfastmi.io.load_program_texts("tests/files/messages.duplicate_keys.ini")
-        assert str(cm.value) == 'Duplicate entry for "checksum" in "tests/files/messages.duplicate_keys.ini".'
-
-@pytest.fixture
-def setup_data():
-    dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
+        assert dfastmi.io.load_program_texts("dfastmi/messages.UK.ini") == None    
 
 class Test_log_text():
-    def test_log_text_01(self, setup_data):
+    @pytest.fixture
+    def setup_data(self):
+        dfastmi.io.PROGTEXTS = {}        
+        
+    def test_log_text_no_key_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key)
+        outstr = out.getvalue().splitlines()
+        strref = "No message found for " + key
+        assert outstr[0] == strref
+    
+    def test_log_text_with_key_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key)
+        outstr = out.getvalue().splitlines()
+        strref = "Confirm key found"
+        assert outstr[0] == strref
+
+    def test_log_text_with_key_and_variable_id_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        dict = {"value": "ABC"}
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found with {value}\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key,dict=dict)
+        outstr = out.getvalue().splitlines()
+        strref = "Confirm key found with ABC"
+        assert outstr[0] == strref
+    
+    def test_log_text_two_times_with_key_and_variable_id_in_global_PROGTEXT(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        dict = {"value": "ABC"}
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found with {value}\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+        with captured_output() as (out, err):
+            dfastmi.io.log_text(key, dict=dict, repeat=2)
+        outstr = out.getvalue().splitlines()
+        strref = "Confirm key found with ABC"
+        assert outstr[0] == strref
+        assert outstr[1] == strref
+
+    def test_log_text_with_key_and_variable_id_in_global_PROGTEXT_write_in_file(self, setup_data):
+        """
+        Testing standard output of a single text without expansion.
+        """
+        key = "confirm"
+        dict = {"value": "ABC"}
+        with mock.patch("builtins.open", mock.mock_open(read_data="[confirm]\r\nConfirm key found with {value}\r\n")) as mock_file:
+            dfastmi.io.load_program_texts("")
+
+        with mock.patch("builtins.open") as mock_file:
+            dfastmi.io.log_text(key, dict=dict, file=mock_file)
+            assert mock_file.write.called
+            mock_file.write.assert_called_once_with("Confirm key found with ABC\n")    
+
+class Test_data_access_log_text():
+    @pytest.fixture
+    def setup_data(self):
+        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
+
+    def test_log_text_check_content_messages_uk(self, setup_data: None):
         """
         Testing standard output of a single text without expansion.
         """
@@ -55,7 +145,7 @@ class Test_log_text():
         strref = ['Confirm using "y" ...', '']
         assert outstr == strref
 
-    def test_log_text_02(self, setup_data):
+    def test_log_text_empty_keys(self, setup_data: None):
         """
         Testing standard output of a repeated text without expansion.
         """
@@ -67,7 +157,7 @@ class Test_log_text():
         strref = ['', '', '']
         assert outstr == strref
 
-    def test_log_text_03(self, setup_data):
+    def test_log_text_replace_variable_id_with_provided_value_in_dictionary(self, setup_data: None):
         """
         Testing standard output of a text with expansion.
         """
@@ -79,7 +169,7 @@ class Test_log_text():
         strref = ['The measure is located on reach ABC']
         assert outstr == strref
 
-    def test_log_text_04(self, setup_data):
+    def test_log_text_replace_variable_id_with_provided_value_in_dictionary_and_write_in_file(self, setup_data: None):
         """
         Testing file output of a text with expansion.
         """
@@ -93,7 +183,16 @@ class Test_log_text():
         assert all_lines == strref
 
 class Test_get_filename():
-    def test_get_filename_01(self):
+    def test_get_filename_get_filename_from_uk_keys(self):
+        """
+        Testing get_filename wrapper for get_text.
+        """
+        dfastmi.io.PROGTEXTS = {"filename_report.out": ["report.txt"]}
+        file = dfastmi.io.get_filename("report.out")
+        assert  file == "report.txt"
+
+class Test_data_access_get_filename():
+    def test_get_filename_get_filename_from_uk_keys(self):
         """
         Testing get_filename wrapper for get_text.
         """
@@ -101,19 +200,47 @@ class Test_get_filename():
         assert dfastmi.io.get_filename("report.out") == "report.txt"
 
 class Test_get_text():
-    def test_get_text_01(self):
+    def test_get_text_from_empty_global_PROGTEXTS_results_in_no_message_found(self):
+        """
+        Testing get_text: key not found.
+        """
+        dfastmi.io.PROGTEXTS = {}
+        assert dfastmi.io.get_text("@") == ["No message found for @"]
+
+    def test_get_text_from_empty_key_in_global_PROGTEXTS_results_in_specified_value(self):
+        """
+        Testing get_text: empty line key.
+        """
+        dfastmi.io.PROGTEXTS = {'':''}
+        assert dfastmi.io.get_text("") == ''
+
+    def test_get_text_from_custom_key_in_global_PROGTEXTS_results_in_specified_value(self):
+        """
+        Testing get_text: "confirm" key.
+        """
+        dfastmi.io.PROGTEXTS = {"confirm":'Confirm using "y" ...'}
+        confirmText = dfastmi.io.get_text("confirm")
+        assert confirmText == 'Confirm using "y" ...'
+
+
+class Test_data_access_get_text():
+    @pytest.fixture
+    def setup_data(self):
+        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
+
+    def test_get_text_messages_uk_loaded_key_not_found(self):
         """
         Testing get_text: key not found.
         """
         assert dfastmi.io.get_text("@") == ["No message found for @"]
 
-    def test_get_text_02(self, setup_data):
+    def test_get_text_messages_uk_loaded_key_empty(self, setup_data: None):
         """
         Testing get_text: empty line key.
         """
         assert dfastmi.io.get_text("") == [""]
 
-    def test_get_text_03(self, setup_data):
+    def test_get_text_messages_uk_loaded_key_confirm_returns_value(self, setup_data: None):
         """
         Testing get_text: "confirm" key.
         """
@@ -121,7 +248,38 @@ class Test_get_text():
         assert confirmText == ['Confirm using "y" ...','']
 
 class Test_write_config():
-    def test_write_config_01(self):
+    def test_write_config_check_written(self):
+        """
+        Testing write_config.
+        """
+        filename = "test.cfg"
+        config = configparser.ConfigParser()
+        config.add_section("G 1")
+        config["G 1"]["K 1"] = "V 1"
+        config.add_section("Group 2")
+        config["Group 2"]["K1"] = "1.0 0.1 0.0 0.01"
+        config["Group 2"]["K2"] = "2.0 0.2 0.02 0.0"
+        config.add_section("Group 3")
+        config["Group 3"]["LongKey"] = "3"
+
+        with mock.patch("builtins.open") as mock_file:
+            dfastmi.io.write_config(filename, config)
+            mock_file.assert_called_once_with(filename, 'w')
+            mock_file.return_value.__enter__().write.assert_called()
+            mock_file.return_value.__enter__().write.assert_any_call('[G 1]\n')
+            mock_file.return_value.__enter__().write.assert_any_call('  k 1     = V 1\n')
+            mock_file.return_value.__enter__().write.assert_any_call('\n')
+            mock_file.return_value.__enter__().write.assert_any_call('[Group 2]\n')
+            mock_file.return_value.__enter__().write.assert_any_call('  k1      = 1.0 0.1 0.0 0.01\n')
+            mock_file.return_value.__enter__().write.assert_any_call('  k2      = 2.0 0.2 0.02 0.0\n')
+            mock_file.return_value.__enter__().write.assert_any_call('[Group 3]\n')
+            mock_file.return_value.__enter__().write.assert_any_call('  longkey = 3\n')
+            
+
+        
+
+class Test_data_access_write_config():
+    def test_write_config_and_read_back(self):
         """
         Testing write_config.
         """
@@ -148,7 +306,257 @@ class Test_write_config():
         assert all_lines == all_lines_ref
 
 class Test_read_fm_map():
-    def test_read_fm_map_01(self):
+
+    def test_read_fm_map_mock_2_2dmeshes_in_file_raises_exception(self):
+        """
+        Testing read_fm_map: raise exception when multiple meshes are in netCDF4 Dataset
+        """
+        filename = "mock_file_name.nc"
+        varname = "mock_variable"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            netCDF4Dataset.get_variables_by_attributes.return_value = ['2dMesh_1', '2dMesh_2']
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.read_fm_map(filename, varname)
+            assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."
+
+    def test_read_fm_map_mock_2dmesh_unknown_varname_and_multi_attribute_raises_exception(self):
+        """
+        Testing read_fm_map: raise exception when unknown (custom) variable is read from netcdf4 Dataset 
+        on attribute 'long_name' but 2 are returned after on attribute 'standard_name' return nothing
+        """
+        filename = "mock_file_name.nc"
+        varname = "naam"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            netCDF4Dataset.get_variables_by_attributes.side_effect = [
+                [mock.MagicMock(name="mesh2D", spec=netCDF4.Variable)], 
+                [], 
+                [
+                    [mock.MagicMock(name="aVariable", spec=netCDF4.Variable)],
+                    [mock.MagicMock(name="aVariable", spec=netCDF4.Variable)]
+                ]]            
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.read_fm_map(filename, varname)
+            assert str(cm.value) == 'Expected one variable for "naam", but obtained 2.'
+
+    def test_read_fm_map_mock_2dmesh_reading_var_without_unlimited_times_with_custom_offset_raises_exception(self):
+        """
+        Testing read_fm_map: reading var without unlimited times (so time dimension is an integer) 
+        with custom time offset raises exception. We see this variable not as a time depended variable 
+        but independend. Time (slicing) cannot work if it is not an argument of the variable 
+        """
+        filename = "mock_file_name.nc"
+        varname = "naam"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            var = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
+            netCDF4Dataset.get_variables_by_attributes.return_value = [var]
+            dim = mock.MagicMock(spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = False
+            var.get_dims.return_value = [dim]
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.read_fm_map(filename, varname, ifld=8)
+            assert str(cm.value) == 'Trying to access time-independent variable "naam" with time offset -9.'
+            
+    def test_read_fm_map_mock_2dmesh_get_double_var(self):
+        """
+        Testing read_fm_map: reading a variable from netCDF4 dataset should return 
+        expected return value
+        """
+        filename = "mock_file_name.nc"
+        varname = "naam"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
+            mock_variable.__getitem__.return_value = [801, 802]
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_variable]
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = True
+            mock_variable.get_dims.return_value = [dim]
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([801,802]))
+
+    def test_read_fm_map_instantiate_dataset_in_memory_get_last_double_var(self):
+        with tempfile.NamedTemporaryFile(suffix='_map.nc') as temp_file:
+            nc_file = netCDF4.Dataset(temp_file.name, mode='w', diskless=True)
+            
+            # Define dimensions
+            nc_file.createDimension('time', 0)  # 3 time dimensions will be defined later (0=unlimited)
+            nc_file.createDimension('face', 2)  # 2 faces
+
+            # Create variables
+            mesh2d = nc_file.createVariable('mesh2d', 'f4')  # 'f4' specifies the data type as float32
+            mesh2d.setncattr('cf_role', "mesh_topology")
+            mesh2d.setncattr('topology_dimension', 2)
+
+            discharge = nc_file.createVariable('discharge', 'f4', ('time', 'face'))
+            discharge.setncattr('standard_name', 'discharge')
+            discharge.setncattr('mesh', mesh2d.name)
+            discharge.setncattr('location', 'face')
+
+            discharge[:] = [[27, 76], 
+                            [801, 802], 
+                            [214, 588]]
+                
+            with mock.patch('netCDF4.Dataset') as mock_nc_dataset:
+                mock_nc_dataset.return_value = nc_file               
+                data = dfastmi.io.read_fm_map(filename="mock.nc", varname='discharge')
+                assert numpy.array_equal(data, [214,588])
+
+    def test_read_fm_map_instantiate_dataset_in_memory_get_indexed_double_var(self):
+        with tempfile.NamedTemporaryFile(suffix='_map.nc') as temp_file:
+            nc_file = netCDF4.Dataset(temp_file.name, mode='w', diskless=True)
+            
+            # Define dimensions
+            nc_file.createDimension('time', 0)  # 3 time dimensions will be defined later (0=unlimited)
+            nc_file.createDimension('face', 2)  # 2 faces
+
+            # Create variables
+            mesh2d = nc_file.createVariable('mesh2d', 'f4')  # 'f4' specifies the data type as float32
+            mesh2d.setncattr('cf_role', "mesh_topology")
+            mesh2d.setncattr('topology_dimension', 2)
+
+            discharge = nc_file.createVariable('discharge', 'f4', ('time', 'face'))
+            discharge.setncattr('standard_name', 'discharge')
+            discharge.setncattr('mesh', mesh2d.name)
+            discharge.setncattr('location', 'face')
+
+            discharge[:] = [[27, 76], 
+                            [801, 802], 
+                            [214, 588]]
+            
+            with mock.patch('netCDF4.Dataset') as mock_nc_dataset:
+                mock_nc_dataset.return_value = nc_file
+                data = dfastmi.io.read_fm_map(filename="mock.nc", varname='discharge', ifld=2)
+                assert numpy.array_equal(data, [27,76])                                   
+
+    def test_read_fm_map_from_mocked_dataset_x_coordinates_of_faces_by_projection_x_coordinate(self):
+        """
+        Testing read_fm_map: x coordinates of the faces by projection_x_coordinate.
+        """
+        filename = "mocked_file_name.nc"
+        varname = "x"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_variable]
+            netCDF4Dataset.variables[0].standard_name = 'projection_x_coordinate'
+            netCDF4Dataset.variables[0].return_value = mock_variable
+            netCDF4Dataset.variables[0].__getitem__.return_value  = [801, 802]
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = True
+            mock_variable.get_dims.return_value = [dim]
+            mock_variable.getncattr.return_value = "projection_x_coordinate projection_y_coordinate"
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([801,802]))           
+    
+    def test_read_fm_map_from_mocked_dataset_x_coordinates_of_faces_by_longitude(self):
+        """
+        Testing read_fm_map: x coordinates of the faces by longitude.
+        """
+        filename = "mocked_file_name.nc"
+        varname = "x"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_variable]
+            netCDF4Dataset.variables[0].standard_name = 'longitude'
+            netCDF4Dataset.variables[0].return_value = mock_variable
+            netCDF4Dataset.variables[0].__getitem__.return_value  = [801, 802]
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = True
+            mock_variable.get_dims.return_value = [dim]
+            mock_variable.getncattr.return_value = "longitude latitude"
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([801,802]))   
+    
+    def test_read_fm_map_from_mocked_dataset_y_coordinates_of_faces_by_projection_y_coordinate(self):
+        """
+        Testing read_fm_map: y coordinates of the faces by projection_y_coordinate.
+        """
+        filename = "mocked_file_name.nc"
+        varname = "y"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_variable]
+            netCDF4Dataset.variables[1].standard_name = 'projection_y_coordinate'
+            netCDF4Dataset.variables[1].return_value = mock_variable
+            netCDF4Dataset.variables[1].__getitem__.return_value  = [801, 802]
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = True
+            mock_variable.get_dims.return_value = [dim]
+            mock_variable.getncattr.return_value = "projection_x_coordinate projection_y_coordinate"
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([801,802]))           
+    
+    def test_read_fm_map_from_mocked_dataset_y_coordinates_of_faces_by_latitude(self):
+        """
+        Testing read_fm_map: y coordinates of the faces by latitude.
+        """
+        filename = "mocked_file_name.nc"
+        varname = "y"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_variable]
+            netCDF4Dataset.variables[1].standard_name = 'latitude'
+            netCDF4Dataset.variables[1].return_value = mock_variable
+            netCDF4Dataset.variables[1].__getitem__.return_value  = [801, 802]
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = True
+            mock_variable.get_dims.return_value = [dim]
+            mock_variable.getncattr.return_value = "longitude latitude"
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([801,802]))   
+    
+    def test_read_fm_map_from_mocked_dataset_mesh_connectivity_variable(self):
+        """
+        Testing read_fm_map: dataset mesh connectivity variable
+        """
+        filename = "mocked_file_name.nc"
+        varname = "face_node_connectivity"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_mesh = mock.MagicMock(name="mesh2d", spec=netCDF4.Variable)
+            mock_mesh.getncattr.return_value = "aVar"
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_mesh]
+            
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = False
+            mock_variable = mock.MagicMock(name="aVar", spec=netCDF4.Variable)            
+            mock_variable.get_dims.return_value = [dim]
+            mock_variable.__getitem__.return_value = numpy.ma.masked_array(data=[801,802])
+            netCDF4Dataset.variables = {'aVar':mock_variable}
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([801,802]))   
+    
+    def test_read_fm_map_from_mocked_dataset_mesh_connectivity_variable_with_start_index_of_1(self):
+        """
+        Testing read_fm_map: dataset mesh connectivity variable with start index of 1
+        """
+        filename = "mocked_file_name.nc"
+        varname = "face_node_connectivity"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_mesh = mock.MagicMock(name="mesh2d", spec=netCDF4.Variable)
+            mock_mesh.getncattr.return_value = "aVar"
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_mesh]
+            
+            dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
+            dim.isunlimited.return_value = False
+            mock_variable = mock.MagicMock(name="aVar", spec=netCDF4.Variable)            
+            mock_variable.get_dims.return_value = [dim]
+            mock_variable.ncattrs.return_value = ['start_index']
+            mock_variable.getncattr.return_value = 1
+            mock_variable.__getitem__.return_value = numpy.ma.masked_array(data=[801,802])
+            netCDF4Dataset.variables = {'aVar':mock_variable}
+            data = dfastmi.io.read_fm_map(filename, varname)                
+            assert numpy.array_equal(data, numpy.array([800,801]))
+
+class Test_data_access_read_fm_map():
+    def test_read_fm_map_from_example_file_x_coordinates_of_faces(self):
         """
         Testing read_fm_map: x coordinates of the faces.
         """
@@ -221,6 +629,23 @@ class Test_read_fm_map():
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
         
 class Test_get_mesh_and_facedim_names():
+    def test_get_mesh_and_facedim_names_01(self):
+        """
+        Testing get_mesh_and_facedim_names.
+        """
+        filename = "mocked_file_name.nc"
+        with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
+            netCDF4Dataset.return_value = netCDF4.Dataset
+            mock_mesh = mock.MagicMock(name="mesh2d", spec=netCDF4.Variable)
+            mock_mesh.getncattr.return_value = "aVar"
+            netCDF4Dataset.get_variables_by_attributes.return_value = [mock_mesh, mock_mesh]
+            with pytest.raises(Exception) as cm:
+                dfastmi.io.get_mesh_and_facedim_names(filename)
+            assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."
+            
+            
+
+class Test_data_access_get_mesh_and_facedim_names():
     def test_get_mesh_and_facedim_names_01(self):
         """
         Testing get_mesh_and_facedim_names.
@@ -447,7 +872,49 @@ class Test_collect_int_values1():
 
         intValues = dfastmi.io.collect_int_values1(config, branches, nreaches, key)
         assert intValues == [[2,3],[4,5,6]]
+class Test_collect_values_logical():
+    def test_collect_values_logical_01(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "YES"
+        config[myGroup][myKey] = myVal
+        branches = ['Channel1','Channel2','Channel3']
+        nreaches  = [2,1,3]
 
+        assert dfastmi.io.collect_values_logical(config, branches, nreaches, myKey) == [[True,True],[True],[True, True, True]]
+    
+    def test_collect_values_logical_02(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = ""
+        config[myGroup][myKey] = myVal
+        branches = ['Channel1','Channel2','Channel3']
+        nreaches  = [2,1,3]
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.collect_values_logical(config, branches, nreaches, myKey)
+        assert str(cm.value) == 'Reading KEY for reach 1 on Channel1 returns "". Expecting 1 values.'
+
+    def test_collect_values_logical_03(self):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myKey = "KEY"
+        branches = ['Channel1','Channel2','Channel3']
+        nreaches  = [2,1,3]
+        with pytest.raises(Exception) as cm:
+            dfastmi.io.collect_values_logical(config, branches, nreaches, myKey)
+        assert str(cm.value) == 'Reading KEY for reach 1 on Channel1 returns "". Expecting 1 values.'
 class Test_config_get_bool():
     def test_config_get_bool_01(self):
         """
@@ -673,7 +1140,6 @@ class Test_config_get_range():
         config[myGroup][myKey] = myVal
         assert dfastmi.io.config_get_range(config, myGroup, myKey) == (0.0,10.0)
 
-    @pytest.mark.skip(reason="Other exception is thrown")
     def test_config_get_range_03(self):
         """
         
@@ -687,7 +1153,7 @@ class Test_config_get_range():
         config[myGroup][myKey] = myVal #even on not setting this value we expect the exception
         with pytest.raises(Exception) as cm:
             dfastmi.io.config_get_range(config, myGroup, myKey)
-        assert range(cm.value) == 'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format("", myKey, myGroup)
+        assert str(cm.value) == 'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format(myVal, myKey, myGroup)
  
     def test_config_get_range_04(self):
         """
@@ -740,89 +1206,159 @@ class Test_get_xykm():
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
 class Test_read_xyc():
-    def test_read_xyc_01(self):
+    @pytest.fixture
+    def setup_data(self):
+        with mock.patch('os.path.splitext') as mock_splitext:
+            mock_splitext.return_value = ("c:\\", ".XYC")
+            yield self
+
+    def test_read_xyc_read_waqua_xyz_test_xyc_file(self):
         """
-        read .xyc file with val
+        Read WAQUA xyz file columns 2 and 3 = X & Y, column 1 is chainage. 
         """
         line = dfastmi.io.read_xyc("tests/files/read_waqua_xyz_test.xyc", 3, ",", True)
 
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
+        
+    def test_read_xyc_with_header_with_chainages_custom_separator(self, setup_data):
+        """
+        read .xyc file with chainage
+        With custom header and seperator.
+        """
+        data_string = '''\
+                        "A", "B", "C"
+                        1, 2, 3
+                        4, 5, 6
+                        7, 8, 9
+                        10, 11, 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 3, ",", True)        
+        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
-    def test_read_xyc_02(self):
+    def test_read_xyc_with_header_without_chainages_custom_separator(self, setup_data):
         """
-        read .xyc file without val (X,Y only)
+        read .xyc file without chainage (X,Y only)
+        With custom header and seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_waqua_xyz_test.xyc", 2, ",", True)
+        data_string = '''\
+                        "A", "B"
+                        2, 3
+                        5, 6
+                        8, 9
+                        11, 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 2, ",", True)
+        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
+
+    def test_read_xyc_with_header_with_chainages_no_custom_separator(self, setup_data):
+        """
+        read .xyc file with chainage
+        With custom header and seperator.
+        """
+        data_string = '''\
+                        "A" "B" "C"
+                        1 2 3
+                        4 5 6
+                        7 8 9
+                        10 11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 3, hasHeader=True)        
+        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
+
+    def test_read_xyc_with_header_without_chainages_no_custom_separator(self, setup_data):
+        """
+        read .xyc file without chainage (X,Y only)
+        With custom header and seperator.
+        """
+        data_string = '''\
+                        "A" "B"
+                        2 3
+                        5 6
+                        8 9
+                        11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        
+        line = dfastmi.io.read_xyc(string_io, 2, hasHeader=True)
         assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
     
-    def test_read_xyc_03(self):
+    def test_read_xyc_no_header_with_chainages_no_custom_separator(self, setup_data):
         """
-        read .xyc file with val
+        read .xyc file with chainage
+        No header and no custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test.xyc", 3)
+        data_string = '''\
+                        1 2 3
+                        4 5 6
+                        7 8 9
+                        10 11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 3)
 
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
-    def test_read_xyc_04(self):
+    def test_read_xyc_no_header_without_chainages_no_custom_separator(self, setup_data):
         """
-        read .xyc file without val (X,Y only)
+        read .xyc file without chainage
+        No header and no custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test.xyc", 2)
+        data_string = '''\
+                        2 3
+                        5 6
+                        8 9
+                        11 12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 2)
+        
         assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
     
-    def test_read_xyc_05(self):
+    def test_read_xyc_no_header_with_chainages_custom_separator(self, setup_data):
         """
-        read .xyc file with val
+        read .xyc file with chainage
+        No header and custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter.xyc", 3, ";")
+        data_string = '''\
+                        1;2;3
+                        4;5;6
+                        7;8;9
+                        10;11;12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 3, ";")
 
         assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
 
-    def test_read_xyc_06(self):
+    def test_read_xyc_no_header_without_chainages_custom_separator(self, setup_data):
         """
-        read .xyc file without val (X,Y only)
+        read .xyc file without chainage (X,Y only)
+        No header and custom seperator.
         """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter.xyc", 2, ";")
-        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
+        data_string = '''\
+                        2;3
+                        5;6
+                        8;9
+                        11;12
+                        '''
+        string_io = io.StringIO(data_string)
+        line = dfastmi.io.read_xyc(string_io, 2, ";")
+        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'    
 
-    def test_read_xyc_07(self):
-        """
-        read .xyc file with val
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter_header.xyc", 3, ";", True)
-
-        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
-
-    def test_read_xyc_08(self):
-        """
-        read .xyc file without val (X,Y only)
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_delimiter_header.xyc", 2, ";", True)
-        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
-    
-    def test_read_xyc_09(self):
-        """
-        read .xyc file with val
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_nodelimiter_header.xyc", 3, hasHeader=True)
-
-        assert line.wkt == 'LINESTRING Z (2 3 1, 5 6 4, 8 9 7, 11 12 10)'
-
-    def test_read_xyc_10(self):
-        """
-        read .xyc file without val (X,Y only)
-        """
-        line = dfastmi.io.read_xyc("tests/files/read_xyc_test_nodelimiter_header.xyc", 2, hasHeader=True)
-        assert line.wkt == 'LINESTRING (2 3, 5 6, 8 9, 11 12)'
-
-    def test_read_xyc_11(self):
+    def test_read_xyc_read_kml_file(self):
         """
         read .kml file with val
         """
         line = dfastmi.io.read_xyc("tests/files/cta_rail_lines.kml")
         assert line.wkt == 'MULTILINESTRING Z ((-87.77678526964958 41.8708863930319 0, -87.77826234150609 41.87097820122218 0, -87.78251583439344 41.87130129991005 0, -87.78418294588424 41.87145055520308 0, -87.7872369165933 41.8717239119163 0, -87.79160214925886 41.87210797280065 0))'
     
-    def test_read_xyc_12(self):
+    def test_read_xyc_read_shp_file(self):
         """
         read .shp file with val 
         """
@@ -863,6 +1399,15 @@ class Test_absolute_path():
         afile = os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
         assert dfastmi.io.absolute_path(rootdir, rfile) == afile
+    
+    def test_absolute_path_05(self):
+        """
+        When can't convert, return relative path back
+        """
+        rootdir = None
+        afile = os.sep + "some" + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
+        rfile = ".." + os.sep + "other" + os.sep + "dir" + os.sep + "file.ext"
+        assert dfastmi.io.absolute_path(rootdir, rfile) == rfile
 
 class Test_relative_path():
     def test_relative_path_01(self):
