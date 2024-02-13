@@ -91,15 +91,15 @@ class BedLevelCalculator:
         dzb   : List[numpy.ndarray]
             List of arrays containing the bed level change at the beginning of each respective discharge period.
         """
-        vsigma = self.__compute_vsigma__(rsigma, dzq)
-        den = self.__compute_denominator__(self.number_of_periods, vsigma)
-        dzb = self.__compute_dzb_at_the_beginning_of_each_period__(dzq, vsigma, den)
+        vsigma = self.__compute_vsigma(rsigma, dzq)
+        den = self.__compute_denominator(self.number_of_periods, vsigma)
+        dzb = self.__compute_dzb_at_the_beginning_of_each_period(dzq, vsigma, den)
         return dzb
 
-    def __compute_vsigma__(self, rsigma : List[float], dzq):
+    def __compute_vsigma(self, rsigma : List[float], dzq):
         vsigma = []
         
-        mask = self.__get_mask__(dzq)
+        mask = self.__get_mask(dzq)
         
         for rsigma_value in rsigma:
             vsigma_tmp = numpy.ones(mask.shape) * rsigma_value
@@ -108,14 +108,14 @@ class BedLevelCalculator:
             
         return vsigma
     
-    def __get_mask__(self, dzq):
+    def __get_mask(self, dzq):
         mask = numpy.zeros_like(self.number_of_periods, dtype=bool)
         for dzq_value in dzq:
             if dzq_value is not None:
                 mask = mask | numpy.isnan(dzq_value)
         return mask
 
-    def __compute_denominator__(self, number_of_periods, vsigma):
+    def __compute_denominator(self, number_of_periods, vsigma):
         for i in range(number_of_periods):
             if i == 0:
                 den = vsigma[0]
@@ -124,17 +124,17 @@ class BedLevelCalculator:
         den = 1 - den
         return den
 
-    def __compute_dzb_at_the_beginning_of_each_period__(self, dzq, vsigma, den):
+    def __compute_dzb_at_the_beginning_of_each_period(self, dzq, vsigma, den):
         dzb: List[numpy.ndarray] = []
         for i in range(self.number_of_periods):
-            enm = self.__compute_enumerator__(dzq, self.number_of_periods, i, vsigma)
+            enm = self.__compute_enumerator(dzq, self.number_of_periods, i, vsigma)
             
             # divide by denominator
             with numpy.errstate(divide="ignore", invalid="ignore"):
                 dzb.append(numpy.where(den != 0, enm / den, 0))
         return dzb
 
-    def __compute_enumerator__(self, dzq, number_of_periods, i, vsigma):
+    def __compute_enumerator(self, dzq, number_of_periods, i, vsigma):
         enm = 0
         for j in range(number_of_periods):
             jr = (i + j) % number_of_periods
