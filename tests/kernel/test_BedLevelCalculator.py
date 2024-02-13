@@ -10,7 +10,7 @@ class Test_BedLevelCalculator():
         20000,
         124356789,
     ])   
-    def test_given_correct_type_when_constructing_BedLevelCalculator_then_no_assertion_error_is_raised(self, correct_type : int): 
+    def test_given_correct_type_when_constructing_BedLevelCalculator_then_no_exception_error_is_raised(self, correct_type : int): 
         try:
             _ = BedLevelCalculator(correct_type)
         except Exception as exeption:
@@ -23,7 +23,7 @@ class Test_BedLevelCalculator():
         [],
         {}
     ])
-    def test_given_incorrect_type_when_constructing_BedLevelCalculator_then_assertion_error_with_message(self, incorrect_type): 
+    def test_given_incorrect_type_when_constructing_BedLevelCalculator_then_exception_is_raised_with_message(self, incorrect_type): 
         with pytest.raises(Exception) as exeption:
             _ = BedLevelCalculator(incorrect_type)
         assert str(exeption.value) ==  f"Amount of the equilibrium bed level change for each respective discharge period available is not of expected type {int}."
