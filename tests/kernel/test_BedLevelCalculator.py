@@ -3,6 +3,31 @@ import numpy
 import pytest
 
 class Test_BedLevelCalculator():
+    
+    @pytest.mark.parametrize("correct_type", [
+        0,
+        1,
+        20000,
+        124356789,
+    ])   
+    def test_given_correct_type_when_constructing_BedLevelCalculator_then_no_assertion_error_is_raised(self, correct_type : int): 
+        try:
+            _ = BedLevelCalculator(correct_type)
+        except Exception as exeption:
+            pytest.fail(f"Unexpected exception: {exeption}")
+    
+    @pytest.mark.parametrize("incorrect_type", [
+        None,
+        "string",
+        3.14,
+        [],
+        {}
+    ])
+    def test_given_incorrect_type_when_constructing_BedLevelCalculator_then_assertion_error_with_message(self, incorrect_type): 
+        with pytest.raises(Exception) as exeption:
+            _ = BedLevelCalculator(incorrect_type)
+        assert str(exeption.value) ==  f"Amount of the equilibrium bed level change for each respective discharge period available is not of expected type {int}."
+    
     def test_given_array_with_value_when_get_element_wise_maximum_then_return_maximum_array(self):
         number_of_periods = 0
         blc = BedLevelCalculator(number_of_periods)

@@ -12,7 +12,12 @@ class BedLevelCalculator:
         """
         number_of_periods : int
          Amount of the equilibrium bed level change for each respective discharge period available.
+         
+        Raises:
+        - TypeError, when number_of_periods is not of type int
         """
+        if not isinstance(number_of_periods, int):
+            raise TypeError(f"Amount of the equilibrium bed level change for each respective discharge period available is not of expected type {int}.")  
         self.number_of_periods = number_of_periods
 
     def get_element_wise_maximum(self, dzb: List[numpy.ndarray]) -> numpy.ndarray:
