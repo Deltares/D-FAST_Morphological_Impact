@@ -96,7 +96,7 @@ class BedLevelCalculator:
         dzb = self.__compute_dzb_at_the_beginning_of_each_period(dzq, vsigma, den)
         return dzb
 
-    def __compute_vsigma(self, rsigma : List[float], dzq):
+    def __compute_vsigma(self, rsigma : List[float], dzq: List[numpy.ndarray]) -> List[numpy.ndarray]:
         vsigma = []
         
         mask = self.__get_mask(dzq)
@@ -108,14 +108,14 @@ class BedLevelCalculator:
             
         return vsigma
     
-    def __get_mask(self, dzq):
+    def __get_mask(self, dzq: List[numpy.ndarray]) -> numpy.ndarray[bool]:
         mask = numpy.zeros_like(self.number_of_periods, dtype=bool)
         for dzq_value in dzq:
             if dzq_value is not None:
                 mask = mask | numpy.isnan(dzq_value)
         return mask
 
-    def __compute_denominator(self, number_of_periods, vsigma):
+    def __compute_denominator(self, number_of_periods: int, vsigma: List[numpy.ndarray]) -> int:
         for i in range(number_of_periods):
             if i == 0:
                 den = vsigma[0]
@@ -124,7 +124,7 @@ class BedLevelCalculator:
         den = 1 - den
         return den
 
-    def __compute_dzb_at_the_beginning_of_each_period(self, dzq, vsigma, den):
+    def __compute_dzb_at_the_beginning_of_each_period(self, dzq: List[numpy.ndarray], vsigma: List[numpy.ndarray], den: int) -> List[numpy.ndarray]:
         dzb: List[numpy.ndarray] = []
         for i in range(self.number_of_periods):
             enm = self.__compute_enumerator(dzq, self.number_of_periods, i, vsigma)
@@ -134,7 +134,7 @@ class BedLevelCalculator:
                 dzb.append(numpy.where(den != 0, enm / den, 0))
         return dzb
 
-    def __compute_enumerator(self, dzq, number_of_periods, i, vsigma):
+    def __compute_enumerator(self, dzq: List[numpy.ndarray], number_of_periods: int, i: int, vsigma: List[numpy.ndarray]) -> int:
         enm = 0
         for j in range(number_of_periods):
             jr = (i + j) % number_of_periods
