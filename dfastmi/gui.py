@@ -350,6 +350,9 @@ def update_qvalues() -> None:
     ireach = dialog["reach"].currentIndex()
     if ireach < 0:
         return
+    
+    if rivers.version.major < 2 :
+        return
 
     hydro_q = rivers.hydro_q[ibranch][ireach]
     tabs = dialog["tabs"]

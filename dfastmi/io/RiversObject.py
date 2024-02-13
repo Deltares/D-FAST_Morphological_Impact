@@ -34,8 +34,8 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 from dfastmi.io.RiverParameterData import RiverParameterData
 
-class RiversObject():
-    version: str
+class RiversObject():    
+    version: version # type: ignore
     branches: List[str]
     reaches: List[List[str]]
     allreaches : List[str]
@@ -157,7 +157,7 @@ class RiversObject():
         and their associated default parameter settings.
         """
               
-        self.version = "1.0"
+        self.version = version.parse("1.0")
         self._initialize()        
         self._initialize_legacy() 
 
@@ -187,7 +187,7 @@ class RiversObject():
         filename : str
             The name of the river configuration file (default "rivers.ini").    
         """
-        self.version = "2.0"
+        self.version = version.parse("2.0")
         self._initialize()        
         self._initialize_advanced()
         
