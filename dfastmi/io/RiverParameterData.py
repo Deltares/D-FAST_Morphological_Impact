@@ -152,7 +152,7 @@ class RiverParameterData:
             branch_val = general_value
         
         try:
-            val = self._config[branch.name][key + reach.config_key_index]
+            val = self._config[branch.name][key + str(reach.config_key_index)]
         except:
             val = branch_val
         return val

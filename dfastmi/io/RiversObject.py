@@ -172,8 +172,7 @@ class RiversObject():
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize(river_data, branch, reach)
-                self._initialize_advanced(river_data, branch, reach)
-        
+                self._initialize_advanced(river_data, branch, reach)       
         
         self._verify_reaches()
         
@@ -190,16 +189,18 @@ class RiversObject():
                 tide_boundary_condition = reach.tide_bc
                 self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch.name, reach.name)
                 
-                celer_form = reach.cform
-                prop_q = reach.prop_q
-                prop_c = reach.prop_c
-                celer_discharge = reach.cdisch
-                self._verify_CelerForm_with_PropQ_and_PropC(celer_form, prop_q, prop_c, celer_discharge, branch.name, reach.name)
+                celer_form = reach.celer_form
+                celer_object = reach.celer_object
+                self._verify_CelerForm_with_PropQ_and_PropC(celer_form, celer_object, branch.name, reach.name)
 
-    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form, prop_q, prop_c, celer_discharge, branch, reach):
+    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form, celer_object, branch, reach):
+    # prop_q = reach.prop_q
+    #         prop_c = reach.prop_c
+    #         celer_discharge = reach.cdisch
+            
         if celer_form == 1:
-            prop_q_length = len(prop_q)
-            prop_c_lenght = len(prop_c)
+            prop_q_length = len(celer_object.prop_q)
+            prop_c_lenght = len(celer_object.prop_c)
             if prop_q_length != prop_c_lenght:
                 raise Exception(
                             'Length of "PropQ" and "PropC" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
@@ -217,7 +218,7 @@ class RiversObject():
                             )
                         )
         elif celer_form == 2:            
-            if celer_discharge == (0.0, 0.0):
+            if celer_object.celer_discharge == (0.0, 0.0):
                 raise Exception(
                             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
                                 branch,
