@@ -29,17 +29,12 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-
 from typing import Tuple, List, Optional
+
 import math
 import numpy
 
-QLevels = Tuple[float, float, float, float]
-QChange = Tuple[float, float]
-QRuns = Tuple[Optional[float], Optional[float], Optional[float]]
-Vector = Tuple[float, ...]
-BoolVector = Tuple[bool, ...]
-
+from dfastmi.kernel.typehints import QLevels, QChange, QRuns, Vector, BoolVector
 
 def char_discharges(
     q_levels: QLevels, dq: QChange, q_threshold: Optional[float], q_bankfull: float
@@ -198,39 +193,7 @@ def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
         c = cel_c[-1]
     return c
 
-
 def estimate_sedimentation_length(
-    rsigma: Vector,
-    applyQ: BoolVector,
-    nwidth: float,
-) -> float:
-    """
-    This routine computes the sedimentation length in metres.
-
-    Arguments
-    ---------
-    rsigma : Vector
-        A tuple of relaxation factors, one for each period.
-    applyQ : BoolVector
-        A tuple of 3 flags indicating whether each value should be used or not.
-    nwidth : float
-        Normal river width (from rivers configuration file).
-
-    Returns
-    -------
-    L : float
-        The expected yearly impacted sedimentation length.
-    """
-    logrsig = [0.0] * len(rsigma)
-    for i in range(len(rsigma)):
-        if applyQ[i]:
-            logrsig[i] = math.log(rsigma[i])
-    length = -sum(logrsig)
-    
-    return 2.0 * nwidth * length
-
-
-def estimate_sedimentation_length2(
     tmi: Vector,
     celerity: Vector,
 ) -> float:
@@ -249,10 +212,9 @@ def estimate_sedimentation_length2(
     L : float
         The expected yearly impacted sedimentation length [m].
     """
-    Lt = [tmi[i] * celerity[i] for i in range(len(tmi))]
-    
-    return sum(Lt) * 1000
-
+    sedimentation_length_contributions  = [tmi[i] * celerity[i] for i in range(len(tmi))]
+    KM_TO_M = 1000
+    return sum(sedimentation_length_contributions ) * KM_TO_M
 
 def dzq_from_du_and_h(
     u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float, default: float = numpy.NaN,

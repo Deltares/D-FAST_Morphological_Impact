@@ -20,7 +20,7 @@ The yearly sediment load of the river determines the period in which the
 equilibrium can be reached.
 
 
-This is version 2.0.10.
+This is version 3.0.0.
 
 
 The results are not valid for a combination of multiple measures, or for a
