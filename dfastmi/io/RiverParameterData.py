@@ -29,18 +29,20 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 import configparser
 from typing import Tuple, List, Optional
+from dfastmi.io.Reach import Reach
+from dfastmi.io.Branch import Branch
 
 class RiverParameterData:
     """
         Collect river parameter data from river configuration object.
     """
 
-    _branches: List[str]
+    #_branches: List[str]
     """
        The list of river branches. The length of this list is nBranches.
     """
 
-    _nreaches: List[int]
+    #_nreaches: List[int]
     """ 
         The number of reaches per river branch. The length of this list is nBranches.
     """
@@ -49,25 +51,26 @@ class RiverParameterData:
     """ 
         The dictionary containing river data.
     """
-    _is_initialized : bool
+    #_is_initialized : bool
 
     def __init__(self, config: configparser.ConfigParser):
         self._config = config
-        self._is_initialized = False
+    #    self._is_initialized = False
     
-    def initialize(self, branches: List[str], nreaches: List[int]) : 
-        """
-            This routine initialize the object with required objects
-        """
-        self._branches = branches
-        self._nreaches = nreaches
-        self._is_initialized = True
+    #def initialize(self, branches: List[str], nreaches: List[int]) : 
+    #    """
+    #        This routine initialize the object with required objects
+    #    """
+    #    self._branches = branches
+    #    self._nreaches = nreaches
+    #    self._is_initialized = True
     
     def is_initialized(self):
-        if self._is_initialized :
-            return
-        else:
-            raise Exception('RiverParameterData object is not initialized')
+        return
+    #    if self._is_initialized :
+    #        return
+    #    else:
+    #        raise Exception('RiverParameterData object is not initialized')
 
 
     def collect_int_values1(
@@ -136,13 +139,31 @@ class RiverParameterData:
             all_values.append(values_per_branch)
 
         return all_values
-
-
-    def collect_values_logical(
+    
+    def __read_value(self, key, branch, reach):
+        try:
+            general_value = self._config["General"][key]
+        except:
+            general_value = ''
+        
+        try:
+            branch_val = self._config[branch.name][key]
+        except:
+            branch_val = general_value
+        
+        try:
+            val = self._config[branch.name][key + reach.config_key_index]
+        except:
+            val = branch_val
+        return val
+    
+    def read_key_bool(
         self,
         key: str,
+        branch: Branch,
+        reach: Reach,            
         default: Optional[bool] = None,
-    ) -> List[List[bool]]:
+    ) -> bool:
         """
         This routines collects entries of type bool.
 
@@ -163,47 +184,77 @@ class RiverParameterData:
             branch one bool or a list of booleans depending on input argument nval.
         """
         self.is_initialized()
-        try:
-            g_val = self._config["General"][key]
-        except:
-            g_val = ""
-        all_values = []
-        for ib in range(len(self._branches)):
-            branch = self._branches[ib]
+        val = self.__read_value(key, branch, reach)
+        if val == "" and default is not None:
+            bval = default
+        else:
             try:
-                b_val = self._config[branch][key]
+                vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in val.split())
             except:
-                b_val = g_val
-            values_per_branch = []
-            for i in range(self._nreaches[ib]):
-                stri = str(i + 1)
-                try:
-                    val = self._config[branch][key + stri]
-                except:
-                    val = b_val
-                if val == "" and default is not None:
-                    bval = default
-                else:
-                    try:
-                        vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in val.split())
-                    except:
-                        vals = ()
-                    if len(vals) != 1:
-                        raise Exception(
-                            'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                                key, i+1, self._branches[ib], val, 1
-                            )
-                        )
-                    bval = vals[0]
-                values_per_branch.append(bval)
-            all_values.append(values_per_branch)
-        return all_values
+                vals = ()
+            if len(vals) != 1:
+                raise Exception(
+                    'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                        key, reach.name, branch.name, val, 1
+                    )
+                )
+            bval = vals[0]                
+        return bval
     
-    def collect_values1(
+    def read_key_int(
             self,
             key: str,
+            branch: Branch,
+            reach: Reach,
+            default: Optional[int] = None,
+        ) -> int:
+        """
+        This routines collects entries of type int.
+
+        Arguments
+        ---------
+        key : str
+            The name of the parameter for which the values are to be retrieved.
+        branch : Branch
+            The branch where we want to read the parameter from
+
+
+        Raises
+        ------
+        Exception
+            If the number of values read from the file doesn't match 1.
+
+        Returns
+        -------
+        data : int
+            A list of lists. Each list contains per reach within the corresponding
+            branch one float.
+        """
+        self.is_initialized()
+        val = self.__read_value(key, branch, reach)
+        if val == "" and default is not None:
+            ival = default
+        else:
+            try:
+                vals = tuple(int(x) for x in val.split())
+            except:
+                vals = ()
+            if len(vals) != 1:
+                raise Exception(
+                    'Reading {} for reach {} on branch {} returns "{}". Expecting {} values.'.format(
+                        key, reach.name, branch.name, val, 1
+                    )
+                )
+            ival = vals[0]
+        return ival
+    
+    def read_key_float(
+            self,
+            key: str,
+            branch: Branch,
+            reach: Reach,
             default: Optional[float] = None,
-        ) -> List[List[float]]:
+        ) -> float:
         """
         This routines collects entries of type float.
 
@@ -211,6 +262,9 @@ class RiverParameterData:
         ---------
         key : str
             The name of the parameter for which the values are to be retrieved.
+        branch : Branch
+            The branch where we want to read the parameter from
+
 
         Raises
         ------
@@ -224,178 +278,123 @@ class RiverParameterData:
             branch one float.
         """
         self.is_initialized()
-        try:
-            g_val = self._config["General"][key]
-        except:
-            g_val = ""
-
-        all_values = []
-        for ib in range(len(self._branches)):
-            branch = self._branches[ib]
+        val = self.__read_value(key, branch, reach)
+        if val == "" and default is not None:
+            fval = default
+        else:
             try:
-                b_val = self._config[branch][key]
+                vals = tuple(float(x) for x in val.split())
             except:
-                b_val = g_val
-
-            values_per_branch = []
-            for i in range(self._nreaches[ib]):
-                stri = str(i + 1)
-                try:
-                    val = self._config[branch][key + stri]
-                except:
-                    val = b_val
-                if val == "" and default is not None:
-                    fval = default
-                else:
-                    try:
-                        vals = tuple(float(x) for x in val.split())
-                    except:
-                        vals = ()
-                    if len(vals) != 1:
-                        raise Exception(
-                            'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                                key, i+1, self._branches[ib], val, 1
-                            )
-                        )
-                    fval = vals[0]
-                values_per_branch.append(fval)
-
-            all_values.append(values_per_branch)
-
-        return all_values
+                vals = ()
+            if len(vals) != 1:
+                raise Exception(
+                    'Reading {} for reach {} on branch {} returns "{}". Expecting {} values.'.format(
+                        key, reach.name, branch.name, val, 1
+                    )
+                )
+            fval = vals[0]
+        return fval     
     
-    def collect_values2(
-        self,
-        key: str,
-        default: Optional[Tuple[float, float]] = None,
-    ) -> List[List[Tuple[float, float]]]:
+    def read_key_tuple_float_float(
+            self,
+            key: str,
+            branch: Branch,
+            reach: Reach,
+            default: Optional[Tuple[float, float]] = None
+        ) -> Tuple[float, float]:
         """
-        Collect river parameter data from river configuration object.
-
-        This routines collects entries of type Tuple[float, float].
+        This routines collects entries of type float.
 
         Arguments
         ---------
         key : str
             The name of the parameter for which the values are to be retrieved.
-        default : Optional[Tuple[float, float]]
-            Default tuple if not specified in file.
+        branch : Branch
+            The branch where we want to read the parameter from
+
 
         Raises
         ------
         Exception
-            If the number of values read from the file doesn't match 2.
+            If the number of values read from the file doesn't match 1.
 
         Returns
         -------
-        data : List[List[Tuple[float, float]]]
+        data : List[List[float]]
             A list of lists. Each list contains per reach within the corresponding
-            branch a list of 2 floats.
+            branch one float.
         """
-        vals: Tuple[float, ...]
         self.is_initialized()
-        try:
-            g_val = self._config["General"][key]
-        except:
-            g_val = ""
-        all_values = []
-        for ib in range(len(self._branches)):
-            branch = self._branches[ib]
+        val = self.__read_value(key, branch, reach)
+        if val == "" and default is not None:
+            fval = default
+        else:
             try:
-                b_val = self._config[branch][key]
+                vals = tuple(float(x) for x in val.split())
             except:
-                b_val = g_val
-            values_per_branch = []
-            for i in range(self._nreaches[ib]):
-                stri = str(i + 1)
-                try:
-                    val = self._config[branch][key + stri]
-                except:
-                    val = b_val
-                if val == "" and default is not None:
-                    vals = default
-                else:
-                    try:
-                        vals = tuple(float(x) for x in val.split())
-                    except:
-                        vals = ()
-                    if len(vals) != 2:
-                        raise Exception(
-                            'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                                key, i+1, self._branches[ib], val, 2
-                            )
-                        )
-                values_per_branch.append((vals[0], vals[1]))
-            all_values.append(values_per_branch)
-        return all_values
+                vals = ()
+            if len(vals) != 2:
+                raise Exception(
+                    'Reading {} for reach {} on branch {} returns "{}". Expecting {} values.'.format(
+                        key, reach.name, branch.name, val, 2
+                    )
+                )
+            fval = (vals[0], vals[1])
+        return fval
     
-    def collect_values4(
-        self,
-        key: str,
-        default: Optional[Tuple[float, float, float, float]] = None,
-    ) -> List[List[Tuple[float, float, float, float]]]:
+    def read_key_tuple_float_float_float_float(
+            self,
+            key: str,
+            branch: Branch,
+            reach: Reach,
+            default: Optional[Tuple[float, float, float, float]] = None,
+        ) ->  Tuple[float, float, float, float]:
         """
-        This routines collects entries of type Tuple[float, float, float, float].
+        This routines collects entries of type float.
 
         Arguments
         ---------
         key : str
             The name of the parameter for which the values are to be retrieved.
-        default : Optional[Tuple[float, float, float, float]]
-            Default tuple if not specified in file.
+        branch : Branch
+            The branch where we want to read the parameter from
+
 
         Raises
         ------
         Exception
-            If the number of values read from the file doesn't match 4.
+            If the number of values read from the file doesn't match 1.
 
         Returns
         -------
-        data : List[List[Tuple[float, float, float, float]]]
+        data : List[List[float]]
             A list of lists. Each list contains per reach within the corresponding
-            branch a list of 4 floats.
+            branch one float.
         """
-        vals: Tuple[float, ...]
-        self.is_initialized()        
-        try:
-            g_val = self._config["General"][key]
-        except:
-            g_val = ""
-        all_values = []
-        for ib in range(len(self._branches)):
-            branch = self._branches[ib]
+        self.is_initialized()
+        val = self.__read_value(key, branch, reach)
+        if val == "" and default is not None:
+            fval = default
+        else:
             try:
-                b_val = self._config[branch][key]
+                vals = tuple(float(x) for x in val.split())
             except:
-                b_val = g_val
-            values_per_branch = []
-            for i in range(self._nreaches[ib]):
-                stri = str(i + 1)
-                try:
-                    val = self._config[branch][key + stri]
-                except:
-                    val = b_val
-                if val == "" and default is not None:
-                    vals = default
-                else:
-                    try:
-                        vals = tuple(float(x) for x in val.split())
-                    except:
-                        vals = ()
-                    if len(vals) != 4:
-                        raise Exception(
-                            'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                                key, i+1, self._branches[ib], val, 4
-                            )
-                        )
-                values_per_branch.append((vals[0], vals[1], vals[2], vals[3]))
-            all_values.append(values_per_branch)
-        return all_values
-
-    def collect_valuesN(
-        self,
-        key: str
-    ) -> List[List[Tuple[float, ...]]]:
+                vals = ()
+            if len(vals) != 4:
+                raise Exception(
+                    'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
+                        key, reach.name, branch.name, val, 4
+                    )
+                )                
+            fval = (vals[0], vals[1], vals[2], vals[3])
+        return fval   
+    
+    def read_key_tuple_float_n(
+        self,        
+        key: str,
+        branch: Branch,
+        reach: Reach            
+    ) -> Tuple[float, ...]:
         """
         This routines collects entries of type Tuple[float, ...]
 
@@ -411,29 +410,10 @@ class RiverParameterData:
             branch a list of floats.
         """
         vals: Tuple[float, ...]
-        self.is_initialized()        
-        try:
-            g_val = self._config["General"][key]
-        except:
-            g_val = ""
-        all_values = []
-        for ib in range(len(self._branches)):
-            branch = self._branches[ib]
-            try:
-                b_val = self._config[branch][key]
-            except:
-                b_val = g_val
-            values_per_branch = []
-            for i in range(self._nreaches[ib]):
-                stri = str(i + 1)
-                try:
-                    val = self._config[branch][key + stri]
-                except:
-                    val = b_val
-                vals = tuple(float(x) for x in val.split())
-                values_per_branch.append(vals)
-            all_values.append(values_per_branch)
-        return all_values
+        self.is_initialized()
+        val = self.__read_value(key, branch, reach)
+        vals = tuple(float(x) for x in val.split())
+        return vals
     
     def config_get_bool(
         self,
