@@ -350,7 +350,7 @@ def update_qvalues() -> None:
     ireach = dialog["reach"].currentIndex()
     if ireach < 0:
         return
-
+        
     hydro_q = rivers.hydro_q[ibranch][ireach]
     tabs = dialog["tabs"]
     for j in range(tabs.count()-2,-1,-1):
@@ -648,6 +648,10 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
     global dialog
 
     rivers = rivers_configuration
+    if rivers.version.major < 2 :
+        ApplicationSettingsHelper.log_text("legacy_river_config_loaded")
+        return
+    
     create_dialog()
     dialog["branch"].addItems(rivers.branches)
 

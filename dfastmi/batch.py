@@ -130,8 +130,8 @@ def batch_mode_core(
     ApplicationSettingsHelper.log_text("===", file=report)
 
     cfg_version = config["General"]["Version"]
-    rvr_version = rivers.version
-    if version.parse(cfg_version) != version.parse(rvr_version):
+    
+    if version.parse(cfg_version) != rivers.version:
         raise Exception(
             "Version number of configuration file ({}) must match version number of rivers file ({})".format(
                 cfg_version,
@@ -1980,8 +1980,8 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
     """
     try:
         cfg_version = config["General"]["Version"]
-        rvr_version = rivers.version
-        if version.parse(cfg_version) != version.parse(rvr_version):
+        
+        if version.parse(cfg_version) != rivers.version:
             return False
         if version.parse(cfg_version) == version.parse("1.0"):
             return check_configuration_v1(rivers, config)

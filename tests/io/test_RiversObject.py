@@ -39,7 +39,8 @@ class Test_read_rivers():
         assert rivers.qfit == [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
         assert rivers.qlevels == [[(100.0, 200.0, 300.0, 400.0)], [(1000.0, 2000.0, 3000.0, 4000.0), (1000.0, 2000.0, 3000.0, 4000.0)]]
         assert rivers.dq == [[(5.0, 15.0)], [(1000.0, 1000.0), (1000.0, 1000.0)]]
-        assert rivers.version == '1.0'
+        assert rivers.version.major == 1
+        assert rivers.version.minor == 0
     
     def test_read_rivers_02(self):
         """
@@ -64,7 +65,8 @@ class Test_read_rivers2():
         """
         print("current work directory: ", os.getcwd())
         rivers = RiversObject("tests/files/read_rivers_test_2_0_version.ini")
-        assert rivers.version == '2.0'
+        assert rivers.version.major == 2
+        assert rivers.version.minor == 0
     
     def test_read_rivers2_02(self):
         """
@@ -80,7 +82,8 @@ class Test_read_rivers2():
         assert rivers.qstagnant == [[50.0], [0.0, 1500.0]]
         assert rivers.qfit == [[(10.0, 20.0)], [(800.0, 1280.0), (800.0, 1280.0)]]
         
-        assert rivers.version == '2.0'
+        assert rivers.version.major == 2
+        assert rivers.version.minor == 0
         
         assert rivers.autotime == [[False], [False, False]]
         assert rivers.cdisch == [[(11.0, 21.0)], [(11.0, 21.0), (11.0, 21.0)]]
