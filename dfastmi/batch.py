@@ -135,7 +135,7 @@ def batch_mode_core(
         raise Exception(
             "Version number of configuration file ({}) must match version number of rivers file ({})".format(
                 cfg_version,
-                rvr_version
+                rivers.version
             )
         )
     

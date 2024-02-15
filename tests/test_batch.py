@@ -1,3 +1,4 @@
+import pytest
 import context
 import dfastmi.batch
 
@@ -197,3 +198,24 @@ class Test_batch_mode():
             result = ncRes.variables[f]
             refdat = ncRef.variables[f]
             assert (result[...] == refdat[...]).all()
+
+    def given_configuration_file_version_different_as_river_file_version_when_running_batch_mode_core_then_throw_exception_version_mis_match(self):
+        """
+        Testing is exception is thrown correctly when version number in configuration file mismatches with the river configuration file
+        """
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")            
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        try:
+            os.chdir(tstdir)
+            config_file = "Qmin_4000_v2.cfg"
+            config = dfastmi.batch.load_configuration_file(config_file)
+            rootdir = os.path.dirname(config_file)
+            with pytest.raises(Exception) as cm:
+                dfastmi.batch.batch_mode_core(rivers, False, config, rootdir)
+            assert str(cm.value) == 'Version number of configuration file (2.0) must match version number of rivers file (1.0)'
+        finally:
+            os.chdir(cwd)
+        
+        
