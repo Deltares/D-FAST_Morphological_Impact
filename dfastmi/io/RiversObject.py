@@ -26,6 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import string
 from packaging import version
 import configparser
 from typing import List
@@ -91,7 +92,7 @@ class RiversObject():
         else: # iversion == 2
             self._read_rivers(river_data) 
 
-    def _parse_reaches(self, config, iversion):
+    def _parse_reaches(self, config : configparser.ConfigParser, iversion):
         for branch in self.branches:
             i = 0
             while True:
@@ -107,8 +108,14 @@ class RiversObject():
                 except:
                     break
 
-    def _parse_branches(self, config):
-        for branch_name in config.keys() - {"DEFAULT", "General"}:
+    def _parse_branches(self, config : configparser.ConfigParser):
+        #branch_names = list(config._sections.keys() - {"DEFAULT", "General"})
+        # Keys to remove
+        keys_to_remove = ["DEFAULT", "General"]
+
+        # Using list comprehension
+        branch_names = [branch_name for branch_name in config.keys() if branch_name not in keys_to_remove]
+        for branch_name in branch_names:
             branch = Branch(branch_name)
             branch.qlocation = config[branch.name]["QLocation"]
             self.branches.append(branch)      
@@ -189,11 +196,11 @@ class RiversObject():
                 tide_boundary_condition = reach.tide_bc
                 self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch.name, reach.name)
                 
-                celer_form = reach.celer_form
+                celer_form = reach.celer_form                
                 celer_object = reach.celer_object
                 self._verify_CelerForm_with_PropQ_and_PropC(celer_form, celer_object, branch.name, reach.name)
 
-    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form, celer_object, branch, reach):
+    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form:int, celer_object, branch, reach):
     # prop_q = reach.prop_q
     #         prop_c = reach.prop_c
     #         celer_discharge = reach.cdisch
@@ -217,8 +224,8 @@ class RiversObject():
                                 reach,
                             )
                         )
-        elif celer_form == 2:            
-            if celer_object.celer_discharge == (0.0, 0.0):
+        elif celer_form == 2:
+            if celer_object.cdisch == (0.0, 0.0):
                 raise Exception(
                             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
                                 branch,
@@ -284,7 +291,7 @@ class RiversObject():
         # for Tide = True
         reach.tide_bc = river_data.read_key_tuple_float_n("TideBC", branch, reach)
 
-        reach.celer_form = river_data.read_key_float("CelerForm", branch, reach, 2)
+        reach.celer_form = river_data.read_key_int("CelerForm", branch, reach, 2)
         if reach.celer_form == 1:
             celerProperties = CelerProperties()
             celerProperties.prop_q = river_data.read_key_tuple_float_n("PropQ", branch, reach)

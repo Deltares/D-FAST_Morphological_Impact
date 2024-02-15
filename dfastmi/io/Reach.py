@@ -36,4 +36,4 @@ class ReachAdvanced(Reach):
     tide_boundary_condition : List[float]
 
     celer_form : int
-    celer_object : CelerObject
+    celer_object : CelerObject = None
