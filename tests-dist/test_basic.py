@@ -67,3 +67,24 @@ class Test_basic():
             "                       is default)",
             "  --reduced_output     write reduced M/N range (structured model only)"
         ]
+        
+    def test_basic_gui(self):
+        """
+        Testing startup of the GUI.
+        GUI will be started and closed.
+        If GUI does not start test will fail.
+        """
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        try:
+            os.chdir(tstdir)
+            try:
+                process = subprocess.Popen(dfastexe, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process.wait(timeout=1)
+
+            except subprocess.TimeoutExpired:
+                process.kill()
+                
+            assert process.returncode is None, f"Process returned exit code: {process.returncode}, please run the dfastmi.exe to find the specific error."
+        finally:
+            os.chdir(cwd)
