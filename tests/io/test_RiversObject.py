@@ -81,7 +81,8 @@ class Test_read_rivers_legacy():
         assert reach3.qlevels == (1000.0, 2000.0, 3000.0, 4000.0)
         assert reach3.dq == (1000.0, 1000.0)
 
-        assert rivers.version == '1.0'
+        assert rivers.version.major == 1
+        assert rivers.version.minor == 0
     
     def given_a_legacy_rivers_config_file_with_no_version_when_read_rivers_then_exception_thrown(self):
         """
@@ -106,7 +107,8 @@ class Test_read_rivers():
         """
         print("current work directory: ", os.getcwd())
         rivers = RiversObject("tests/files/read_rivers_test_2_0_version.ini")
-        assert rivers.version == '2.0'
+        assert rivers.version.major == 2
+        assert rivers.version.minor == 0
     
     def given_a_rivers_config_file_when_read_rivers_then_data_loaded_in_RiverObject(self):
         """
@@ -202,7 +204,7 @@ class Test_read_rivers():
             RiversObject("tests/files/read_riversv2_test_failing_HydroT.ini") 
         assert str(cm.value) == 'Length of "HydroQ" and "HydroT" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 1 values read respectively.'
     
-    def given_a_rivers_config_file_with_autotime_unset_and_tide_set_but__no_consistency_between_hydroq_and_tidebc_values_when_read_rivers_then_throw_exception_of_invalid_value_size_of_hydroq_and_tidebc_values(self):
+    def given_a_rivers_config_file_with_autotime_unset_and_tide_set_but_no_consistency_between_hydroq_and_tidebc_values_when_read_rivers_then_throw_exception_of_invalid_value_size_of_hydroq_and_tidebc_values(self):
         """
         Testing read_rivers2, with setting AutoTime false & Tide true expects HydroQ to be set with same consistency as TideBC 
         """
@@ -210,7 +212,7 @@ class Test_read_rivers():
             RiversObject("tests/files/read_riversv2_test_failing_TideBC.ini") 
         assert str(cm.value) == 'Length of "HydroQ" and "TideBC" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 1 values read respectively.'
     
-    def given_a_rivers_config_file_with_autotime_unset_and_cellery_form_is_1_but__no_consistency_between_propq_and_propc_values_when_read_rivers_then_throw_exception_of_invalid_value_size_of_propq_and_propc_values(self):
+    def given_a_rivers_config_file_with_autotime_unset_and_cellery_form_is_1_but_no_consistency_between_propq_and_propc_values_when_read_rivers_then_throw_exception_of_invalid_value_size_of_propq_and_propc_values(self):
         """
         Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ to be set with same consistency as PropC
         """
@@ -218,7 +220,7 @@ class Test_read_rivers():
             RiversObject("tests/files/read_riversv2_test_failing_cform.ini") 
         assert str(cm.value) == 'Length of "PropQ" and "PropC" for branch "Branch1", reach "Branch1 R1" are not consistent: 2 and 1 values read respectively.'
     
-    def given_a_rivers_config_file_with_autotime_set_and_cellery_form_is_1_but__no_consistency_between_propq_and_propc_values_when_read_rivers_then_throw_exception_of_invalid_value_size_of_propq_and_propc_values(self):
+    def given_a_rivers_config_file_with_autotime_unset_and_cellery_form_is_1_but_no_default_for_propq_and_propc_values_when_read_rivers_then_throw_exception_of_invalid_value_of_propq_and_propc_values(self):
         """
         Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ and PropC to be set 
         """
@@ -226,9 +228,9 @@ class Test_read_rivers():
             RiversObject("tests/files/read_riversv2_test_failing_noPropQC.ini") 
         assert str(cm.value) == 'The parameters "PropQ" and "PropC" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 1.'
     
-    def test_read_rivers2_09(self):
+    def given_a_rivers_config_file_with_autotime_unset_and_cellery_form_is_invalid_when_read_rivers_then_throw_exception_of_invalid_value_of_celerform(self):
         """
-        Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ and PropC to be set 
+        Testing read_rivers2, with setting AutoTime false & Cform 8 exception as this is unsupported
         """
         with pytest.raises(Exception) as cm:
             RiversObject("tests/files/read_riversv2_test_failing_wrongcform.ini") 
