@@ -65,7 +65,8 @@ class Test_read_rivers2():
         """
         print("current work directory: ", os.getcwd())
         rivers = RiversObject("tests/files/read_rivers_test_2_0_version.ini")
-        assert rivers.version == '2.0'
+        assert rivers.version.major == 2
+        assert rivers.version.minor == 0
     
     def test_read_rivers2_02(self):
         """
