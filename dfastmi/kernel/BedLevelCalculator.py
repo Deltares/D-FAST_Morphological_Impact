@@ -52,14 +52,14 @@ class BedLevelCalculator:
         """
         return numpy.minimum.reduce(dzb)
 
-    def get_linear_average(self, number_of_days: Vector, dzb: List[numpy.ndarray]) -> numpy.ndarray:
+    def get_linear_average(self, fraction_of_year: Vector, dzb: List[numpy.ndarray]) -> numpy.ndarray:
         """
         This method gets the linear average from the given bed levels.
 
         Arguments
         ---------
-        number_of_days : Vector
-            A vector of periods indicating the number of days during which each discharge applies.
+        fraction_of_year : Vector
+            A vector of values each representing the fraction of the year.
         dzb   : List[numpy.ndarray]
             List of arrays containing the bed level change at the beginning of each respective discharge period.
 
@@ -70,7 +70,7 @@ class BedLevelCalculator:
         """
         dzgem = 0
         for i in range(self.number_of_periods):
-            dzgem += dzb[i] * (number_of_days[i] + number_of_days[i-1]) / 2
+            dzgem += dzb[i] * (fraction_of_year[i] + fraction_of_year[i-1]) / 2
         return dzgem
 
     def get_bed_level_changes(self, dzq: List[numpy.ndarray], rsigma: Vector) -> List[numpy.ndarray]:
@@ -84,7 +84,7 @@ class BedLevelCalculator:
         dzq : List[numpy.ndarray]
             A list of arrays containing the equilibrium bed level change for each respective discharge period.
         rsigma : Vector
-            A tuple of relaxation factors, one for each period.
+            A Vector of relaxation factors, one for each period.
 
         Returns
         -------
@@ -92,11 +92,11 @@ class BedLevelCalculator:
             List of arrays containing the bed level change at the beginning of each respective discharge period.
         """
         vsigma = self.__compute_vsigma(rsigma, dzq)
-        den = self.__compute_denominator(self.number_of_periods, vsigma)
+        den = self.__compute_denominator(vsigma)
         dzb = self.__compute_dzb_at_the_beginning_of_each_period(dzq, vsigma, den)
         return dzb
 
-    def __compute_vsigma(self, rsigma : List[float], dzq: List[numpy.ndarray]) -> List[numpy.ndarray]:
+    def __compute_vsigma(self, rsigma : Vector, dzq: List[numpy.ndarray]) -> List[numpy.ndarray]:
         vsigma = []
         
         mask = self.__get_mask(dzq)
@@ -115,8 +115,8 @@ class BedLevelCalculator:
                 mask = mask | numpy.isnan(dzq_value)
         return mask
 
-    def __compute_denominator(self, number_of_periods: int, vsigma: List[numpy.ndarray]) -> int:
-        for i in range(number_of_periods):
+    def __compute_denominator(self, vsigma: List[numpy.ndarray]) -> int:
+        for i in range(self.number_of_periods):
             if i == 0:
                 den = vsigma[0]
             else:
@@ -127,21 +127,21 @@ class BedLevelCalculator:
     def __compute_dzb_at_the_beginning_of_each_period(self, dzq: List[numpy.ndarray], vsigma: List[numpy.ndarray], den: int) -> List[numpy.ndarray]:
         dzb: List[numpy.ndarray] = []
         for i in range(self.number_of_periods):
-            enm = self.__compute_enumerator(dzq, self.number_of_periods, i, vsigma)
+            enm = self.__compute_enumerator(dzq, i, vsigma)
             
             # divide by denominator
             with numpy.errstate(divide="ignore", invalid="ignore"):
                 dzb.append(numpy.where(den != 0, enm / den, 0))
         return dzb
 
-    def __compute_enumerator(self, dzq: List[numpy.ndarray], number_of_periods: int, i: int, vsigma: List[numpy.ndarray]) -> int:
+    def __compute_enumerator(self, dzq: List[numpy.ndarray], i: int, vsigma: List[numpy.ndarray]) -> int:
         enm = 0
-        for j in range(number_of_periods):
-            jr = (i + j) % number_of_periods
+        for j in range(self.number_of_periods):
+            jr = (i + j) % self.number_of_periods
             dzb_tmp = dzq[jr] * (1 - vsigma[jr])
             
-            for k in range(j+1,number_of_periods):
-                kr = (i + k) % number_of_periods
+            for k in range(j+1,self.number_of_periods):
+                kr = (i + k) % self.number_of_periods
                 dzb_tmp = dzb_tmp * vsigma[kr]
                 
             enm += dzb_tmp
