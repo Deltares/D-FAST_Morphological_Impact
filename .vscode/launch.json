@@ -5,11 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Attach using Process Id",
-            "type": "python",
-            "request": "attach",
-            "processId": "${command:pickProcess}",
-            "justMyCode": true
+            "name": "Python Debugger: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "dfastmi",
+            "args": [
+                "--language",
+                "NL",
+                "--mode",
+                "GUI",
+                "--config",
+                "dfastmi.cfg",
+                "--rivers",
+                "Dutch_rivers_v1.ini"
+            ],
         }, 
         {   
             "name": "Python: Debug Tests",

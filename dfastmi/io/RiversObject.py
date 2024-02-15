@@ -297,7 +297,7 @@ class RiversObject():
         # for AutoTime = False
         self.hydro_t = self._river_data.collect_valuesN("HydroT")
 
-        self.tide = self._river_data.collect_values_logical("Tide")
+        self.tide = self._river_data.collect_values_logical("Tide", False)
         # for Tide = True
         self.tide_bc = self._river_data.collect_valuesN("TideBC")
 

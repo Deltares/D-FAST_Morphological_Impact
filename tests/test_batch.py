@@ -123,6 +123,7 @@ class Test_batch_mode():
     def test_batch_mode_03(self):
         """
         Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
+        Version 1 configuration files.
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
@@ -137,11 +138,48 @@ class Test_batch_mode():
         finally:
             os.chdir(cwd)
         #
-        #for s in outstr:
-        #    print(s)
         self.maxDiff = None
         print(outstr)
-        #assert outstr == []
+        assert outstr == []
+        #
+        prefixes = ('This is version')
+        #
+        result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
+        refstr = open(refdir + os.sep + "report.txt", "r").read().splitlines()
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert result == refstr
+        #
+        ncRes = netCDF4.Dataset(tstdir + os.sep + "output" + os.sep + "dfastmi_results.nc")
+        ncRef = netCDF4.Dataset(refdir + os.sep + "dfastmi_results.nc")
+        
+        fields = ["avgdzb", "mindzb", "maxdzb"]
+        for f in fields:
+            result = ncRes.variables[f]
+            refdat = ncRef.variables[f]
+            assert (result[...] == refdat[...]).all()
+
+    def test_batch_mode_04(self):
+        """
+        Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
+        Version 2 configuration files ... special backward consistent river configuration.
+        """
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        refdir = tstdir + os.sep + "ref_Qmin_Q4000"
+        try:
+            os.chdir(tstdir)
+            rivers = RiversObject("rivers_Q4000_v2.ini")
+            with captured_output() as (out, err):
+                dfastmi.batch.batch_mode("Qmin_4000_v2.cfg", rivers, False)
+            outstr = out.getvalue().splitlines()
+        finally:
+            os.chdir(cwd)
+        #
+        self.maxDiff = None
+        print(outstr)
+        assert outstr == []
         #
         prefixes = ('This is version')
         #

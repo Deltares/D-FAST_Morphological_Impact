@@ -182,7 +182,7 @@ def batch_mode_core(
                 else:
                     n_fields = 1
 
-            slength = dfastmi.kernel.core.estimate_sedimentation_length2(time_mi, celerity)
+            slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
 
             reach = rivers.allreaches[ibranch][ireach]
             try:

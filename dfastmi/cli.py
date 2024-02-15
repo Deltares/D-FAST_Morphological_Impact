@@ -89,7 +89,14 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         if have_files and not all_q:
             break
 
-        slength = dfastmi.kernel.core.estimate_sedimentation_length(rsigma, applyQ, nwidth)
+        tmi = []
+        for i in range(len(applyQ)):
+            if applyQ[i]:
+               tmi.append(T[i])
+            else:
+               tmi.append(0.0)
+        celerity = [celerity_lw, celerity_hg, celerity_hg]
+        slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
 
         reach = rivers.allreaches[ibranch][ireach]
         if have_files:
