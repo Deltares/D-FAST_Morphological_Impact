@@ -54,11 +54,11 @@ class Test_BedLevelCalculator():
         element_wise_minimum = blc.get_element_wise_minimum(dzb)
         assert numpy.array_equal(element_wise_minimum, minimum_array)
         
-    @pytest.mark.parametrize("number_of_days, linear_average_array", [
+    @pytest.mark.parametrize("fraction_of_year, linear_average_array", [
         ((0.5, 0.25, 0.25, 0.25), numpy.array([21.25, 26.25, 33.125, 1., 0.])),
         ((0.25, 0.25, 0.25, 0.25), numpy.array([17.5, 21.25, 26.25, 0.75, 0.])),
     ])    
-    def test_given_array_with_value_and_varying_number_of_days_when_linear_average_then_return_linear_average_array(self, number_of_days, linear_average_array):
+    def test_given_array_with_value_and_varying_fraction_of_year_when_linear_average_then_return_linear_average_array(self, fraction_of_year, linear_average_array):
         number_of_periods = 3
         blc = BedLevelCalculator(number_of_periods)
 
@@ -66,7 +66,7 @@ class Test_BedLevelCalculator():
                 numpy.array([25, 30, 35, 1., 0.]),
                 numpy.array([40, 45, 50, 1., 0.])]
         
-        linear_average = blc.get_linear_average(number_of_days, dzb)
+        linear_average = blc.get_linear_average(fraction_of_year, dzb)
         assert numpy.array_equal(linear_average, linear_average_array)
       
       
