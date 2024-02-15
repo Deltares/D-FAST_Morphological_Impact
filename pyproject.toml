@@ -40,9 +40,12 @@ addopts = [ "--ignore=tests-dist",
             "--cov-report=term",
             "--cov-report=xml:coverage-reports/coverage.xml",
 ]
-
-[tool.pytest]
 testpaths="tests"
+python_functions=["given_*",
+                    "Given_*",
+                    "test_*",
+                    "Test_*"]
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
