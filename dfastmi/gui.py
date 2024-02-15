@@ -37,6 +37,7 @@ import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
 import dfastmi.batch
+from dfastmi.io.Reach import ReachAdvanced
 import dfastmi.kernel.core
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.FileUtils import FileUtils
@@ -315,10 +316,10 @@ def updated_branch(ibranch: int) -> None:
         Newly selected branch number.
     """
     reach = dialog["reach"]
-    reach.clear()
-    reach.addItems(rivers.allreaches[ibranch])
+    reach.clear()    
+    reach.addItems([reach.name for reach in rivers.branches[ibranch].reaches])
 
-    dialog["qloc"].setText(rivers.qlocations[ibranch])
+    dialog["qloc"].setText(rivers.branches[ibranch].qlocation)
 
 
 def updated_reach(ireach: int) -> None:
@@ -332,13 +333,15 @@ def updated_reach(ireach: int) -> None:
     """
     ibranch = dialog["branch"].currentIndex()
 
-    q_stagnant = rivers.qstagnant[ibranch][ireach]
+    reach = rivers.branches[ibranch].reaches[ireach]
+    q_stagnant = reach.qstagnant
     dialog["qthr"].setText(str(q_stagnant))
-    dialog["ucrit"].setText(str(rivers.ucritical[ibranch][ireach]))
-    update_qvalues()
+    ucritical = reach.ucritical
+    dialog["ucrit"].setText(str(ucritical))
+    update_qvalues(reach)
 
 
-def update_qvalues() -> None:
+def update_qvalues(reach:ReachAdvanced) -> None:
     """
     Adjust the GUI for updated characteristic discharges.
 
@@ -350,8 +353,8 @@ def update_qvalues() -> None:
     ireach = dialog["reach"].currentIndex()
     if ireach < 0:
         return
-        
-    hydro_q = rivers.hydro_q[ibranch][ireach]
+
+    hydro_q = reach.hydro_q
     tabs = dialog["tabs"]
     for j in range(tabs.count()-2,-1,-1):
         if j >= len(hydro_q):
@@ -359,7 +362,7 @@ def update_qvalues() -> None:
         else:
             prefix = str(j)+"_"
             qval = str(hydro_q[j])
-            dialog[prefix+"qloc"].setText(rivers.qlocations[ibranch])
+            dialog[prefix+"qloc"].setText(rivers.branches[ibranch].qlocation)
             dialog[prefix+"qval"].setText(qval)
             tabs.setTabText(1+j,qval+" m3/s")
     
@@ -368,14 +371,14 @@ def update_qvalues() -> None:
             prefix = str(j)+"_"
             add_condition_tab(prefix)
             qval = str(hydro_q[j])	
-            dialog[prefix+"qloc"].setText(rivers.qlocations[ibranch])
+            dialog[prefix+"qloc"].setText(rivers.branches[ibranch].qlocation)
             dialog[prefix+"qval"].setText(qval)
             tabs.setTabText(1+j,qval+" m3/s")
             
     try:
-        nwidth = rivers.normal_width[ibranch][ireach]
+        nwidth = reach.normal_width
         q_threshold = float(dialog["qthr"].text())
-        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
+        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
         slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
     except:
@@ -455,13 +458,14 @@ def load_configuration(filename: str) -> None:
     ibranch = dialog["branch"].currentIndex()
     dialog["reach"].setCurrentText(section["Reach"])
     ireach = dialog["reach"].currentIndex()
+    reach = rivers.branches[ibranch].reaches[ireach]
 
     dialog["qthr"].setText(
-        section.get("Qthreshold", str(rivers.qstagnant[ibranch][ireach]))
+        section.get("Qthreshold", str(reach.qstagnant))
     )
 
     dialog["ucrit"].setText(
-        section.get("Ucrit", str(rivers.ucritical[ibranch][ireach]))
+        section.get("Ucrit", str(reach.ucritical))
     )
     
     dialog["outputDir"].setText(
@@ -479,9 +483,9 @@ def load_configuration(filename: str) -> None:
     dialog["closePlotsEdit"].setChecked(
         str_to_bool(section.get("ClosePlots", "false"))
     )
-    update_qvalues()
+    update_qvalues(reach)
     
-    hydro_q = rivers.hydro_q[ibranch][ireach]
+    hydro_q = reach.hydro_q
     for i in range(len(hydro_q)):
         prefix = str(i)+"_"
         cond = "C{}".format(i+1)
@@ -556,7 +560,8 @@ def get_configuration() -> configparser.ConfigParser:
     # loop over conditions cond = "C1", "C2", ...
     ibranch = dialog["branch"].currentIndex()
     ireach = dialog["reach"].currentIndex()
-    hydro_q = rivers.hydro_q[ibranch][ireach]
+    reach = rivers.branches[ibranch].reaches[ireach]
+    hydro_q = reach.hydro_q
     for i in range(len(hydro_q)):
         cond = "C{}".format(i+1)
         config.add_section(cond)
@@ -653,7 +658,7 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
         return
     
     create_dialog()
-    dialog["branch"].addItems(rivers.branches)
+    dialog["branch"].addItems([branch.name for branch in rivers.branches])
 
     if not config is None:
         load_configuration(config)

@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Union, Dict, Any, Tuple, TextIO
 import sys
+from dfastmi.io.Reach import ReachAdvanced, ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -139,43 +140,44 @@ def batch_mode_core(
             )
         )
     
-    branch = config["General"]["Branch"]
+    branch_name = config["General"]["Branch"]
     try:
-        ibranch = rivers.branches.index(branch)
+        ibranch = next((i for i, branch in enumerate(rivers.branches) if branch.name == branch_name), -1)
     except:
-        ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch}, file=report)
+        ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch_name}, file=report)
         success = False
     else:
-        reach = config["General"]["Reach"]
+        reach_name = config["General"]["Reach"]
         try:
-            ireach = rivers.allreaches[ibranch].index(reach)
+            ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
+            reach = rivers.branches[ibranch].reaches[ireach]
         except:
             ApplicationSettingsHelper.log_text(
-                "invalid_reach", dict={"reach": reach, "branch": branch}, file=report
+                "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
             )
             success = False
         else:
-            nwidth = rivers.normal_width[ibranch][ireach]
-            q_location = rivers.qlocations[ibranch]
+            nwidth = reach.normal_width
+            q_location = rivers.branches[ibranch].qlocation
             tide_bc: Tuple[str, ...] = ()
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
-                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = get_levels_v1(reach, config, nwidth)
                 needs_tide = False
                 n_fields = 1
 
             else:
                 # version 2
-                q_stagnant = rivers.qstagnant[ibranch][ireach]
+                q_stagnant = reach.qstagnant
                 if "Qthreshold" in config["General"]:
                     q_threshold = float(config["General"]["Qthreshold"])
                 else:
                     q_threshold = q_stagnant
-                [Q, apply_q, time_mi, tstag, T, rsigma, celerity] = get_levels_v2(rivers, ibranch, ireach, q_threshold, nwidth)
-                needs_tide = rivers.tide[ibranch][ireach]
+                [Q, apply_q, time_mi, tstag, T, rsigma, celerity] = get_levels_v2(reach, q_threshold, nwidth)
+                needs_tide = reach.tide
                 if needs_tide:
-                    tide_bc = rivers.tide_bc[ibranch][ireach]
+                    tide_bc = reach.tide_bc
                     n_fields = int(config["General"]["NFields"])
                     if n_fields == 1:
                         raise Exception("Unexpected combination of tides and NFields = 1!")
@@ -183,12 +185,11 @@ def batch_mode_core(
                     n_fields = 1
 
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
-
-            reach = rivers.allreaches[ibranch][ireach]
+            
             try:
                 ucrit = float(config["General"]["Ucrit"])
             except:
-                ucrit = rivers.ucritical[ibranch][ireach]
+                ucrit = reach.ucritical
             ucritMin = 0.01
             ucrit = max(ucritMin, ucrit)
             mode_str = config["General"].get("Mode",DFLOWFM_MAP)
@@ -318,7 +319,7 @@ def batch_mode_core(
 
 
 def get_levels_v1(
-    rivers: RiversObject, ibranch: int, ireach: int, config: configparser.ConfigParser, nwidth: float
+    reach: ReachLegacy, config: configparser.ConfigParser, nwidth: float
 ) -> (Vector, BoolVector, float, Vector, float, Vector, Vector, Vector):
     """
     Determine discharges, times, etc. for version 1 analysis
@@ -355,9 +356,9 @@ def get_levels_v1(
     celerity : Vector
         A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
     """
-    q_stagnant = rivers.qstagnant[ibranch][ireach]
-    celerity_hg = rivers.proprate_high[ibranch][ireach]
-    celerity_lw = rivers.proprate_low[ibranch][ireach]
+    q_stagnant = reach.qstagnant
+    celerity_hg = reach.proprate_high
+    celerity_lw = reach.proprate_low
 
     (
         all_q,
@@ -370,7 +371,7 @@ def get_levels_v1(
         T,
         rsigma,
     ) = batch_get_discharges(
-        rivers, ibranch, ireach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
+        reach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
     )
     Q = Q1
     apply_q = apply_q1
@@ -381,7 +382,7 @@ def get_levels_v1(
 
 
 def get_levels_v2(
-    rivers: RiversObject, ibranch: int, ireach: int, q_threshold: float, nwidth: float
+    reach : ReachAdvanced, q_threshold: float, nwidth: float
 ) -> (Vector, BoolVector, Vector, float, Vector, Vector, Vector):
     """
     Determine discharges, times, etc. for version 2 analysis
@@ -416,26 +417,26 @@ def get_levels_v2(
     celerity : Vector
         A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
     """
-    q_stagnant = rivers.qstagnant[ibranch][ireach]
-    Q = rivers.hydro_q[ibranch][ireach]
+    q_stagnant = reach.qstagnant
+    Q = reach.hydro_q
     apply_q = (True,) * len(Q)
-    if rivers.autotime[ibranch][ireach]:
-        q_fit = rivers.qfit[ibranch][ireach]
+    if reach.autotime:
+        q_fit = reach.qfit
         T, time_mi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
     else:
-        T = rivers.hydro_t[ibranch][ireach]
+        T = reach.hydro_t
         sumT = sum(T)
         T = tuple(t / sumT for t in T)
         time_mi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
     
     # determine the bed celerity based on the input settings
-    cform = rivers.cform[ibranch][ireach]
+    cform = reach.celer_form
     if cform == 1:
-        prop_q = rivers.prop_q[ibranch][ireach]
-        prop_c = rivers.prop_c[ibranch][ireach]
+        prop_q = reach.celer_object.prop_q
+        prop_c = reach.celer_object.prop_c
         celerity = tuple(dfastmi.kernel.core.get_celerity(q, prop_q, prop_c) for q in Q)
     elif cform == 2:
-        cdisch = rivers.cdisch[ibranch][ireach]
+        cdisch = reach.celer_object.cdisch
         celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
     
     # set the celerity equal to 0 for discharges less or equal to q_stagnant
@@ -549,9 +550,7 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
 
 
 def batch_get_discharges(
-    rivers: RiversObject,
-    ibranch: int,
-    ireach: int,
+    reach : ReachLegacy,
     config: configparser.ConfigParser,
     q_stagnant: float,
     celerity_hg: float,
@@ -616,12 +615,12 @@ def batch_get_discharges(
 
     stages = ApplicationSettingsHelper.get_text("stage_descriptions")
 
-    q_stagnant = rivers.qstagnant[ibranch][ireach]
-    q_fit = rivers.qfit[ibranch][ireach]
-    q_levels = rivers.qlevels[ibranch][ireach]
-    dq = rivers.dq[ibranch][ireach]
+    q_stagnant = reach.qstagnant
+    q_fit = reach.qfit
+    q_levels = reach.qlevels
+    dq = reach.dq
 
-    q_min = rivers.qmin[ibranch][ireach]
+    q_min = reach.qmin
     try:
         q_threshold = float(config["General"]["Qthreshold"])
     except:
@@ -2009,18 +2008,13 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
     success : bool
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
-    branch = config["General"]["Branch"]
-    if branch not in rivers.branches:
+    try:
+        reach = get_reach(rivers, config)
+    except:
         return False
-    
-    reach = config["General"]["Reach"]
-    ibranch = rivers.branches.index(branch)
-    if reach not in rivers.allreaches[ibranch]:
-        return False
-    
-    ireach = rivers.allreaches[ibranch].index(reach)
-    nwidth = rivers.nwidth[ibranch][ireach]
-    [_, apply_q, _, _, _, _, _, _] = get_levels_v1(rivers, ibranch, ireach, config, nwidth)
+
+    nwidth = reach.nwidth
+    [_, apply_q, _, _, _, _, _, _] = get_levels_v1(reach, config, nwidth)
     
     mode_str = config["General"].get("Mode", DFLOWFM_MAP)
     for i in range(3):
@@ -2031,6 +2025,27 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
             return False
                 
     return True
+
+def get_reach(rivers, config):
+    """
+
+    """ 
+    branch_name = config["General"]["Branch"]
+    
+    if not any(branch.name == branch_name for branch in rivers.branches):
+        raise Exception("Branch not in file {}!".format(branch_name))
+    
+    ibranch = next((i for i, branch in enumerate(rivers.branches) if branch.name == branch_name), -1)
+
+    reach_name = config["General"]["Reach"]
+    
+    if not any(reach.name == reach_name for reach in rivers.branches[ibranch]):
+        raise Exception("Branch not in file {}!".format(branch_name))
+    
+    ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
+    reach = rivers.branches[ibranch].reaches[ireach]
+    return reach
+
 
 
 def check_configuration_v1_cond(config: configparser.ConfigParser, mode_str: str, i : int) -> bool:
@@ -2137,17 +2152,12 @@ def check_configuration_v2(rivers: RiversObject, config: configparser.ConfigPars
     success : bool
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
-    branch = config["General"]["Branch"]
-    if branch not in rivers.branches:
+    try:
+        reach = get_reach(rivers, config)
+    except:
         return False
 
-    ibranch = rivers.branches.index(branch)
-    reach = config["General"]["Reach"]
-    if reach not in rivers.allreaches[ibranch]:
-        return False
-
-    ireach = rivers.allreaches[ibranch].index(reach)
-    hydro_q = rivers.hydro_q[ibranch][ireach]
+    hydro_q = reach.hydro_q
     n_cond = len(hydro_q)
     
     found = [False]*n_cond

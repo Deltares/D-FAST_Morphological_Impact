@@ -26,42 +26,21 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import string
 from packaging import version
 import configparser
-from typing import Tuple, List
+from typing import List
 import zlib
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.Branch import Branch
+from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
+from dfastmi.io.Reach import Reach, ReachAdvanced, ReachLegacy
 
 from dfastmi.io.RiverParameterData import RiverParameterData
 
-class RiversObject():    
+class RiversObject():
+    branches: List[Branch]
     version: version # type: ignore
-    branches: List[str]
-    reaches: List[List[str]]
-    allreaches : List[str]
-    qlocations: List[str]
-    normal_width: List[List[float]]
-    ucritical: List[List[float]]
-    qstagnant: List[List[float]]
-    tide: List[List[bool]]
-    hydro_q: List[List[Tuple[float, ...]]]
-    autotime: List[List[bool]]
-    hydro_t: List[List[Tuple[float, ...]]]
-    qfit: List[List[Tuple[float, float]]]
-    tide_bc: List[List[Tuple[float, ...]]]
-    cform: List[List[int]]
-    cdisch: List[List[Tuple[float, float]]]
-    prop_q: List[List[Tuple[float, ...]]]
-    prop_c: List[List[Tuple[float, ...]]]
-    proprate_high: List[List[float]] # only for version = 1
-    proprate_low: List[List[float]] # only for version = 1
-    qbankfull: List[List[float]] # only for version = 1
-    qmin: List[List[float]] # only for version = 1
-    qlevels: List[List[Tuple[float, float, float, float]]] # only for version = 1
-    dq: List[List[Tuple[float, float]]] # only for version = 1
-    
-    _river_data : RiverParameterData
-
 
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)
@@ -86,7 +65,7 @@ class RiversObject():
         with open(filename, "r") as configfile:
             config.read_file(configfile)
 
-        self._river_data = RiverParameterData(config)
+        river_data = RiverParameterData(config)
 
         # initialize rivers dictionary
         iversion = self._validate_version_in_file(filename, config)
@@ -94,46 +73,45 @@ class RiversObject():
         self._verify_checksum_rivers(config, filename)
         
         # parse branches
+        self.branches = []
         self._parse_branches(config)
 
         # parse reaches and discharge locations
-        self._parse_reaches_and_discharge_locations(config)
-
-        # collect the values for all other quantities
-        self.nreaches = [len(x) for x in self.allreaches]
-
-        # initialize river data object
-        self._river_data.initialize(self.branches, self.nreaches)
+        self._parse_reaches(config, iversion)
         
         # call the specific reader for the file version
         if iversion == 1:
-            self._read_rivers_legacy()
+            self._read_rivers_legacy(river_data)
             
         else: # iversion == 2
-            self._read_rivers() 
+            self._read_rivers(river_data) 
 
-    def _parse_reaches_and_discharge_locations(self, config):
-        self.allreaches = []
-        self.qlocations = []
+    def _parse_reaches(self, config : configparser.ConfigParser, iversion):
         for branch in self.branches:
-            qlocation = config[branch]["QLocation"]
-            self.qlocations.extend([qlocation])
-
             i = 0
-            reaches = []
             while True:
                 i = i + 1
                 try:
-                    reach = config[branch]["Reach" + str(i)]
-                    reaches.extend([reach])
+                    reach_config_key_name = "Reach" + str(i)
+                    reach_name = config[branch.name][reach_config_key_name]
+                    if iversion == 1:
+                        reach = ReachLegacy(reach_name, i)
+                    else:    
+                        reach = ReachAdvanced(reach_name, i)
+                    branch.reaches.append(reach)
                 except:
                     break
-            self.allreaches.extend([reaches])
 
-    def _parse_branches(self, config):
-        self.branches = [k for k in config.keys()]
-        self.branches.remove("DEFAULT")
-        self.branches.remove("General")
+    def _parse_branches(self, config : configparser.ConfigParser):
+        # Keys to remove
+        keys_to_remove = ["DEFAULT", "General"]
+
+        # Using list comprehension
+        branch_names = [branch_name for branch_name in config.keys() if branch_name not in keys_to_remove]
+        for branch_name in branch_names:
+            branch = Branch(branch_name)
+            branch.qlocation = config[branch.name]["QLocation"]
+            self.branches.append(branch)      
 
     def _validate_version_in_file(self, filename, config):
         try:
@@ -149,7 +127,7 @@ class RiversObject():
             raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
         return iversion       
 
-    def _read_rivers_legacy(self):
+    def _read_rivers_legacy(self, river_data):
         """
         Read a configuration file containing the river data.
 
@@ -158,24 +136,27 @@ class RiversObject():
         """
               
         self.version = version.parse("1.0")
-        self._initialize()        
-        self._initialize_legacy() 
+        for branch in self.branches:
+            for reach in branch.reaches:
+                self._initialize(river_data, branch, reach)
+                self._initialize_legacy(river_data, branch, reach)
 
-    def _initialize_legacy(self):
-        self.proprate_high = self._river_data.collect_values1("PrHigh")
-        self.proprate_low = self._river_data.collect_values1("PrLow")
-        self.qbankfull = self._river_data.collect_values1("QBankfull")
-        self.qmin = self._river_data.collect_values1("QMin")
-        self.qfit = self._river_data.collect_values2("QFit")
-        self.qlevels = self._river_data.collect_values4("QLevels")
-        self.dq = self._river_data.collect_values2("dQ")
-
-    def _initialize(self):
-        self.normal_width = self._river_data.collect_values1("NWidth")
-        self.ucritical = self._river_data.collect_values1("UCrit")
-        self.qstagnant = self._river_data.collect_values1("QStagnant")      
+    def _initialize_legacy(self, river_data : RiverParameterData, branch : Branch, reach : ReachLegacy):
+        reach.proprate_high = river_data.read_key_float("PrHigh", branch, reach)
+        reach.proprate_low = river_data.read_key_float("PrLow", branch, reach)
+        reach.qbankfull = river_data.read_key_float("QBankfull", branch, reach)
+        reach.qmin = river_data.read_key_float("QMin", branch, reach)
+        reach.qfit = river_data.read_key_tuple_float_float("QFit", branch, reach)
+        reach.qlevels = river_data.read_key_tuple_float_float_float_float("QLevels", branch, reach)
+        reach.dq = river_data.read_key_tuple_float_float("dQ", branch, reach)
         
-    def _read_rivers(self):
+
+    def _initialize(self, river_data : RiverParameterData, branch: Branch, reach:Reach):
+        reach.normal_width = river_data.read_key_float("NWidth", branch, reach)
+        reach.ucritical = river_data.read_key_float("UCrit", branch, reach)
+        reach.qstagnant = river_data.read_key_float("QStagnant", branch, reach)
+        
+    def _read_rivers(self, river_data : RiverParameterData):
         """
         Read a configuration file containing the river data.
 
@@ -188,36 +169,34 @@ class RiversObject():
             The name of the river configuration file (default "rivers.ini").    
         """
         self.version = version.parse("2.0")
-        self._initialize()        
-        self._initialize_advanced()
+        for branch in self.branches:
+            for reach in branch.reaches:
+                self._initialize(river_data, branch, reach)
+                self._initialize_advanced(river_data, branch, reach)       
         
+        self._verify_reaches()
         
-        for ib in range(len(self.branches)):
-            reaches = self.allreaches[ib]
-            branch = self.branches[ib]                
-            for i in range(len(reaches)):
-                reach = reaches[i]
-                
-                hydro_q = self.hydro_q[ib][i]
-                hydro_t = self.hydro_t[ib][i]
-                auto_time = self.autotime[ib][i]
-                qfit = self.qfit[ib][i]
-                self._verify_consistency_HydroQ_and_HydroT(hydro_q, hydro_t, auto_time, qfit, branch, reach)
+    def _verify_reaches(self):
+        for branch in self.branches:
+            for reach in branch.reaches:
+                hydro_q = reach.hydro_q
+                hydro_t = reach.hydro_t
+                auto_time = reach.autotime
+                qfit = reach.qfit
+                self._verify_consistency_HydroQ_and_HydroT(hydro_q, hydro_t, auto_time, qfit, branch.name, reach.name)
 
-                use_tide = self.tide[ib][i]
-                tide_boundary_condition = self.tide_bc[ib][i]
-                self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch, reach)
+                use_tide = reach.tide
+                tide_boundary_condition = reach.tide_bc
+                self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch.name, reach.name)
                 
-                celer_form = self.cform[ib][i]
-                prop_q = self.prop_q[ib][i]
-                prop_c = self.prop_c[ib][i]
-                celer_discharge = self.cdisch[ib][i]    
-                self._verify_CelerForm_with_PropQ_and_PropC(celer_form, prop_q, prop_c, celer_discharge, branch, reach) 
+                celer_form = reach.celer_form                
+                celer_object = reach.celer_object
+                self._verify_CelerForm_with_PropQ_and_PropC(celer_form, celer_object, branch.name, reach.name)
 
-    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form, prop_q, prop_c, celer_discharge, branch, reach):
+    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form:int, celer_object, branch, reach):
         if celer_form == 1:
-            prop_q_length = len(prop_q)
-            prop_c_lenght = len(prop_c)
+            prop_q_length = len(celer_object.prop_q)
+            prop_c_lenght = len(celer_object.prop_c)
             if prop_q_length != prop_c_lenght:
                 raise Exception(
                             'Length of "PropQ" and "PropC" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
@@ -234,8 +213,8 @@ class RiversObject():
                                 reach,
                             )
                         )
-        elif celer_form == 2:            
-            if celer_discharge == (0.0, 0.0):
+        elif celer_form == 2:
+            if celer_object.cdisch == (0.0, 0.0):
                 raise Exception(
                             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
                                 branch,
@@ -288,26 +267,30 @@ class RiversObject():
                             )
                         )
 
-    def _initialize_advanced(self):
-        self.hydro_q = self._river_data.collect_valuesN("HydroQ")
+    def _initialize_advanced(self, river_data : RiverParameterData, branch : Branch, reach : ReachAdvanced):
+        reach.hydro_q = river_data.read_key_tuple_float_n("HydroQ", branch, reach)
 
-        self.autotime = self._river_data.collect_values_logical("AutoTime", False)
+        reach.autotime = river_data.read_key_bool("AutoTime", branch, reach, False)
         # for AutoTime = True
-        self.qfit = self._river_data.collect_values2("QFit", (0.0, 0.0))
+        reach.qfit = river_data.read_key_tuple_float_float("QFit", branch, reach, (0.0, 0.0))
         # for AutoTime = False
-        self.hydro_t = self._river_data.collect_valuesN("HydroT")
+        reach.hydro_t = river_data.read_key_tuple_float_n("HydroT", branch, reach)
 
-        self.tide = self._river_data.collect_values_logical("Tide", False)
+        reach.tide = river_data.read_key_bool("Tide", branch, reach, False)
         # for Tide = True
-        self.tide_bc = self._river_data.collect_valuesN("TideBC")
+        reach.tide_bc = river_data.read_key_tuple_float_n("TideBC", branch, reach)
 
-        self.cform = self._river_data.collect_int_values1("CelerForm", 2)
-        # for CelerForm = 1
-        self.prop_q = self._river_data.collect_valuesN("PropQ")
-        self.prop_c = self._river_data.collect_valuesN("PropC")
-        # for CelerForm = 2
-        self.cdisch = self._river_data.collect_values2("CelerQ", (0.0, 0.0))
-
+        reach.celer_form = river_data.read_key_int("CelerForm", branch, reach, 2)
+        if reach.celer_form == 1:
+            celerProperties = CelerProperties()
+            celerProperties.prop_q = river_data.read_key_tuple_float_n("PropQ", branch, reach)
+            celerProperties.prop_c = river_data.read_key_tuple_float_n("PropC", branch, reach)
+            reach.celer_object = celerProperties
+        elif reach.celer_form == 2:
+            celerDischarge = CelerDischarge()
+            celerDischarge.cdisch = river_data.read_key_tuple_float_float("CelerQ", branch, reach, (0.0, 0.0))
+            reach.celer_object = celerDischarge
+        
     def _check_qfit_on_branch_on_reach_with_auto_time(self, qfit, branch, reach):
         if qfit == (0.0, 0.0):
             raise Exception(

@@ -28,6 +28,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
+from dfastmi.io.Branch import Branch
+from dfastmi.io.Reach import Reach, ReachLegacy
 import dfastmi.kernel.core
 import dfastmi.batch
 
@@ -62,14 +64,15 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     have_files = interactive_mode_opening(src, version, report)
 
     all_done = False
-    while not all_done:
-        ibranch = None
-        while ibranch is None:
-            ibranch, ireach = interactive_get_location(src, rivers)
-
-        celerity_hg = rivers.proprate_high[ibranch][ireach]
-        celerity_lw = rivers.proprate_low[ibranch][ireach]
-        nwidth = rivers.normal_width[ibranch][ireach]
+    while not all_done:        
+        branch = None
+        reach = None
+        while branch is None or reach is None:
+            branch, reach = interactive_get_location(src, rivers)
+        if isinstance(reach, ReachLegacy):
+            celerity_hg = reach.proprate_high
+            celerity_lw = reach.proprate_low
+        nwidth = reach.normal_width
 
         (
             all_q,
@@ -84,7 +87,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             T,
             rsigma,
         ) = interactive_get_discharges(
-            src, rivers, ibranch, ireach, have_files, celerity_hg, celerity_lw, nwidth
+            src, branch, reach, have_files, celerity_hg, celerity_lw, nwidth
         )
         if have_files and not all_q:
             break
@@ -98,10 +101,10 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         celerity = [celerity_lw, celerity_hg, celerity_hg]
         slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
 
-        reach = rivers.allreaches[ibranch][ireach]
+        
         if have_files:
             # determine critical flow velocity
-            ucrit = rivers.ucritical[ibranch][ireach]
+            ucrit = reach.ucritical
             ucritMin = 0.01
             ApplicationSettingsHelper.log_text("", repeat=3)
             ApplicationSettingsHelper.log_text("default_ucrit", dict={"uc": ucrit, "reach": reach})
@@ -250,7 +253,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
 
 def interactive_get_location(
     src: TextIO, rivers: RiversObject,
-) -> Tuple[Optional[int], Optional[int]]:
+) -> Tuple[Optional[Branch], Optional[Reach]]:
     """
     Ask the user interactively for the branch and reach.
 
@@ -268,30 +271,30 @@ def interactive_get_location(
     ireach : Optional[int]
         Number of selected reach (None if user cancels).
     """
-    branches = rivers.branches
-    reaches = rivers.allreaches
+    branches = [branch.name for branch in rivers.branches]
+    
 
     accept = False
     ibranch = interactive_get_item(src, "branch", branches)
     if not ibranch is None:
-        ireach = interactive_get_item(src, "reach", reaches[ibranch])
+        ireach = interactive_get_item(src, "reach", [reach.name for reach in rivers.branches[ibranch].reaches])
         ApplicationSettingsHelper.log_text("---")
-        if not ireach is None:
-            reach = reaches[ibranch][ireach]
-            ApplicationSettingsHelper.log_text("reach", dict={"reach": reach})
+        if not ireach is None:            
+            branch = rivers.branches[ibranch]
+            reach = branch.reaches[ireach]
+            ApplicationSettingsHelper.log_text("reach", dict={"reach": reach.name})
             ApplicationSettingsHelper.log_text("---")
             accept = interactive_get_bool(src, "confirm_location")
     if accept:
-        return ibranch, ireach
+        return branch, reach
     else:
         return None, None
 
 
 def interactive_get_discharges(
     src: TextIO,
-    rivers: RiversObject,
-    ibranch: int,
-    ireach: int,
+    branch: Branch,
+    reach: ReachLegacy,
     have_files: bool,
     celerity_hg: float,
     celerity_lw: float,
@@ -359,12 +362,12 @@ def interactive_get_discharges(
     """
     stages = ApplicationSettingsHelper.get_text("stage_descriptions")
 
-    q_location = rivers.qlocations[ibranch]
-    q_stagnant = rivers.qstagnant[ibranch][ireach]
-    q_min = rivers.qmin[ibranch][ireach]
-    q_fit = rivers.qfit[ibranch][ireach]
-    q_levels = rivers.qlevels[ibranch][ireach]
-    dq = rivers.dq[ibranch][ireach]
+    q_location = branch.qlocation
+    q_stagnant = reach.qstagnant
+    q_min = reach.qmin
+    q_fit = reach.qfit
+    q_levels = reach.qlevels
+    dq = reach.dq
 
     ApplicationSettingsHelper.log_text("intro-measure")
     if q_stagnant > q_fit[0]:
