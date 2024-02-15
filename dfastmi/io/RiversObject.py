@@ -78,12 +78,6 @@ class RiversObject():
 
         # parse reaches and discharge locations
         self._parse_reaches(config, iversion)
-
-        # collect the values for all other quantities
-        #self.nreaches = [len(x) for x in self.allreaches]
-
-        # initialize river data object
-        #river_data.initialize(self.branches, self.nreaches)
         
         # call the specific reader for the file version
         if iversion == 1:
@@ -109,7 +103,6 @@ class RiversObject():
                     break
 
     def _parse_branches(self, config : configparser.ConfigParser):
-        #branch_names = list(config._sections.keys() - {"DEFAULT", "General"})
         # Keys to remove
         keys_to_remove = ["DEFAULT", "General"]
 
@@ -201,10 +194,6 @@ class RiversObject():
                 self._verify_CelerForm_with_PropQ_and_PropC(celer_form, celer_object, branch.name, reach.name)
 
     def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form:int, celer_object, branch, reach):
-    # prop_q = reach.prop_q
-    #         prop_c = reach.prop_c
-    #         celer_discharge = reach.cdisch
-            
         if celer_form == 1:
             prop_q_length = len(celer_object.prop_q)
             prop_c_lenght = len(celer_object.prop_c)
