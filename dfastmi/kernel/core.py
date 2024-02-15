@@ -34,6 +34,7 @@ from typing import Tuple, List, Optional
 import math
 import numpy
 
+from dfastmi.kernel.BedLevelCalculator import BedLevelCalculator
 from dfastmi.kernel.typehints import QLevels, QChange, QRuns, Vector, BoolVector
 
 def char_discharges(
@@ -249,7 +250,7 @@ def dzq_from_du_and_h(
 
 def main_computation(
     dzq: List[numpy.ndarray],
-    T: Vector,
+    number_of_days: Vector,
     rsigma: Vector,
 ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[numpy.ndarray]]:
     """
@@ -261,7 +262,7 @@ def main_computation(
     ---------
     dzq : List[numpy.ndarray]
         A list of arrays containing the equilibrium bed level change for each respective discharge period.
-    T : Vector
+    number_of_days : Vector
         A tuple of periods indicating the number of days during which each discharge applies.
     rsigma : Vector
         A tuple of relaxation factors, one for each period.
@@ -276,69 +277,13 @@ def main_computation(
         Minimum bed level change.
     dzb   : List[numpy.ndarray]
         List of arrays containing the bed level change at the beginning of each respective discharge period.
-    """
-    N = len(dzq)
-    # N should also equal len(T) and len(rsigma)
-    firstQ = True
-    
-    for i in range(len(dzq)):
-        if dzq[i] is None:
-            pass
-        elif firstQ:
-            mask = numpy.isnan(dzq[0])
-            firstQ = False
-        else:
-            mask = mask | numpy.isnan(dzq[i])
-    
-    vsigma: List[numpy.ndarray]
-    vsigma = []
-    sz = numpy.shape(mask)
-    for i in range(N):
-        vsigma_tmp = numpy.ones(sz) * rsigma[i]
-        vsigma_tmp[mask] = 1
-        vsigma.append( vsigma_tmp )
-
-    # compute denominator
-    for i in range(N):
-        if i == 0:
-             den = vsigma[0]
-        else:
-             den = den * vsigma[i]
-    den = 1 - den
-
-    # compute dzb at beginning of each period
-    dzb: List[numpy.ndarray]
-    dzb = []
-    for i in range(N):
-        # compute enumerator
-        for j in range(N):
-            jr = (i + j) % N
-            dzb_tmp = dzq[jr] * (1 - vsigma[jr])
-            for k in range(j+1,N):
-                kr = (i + k) % N
-                dzb_tmp = dzb_tmp * vsigma[kr]
-            if j == 0:
-                enm = dzb_tmp
-            else:
-                enm = enm + dzb_tmp
-        
-        # divide by denominator
-        with numpy.errstate(divide="ignore", invalid="ignore"):
-            dzb.append(numpy.where(den != 0, enm / den, 0))
-        
-        # element-wise minimum and maximum
-        if i == 0:
-            dzmax = dzb[0]
-            dzmin = dzb[0]
-        else:
-            dzmax = numpy.maximum(dzmax, dzb[i])
-            dzmin = numpy.minimum(dzmin, dzb[i])
-
-    # linear average
-    for i in range(N):
-        if i == 0:
-            dzgem = dzb[0] * (T[0] + T[-1]) / 2
-        else:
-            dzgem = dzgem + dzb[i] * (T[i] + T[i-1]) / 2
+    """  
+    number_of_periods = len(dzq)
+    blc = BedLevelCalculator(number_of_periods)
+    dzb = blc.get_bed_level_changes(dzq, rsigma)
+    dzmax = blc.get_element_wise_maximum(dzb)
+    dzmin = blc.get_element_wise_minimum(dzb)
+    dzgem = blc.get_linear_average(number_of_days, dzb)
     
     return dzgem, dzmax, dzmin, dzb
+
