@@ -217,7 +217,8 @@ class Test_batch_mode():
             assert str(cm.value) == 'Version number of configuration file (2.0) must match version number of rivers file (1.0)'
         finally:
             os.chdir(cwd)
-    
+            
+class Test_batch_save_configuration_file():      
     def given_configuration_file_when_save_configuration_file_then_file_is_saved_with_expected_data(self, tmp_path):
         expected_lines = [
         "[General]\n",
@@ -256,6 +257,7 @@ class Test_batch_mode():
         }
         return config
     
+class Test_batch_countq():       
     @pytest.mark.parametrize("vector_data, expected_non_empty_discharges_count", [
         ([0.123, None, 0.456, 0.789, None], 3),
         ([0.123, 0.123, 0.456, 0.789, 0.123], 5),
@@ -263,7 +265,8 @@ class Test_batch_mode():
     ])    
     def given_vector_with_discharges_when_countq_then_return_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
         assert dfastmi.batch.countQ(vector_data) == expected_non_empty_discharges_count
-    
+ 
+class Test_batch_write_report():   
     @pytest.mark.parametrize("slength", [
         0.202122,
         1.202122
@@ -279,6 +282,8 @@ class Test_batch_mode():
         q_fit = [0.131415, 0.171819]
         Q = [0.232425, 0.262728, 0.293031]
         T = [0.323334, 0.353637, 0.383940]
+        
+        ApplicationSettingsHelper.PROGTEXTS.clear()
         
         dfastmi.batch.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
 
