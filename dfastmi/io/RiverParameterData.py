@@ -53,12 +53,27 @@ class ElementProcessor:
         else:
             raise ValueError(f"No processor registered for type {element_type}")
 
+class ConfigProcessor:
+    def __init__(self):
+        self.processors = {}        
+
+    def register_processor(self, element_type: Type[T], processor: Callable[[str], T],):
+        self.processors[element_type] = processor        
+
+    def process_config_value(self, element_type: Type[T], config_value: str) -> T:
+        processor = self.processors.get(element_type)
+        if processor:
+            return processor(config_value)
+        else:
+            raise ValueError(f"No config value processor registered for type {element_type}")
+
 class DFastMIConfigParser:
     _config: configparser.ConfigParser
     """ 
         The dictionary containing river data.
     """
     _processor : ElementProcessor
+    _config_processor : ConfigProcessor
 
     def __init__(self, config: configparser.ConfigParser):
         self._config = config
@@ -67,7 +82,11 @@ class DFastMIConfigParser:
         self._processor.register_processor(int, self._process_entry_value, self._parse_int)
         self._processor.register_processor(float, self._process_entry_value, self._parse_float)
         self._processor.register_processor(Tuple[float, ...], self._process_tuple_entry_value, self._parse_float)
-
+        self._config_processor = ConfigProcessor()
+        self._config_processor.register_processor(bool, self._parse_bool)
+        self._config_processor.register_processor(int, self._parse_int)
+        self._config_processor.register_processor(float, self._parse_float)
+        self._config_processor.register_processor(str, lambda input: [input])
 
     def __read_value(self, key: str, branch_name: str, reach_index: int):
         try:
@@ -86,6 +105,7 @@ class DFastMIConfigParser:
             val = branch_val
         return val
     
+    # default processor
     def _process_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[T], expected_number_of_values : Optional[int]) -> T:
         if entry_value == "" and default is not None:
             value_from_config = default
@@ -111,8 +131,7 @@ class DFastMIConfigParser:
             
     def _parse_float(self, entry_value) -> Tuple[float, ...]:
         return tuple(float(x) for x in entry_value.split())
-    
-    
+        
     # tuple processor
     def _process_tuple_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[Tuple[T, ...]], expected_number_of_values : Optional[int]) -> Tuple[T, ...]:
         vals: Tuple[T, ...]
@@ -165,14 +184,16 @@ class DFastMIConfigParser:
     def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):
         raise Exception(f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.')
     
-    def config_get_bool(
+    def config_get(
         self,
+        value_type: Type[T],
         group: str,
         key: str,
-        default: Optional[bool] = None,
-    ) -> bool:
+        default: Optional[T] = None,
+        positive: bool = False
+    ) -> T:
         """
-        Get a boolean from a selected group and keyword in the analysis settings.
+        Get a value from a selected group and keyword in the analysis settings.
 
         Arguments
         ---------
@@ -180,59 +201,11 @@ class DFastMIConfigParser:
             Name of the group from which to read.
         key : str
             Name of the keyword from which to read.
-        default : Optional[bool]
+        default : Optional[T]
             Optional default value.
-
-        Raises
-        ------
-        Exception
-            If the keyword isn't specified and no default value is given.
-
-        Returns
-        -------
-        val : bool
-            Boolean value.
-        """
-        try:
-            str = self._config[group][key].lower()
-            val = (
-                (str == "yes")
-                or (str == "y")
-                or (str == "true")
-                or (str == "t")
-                or (str == "1")
-            )
-        except:
-            if not default is None:
-                val = default
-            else:
-                raise Exception(
-                    'No boolean value specified for required keyword "{}" in block "{}".'.format(
-                        key, group
-                    )
-                )
-        return val
-
-    def config_get_int(
-        self,
-        group: str,
-        key: str,
-        default: Optional[int] = None,
-        positive: bool = False,
-    ) -> int:
-        """
-        Get an integer from a selected group and keyword in the analysis settings.
-
-        Arguments
-        ---------
-        group : str
-            Name of the group from which to read.
-        key : str
-            Name of the keyword from which to read.
-        default : Optional[int]
-            Optional default value.
+        
         positive : bool
-            Flag specifying whether all integers are accepted (if False), or only strictly positive integers (if True).
+            Flag specifying whether all values are accepted (if False), or only strictly positive values (if True).
 
         Raises
         ------
@@ -242,122 +215,26 @@ class DFastMIConfigParser:
 
         Returns
         -------
-        val : int
-            Integer value.
+        val : T
+            Provided value type.
         """
         try:
-            val = int(self._config[group][key])
+            if value_type is str:
+                entry_value = self._config[group][key]
+            else:
+                entry_value = self._config[group][key].lower()
+            val = self._config_processor.process_config_value(value_type, entry_value)[0]
         except:
             if not default is None:
                 val = default
             else:
-                raise Exception(
-                    'No integer value specified for required keyword "{}" in block "{}".'.format(
-                        key, group
-                    )
-                )
+                raise Exception(f'No {value_type.__name__} value specified for required keyword "{key}" in block "{group}".')
+        
         if positive:
             if val <= 0:
-                raise Exception(
-                    'Value for "{}" in block "{}" must be positive, not {}.'.format(
-                        key, group, val
-                    )
-                )
+                raise Exception(f'Value for "{key}" in block "{group}" must be positive, not {val}.')
         return val
-
-    def config_get_float(
-        self,
-        group: str,
-        key: str,
-        default: Optional[float] = None,
-        positive: bool = False,
-    ) -> float:
-        """
-        Get a floating point value from a selected group and keyword in the analysis settings.
-
-        Arguments
-        ---------
-        group : str
-            Name of the group from which to read.
-        key : str
-            Name of the keyword from which to read.
-        default : Optional[float]
-            Optional default value.
-        positive : bool
-            Flag specifying whether all floats are accepted (if False), or only positive floats (if True).
-
-        Raises
-        ------
-        Exception
-            If the keyword isn't specified and no default value is given.
-            If a negative value is specified when a positive value is required.
-
-        Returns
-        -------
-        val : float
-            Floating point value.
-        """
-        try:
-            val = float(self._config[group][key])
-        except:
-            if not default is None:
-                val = default
-            else:
-                raise Exception(
-                    'No floating point value specified for required keyword "{}" in block "{}".'.format(
-                        key, group
-                    )
-                )
-        if positive:
-            if val < 0.0:
-                raise Exception(
-                    'Value for "{}" in block "{}" must be positive, not {}.'.format(
-                        key, group, val
-                    )
-                )
-        return val
-
-    def config_get_str(
-        self,
-        group: str,
-        key: str,
-        default: Optional[str] = None,
-    ) -> str:
-        """
-        Get a string from a selected group and keyword in the analysis settings.
-
-        Arguments
-        ---------
-        group : str
-            Name of the group from which to read.
-        key : str
-            Name of the keyword from which to read.
-        default : Optional[str]
-            Optional default value.
-
-        Raises
-        ------
-        Exception
-            If the keyword isn't specified and no default value is given.
-
-        Returns
-        -------
-        val : str
-            String.
-        """
-        try:
-            val = self._config[group][key]
-        except:
-            if not default is None:
-                val = default
-            else:
-                raise Exception(
-                    'No value specified for required keyword "{}" in block "{}".'.format(
-                        key, group
-                    )
-                )
-        return val
-
+        
     def config_get_range(
         self,
         group: str,
@@ -382,7 +259,7 @@ class DFastMIConfigParser:
             Lower and upper limit of the range.
         """
         try:
-            ini_value = self.config_get_str(group, key, "")
+            ini_value = self.config_get(str, group, key, "")
             obrack = ini_value.find("[")
             cbrack = ini_value.find("]")
             if obrack >= 0 and cbrack >= 0:

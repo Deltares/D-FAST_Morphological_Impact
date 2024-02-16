@@ -131,7 +131,7 @@ class Test_read_key():
         river_data = DFastMIConfigParser(config)
         assert river_data.read_key(Tuple[float, ...], myKey, self._reach, (0.0, 0.0), 2) == (0.0, 0.0)
 
-class Test_config_get_bool():
+class Test_config_get():
     def test_config_get_bool_01(self):
         """
         
@@ -144,7 +144,7 @@ class Test_config_get_bool():
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
 
-        assert config_data.config_get_bool(myGroup, myKey) == True
+        assert config_data.config_get(bool, myGroup, myKey)
 
     def test_config_get_bool_02(self):
         """
@@ -156,8 +156,8 @@ class Test_config_get_bool():
         myKey = "KEY"
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_bool(myGroup, myKey)
-        assert str(cm.value) == 'No boolean value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
+            config_data.config_get(bool, myGroup, myKey)
+        assert str(cm.value) == 'No bool value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
 
     def test_config_get_bool_03(self):
         """
@@ -168,9 +168,9 @@ class Test_config_get_bool():
         config.add_section(myGroup)
         myKey = "KEY"
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_bool(myGroup, myKey, default=True) == True
+        assert config_data.config_get(bool, myGroup, myKey, default=True)
 
-class Test_config_get_int():
+
     def test_config_get_int_01(self):
         """
         
@@ -182,7 +182,7 @@ class Test_config_get_int():
         myVal = "1"
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_int(myGroup, myKey) == 1
+        assert config_data.config_get(int, myGroup, myKey) == 1
 
     def test_config_get_int_02(self):
         """
@@ -194,8 +194,8 @@ class Test_config_get_int():
         myKey = "KEY"
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_int(myGroup, myKey)
-        assert str(cm.value) == 'No integer value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
+            config_data.config_get(int, myGroup, myKey)
+        assert str(cm.value) == f'No {int.__name__} value specified for required keyword "{myKey}" in block "{myGroup}".'
 
     def test_config_get_int_03(self):
         """
@@ -209,10 +209,8 @@ class Test_config_get_int():
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_int(myGroup, myKey, positive=True)
-        assert str(cm.value) == 'Value for "{}" in block "{}" must be positive, not {}.'.format(
-                    myKey, myGroup, myVal
-                )
+            config_data.config_get(int, myGroup, myKey, positive=True)
+        assert str(cm.value) == f'Value for "{myKey}" in block "{myGroup}" must be positive, not {myVal}.'
     
     def test_config_get_int_04(self):
         """
@@ -226,10 +224,8 @@ class Test_config_get_int():
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_int(myGroup, myKey, positive=True)
-        assert str(cm.value) == 'Value for "{}" in block "{}" must be positive, not {}.'.format(
-                    myKey, myGroup, myVal
-                )
+            config_data.config_get(int, myGroup, myKey, positive=True)
+        assert str(cm.value) == f'Value for "{myKey}" in block "{myGroup}" must be positive, not {myVal}.'
         
     def test_config_get_int_05(self):
         """
@@ -240,9 +236,8 @@ class Test_config_get_int():
         config.add_section(myGroup)
         myKey = "KEY"        
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_int(myGroup, myKey, default=1) == 1
+        assert config_data.config_get(int, myGroup, myKey, default=1) == 1
 
-class Test_config_get_float():
     def test_config_get_float_01(self):
         """
         
@@ -254,7 +249,7 @@ class Test_config_get_float():
         myVal = "1"
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_float(myGroup, myKey) == 1
+        assert config_data.config_get(float, myGroup, myKey) == 1
 
     def test_config_get_float_02(self):
         """
@@ -266,8 +261,8 @@ class Test_config_get_float():
         myKey = "KEY"
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_float(myGroup, myKey)
-        assert str(cm.value) == 'No floating point value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
+            config_data.config_get(float, myGroup, myKey)
+        assert str(cm.value) == f'No {float.__name__} value specified for required keyword "{myKey}" in block "{myGroup}".'
 
     def test_config_get_float_03(self):
         """
@@ -281,10 +276,8 @@ class Test_config_get_float():
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_float(myGroup, myKey, positive=True)
-        assert str(cm.value) == 'Value for "{}" in block "{}" must be positive, not {}.'.format(
-                    myKey, myGroup, myVal
-                )
+            config_data.config_get(float, myGroup, myKey, positive=True)
+        assert str(cm.value) == f'Value for "{myKey}" in block "{myGroup}" must be positive, not {myVal}.'
     
     def test_config_get_float_04(self):
         """
@@ -297,7 +290,10 @@ class Test_config_get_float():
         myVal = "0"
         config[myGroup][myKey] = myVal      
         config_data = DFastMIConfigParser(config)     
-        assert config_data.config_get_float(myGroup, myKey, positive=True) == 0.0
+        
+        with pytest.raises(Exception) as cm:
+            config_data.config_get(float, myGroup, myKey, positive=True)
+        assert str(cm.value) == f'Value for "{myKey}" in block "{myGroup}" must be positive, not {float(myVal)}.'
         
     def test_config_get_float_05(self):
         """
@@ -308,9 +304,8 @@ class Test_config_get_float():
         config.add_section(myGroup)
         myKey = "KEY"        
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_float(myGroup, myKey, default=0.5) == 0.5        
+        assert config_data.config_get(float, myGroup, myKey, default=0.5) == 0.5
 
-class Test_config_get_str():
     def test_config_get_str_01(self):
         """
         
@@ -322,7 +317,7 @@ class Test_config_get_str():
         myVal = "YES"
         config[myGroup][myKey] = myVal
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_str(myGroup, myKey) == "YES"
+        assert config_data.config_get(str, myGroup, myKey) == "YES"
 
     def test_config_get_str_02(self):
         """
@@ -334,8 +329,8 @@ class Test_config_get_str():
         myKey = "KEY"
         config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
-            config_data.config_get_str(myGroup, myKey)
-        assert str(cm.value) == 'No value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
+            config_data.config_get(str, myGroup, myKey)
+        assert str(cm.value) == f'No {str.__name__} value specified for required keyword "{myKey}" in block "{myGroup}".'
  
     def test_config_get_str_03(self):
         """
@@ -346,7 +341,7 @@ class Test_config_get_str():
         config.add_section(myGroup)
         myKey = "KEY"
         config_data = DFastMIConfigParser(config)
-        assert config_data.config_get_str(myGroup, myKey, default="YES") == "YES"
+        assert config_data.config_get(str, myGroup, myKey, default="YES sir") == "YES sir"
 
 class Test_config_get_range():
     def test_config_get_range_01(self):
