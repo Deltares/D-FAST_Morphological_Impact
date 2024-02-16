@@ -29,22 +29,27 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 import configparser
 from typing import TypeVar, Tuple, Optional, Type, Callable
-from dfastmi.io.Branch import Branch
-from dfastmi.io.Reach import Reach, ReachAdvanced
+from dfastmi.io.Reach import Reach
 
 T = TypeVar('T')  # Define a type variable
 
 class ElementProcessor:
     def __init__(self):
         self.processors = {}
+        self.parsers = {}
 
-    def register_processor(self, element_type: Type[T], processor: Callable[[str, str, Reach], T]):
+    def register_processor(self, element_type: Type[T], processor: Callable[[str, str, Reach], T], parser: Callable[[str], Tuple[T, ...]]):
         self.processors[element_type] = processor
+        self.parsers[element_type] = parser
 
-    def process_elements(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = 1) -> T:
+    def process_elements(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = None) -> T:
         processor = self.processors.get(element_type)
         if processor:
-            return processor(key, entry_value, reach, default, expected_number_of_values)
+            parser = self.parsers.get(element_type)
+            if parser:
+                return processor(key, entry_value, reach, parser, default, expected_number_of_values)
+            else:
+                raise ValueError(f"No string parser registered for type {element_type}")
         else:
             raise ValueError(f"No processor registered for type {element_type}")
 
@@ -58,10 +63,10 @@ class DFastMIConfigParser:
     def __init__(self, config: configparser.ConfigParser):
         self._config = config
         self._processor = ElementProcessor()
-        self._processor.register_processor(bool, self._process_bool_entry_value)
-        self._processor.register_processor(int, self._process_int_entry_value)
-        self._processor.register_processor(float, self._process_float_entry_value)
-        self._processor.register_processor(Tuple[float, ...], self._process_float_tuple_entry_value)
+        self._processor.register_processor(bool, self._process_entry_value, self._parse_bool)
+        self._processor.register_processor(int, self._process_entry_value, self._parse_int)
+        self._processor.register_processor(float, self._process_entry_value, self._parse_float)
+        self._processor.register_processor(Tuple[float, ...], self._process_tuple_entry_value, self._parse_float)
 
 
     def __read_value(self, key: str, branch_name: str, reach_index: int):
@@ -81,9 +86,9 @@ class DFastMIConfigParser:
             val = branch_val
         return val
     
-    def _process_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[bool], expected_number_of_values : Optional[int]) -> bool:
+    def _process_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[T], expected_number_of_values : Optional[int]) -> T:
         if entry_value == "" and default is not None:
-            bval = default
+            value_from_config = default
         else:
             try:
                 vals = parse(entry_value)
@@ -95,74 +100,27 @@ class DFastMIConfigParser:
 
             if len(vals) != expected_number_of_values:
                 self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
-            bval = vals[0]
-        return bval
+            value_from_config = vals[0]
+        return value_from_config
 
-    def _process_bool(self, entry_value) -> Tuple[T, ...]:
+    def _parse_bool(self, entry_value) -> Tuple[bool, ...]:
         return tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in entry_value.split())
             
-    # bool processor
-    def _process_bool_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[bool], expected_number_of_values : Optional[int]) -> bool:
-        if entry_value == "" and default is not None:
-            bval = default
-        else:
-            try:
-                vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in entry_value.split())
-            except:
-                vals = ()
+    def _parse_int(self, entry_value) -> Tuple[int, ...]:
+        return tuple(int(x) for x in entry_value.split())
             
-            if expected_number_of_values is None:
-                expected_number_of_values = 1
-
-            if len(vals) != expected_number_of_values:
-                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
-            bval = vals[0]
-        return bval
+    def _parse_float(self, entry_value) -> Tuple[float, ...]:
+        return tuple(float(x) for x in entry_value.split())
     
-    # int processor
-    def _process_int_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[int], expected_number_of_values : Optional[int]) -> int:
-        if entry_value == "" and default is not None:
-            ival = default
-        else:
-            try:
-                vals = tuple(int(x) for x in entry_value.split())
-            except:
-                vals = ()
-            
-            if expected_number_of_values is None:
-                expected_number_of_values = 1
-
-            if len(vals) != expected_number_of_values:
-                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
-            ival = vals[0]
-        return ival
     
-    # float processor
-    def _process_float_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[float], expected_number_of_values : Optional[int]) -> float:
-        if entry_value == "" and default is not None:
-            fval = default
-        else:
-            try:
-                vals = tuple(float(x) for x in entry_value.split())
-            except:
-                vals = ()
-            
-            if expected_number_of_values is None:
-                expected_number_of_values = 1
-
-            if len(vals) != expected_number_of_values:
-                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
-            fval = vals[0]
-        return fval
-    
-    # tuple float processor
-    def _process_float_tuple_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[Tuple[float, ...]], expected_number_of_values : Optional[int]) -> Tuple[float, ...]:
-        vals: Tuple[float, ...]
+    # tuple processor
+    def _process_tuple_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[Tuple[T, ...]], expected_number_of_values : Optional[int]) -> Tuple[T, ...]:
+        vals: Tuple[T, ...]
         if entry_value == "" and default is not None:
             vals = default
         else:
             try:
-                vals = tuple(float(x) for x in entry_value.split())
+                vals = parse(entry_value)
             except:
                 vals = ()
 

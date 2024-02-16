@@ -144,7 +144,7 @@ class RiversObject():
         reach.proprate_high = river_data.read_key(float, "PrHigh", reach)
         reach.proprate_low = river_data.read_key(float, "PrLow", reach)
         reach.qbankfull = river_data.read_key(float, "QBankfull", reach)
-        reach.qmin = river_data.read_ke(float, "QMin", reach)
+        reach.qmin = river_data.read_key(float, "QMin", reach)
         reach.qfit = river_data.read_key(Tuple[float, ...], "QFit", reach, expected_number_of_values=2)
         reach.qlevels = river_data.read_key(Tuple[float, ...], "QLevels", reach, expected_number_of_values=4)
         reach.dq = river_data.read_key(Tuple[float, ...], "dQ", reach, expected_number_of_values=2)
