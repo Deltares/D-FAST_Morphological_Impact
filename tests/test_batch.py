@@ -263,4 +263,39 @@ class Test_batch_mode():
     ])    
     def given_vector_with_discharges_when_countq_then_return_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
         assert dfastmi.batch.countQ(vector_data) == expected_non_empty_discharges_count
+    
+    @pytest.mark.parametrize("slength", [
+        0.202122,
+        1.202122
+    ])       
+    def given_input_data_with_varying_slength_when_write_report_then_expect_messages_written_in_report(self, slength :float):
+        report = StringIO()
+        reach = "reach"
+        q_location = "location"
+        q_threshold = 0.123
+        q_bankfull = 0.456
+        q_stagnant = 0.789
+        tstag = 0.101112
+        q_fit = [0.131415, 0.171819]
+        Q = [0.232425, 0.262728, 0.293031]
+        T = [0.323334, 0.353637, 0.383940]
         
+        dfastmi.batch.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
+
+        report_lines = report.getvalue().split('\n')
+                
+        prefix = 'No message found for '
+        assert prefix + 'reach' in report_lines
+        assert prefix + 'report_qthreshold' in report_lines
+        assert prefix + 'report_qbankfull' in report_lines
+        assert prefix + 'closed_barriers' in report_lines
+        assert prefix + 'char_discharge' in report_lines
+        assert report_lines.count(prefix + 'char_discharge') is 3
+        assert prefix + 'char_period' in report_lines
+        assert report_lines.count(prefix + 'char_period') is 3
+        assert prefix + 'need_multiple_input' in report_lines
+        assert prefix + 'lowwater' in report_lines
+        assert prefix + 'transition' in report_lines
+        assert prefix + 'highwater' in report_lines
+        assert prefix + 'length_estimate' in report_lines
+        assert prefix + 'prepare_input' in report_lines
