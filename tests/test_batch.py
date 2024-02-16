@@ -304,3 +304,152 @@ class Test_batch_write_report():
         assert prefix + 'highwater' in report_lines
         assert prefix + 'length_estimate' in report_lines
         assert prefix + 'prepare_input' in report_lines
+        
+class Test_batch_check_configuration():
+    
+    def given_version_when_check_configuration_then_return_false(self):
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
+        config = ConfigParser()
+        
+        assert dfastmi.batch.check_configuration(rivers, config) is False
+        
+    def given_version_with_no_matching_version_when_check_configuration_then_return_false(self):
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
+        config = ConfigParser()
+        
+        config.add_section("General")
+        config.set("General", "Version", "0.0")
+        
+        assert dfastmi.batch.check_configuration(rivers, config) is False
+    
+    class Test_check_configuration_v1():
+        @pytest.fixture
+        def rivers(self):
+            return  RiversObject("dfastmi/Dutch_rivers_v1.ini")
+        
+        @pytest.fixture
+        def config(self):
+            return  ConfigParser()
+                    
+        def given_version_1_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_general_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "1.0")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_general_section_with_qthreshold_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "1.0")
+            config.set("General", "Qthreshold", "100")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_general_section_with_qthreshold_and_qbankfull_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section_with_q_values(config, "1.0")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_q_sections_with_discharge_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):           
+            self.set_valid_general_section_with_q_values(config, "1.0")
+            self.add_q_section(config)
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_mode_specific_test_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section_with_q_values(config, "1.0")
+            self.add_q_section(config)
+            config.set("General", "mode", "test")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is True
+            
+        def set_valid_general_section(self, config : ConfigParser, version : str):
+            config.add_section("General")
+            config.set("General", "Version", version)
+            config.set("General", "Branch", "Bovenrijn & Waal")
+            config.set("General", "Reach", 'Bovenrijn                    km  859-867')
+            
+        def set_valid_general_section_with_q_values(self, config : ConfigParser, version : str):
+            self.set_valid_general_section(config, version)
+            config.set("General", "Qthreshold", "100")
+            config.set("General", "Qbankfull", "100")
+            
+        def add_q_section(self, config : ConfigParser):
+            config.add_section("Q1")
+            config.set("Q1", "Discharge", "1300.0")
+            config.add_section("Q2")
+            config.set("Q2", "Discharge", "1300.0")
+            config.add_section("Q3")
+            config.set("Q3", "Discharge", "1300.0")
+    
+    class Test_check_configuration_v2():
+        @pytest.fixture
+        def rivers(self):
+            return  RiversObject("dfastmi/Dutch_rivers_v2.ini")
+        
+        @pytest.fixture
+        def config(self):
+            return  ConfigParser()
+        
+        def given_version_2_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+        
+        def given_general_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "2.0")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_general_section_and_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "2.0")
+            config.add_section("C1")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_only_discharge_in_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "2.0")
+            config.add_section("C1")
+            config.set("C1", "Discharge", "1300.0")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+            
+        def given_partial_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "2.0")
+            config.add_section("C1")
+            config.set("C1", "Discharge", "1300.0")
+            config.set("C1", "Reference", "1300.0")
+            
+            assert dfastmi.batch.check_configuration(rivers, config) is False
+
+        def given_c_sections_with_incorrect_values_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "2.0")
+            self.add_c_section(config, "C1", "1300.0")
+            self.add_c_section(config, "C2", "1300.0")
+            self.add_c_section(config, "C3", "1300.0")
+            self.add_c_section(config, "C4", "1300.0")
+            self.add_c_section(config, "C5", "1300.0")
+            self.add_c_section(config, "C6", "1300.0")
+                
+            assert dfastmi.batch.check_configuration(rivers, config) is False        
+                
+        def given_correct_c_sections_when_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section(config, "2.0")
+            self.add_c_section(config, "C1", "1300.0")
+            self.add_c_section(config, "C2", "2000.0")
+            self.add_c_section(config, "C3", "3000.0")
+            self.add_c_section(config, "C4", "4000.0")
+            self.add_c_section(config, "C5", "6000.0")
+            self.add_c_section(config, "C6", "8000.0")
+                
+            assert dfastmi.batch.check_configuration(rivers, config) is True
+        
+        def set_valid_general_section(self, config : ConfigParser, version : str):
+            config.add_section("General")
+            config.set("General", "Version", version)
+            config.set("General", "Branch", "Bovenrijn & Waal")
+            config.set("General", "Reach", 'Bovenrijn                    km  859-867')
+            
+        def add_c_section(self, config: ConfigParser, name: str, value : str):
+            config.add_section(name)
+            config.set(name, "Discharge",   value)
+            config.set(name, "Reference",   value)
+            config.set(name, "WithMeasure", value)
