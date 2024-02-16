@@ -28,186 +28,157 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 import configparser
-from typing import Tuple, List, Optional
-from dfastmi.io.Reach import Reach
+from typing import TypeVar, Tuple, Optional, Type, Callable
 from dfastmi.io.Branch import Branch
+from dfastmi.io.Reach import Reach, ReachAdvanced
 
-class RiverParameterData:
-    """
-        Collect river parameter data from river configuration object.
-    """
+T = TypeVar('T')  # Define a type variable
 
-    #_branches: List[str]
-    """
-       The list of river branches. The length of this list is nBranches.
-    """
+class ElementProcessor:
+    def __init__(self):
+        self.processors = {}
 
-    #_nreaches: List[int]
-    """ 
-        The number of reaches per river branch. The length of this list is nBranches.
-    """
-        
+    def register_processor(self, element_type: Type[T], processor: Callable[[str, str, Reach], T]):
+        self.processors[element_type] = processor
+
+    def process_elements(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = 1) -> T:
+        processor = self.processors.get(element_type)
+        if processor:
+            return processor(key, entry_value, reach, default, expected_number_of_values)
+        else:
+            raise ValueError(f"No processor registered for type {element_type}")
+
+class DFastMIConfigParser:
     _config: configparser.ConfigParser
     """ 
         The dictionary containing river data.
     """
-    #_is_initialized : bool
+    _processor : ElementProcessor
 
     def __init__(self, config: configparser.ConfigParser):
         self._config = config
-    #    self._is_initialized = False
-    
-    #def initialize(self, branches: List[str], nreaches: List[int]) : 
-    #    """
-    #        This routine initialize the object with required objects
-    #    """
-    #    self._branches = branches
-    #    self._nreaches = nreaches
-    #    self._is_initialized = True
-    
-    def is_initialized(self):
-        return
-    #    if self._is_initialized :
-    #        return
-    #    else:
-    #        raise Exception('RiverParameterData object is not initialized')
+        self._processor = ElementProcessor()
+        self._processor.register_processor(bool, self._process_bool_entry_value)
+        self._processor.register_processor(int, self._process_int_entry_value)
+        self._processor.register_processor(float, self._process_float_entry_value)
+        self._processor.register_processor(Tuple[float, ...], self._process_float_tuple_entry_value)
 
 
-    def collect_int_values1(
-        self,                
-        key: str,
-        default: Optional[int] = None,
-    ) -> List[List[int]]:
-        """
-        This routines collects entries of type integer.
-
-        Arguments
-        ---------
-        config : configparser.ConfigParser
-            The dictionary containing river data.
-        key : str
-            The name of the parameter for which the values are to be retrieved.
-
-        Raises
-        ------
-        Exception
-            If the number of values read from the file doesn't match 1.
-
-        Returns
-        -------
-        data : List[List[int]]
-            A list of lists. Each list contains per reach within the corresponding
-            branch one integer.
-        """
-        self.is_initialized()
-        try:
-            g_val = self._config["General"][key]
-        except:
-            g_val = ""
-
-        all_values = []
-        for ib in range(len(self._branches)):
-            branch = self._branches[ib]
-            try:
-                b_val = self._config[branch][key]
-            except:
-                b_val = g_val
-
-            values_per_branch = []
-            for i in range(self._nreaches[ib]):
-                stri = str(i + 1)
-                try:
-                    val = self._config[branch][key + stri]
-                except:
-                    val = b_val
-                if val == "" and default is not None:
-                    ival = default
-                else:
-                    try:
-                        vals = tuple(int(x) for x in val.split())
-                    except:
-                        vals = ()
-                    if len(vals) != 1:
-                        raise Exception(
-                            'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                                key, i+1, self._branches[ib], val, 1
-                            )
-                        )
-                    ival = vals[0]
-                values_per_branch.append(ival)
-
-            all_values.append(values_per_branch)
-
-        return all_values
-    
-    def __read_value(self, key, branch, reach):
+    def __read_value(self, key: str, branch_name: str, reach_index: int):
         try:
             general_value = self._config["General"][key]
         except:
             general_value = ''
         
         try:
-            branch_val = self._config[branch.name][key]
+            branch_val = self._config[branch_name][key]
         except:
             branch_val = general_value
         
         try:
-            val = self._config[branch.name][key + str(reach.config_key_index)]
+            val = self._config[branch_name][key + str(reach_index)]
         except:
             val = branch_val
         return val
     
-    def read_key_bool(
-        self,
-        key: str,
-        branch: Branch,
-        reach: Reach,            
-        default: Optional[bool] = None,
-    ) -> bool:
-        """
-        This routines collects entries of type bool.
-
-        Arguments
-        ---------
-        key : str
-            The name of the parameter for which the values are to be retrieved.
-
-        Raises
-        ------
-        Exception
-            If the number of values read from the file doesn't match 1.
-
-        Returns
-        -------
-        data : List[List[bool]]
-            A list of lists. Each list contains per reach within the corresponding
-            branch one bool or a list of booleans depending on input argument nval.
-        """
-        self.is_initialized()
-        val = self.__read_value(key, branch, reach)
-        if val == "" and default is not None:
+    def _process_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[bool], expected_number_of_values : Optional[int]) -> bool:
+        if entry_value == "" and default is not None:
             bval = default
         else:
             try:
-                vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in val.split())
+                vals = parse(entry_value)
             except:
                 vals = ()
-            if len(vals) != 1:
-                raise Exception(
-                    'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                        key, reach.name, branch.name, val, 1
-                    )
-                )
-            bval = vals[0]                
+            
+            if expected_number_of_values is None:
+                expected_number_of_values = 1
+
+            if len(vals) != expected_number_of_values:
+                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+            bval = vals[0]
+        return bval
+
+    def _process_bool(self, entry_value) -> Tuple[T, ...]:
+        return tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in entry_value.split())
+            
+    # bool processor
+    def _process_bool_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[bool], expected_number_of_values : Optional[int]) -> bool:
+        if entry_value == "" and default is not None:
+            bval = default
+        else:
+            try:
+                vals = tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in entry_value.split())
+            except:
+                vals = ()
+            
+            if expected_number_of_values is None:
+                expected_number_of_values = 1
+
+            if len(vals) != expected_number_of_values:
+                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+            bval = vals[0]
         return bval
     
-    def read_key_int(
+    # int processor
+    def _process_int_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[int], expected_number_of_values : Optional[int]) -> int:
+        if entry_value == "" and default is not None:
+            ival = default
+        else:
+            try:
+                vals = tuple(int(x) for x in entry_value.split())
+            except:
+                vals = ()
+            
+            if expected_number_of_values is None:
+                expected_number_of_values = 1
+
+            if len(vals) != expected_number_of_values:
+                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+            ival = vals[0]
+        return ival
+    
+    # float processor
+    def _process_float_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[float], expected_number_of_values : Optional[int]) -> float:
+        if entry_value == "" and default is not None:
+            fval = default
+        else:
+            try:
+                vals = tuple(float(x) for x in entry_value.split())
+            except:
+                vals = ()
+            
+            if expected_number_of_values is None:
+                expected_number_of_values = 1
+
+            if len(vals) != expected_number_of_values:
+                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+            fval = vals[0]
+        return fval
+    
+    # tuple float processor
+    def _process_float_tuple_entry_value(self, key, entry_value: str, reach : Reach, default: Optional[Tuple[float, ...]], expected_number_of_values : Optional[int]) -> Tuple[float, ...]:
+        vals: Tuple[float, ...]
+        if entry_value == "" and default is not None:
+            vals = default
+        else:
+            try:
+                vals = tuple(float(x) for x in entry_value.split())
+            except:
+                vals = ()
+
+            if expected_number_of_values is not None:
+                if len(vals) != expected_number_of_values:
+                    self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+        return vals
+
+    def read_key(
             self,
+            value_type: Type[T],
             key: str,
-            branch: Branch,
             reach: Reach,
-            default: Optional[int] = None,
-        ) -> int:
+            default: Optional[T] = None,
+            expected_number_of_values: Optional[int] = None
+        ) -> T:
         """
         This routines collects entries of type int.
 
@@ -230,190 +201,11 @@ class RiverParameterData:
             A list of lists. Each list contains per reach within the corresponding
             branch one float.
         """
-        self.is_initialized()
-        val = self.__read_value(key, branch, reach)
-        if val == "" and default is not None:
-            ival = default
-        else:
-            try:
-                vals = tuple(int(x) for x in val.split())
-            except:
-                vals = ()
-            if len(vals) != 1:
-                raise Exception(
-                    'Reading {} for reach {} on branch {} returns "{}". Expecting {} values.'.format(
-                        key, reach.name, branch.name, val, 1
-                    )
-                )
-            ival = vals[0]
-        return ival
-    
-    def read_key_float(
-            self,
-            key: str,
-            branch: Branch,
-            reach: Reach,
-            default: Optional[float] = None,
-        ) -> float:
-        """
-        This routines collects entries of type float.
+        entry_value = self.__read_value(key, reach.parent_branch_name, reach.config_key_index)        
+        return self._processor.process_elements(value_type, key, entry_value, reach, default, expected_number_of_values)
 
-        Arguments
-        ---------
-        key : str
-            The name of the parameter for which the values are to be retrieved.
-        branch : Branch
-            The branch where we want to read the parameter from
-
-
-        Raises
-        ------
-        Exception
-            If the number of values read from the file doesn't match 1.
-
-        Returns
-        -------
-        data : List[List[float]]
-            A list of lists. Each list contains per reach within the corresponding
-            branch one float.
-        """
-        self.is_initialized()
-        val = self.__read_value(key, branch, reach)
-        if val == "" and default is not None:
-            fval = default
-        else:
-            try:
-                vals = tuple(float(x) for x in val.split())
-            except:
-                vals = ()
-            if len(vals) != 1:
-                raise Exception(
-                    'Reading {} for reach {} on branch {} returns "{}". Expecting {} values.'.format(
-                        key, reach.name, branch.name, val, 1
-                    )
-                )
-            fval = vals[0]
-        return fval     
-    
-    def read_key_tuple_float_float(
-            self,
-            key: str,
-            branch: Branch,
-            reach: Reach,
-            default: Optional[Tuple[float, float]] = None
-        ) -> Tuple[float, float]:
-        """
-        This routines collects entries of type float.
-
-        Arguments
-        ---------
-        key : str
-            The name of the parameter for which the values are to be retrieved.
-        branch : Branch
-            The branch where we want to read the parameter from
-
-
-        Raises
-        ------
-        Exception
-            If the number of values read from the file doesn't match 1.
-
-        Returns
-        -------
-        data : List[List[float]]
-            A list of lists. Each list contains per reach within the corresponding
-            branch one float.
-        """
-        self.is_initialized()
-        val = self.__read_value(key, branch, reach)
-        if val == "" and default is not None:
-            fval = default
-        else:
-            try:
-                vals = tuple(float(x) for x in val.split())
-            except:
-                vals = ()
-            if len(vals) != 2:
-                raise Exception(
-                    'Reading {} for reach {} on branch {} returns "{}". Expecting {} values.'.format(
-                        key, reach.name, branch.name, val, 2
-                    )
-                )
-            fval = (vals[0], vals[1])
-        return fval
-    
-    def read_key_tuple_float_float_float_float(
-            self,
-            key: str,
-            branch: Branch,
-            reach: Reach,
-            default: Optional[Tuple[float, float, float, float]] = None,
-        ) ->  Tuple[float, float, float, float]:
-        """
-        This routines collects entries of type float.
-
-        Arguments
-        ---------
-        key : str
-            The name of the parameter for which the values are to be retrieved.
-        branch : Branch
-            The branch where we want to read the parameter from
-
-
-        Raises
-        ------
-        Exception
-            If the number of values read from the file doesn't match 1.
-
-        Returns
-        -------
-        data : List[List[float]]
-            A list of lists. Each list contains per reach within the corresponding
-            branch one float.
-        """
-        self.is_initialized()
-        val = self.__read_value(key, branch, reach)
-        if val == "" and default is not None:
-            fval = default
-        else:
-            try:
-                vals = tuple(float(x) for x in val.split())
-            except:
-                vals = ()
-            if len(vals) != 4:
-                raise Exception(
-                    'Reading {} for reach {} on {} returns "{}". Expecting {} values.'.format(
-                        key, reach.name, branch.name, val, 4
-                    )
-                )                
-            fval = (vals[0], vals[1], vals[2], vals[3])
-        return fval   
-    
-    def read_key_tuple_float_n(
-        self,        
-        key: str,
-        branch: Branch,
-        reach: Reach            
-    ) -> Tuple[float, ...]:
-        """
-        This routines collects entries of type Tuple[float, ...]
-
-        Arguments
-        ---------
-        key : str
-            The name of the parameter for which the values are to be retrieved.
-
-        Returns
-        -------
-        data : List[List[Tuple[float, ...]]]
-            A list of lists. Each list contains per reach within the corresponding
-            branch a list of floats.
-        """
-        vals: Tuple[float, ...]
-        self.is_initialized()
-        val = self.__read_value(key, branch, reach)
-        vals = tuple(float(x) for x in val.split())
-        return vals
+    def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):
+        raise Exception(f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.')
     
     def config_get_bool(
         self,

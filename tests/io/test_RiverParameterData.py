@@ -1,10 +1,13 @@
 import sys
 from contextlib import contextmanager
 from io import StringIO
+from typing import Tuple
 import pytest
 import configparser
+from dfastmi.io.Branch import Branch
+from dfastmi.io.Reach import Reach, ReachAdvanced
 
-from dfastmi.io.RiverParameterData import RiverParameterData
+from dfastmi.io.RiverParameterData import DFastMIConfigParser
 
 @contextmanager
 def captured_output():
@@ -19,7 +22,7 @@ def captured_output():
 def _initialize_river_data_from_config(config):
         branches = ["Branch1", "Branch2"]
         nreaches = [2, 3]
-        river_data = RiverParameterData(config)
+        river_data = DFastMIConfigParser(config)
         river_data.initialize(branches, nreaches)
         return river_data
 
@@ -210,11 +213,123 @@ class Test_collect_int_values1():
         intValues = river_data.collect_int_values1(key)
         assert intValues == [[2,3],[4,5,6]]
 
+class Test_read_key():
+    _reach : Reach
+
+    @pytest.fixture
+    def setup_data(self):
+        self._reach = Reach("Reach1")
+        self._reach.parent_branch_name = "Branch1"        
+
+    def test_read_key_bool_01(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "YES"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(bool, myKey, self._reach, False)
+    
+    def test_read_key_int_01(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "1"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(int, myKey, self._reach,) == 1
+    
+    def test_read_key_int_02(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = ""
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(int, myKey, self._reach, 2) == 2
+    
+    def test_read_key_float_01(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "8.01"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(float, myKey, self._reach) == 8.01
+    
+    def test_read_key_float_tuple_01(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "8.01 8.02"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=2) == (8.01, 8.02)
+    
+    def test_read_key_float_tuple_02(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "8.01 8.02 2.14 5.88"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=4) == (8.01, 8.02, 2.14, 5.88)
+    
+    def test_read_key_float_tuple_03(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "8.01 8.02 2.14 5.88 76 27"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(Tuple[float, ...], myKey, self._reach) == (8.01, 8.02, 2.14, 5.88, 76, 27)
+    
+    def test_read_key_float_tuple_04(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = ""
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        assert river_data.read_key(Tuple[float, ...], myKey, self._reach, (0.0, 0.0), 2) == (0.0, 0.0)
+
 class Test_collect_values_logical():
     def _initialize_river_data_with_3_channels_from_config(self, config):
         branches = ['Channel1','Channel2','Channel3']
         nreaches  = [2,1,3]
-        river_data = RiverParameterData(config)
+        river_data = DFastMIConfigParser(config)
         river_data.initialize(branches, nreaches)
         return river_data
     
@@ -270,7 +385,7 @@ class Test_config_get_bool():
         myKey = "KEY"
         myVal = "YES"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
 
         assert config_data.config_get_bool(myGroup, myKey) == True
 
@@ -282,7 +397,7 @@ class Test_config_get_bool():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_bool(myGroup, myKey)
         assert str(cm.value) == 'No boolean value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
@@ -295,7 +410,7 @@ class Test_config_get_bool():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_bool(myGroup, myKey, default=True) == True
 
 class Test_config_get_int():
@@ -309,7 +424,7 @@ class Test_config_get_int():
         myKey = "KEY"
         myVal = "1"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_int(myGroup, myKey) == 1
 
     def test_config_get_int_02(self):
@@ -320,7 +435,7 @@ class Test_config_get_int():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_int(myGroup, myKey)
         assert str(cm.value) == 'No integer value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
@@ -335,7 +450,7 @@ class Test_config_get_int():
         myKey = "KEY"
         myVal = "-1"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_int(myGroup, myKey, positive=True)
         assert str(cm.value) == 'Value for "{}" in block "{}" must be positive, not {}.'.format(
@@ -352,7 +467,7 @@ class Test_config_get_int():
         myKey = "KEY"
         myVal = "0"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_int(myGroup, myKey, positive=True)
         assert str(cm.value) == 'Value for "{}" in block "{}" must be positive, not {}.'.format(
@@ -367,7 +482,7 @@ class Test_config_get_int():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"        
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_int(myGroup, myKey, default=1) == 1
 
 class Test_config_get_float():
@@ -381,7 +496,7 @@ class Test_config_get_float():
         myKey = "KEY"
         myVal = "1"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_float(myGroup, myKey) == 1
 
     def test_config_get_float_02(self):
@@ -392,7 +507,7 @@ class Test_config_get_float():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_float(myGroup, myKey)
         assert str(cm.value) == 'No floating point value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
@@ -407,7 +522,7 @@ class Test_config_get_float():
         myKey = "KEY"
         myVal = "-0.5"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_float(myGroup, myKey, positive=True)
         assert str(cm.value) == 'Value for "{}" in block "{}" must be positive, not {}.'.format(
@@ -424,7 +539,7 @@ class Test_config_get_float():
         myKey = "KEY"
         myVal = "0"
         config[myGroup][myKey] = myVal      
-        config_data = RiverParameterData(config)     
+        config_data = DFastMIConfigParser(config)     
         assert config_data.config_get_float(myGroup, myKey, positive=True) == 0.0
         
     def test_config_get_float_05(self):
@@ -435,7 +550,7 @@ class Test_config_get_float():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"        
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_float(myGroup, myKey, default=0.5) == 0.5        
 
 class Test_config_get_str():
@@ -449,7 +564,7 @@ class Test_config_get_str():
         myKey = "KEY"
         myVal = "YES"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_str(myGroup, myKey) == "YES"
 
     def test_config_get_str_02(self):
@@ -460,7 +575,7 @@ class Test_config_get_str():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_str(myGroup, myKey)
         assert str(cm.value) == 'No value specified for required keyword "{}" in block "{}".'.format(myKey, myGroup)
@@ -473,7 +588,7 @@ class Test_config_get_str():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_str(myGroup, myKey, default="YES") == "YES"
 
 class Test_config_get_range():
@@ -487,7 +602,7 @@ class Test_config_get_range():
         myKey = "KEY"
         myVal = "[0.0:10.0]"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_range(myGroup, myKey) == (0.0,10.0)
     
     def test_config_get_range_02(self):
@@ -500,7 +615,7 @@ class Test_config_get_range():
         myKey = "KEY"
         myVal = "[10.0:0.0]"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_range(myGroup, myKey) == (0.0,10.0)
 
     def test_config_get_range_03(self):
@@ -513,7 +628,7 @@ class Test_config_get_range():
         myKey = "KEY"
         myVal = "0.0-10.0"
         config[myGroup][myKey] = myVal #even on not setting this value we expect the exception
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         with pytest.raises(Exception) as cm:
             config_data.config_get_range(myGroup, myKey)
         assert str(cm.value) == 'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format(myVal, myKey, myGroup)
@@ -526,7 +641,7 @@ class Test_config_get_range():
         myGroup = "GROUP"
         config.add_section(myGroup)
         myKey = "KEY"
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_range(myGroup, myKey, default="YES") == "YES"        
     
     def test_config_get_range_05(self):
@@ -539,7 +654,7 @@ class Test_config_get_range():
         myKey = "KEY"
         myVal = "0.0:10.0"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_range(myGroup, myKey) == (0.0,10.0)
     
     def test_config_get_range_06(self):
@@ -552,5 +667,5 @@ class Test_config_get_range():
         myKey = "KEY"
         myVal = "10.0:0.0"
         config[myGroup][myKey] = myVal
-        config_data = RiverParameterData(config)
+        config_data = DFastMIConfigParser(config)
         assert config_data.config_get_range(myGroup, myKey) == (0.0,10.0)

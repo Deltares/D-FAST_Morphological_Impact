@@ -33,7 +33,7 @@ from dfastmi.io.Reach import ReachAdvanced, ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.RiverParameterData import RiverParameterData
+from dfastmi.io.RiverParameterData import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.GridOperations import GridOperations
 from dfastmi.io.FileUtils import FileUtils
@@ -112,7 +112,7 @@ def batch_mode_core(
     apply_q : BoolVector
 
     display = False
-    data = RiverParameterData(config)
+    data = DFastMIConfigParser(config)
     
     # check outputdir
     if rootdir == "":

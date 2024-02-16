@@ -3,6 +3,22 @@ from typing import List
 
 from dfastmi.io.CelerObject import CelerObject
 
+class ObservableReachList:
+    def __init__(self):
+        self._list = []
+        self._observers = []
+    
+    def __getitem__(self, index):
+        return self._list[index]
+    
+    def append(self, element):
+        self._list.append(element)
+        for observer in self._observers:
+            observer.notify(element)
+
+    def add_observer(self, observer):
+        self._observers.append(observer)
+
 
 class Reach(ABC):
     name : str
@@ -10,6 +26,7 @@ class Reach(ABC):
     normal_width : float
     ucritical : float
     qstagnant : float
+    parent_branch_name : str
 
     def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
         self.name = reach_name
@@ -36,4 +53,4 @@ class ReachAdvanced(Reach):
     tide_boundary_condition : List[float]
 
     celer_form : int
-    celer_object : CelerObject = None
+    celer_object : CelerObject = None    
