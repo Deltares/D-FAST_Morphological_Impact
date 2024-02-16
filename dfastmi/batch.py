@@ -2013,7 +2013,7 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
     except:
         return False
 
-    nwidth = reach.nwidth
+    nwidth = reach.normal_width
     [_, apply_q, _, _, _, _, _, _] = get_levels_v1(reach, config, nwidth)
     
     mode_str = config["General"].get("Mode", DFLOWFM_MAP)
@@ -2039,7 +2039,7 @@ def get_reach(rivers, config):
 
     reach_name = config["General"]["Reach"]
     
-    if not any(reach.name == reach_name for reach in rivers.branches[ibranch]):
+    if not any(reach.name == reach_name for reach in rivers.branches[ibranch].reaches):
         raise Exception("Branch not in file {}!".format(branch_name))
     
     ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
