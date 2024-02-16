@@ -1,16 +1,15 @@
+import os
+import sys
+import netCDF4
 import pytest
 import context
 import dfastmi.batch
 
-import os
-
-import sys
-import numpy
-import netCDF4
 from contextlib import contextmanager
 from io import StringIO
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.RiversObject import RiversObject
+from configparser import ConfigParser
 
 @contextmanager
 def captured_output():
@@ -217,5 +216,41 @@ class Test_batch_mode():
             assert str(cm.value) == 'Version number of configuration file (2.0) must match version number of rivers file (1.0)'
         finally:
             os.chdir(cwd)
+    
+    def given_configuration_file_when_save_configuration_file_then_file_is_saved_with_expected_data(self, tmp_path):
+        expected_lines = [
+        "[General]\n",
+        "  riverkm     = RiverKM\n",
+        "  figuredir   = FigureDir\n",
+        "  outputdir   = OutputDir\n",
+        "\n",
+        "[SomeSection]\n",
+        "  reference   = reference\n",
+        "  withmeasure = with_measure\n",
+        ]
         
+        file_path = tmp_path / "test_file.cfg"
+        config = self.sample_config(tmp_path)
         
+        dfastmi.batch.save_configuration_file(file_path, config)
+        
+        assert os.path.exists(file_path)
+        with open(file_path, 'r') as file:
+            file_lines = file.readlines()
+            
+        assert len(file_lines) == len(expected_lines)
+        assert file_lines == expected_lines
+        
+    def sample_config(self, tmp_path):
+        # Create a sample configuration
+        config = ConfigParser()
+        config["General"] = {
+            "RiverKM": tmp_path / "RiverKM",
+            "FigureDir": tmp_path / "FigureDir",
+            "OutputDir": tmp_path / "OutputDir"
+        }
+        config["SomeSection"] = {
+            "Reference": tmp_path / "reference",
+            "WithMeasure": tmp_path / "with_measure"
+        }
+        return config
