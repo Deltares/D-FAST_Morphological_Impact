@@ -33,7 +33,7 @@ from dfastmi.io.Reach import ReachAdvanced, ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.RiverParameterData import DFastMIConfigParser
+from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.GridOperations import GridOperations
 from dfastmi.io.FileUtils import FileUtils

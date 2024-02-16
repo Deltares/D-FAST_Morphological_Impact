@@ -7,7 +7,7 @@ import configparser
 from dfastmi.io.Branch import Branch
 from dfastmi.io.Reach import Reach, ReachAdvanced
 
-from dfastmi.io.RiverParameterData import DFastMIConfigParser
+from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 
 @contextmanager
 def captured_output():

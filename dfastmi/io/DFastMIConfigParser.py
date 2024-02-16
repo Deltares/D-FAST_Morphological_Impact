@@ -27,12 +27,16 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+
 import configparser
-from typing import TypeVar, Tuple, Optional, Type, Callable
+from typing import Callable, Tuple, Type, TypeVar, Optional
 from dfastmi.io.ConfigProcessor import ConfigProcessor
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiverConfigElementProcessor import RiverConfigElementProcessor
+
+
 T = TypeVar('T')  # Define a type variable
+
 
 class DFastMIConfigParser:
     _config: configparser.ConfigParser
@@ -60,18 +64,18 @@ class DFastMIConfigParser:
             general_value = self._config["General"][key]
         except:
             general_value = ''
-        
+
         try:
             branch_val = self._config[branch_name][key]
         except:
             branch_val = general_value
-        
+
         try:
             val = self._config[branch_name][key + str(reach_index)]
         except:
             val = branch_val
         return val
-    
+
     # default processor
     def _process_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[T], expected_number_of_values : Optional[int]) -> T:
         if entry_value == "" and default is not None:
@@ -81,7 +85,7 @@ class DFastMIConfigParser:
                 vals = parse(entry_value)
             except:
                 vals = ()
-            
+
             if expected_number_of_values is None:
                 expected_number_of_values = 1
 
@@ -92,13 +96,13 @@ class DFastMIConfigParser:
 
     def _parse_bool(self, entry_value) -> Tuple[bool, ...]:
         return tuple(x.lower() in ['true', '1', 't', 'y', 'yes'] for x in entry_value.split())
-            
+
     def _parse_int(self, entry_value) -> Tuple[int, ...]:
         return tuple(int(x) for x in entry_value.split())
-            
+
     def _parse_float(self, entry_value) -> Tuple[float, ...]:
         return tuple(float(x) for x in entry_value.split())
-        
+
     # tuple processor
     def _process_tuple_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[Tuple[T, ...]], expected_number_of_values : Optional[int]) -> Tuple[T, ...]:
         vals: Tuple[T, ...]
@@ -145,12 +149,12 @@ class DFastMIConfigParser:
             A list of lists. Each list contains per reach within the corresponding
             branch one float.
         """
-        entry_value = self.__read_value(key, reach.parent_branch_name, reach.config_key_index)        
+        entry_value = self.__read_value(key, reach.parent_branch_name, reach.config_key_index)
         return self._processor.process_river_element(value_type, key, entry_value, reach, default, expected_number_of_values)
 
     def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):
         raise Exception(f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.')
-    
+
     def config_get(
         self,
         value_type: Type[T],
@@ -170,7 +174,7 @@ class DFastMIConfigParser:
             Name of the keyword from which to read.
         default : Optional[T]
             Optional default value.
-        
+
         positive : bool
             Flag specifying whether all values are accepted (if False), or only strictly positive values (if True).
 
@@ -196,12 +200,12 @@ class DFastMIConfigParser:
                 val = default
             else:
                 raise Exception(f'No {value_type.__name__} value specified for required keyword "{key}" in block "{group}".')
-        
+
         if positive:
             if val <= 0:
                 raise Exception(f'Value for "{key}" in block "{group}" must be positive, not {val}.')
         return val
-        
+
     def config_get_range(
         self,
         group: str,
