@@ -33,7 +33,7 @@ from dfastmi.io.Reach import Reach
 
 T = TypeVar('T')  # Define a type variable
 
-class ElementProcessor:
+class RiverConfigElementProcessor:
     def __init__(self):
         self.processors = {}
         self.parsers = {}
@@ -42,7 +42,7 @@ class ElementProcessor:
         self.processors[element_type] = processor
         self.parsers[element_type] = parser
 
-    def process_elements(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = None) -> T:
+    def process_river_element(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = None) -> T:
         processor = self.processors.get(element_type)
         if processor:
             parser = self.parsers.get(element_type)
@@ -72,12 +72,12 @@ class DFastMIConfigParser:
     """ 
         The dictionary containing river data.
     """
-    _processor : ElementProcessor
+    _processor : RiverConfigElementProcessor
     _config_processor : ConfigProcessor
 
     def __init__(self, config: configparser.ConfigParser):
         self._config = config
-        self._processor = ElementProcessor()
+        self._processor = RiverConfigElementProcessor()
         self._processor.register_processor(bool, self._process_entry_value, self._parse_bool)
         self._processor.register_processor(int, self._process_entry_value, self._parse_int)
         self._processor.register_processor(float, self._process_entry_value, self._parse_float)
@@ -179,7 +179,7 @@ class DFastMIConfigParser:
             branch one float.
         """
         entry_value = self.__read_value(key, reach.parent_branch_name, reach.config_key_index)        
-        return self._processor.process_elements(value_type, key, entry_value, reach, default, expected_number_of_values)
+        return self._processor.process_river_element(value_type, key, entry_value, reach, default, expected_number_of_values)
 
     def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):
         raise Exception(f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.')

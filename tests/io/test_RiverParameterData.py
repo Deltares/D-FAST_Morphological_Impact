@@ -19,6 +19,47 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
+class Test_DFastMIConfigParser():
+    _reach : Reach
+
+    @pytest.fixture
+    def setup_data(self):
+        self._reach = Reach("Reach1")
+        self._reach.parent_branch_name = "Branch1"        
+
+    def test_read_key_custom_type_01(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "YES"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        river_data._processor.register_processor(Test_DFastMIConfigParser, river_data._process_entry_value, lambda x: 1/0)
+
+        with pytest.raises(Exception) as cm:
+            river_data.read_key(Test_DFastMIConfigParser, myKey, self._reach)
+        assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch_name} returns "{myVal}". Expecting 1 values.'
+    
+    def test_read_key_custom_tuple_type_01(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "YES"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        river_data._processor.register_processor(Test_DFastMIConfigParser, river_data._process_tuple_entry_value, lambda x: 1/0)
+        assert river_data.read_key(Test_DFastMIConfigParser, myKey, self._reach) == ()
+        
+
+
 class Test_read_key():
     _reach : Reach
 
@@ -39,6 +80,34 @@ class Test_read_key():
         config[myGroup][myKey] = myVal
         river_data = DFastMIConfigParser(config)
         assert river_data.read_key(bool, myKey, self._reach, False)
+
+    def test_read_key_bool_02(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = ""
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+
+        with pytest.raises(Exception) as cm:
+            river_data.read_key(bool, myKey, self._reach)
+        assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch_name} returns "". Expecting 1 values.'
+
+    def test_read_key_bool_03(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myKey = "KEY"
+        river_data = DFastMIConfigParser(config)
+        with pytest.raises(Exception) as cm:
+            river_data.read_key(bool, myKey, self._reach)
+        assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch_name} returns "". Expecting 1 values.'
+
     
     def test_read_key_int_01(self, setup_data):
         """
@@ -117,7 +186,7 @@ class Test_read_key():
         config[myGroup][myKey] = myVal
         river_data = DFastMIConfigParser(config)
         assert river_data.read_key(Tuple[float, ...], myKey, self._reach) == (8.01, 8.02, 2.14, 5.88, 76, 27)
-    
+        
     def test_read_key_float_tuple_04(self, setup_data):
         """
         
@@ -131,6 +200,22 @@ class Test_read_key():
         river_data = DFastMIConfigParser(config)
         assert river_data.read_key(Tuple[float, ...], myKey, self._reach, (0.0, 0.0), 2) == (0.0, 0.0)
 
+    def test_read_key_float_tuple_05(self, setup_data):
+        """
+        
+        """
+        config = configparser.ConfigParser()
+        myGroup = "General"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "8.01 8.02 2.14 5.88 76 27"
+        config[myGroup][myKey] = myVal
+        river_data = DFastMIConfigParser(config)
+        with pytest.raises(Exception) as cm:
+            river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=4)
+        assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch_name} returns "{myVal}". Expecting 4 values.'
+        
+    
 class Test_config_get():
     def test_config_get_bool_01(self):
         """
