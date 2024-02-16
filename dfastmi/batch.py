@@ -2039,7 +2039,7 @@ def get_reach(rivers, config):
 
     reach_name = config["General"]["Reach"]
     
-    if not any(reach.name == reach_name for reach in rivers.branches[ibranch]):
+    if not any(reach.name == reach_name for reach in rivers.branches[ibranch].reaches):
         raise Exception("Branch not in file {}!".format(branch_name))
     
     ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
