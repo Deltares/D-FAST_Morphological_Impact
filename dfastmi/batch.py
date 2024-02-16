@@ -2013,7 +2013,7 @@ def check_configuration_v1(rivers: RiversObject, config: configparser.ConfigPars
     except:
         return False
 
-    nwidth = reach.nwidth
+    nwidth = reach.normal_width
     [_, apply_q, _, _, _, _, _, _] = get_levels_v1(reach, config, nwidth)
     
     mode_str = config["General"].get("Mode", DFLOWFM_MAP)
