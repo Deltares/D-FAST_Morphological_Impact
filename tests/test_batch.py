@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from io import StringIO
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import Vector
 from configparser import ConfigParser
 
 @contextmanager
@@ -254,3 +255,12 @@ class Test_batch_mode():
             "WithMeasure": tmp_path / "with_measure"
         }
         return config
+    
+    @pytest.mark.parametrize("vector_data, expected_non_empty_discharges_count", [
+        ([0.123, None, 0.456, 0.789, None], 3),
+        ([0.123, 0.123, 0.456, 0.789, 0.123], 5),
+        ([None, None, None, None, None], 0),
+    ])    
+    def given_vector_with_discharges_when_countq_then_return_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
+        assert dfastmi.batch.countQ(vector_data) == expected_non_empty_discharges_count
+        
