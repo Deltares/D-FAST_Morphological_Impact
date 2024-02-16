@@ -29,43 +29,10 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 import configparser
 from typing import TypeVar, Tuple, Optional, Type, Callable
+from dfastmi.io.ConfigProcessor import ConfigProcessor
 from dfastmi.io.Reach import Reach
-
+from dfastmi.io.RiverConfigElementProcessor import RiverConfigElementProcessor
 T = TypeVar('T')  # Define a type variable
-
-class RiverConfigElementProcessor:
-    def __init__(self):
-        self.processors = {}
-        self.parsers = {}
-
-    def register_processor(self, element_type: Type[T], processor: Callable[[str, str, Reach], T], parser: Callable[[str], Tuple[T, ...]]):
-        self.processors[element_type] = processor
-        self.parsers[element_type] = parser
-
-    def process_river_element(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = None) -> T:
-        processor = self.processors.get(element_type)
-        if processor:
-            parser = self.parsers.get(element_type)
-            if parser:
-                return processor(key, entry_value, reach, parser, default, expected_number_of_values)
-            else:
-                raise ValueError(f"No string parser registered for type {element_type}")
-        else:
-            raise ValueError(f"No processor registered for type {element_type}")
-
-class ConfigProcessor:
-    def __init__(self):
-        self.processors = {}        
-
-    def register_processor(self, element_type: Type[T], processor: Callable[[str], T],):
-        self.processors[element_type] = processor        
-
-    def process_config_value(self, element_type: Type[T], config_value: str) -> T:
-        processor = self.processors.get(element_type)
-        if processor:
-            return processor(config_value)
-        else:
-            raise ValueError(f"No config value processor registered for type {element_type}")
 
 class DFastMIConfigParser:
     _config: configparser.ConfigParser
