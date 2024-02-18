@@ -17,4 +17,4 @@ jobs:
       - name: "Run Sigrid CI" 
         env:
           SIGRID_CI_TOKEN: "${{ secrets.SIGRID_CI_TOKEN }}"
-        run: "./sigridci/sigridci/sigridci.py --customer <example_customer_name> --system <example_system_name> --source . --publish" 
+        run: "./sigridci/sigridci/sigridci.py --customer bert.jagers@deltares.nl --system dfastmi --source . --publish" 
