@@ -9,6 +9,8 @@ from contextlib import contextmanager
 from io import StringIO
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.Reach import ReachAdvanced
+from dfastmi.io.CelerObject import CelerProperties, CelerDischarge
 from dfastmi.kernel.typehints import Vector
 from configparser import ConfigParser
 
@@ -453,3 +455,99 @@ class Test_batch_check_configuration():
             config.set(name, "Discharge",   value)
             config.set(name, "Reference",   value)
             config.set(name, "WithMeasure", value)
+            
+    class Test_get_levels_v2():
+    
+        @pytest.fixture    
+        def reach(self):
+            reach = ReachAdvanced()
+            reach.hydro_q = [6.7, 8.9, 10.1]
+            reach.autotime = True
+            reach.qfit = [11.11, 12.12]
+            reach.celer_form = 1
+            reach.celer_object = CelerProperties()
+            reach.celer_object.prop_q = [13.13, 14.14]
+            reach.celer_object.prop_c = [15.13, 16.14]
+            return reach
+
+        def given_auto_time_true_when_get_levels_v2_then_return_expected_values(self, reach : ReachAdvanced):
+            reach.qstagnant = 4.5
+            q_threshold = 1.2
+            nwidth = 3.4
+
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+            assert Q == [6.7, 8.9, 10.1]
+            assert apply_q == (True, True, True)
+            assert time_mi == (0.0, 0.0, 1.0)
+            assert tstag == 0
+            assert T == (0.0, 0.0, 1.0)
+            assert rsigma == (1.0, 1.0, 0.0)
+            assert celerity == (15.13, 15.13, 15.13)
+
+        def given_auto_time_true_with_qstagnant_above_one_Q_when_get_levels_v2_then_return_expected_values_with_one_celerity_zero(self, reach : ReachAdvanced):
+            reach.qstagnant = 7.8
+            q_threshold = 7.3
+            nwidth = 3.4
+
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+            assert Q == [6.7, 8.9, 10.1]
+            assert apply_q == (True, True, True)
+            assert time_mi == (0.0, 0.0, 1.0)
+            assert tstag == 0
+            assert T == (0.0, 0.0, 1.0)
+            assert rsigma == (1.0, 1.0, 0.0)
+            assert celerity == (0.0, 15.13, 15.13)
+
+        def given_auto_time_true_with_multiple_qstagnant_above_Q_when_get_levels_v2_then_return_expected_values_with_multiple_celerity_zero(self, reach : ReachAdvanced):
+            reach.qstagnant = 9.0
+            q_threshold = 7.3
+            nwidth = 3.4
+
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+            assert Q == [6.7, 8.9, 10.1]
+            assert apply_q == (True, True, True)
+            assert time_mi == (0.0, 0.0, 1.0)
+            assert tstag == 0
+            assert T == (0.0, 0.0, 1.0)
+            assert rsigma == (1.0, 1.0, 0.0)
+            assert celerity == (0.0, 0.0, 15.13)
+            
+        def given_auto_time_false_when_get_levels_v2_then_return_expected_values(self, reach : ReachAdvanced):
+            reach.qstagnant = 4.5
+            reach.autotime = False
+            reach.hydro_t = [0.0, 1.0, 0.0]
+            q_threshold = 1.2
+            nwidth = 3.4
+
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+            assert Q == [6.7, 8.9, 10.1]
+            assert apply_q == (True, True, True)
+            assert time_mi == (0.0, 1.0, 0.0)
+            assert tstag == 0
+            assert T == (0.0, 1.0, 0.0)
+            assert rsigma == (1.0, 0.0, 1.0)
+            assert celerity == (15.13, 15.13, 15.13)
+            
+        def given_auto_time_false_and_celer_discharge_when_get_levels_v2_then_return_expected_values(self, reach : ReachAdvanced):
+            reach.qstagnant = 4.5
+            reach.autotime = False
+            reach.celer_form = 2
+            reach.celer_object = CelerDischarge()
+            reach.celer_object.cdisch = [1.0, 1.0]
+            reach.hydro_t = [0.0, 1.0, 0.0]
+            q_threshold = 1.2
+            nwidth = 3.4
+
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+            assert Q == [6.7, 8.9, 10.1]
+            assert apply_q == (True, True, True)
+            assert time_mi == (0.0, 1.0, 0.0)
+            assert tstag == 0
+            assert T == (0.0, 1.0, 0.0)
+            assert rsigma == (1.0, 0.0, 1.0)
+            assert celerity == (6.7, 8.9, 10.1)
