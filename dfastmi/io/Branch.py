@@ -67,10 +67,14 @@ class Branch(IBranch):
         """Location name in the branch where we have the discharge"""
         return self._qlocation
     
+    @qlocation.setter
+    def qlocation(self, value):
+        self._qlocation = value
+
     @property
     def reaches(self) -> ObservableList:
         """The reaches in this branch"""
-        return self._qlocation
+        return self._reaches
 
     def notify(self, reach:Reach):
         """When a reach is added to the reaches list we want to set the parent branch in the reach element"""
