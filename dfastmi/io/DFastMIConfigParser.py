@@ -90,7 +90,7 @@ class DFastMIConfigParser:
                 expected_number_of_values = 1
 
             if len(vals) != expected_number_of_values:
-                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+                self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch.name, entry_value, expected_number_of_values)
             value_from_config = vals[0]
         return value_from_config
 
@@ -116,7 +116,7 @@ class DFastMIConfigParser:
 
             if expected_number_of_values is not None:
                 if len(vals) != expected_number_of_values:
-                    self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch_name, entry_value, expected_number_of_values)
+                    self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch.name, entry_value, expected_number_of_values)
         return vals
 
     def read_key(
@@ -149,7 +149,7 @@ class DFastMIConfigParser:
             A list of lists. Each list contains per reach within the corresponding
             branch one float.
         """
-        entry_value = self.__read_value(key, reach.parent_branch_name, reach.config_key_index)
+        entry_value = self.__read_value(key, reach.parent_branch.name, reach.config_key_index)
         return self._processor.process_river_element(value_type, key, entry_value, reach, default, expected_number_of_values)
 
     def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):

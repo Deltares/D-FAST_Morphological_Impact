@@ -27,45 +27,34 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 """
-Module for ICelerObject interface and CelerObject implementations
-
-Interfaces:
-    ICelerObject
+Module for concrete ObservableList implementation. 
 
 Classes:
-    CelerDischarge
-    CelerProperties
+    ObservableList
 
 """
-from abc import ABC, abstractmethod
-from typing import List
+class ObservableList:
+    """
+    This class is a list object, but notify it's observers when an element is added
+    """
+    def __init__(self):
+        self._list = []
+        self._observers = []
 
+    def __getitem__(self, index):
+        return self._list[index]
 
-class ICelerObject(ABC):
-    @abstractmethod
-    def validate(self):
-        pass
-    
+    def append(self, element):
+        """
+        When an element is appended in the list we want to notify the observers 
+        of the list so an action can be done from the observers to the element which is added.
+        """
+        self._list.append(element)
+        for observer in self._observers:
+            observer.notify(element)
 
-
-class CelerDischarge(ICelerObject):
-    cdisch = tuple[float,float]
-    
-    def validate(self):
-        if self.cdisch == (0.0, 0.0):            
-            # raise Exception(
-            #             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
-            #                 branch,
-            #                 reach,
-            #             )
-            #         )
-            return
-    
-
-
-class CelerProperties(ICelerObject):
-    prop_q : List[float]
-    prop_c : List[float]
-
-    def validate(self):
-        return super().validate()
+    def add_observer(self, observer):
+        """
+        Add an objects which will observer the list (currently on appending an element)
+        """
+        self._observers.append(observer)
