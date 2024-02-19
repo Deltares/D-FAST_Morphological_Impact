@@ -65,10 +65,10 @@ class DFastMIConfigParser:
         self._processor.register_processor(float, self._process_entry_value, self._parse_float)
         self._processor.register_processor(Tuple[float, ...], self._process_tuple_entry_value, self._parse_float)
         self._config_processor = ConfigProcessor()
-        self._config_processor.register_processor(bool, self._parse_bool)
-        self._config_processor.register_processor(int, self._parse_int)
-        self._config_processor.register_processor(float, self._parse_float)
-        self._config_processor.register_processor(str, lambda input: [input])
+        self._config_processor.register_parser(bool, self._parse_bool)
+        self._config_processor.register_parser(int, self._parse_int)
+        self._config_processor.register_parser(float, self._parse_float)
+        self._config_processor.register_parser(str, lambda input: [input])
 
     def _read_value(self, key: str, branch_name: str, reach_index: int):
         """
