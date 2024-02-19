@@ -43,8 +43,19 @@ class DFastMIConfigParser:
     """ 
         The dictionary containing river data.
     """
+    
     _processor : RiverConfigElementProcessor
+    """
+        Element processer object containing processing functions and parser methods per data type
+        to retrieve River elements using DFast MI DTO Reach and branch from river config (files)
+    """
+
     _config_processor : ConfigProcessor
+    """
+        Element processer object containing parser methods per data type
+        to retrieve DFast MI key value from DFast MI config (files)
+    """
+    
 
     def __init__(self, config: configparser.ConfigParser):
         self._config = config
@@ -59,7 +70,10 @@ class DFastMIConfigParser:
         self._config_processor.register_processor(float, self._parse_float)
         self._config_processor.register_processor(str, lambda input: [input])
 
-    def __read_value(self, key: str, branch_name: str, reach_index: int):
+    def _read_value(self, key: str, branch_name: str, reach_index: int):
+        """
+        reads the value from the general section, branch section or the reach section key
+        """
         try:
             general_value = self._config["General"][key]
         except:
@@ -149,7 +163,7 @@ class DFastMIConfigParser:
             A list of lists. Each list contains per reach within the corresponding
             branch one float.
         """
-        entry_value = self.__read_value(key, reach.parent_branch.name, reach.config_key_index)
+        entry_value = self._read_value(key, reach.parent_branch.name, reach.config_key_index)
         return self._processor.process_river_element(value_type, key, entry_value, reach, default, expected_number_of_values)
 
     def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):
