@@ -39,6 +39,9 @@ T = TypeVar('T')  # Define a type variable
 
 
 class DFastMIConfigParser:
+    """
+    Class to process and parse both river and DFast MI application config files
+    """
     _config: configparser.ConfigParser
     """ 
         The dictionary containing river data.
