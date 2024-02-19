@@ -40,18 +40,21 @@ T = TypeVar('T')  # Define a type variable
 
 class ConfigProcessor:
     """
-    Class is used to register processing functions to retrieve values from keys out of DFast MI Configuration files
+    Class is used to register processing functions to retrieve values from keys out of DFast MI Configuration files    
     """
+    _processors  = {}
+    """Contains the parser methods to be used to parse the value string to the data type"""
+
     def __init__(self):
-        self.processors = {}
+        self._processors = {}
 
     def register_processor(self, element_type: Type[T], processor: Callable[[str], T],):
         """Register processing function to parse the type of element to get from the DFast MI Configuration."""
-        self.processors[element_type] = processor
+        self._processors[element_type] = processor
 
     def process_config_value(self, element_type: Type[T], config_value: str) -> T:
         """Call the processing function to parse the type of element to get from the DFast MI Configuration."""
-        processor = self.processors.get(element_type)
+        processor = self._processors.get(element_type)
         if processor:
             return processor(config_value)
         else:

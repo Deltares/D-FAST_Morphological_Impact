@@ -42,21 +42,26 @@ class RiverConfigElementProcessor:
     """
     Class is used to register processing functions to retrieve values from keys out of River Configuration files
     """
+    _processors = {}
+    """Contains the the processing functions to process the value string to the data type"""
     
+    _parsers = {}
+    """Contains the parser methods to be used in the processing functions to parse the value string to the data type"""
+
     def __init__(self):
-        self.processors = {}
-        self.parsers = {}
+        self._processors = {}
+        self._parsers = {}
 
     def register_processor(self, element_type: Type[T], processor: Callable[[str, str, Reach], T], parser: Callable[[str], Tuple[T, ...]]):
         """Register processing functions and parser to parse the type of element to get from the river configuration."""
-        self.processors[element_type] = processor
-        self.parsers[element_type] = parser
+        self._processors[element_type] = processor
+        self._parsers[element_type] = parser
 
     def process_river_element(self, element_type: Type[T], key: str, entry_value: str, reach: Reach, default: Optional[T] = None, expected_number_of_values: Optional[int] = None) -> T:
         """Call processing function and parser to parse the type of element to get from the river configuration."""
-        processor = self.processors.get(element_type)
+        processor = self._processors.get(element_type)
         if processor:
-            parser = self.parsers.get(element_type)
+            parser = self._parsers.get(element_type)
             if parser:
                 return processor(key, entry_value, reach, parser, default, expected_number_of_values)
             else:
