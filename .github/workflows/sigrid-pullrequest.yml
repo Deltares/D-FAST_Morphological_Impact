@@ -14,7 +14,7 @@ jobs:
       - name: "Run Sigrid CI" 
         env:
           SIGRID_CI_TOKEN: "${{ secrets.SIGRID_CI_TOKEN }}"
-        run: "./sigridci/sigridci/sigridci.py --customer bert.jagers@deltares.nl --system dfastmi --source ."
+        run: "./sigridci/sigridci/sigridci.py --customer deltares --system dfast-mi --source ."
       - name: "Save Sigrid CI results"
         if: always()
         uses: actions/upload-artifact@v2
