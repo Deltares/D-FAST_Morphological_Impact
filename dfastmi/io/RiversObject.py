@@ -26,17 +26,16 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import string
-from packaging import version
 import configparser
-from typing import List
+from typing import List, Tuple
 import zlib
+from packaging import version
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
 from dfastmi.io.Reach import Reach, ReachAdvanced, ReachLegacy
 
-from dfastmi.io.RiverParameterData import RiverParameterData
+from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 
 class RiversObject():
     branches: List[Branch]
@@ -65,7 +64,7 @@ class RiversObject():
         with open(filename, "r") as configfile:
             config.read_file(configfile)
 
-        river_data = RiverParameterData(config)
+        river_data = DFastMIConfigParser(config)
 
         # initialize rivers dictionary
         iversion = self._validate_version_in_file(filename, config)
@@ -138,25 +137,24 @@ class RiversObject():
         self.version = version.parse("1.0")
         for branch in self.branches:
             for reach in branch.reaches:
-                self._initialize(river_data, branch, reach)
-                self._initialize_legacy(river_data, branch, reach)
+                self._initialize(river_data, reach)
+                self._initialize_legacy(river_data, reach)
 
-    def _initialize_legacy(self, river_data : RiverParameterData, branch : Branch, reach : ReachLegacy):
-        reach.proprate_high = river_data.read_key_float("PrHigh", branch, reach)
-        reach.proprate_low = river_data.read_key_float("PrLow", branch, reach)
-        reach.qbankfull = river_data.read_key_float("QBankfull", branch, reach)
-        reach.qmin = river_data.read_key_float("QMin", branch, reach)
-        reach.qfit = river_data.read_key_tuple_float_float("QFit", branch, reach)
-        reach.qlevels = river_data.read_key_tuple_float_float_float_float("QLevels", branch, reach)
-        reach.dq = river_data.read_key_tuple_float_float("dQ", branch, reach)
-        
+    def _initialize_legacy(self, river_data : DFastMIConfigParser, reach : ReachLegacy):
+        reach.proprate_high = river_data.read_key(float, "PrHigh", reach)
+        reach.proprate_low = river_data.read_key(float, "PrLow", reach)
+        reach.qbankfull = river_data.read_key(float, "QBankfull", reach)
+        reach.qmin = river_data.read_key(float, "QMin", reach)
+        reach.qfit = river_data.read_key(Tuple[float, ...], "QFit", reach, expected_number_of_values=2)
+        reach.qlevels = river_data.read_key(Tuple[float, ...], "QLevels", reach, expected_number_of_values=4)
+        reach.dq = river_data.read_key(Tuple[float, ...], "dQ", reach, expected_number_of_values=2)
 
-    def _initialize(self, river_data : RiverParameterData, branch: Branch, reach:Reach):
-        reach.normal_width = river_data.read_key_float("NWidth", branch, reach)
-        reach.ucritical = river_data.read_key_float("UCrit", branch, reach)
-        reach.qstagnant = river_data.read_key_float("QStagnant", branch, reach)
+    def _initialize(self, river_data : DFastMIConfigParser, reach:Reach):
+        reach.normal_width = river_data.read_key(float, "NWidth", reach)
+        reach.ucritical = river_data.read_key(float, "UCrit", reach)
+        reach.qstagnant = river_data.read_key(float, "QStagnant", reach)
         
-    def _read_rivers(self, river_data : RiverParameterData):
+    def _read_rivers(self, river_data : DFastMIConfigParser):
         """
         Read a configuration file containing the river data.
 
@@ -171,8 +169,8 @@ class RiversObject():
         self.version = version.parse("2.0")
         for branch in self.branches:
             for reach in branch.reaches:
-                self._initialize(river_data, branch, reach)
-                self._initialize_advanced(river_data, branch, reach)       
+                self._initialize(river_data, reach)
+                self._initialize_advanced(river_data, reach)
         
         self._verify_reaches()
         
@@ -267,28 +265,28 @@ class RiversObject():
                             )
                         )
 
-    def _initialize_advanced(self, river_data : RiverParameterData, branch : Branch, reach : ReachAdvanced):
-        reach.hydro_q = river_data.read_key_tuple_float_n("HydroQ", branch, reach)
+    def _initialize_advanced(self, river_data : DFastMIConfigParser, reach : ReachAdvanced):
+        reach.hydro_q = river_data.read_key(Tuple[float, ...], "HydroQ", reach)
 
-        reach.autotime = river_data.read_key_bool("AutoTime", branch, reach, False)
+        reach.autotime = river_data.read_key(bool, "AutoTime", reach, False)
         # for AutoTime = True
-        reach.qfit = river_data.read_key_tuple_float_float("QFit", branch, reach, (0.0, 0.0))
+        reach.qfit = river_data.read_key(Tuple[float, ...], "QFit", reach, (0.0, 0.0), 2)
         # for AutoTime = False
-        reach.hydro_t = river_data.read_key_tuple_float_n("HydroT", branch, reach)
+        reach.hydro_t = river_data.read_key(Tuple[float, ...], "HydroT", reach)
 
-        reach.tide = river_data.read_key_bool("Tide", branch, reach, False)
+        reach.tide = river_data.read_key(bool, "Tide", reach, False)
         # for Tide = True
-        reach.tide_bc = river_data.read_key_tuple_float_n("TideBC", branch, reach)
+        reach.tide_bc = river_data.read_key(Tuple[float, ...], "TideBC", reach)
 
-        reach.celer_form = river_data.read_key_int("CelerForm", branch, reach, 2)
+        reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:
             celerProperties = CelerProperties()
-            celerProperties.prop_q = river_data.read_key_tuple_float_n("PropQ", branch, reach)
-            celerProperties.prop_c = river_data.read_key_tuple_float_n("PropC", branch, reach)
+            celerProperties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
+            celerProperties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
             reach.celer_object = celerProperties
         elif reach.celer_form == 2:
             celerDischarge = CelerDischarge()
-            celerDischarge.cdisch = river_data.read_key_tuple_float_float("CelerQ", branch, reach, (0.0, 0.0))
+            celerDischarge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
             reach.celer_object = celerDischarge
         
     def _check_qfit_on_branch_on_reach_with_auto_time(self, qfit, branch, reach):
