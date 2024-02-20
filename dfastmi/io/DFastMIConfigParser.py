@@ -77,20 +77,9 @@ class DFastMIConfigParser:
         """
         reads the value from the general section, branch section or the reach section key
         """
-        try:
-            general_value = self._config["General"][key]
-        except:
-            general_value = ''
-
-        try:
-            branch_val = self._config[branch_name][key]
-        except:
-            branch_val = general_value
-
-        try:
-            val = self._config[branch_name][key + str(reach_index)]
-        except:
-            val = branch_val
+        general_value = self._config.get("General", key, fallback='')
+        branch_val = self._config.get(branch_name, key, fallback=general_value)
+        val = self._config.get(branch_name, key + str(reach_index), fallback=branch_val)
         return val
 
     # default processor
@@ -213,7 +202,7 @@ class DFastMIConfigParser:
                 entry_value = self._config[group][key].lower()
             val = self._config_processor.process_config_value(value_type, entry_value)[0]
         except:
-            if not default is None:
+            if default is not None:
                 val = default
             else:
                 raise Exception(f'No {value_type.__name__} value specified for required keyword "{key}" in block "{group}".')

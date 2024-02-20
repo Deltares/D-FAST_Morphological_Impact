@@ -42,6 +42,7 @@ from typing import List
 
 
 class ICelerObject(ABC):
+    "Interface or abstract base class to the CelerObject."
     @abstractmethod
     def validate(self):
         pass

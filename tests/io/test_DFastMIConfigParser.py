@@ -30,6 +30,12 @@ class Test_DFastMIConfigParser():
     """
 
     _reach : Reach
+    _config : configparser.ConfigParser
+    _my_group : str
+    _my_key : str
+    _my_val : str
+    _river_data : DFastMIConfigParser
+        
 
     @pytest.fixture
     def setup_data(self):
@@ -38,39 +44,32 @@ class Test_DFastMIConfigParser():
         branch = Mock(IBranch)
         branch.name = "Branch1"
         self._reach.parent_branch = branch
+        self._config = configparser.ConfigParser()
+        self._my_group = "General"
+        self._config.add_section(self._my_group)
+        self._my_key = "KEY"
+        self._my_val = "YES"
+        self._config[self._my_group][self._my_key] = self._my_val
+        self._river_data = DFastMIConfigParser(self._config)        
+
 
     def given_simple_river_config_when_read_key_with_custom_unknown_type_then_exception_thrown(self, setup_data):
         """
         When we want to read a configuration value from a river configuration file but have not registered a type
         or actually have an exception while parsing the value string to the type we want we throw an exception.
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
-        myKey = "KEY"
-        myVal = "YES"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
-        river_data._processor.register_processor(Test_DFastMIConfigParser, river_data._process_entry_value, lambda x: 1/0)
-
+        self._river_data._processor.register_processor(Test_DFastMIConfigParser, self._river_data._process_entry_value, lambda x: 1/0)
         with pytest.raises(Exception) as cm:
-            river_data.read_key(Test_DFastMIConfigParser, myKey, self._reach)
-        assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch.name} returns "{myVal}". Expecting 1 values.'
+            self._river_data.read_key(Test_DFastMIConfigParser, self._my_key, self._reach)
+        assert str(cm.value) == f'Reading {self._my_key} for reach {self._reach.name} on {self._reach.parent_branch.name} returns "{self._my_val}". Expecting 1 values.'
 
-    def given_simple_river_config_when_read_key_with_custom_unknown_tuple_type_then_exception_thrown(self, setup_data):
+    def given_simple_river_config_when_read_key_with_custom_unknown_tuple_type_then_return_empty_tuple(self, setup_data):
         """
         When we want to read a configuration tuple value from a river configuration file but have not registered a type
         or actually have an exception while parsing the value string to the tuple type we want we return an empty tuple.
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
-        myKey = "KEY"
-        myVal = "YES"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
-        river_data._processor.register_processor(Test_DFastMIConfigParser, river_data._process_tuple_entry_value, lambda x: 1/0)
-        assert river_data.read_key(Test_DFastMIConfigParser, myKey, self._reach) == ()
+        self._river_data._processor.register_processor(Test_DFastMIConfigParser, self._river_data._process_tuple_entry_value, lambda x: 1/0)
+        assert self._river_data.read_key(Test_DFastMIConfigParser, self._my_key, self._reach) == ()
 
 class Test_read_key():
     """
@@ -78,7 +77,7 @@ class Test_read_key():
     """
 
     _reach : Reach
-
+    
     @pytest.fixture
     def setup_data(self):
         """setup the reach with a simple branch to be used in the test methods"""
@@ -86,19 +85,20 @@ class Test_read_key():
         branch = Mock(IBranch)
         branch.name = "Branch1"
         self._reach.parent_branch = branch
+        self._config = configparser.ConfigParser()
+        self._my_group = "General"
+        self._config.add_section(self._my_group)
+        
 
     def given_simple_valid_bool_key_value_when_read_key_with_type_bool_then_return_expected_value(self, setup_data):
         """
         Setup a simple config with a valid bool key value 
         which can be parsed correctly will return the expected boolean
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "YES"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(bool, myKey, self._reach, False)
 
     def given_simple_invalid_bool_key_value_because_value_not_set_when_read_key_with_type_bool_then_throw_exception(self, setup_data):
@@ -106,13 +106,10 @@ class Test_read_key():
         Setup a simple config with a valid bool key but invalid value 
         which can't be parsed correctly will throw an exception
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = ""
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
 
         with pytest.raises(Exception) as cm:
             river_data.read_key(bool, myKey, self._reach)
@@ -123,9 +120,8 @@ class Test_read_key():
         Setup a simple config with a valid bool key but value not written
         which can't be parsed correctly will throw an exception
         """
-        config = configparser.ConfigParser()
         myKey = "KEY"
-        river_data = DFastMIConfigParser(config)
+        river_data = DFastMIConfigParser(self._config)
         with pytest.raises(Exception) as cm:
             river_data.read_key(bool, myKey, self._reach)
         assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch.name} returns "". Expecting 1 values.'
@@ -135,13 +131,10 @@ class Test_read_key():
         Setup a simple config with a valid int key value 
         which can be parsed correctly will return the expected int
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "801"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(int, myKey, self._reach,) == 801
 
     def given_simple_invalid_int_key_value_with_a_default_value_but_no_int_value_set_when_read_key_with_type_int_then_return_expected_default_value(self, setup_data):
@@ -149,13 +142,10 @@ class Test_read_key():
         Setup a simple invalid int key value with a default value 
         but no int value set which can't be parsed correctly will return the expected default        
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = ""
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(int, myKey, self._reach, 802) == 802
 
     def given_simple_valid_float_key_value_when_read_key_with_type_float_then_return_expected_value(self, setup_data):
@@ -163,13 +153,10 @@ class Test_read_key():
         Setup a simple config with a valid float key value 
         which can be parsed correctly will return the expected float
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "8.01"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(float, myKey, self._reach) == 8.01
 
     def given_simple_valid_tulple_float_key_value_and_expected_number_of_float_of_2_values_when_read_key_with_type_tuple_float_then_return_expected_value(self, setup_data):
@@ -177,13 +164,10 @@ class Test_read_key():
         Setup a simple config with a valid tuple float key values and expected number of values of 2
         which can be parsed correctly will return the expected tuple float key values
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "8.01 8.02"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         read_data = river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=2)
         assert len(read_data) == 2
         assert read_data == (8.01, 8.02)
@@ -193,13 +177,10 @@ class Test_read_key():
         Setup a simple config with a valid tuple float key values and expected number of values of 4
         which can be parsed correctly will return the expected tuple float key values
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "8.01 8.02 2.14 5.88"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=4) == (8.01, 8.02, 2.14, 5.88)
 
     def given_simple_valid_tulple_float_key_values_when_read_key_with_type_tuple_float_then_return_expected_values(self, setup_data):
@@ -207,13 +188,10 @@ class Test_read_key():
         Setup a simple config with a valid tuple float key values
         which can be parsed correctly will return the expected tuple float key values
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "8.01 8.02 2.14 5.88 76 27"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(Tuple[float, ...], myKey, self._reach) == (8.01, 8.02, 2.14, 5.88, 76, 27)
 
     def given_simple_valid_tulple_float_key_with_invalid_values_because_not_set_but_with_default_when_read_key_with_type_tuple_float_then_return_expected_default_values(self, setup_data):
@@ -221,13 +199,10 @@ class Test_read_key():
         Setup a simple config with invalid tuple float key values because not set but with a default
         which can be parsed correctly will return the expected default tuple float key values
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = ""
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         assert river_data.read_key(Tuple[float, ...], myKey, self._reach, (80.1, 80.2), 2) == (80.1, 80.2)
 
     def given_simple_valid_tulple_float_key_with_invalid_number_of_expected_values_when_read_key_with_type_tuple_float_then_throw_exception(self, setup_data):
@@ -235,13 +210,10 @@ class Test_read_key():
         Setup a simple config with valid tuple float key values but expecting a certain number of values
         which can be parsed correctly but will throw an exception because wrong number of expected values.
         """
-        config = configparser.ConfigParser()
-        myGroup = "General"
-        config.add_section(myGroup)
         myKey = "KEY"
         myVal = "8.01 8.02 2.14 5.88 76 27"
-        config[myGroup][myKey] = myVal
-        river_data = DFastMIConfigParser(config)
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
         with pytest.raises(Exception) as cm:
             river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=4)
         assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch.name} returns "{myVal}". Expecting 4 values.'

@@ -50,7 +50,7 @@ class Branch(IBranch):
         Initialize the reaches
 
         Args:
-            info (dict[str, Any]):
+            branch_name(str) : name of the branch, can only be set in the constructor
         """
 
         self._name = branch_name
@@ -78,5 +78,4 @@ class Branch(IBranch):
 
     def notify(self, reach:Reach):
         """When a reach is added to the reaches list we want to set the parent branch in the reach element"""
-        print(f"reach '{reach.name}' with (config_key) index '{reach.config_key_index}' was appended to the reaches list of branch {self.name}.")
         reach.parent_branch = self
