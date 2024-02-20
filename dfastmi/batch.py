@@ -40,6 +40,7 @@ from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
 from dfastmi.batch_dir import DetectAndPlot
+from dfastmi.batch_dir import FileNameRetriever
 
 import os
 import math
@@ -693,128 +694,11 @@ def get_filenames(
     if imode == 0 or config is None:
         filenames = {}
     elif version.parse(config["General"]["Version"]) == version.parse("1"):
-        filenames = get_filenames_version1(config)
+        filenames = FileNameRetriever.get_filenames_version1(config)
     else:
-        filenames = get_filenames_version2(needs_tide, config)
+        filenames = FileNameRetriever.get_filenames_version2(needs_tide, config)
 
     return filenames
-
-
-def get_filenames_version1(
-    config: Optional[configparser.ConfigParser] = None,
-) -> Dict[Any, Tuple[str,str]]:
-    """
-    Extract the list of six file names from the configuration.
-    This routine is valid for version 1 configuration files.
-
-    Arguments
-    ---------
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
-
-    Returns
-    -------
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of string tuples representing the D-Flow FM file names for
-        each reference/with measure pair. The keys of the dictionary vary. They
-        can be the discharge index, discharge value or a tuple of forcing
-        conditions, such as a Discharge and Tide forcing tuple.
-    """
-    filenames: Dict[Any, Tuple[str,str]]
-    key: Union[Tuple[float, int], float]
-    filenames = {}
-    for i in range(3):
-        qstr = "Q{}".format(i + 1)
-        if qstr in config:
-            reference = cfg_get(config, qstr, "Reference")
-            measure = cfg_get(config, qstr, "WithMeasure")
-            filenames[i] = (reference, measure)
-
-    return filenames
-
-
-def get_filenames_version2(
-    needs_tide: bool,
-    config: Optional[configparser.ConfigParser] = None,
-) -> Dict[Any, Tuple[str,str]]:
-    """
-    Extract the list of 2N file names from the configuration.
-    This routine is valid for version 2 configuration files.
-
-    Arguments
-    ---------
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for if 0).
-
-    Returns
-    -------
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of string tuples representing the D-Flow FM file names for
-        each reference/with measure pair. The keys of the dictionary vary. They
-        can be the discharge index, discharge value or a tuple of forcing
-        conditions, such as a Discharge and Tide forcing tuple.
-    """
-    filenames: Dict[Any, Tuple[str,str]]
-    key: Union[Tuple[float, int], float]
-    filenames = {}
-    i = 0
-    while True:
-        i = i + 1
-        CSTR = "C{}".format(i)
-        if CSTR in config:
-            Q = float(cfg_get(config, CSTR, "Discharge"))
-            reference = cfg_get(config, CSTR, "Reference")
-            measure = cfg_get(config, CSTR, "WithMeasure")
-            if needs_tide:
-               T = cfg_get(config, CSTR, "TideBC")
-               key = (Q,T)
-            else:
-               key = Q
-            filenames[key] = (reference, measure)
-        else:
-            break
-
-    return filenames
-
-
-def cfg_get(config: configparser.ConfigParser, chap: str, key: str) -> str:
-    """
-    Get a single entry from the analysis configuration structure.
-    Raise clear exception message when it fails.
-
-    Arguments
-    ---------
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
-    chap : str
-        The name of the chapter in which to search for the key.
-    key : str
-        The name of the key for which to return the value.
-
-    Raises
-    ------
-    Exception
-        If the key in the chapter doesn't exist.
-
-    Returns
-    -------
-    value : str
-        The value specified for the key in the chapter.
-    """
-    try:
-         return config[chap][key]
-    except:
-        pass
-    raise Exception(
-        'Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(
-            key,
-            chap,
-        )
-    )
-
 
 def analyse_and_report(
     imode: int,
