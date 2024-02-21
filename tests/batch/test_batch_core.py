@@ -2,7 +2,6 @@ import os
 import sys
 import netCDF4
 import pytest
-import context
 import dfastmi.batch
 
 from contextlib import contextmanager
@@ -22,7 +21,6 @@ def captured_output():
         yield sys.stdout, sys.stderr
     finally:
         sys.stdout, sys.stderr = old_out, old_err
-
 
 class Test_batch_mode():
     def test_batch_mode_00(self):

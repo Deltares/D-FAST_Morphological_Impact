@@ -1,6 +1,5 @@
 import os
 import pytest
-import context
 import dfastmi.batch
 
 from dfastmi.io.RiversObject import RiversObject
@@ -44,7 +43,6 @@ class Test_batch_save_configuration_file():
         }
         return config
     
-            
 class Test_batch_check_configuration():
     @pytest.fixture
     def rivers(self):
