@@ -1,16 +1,17 @@
+import os
+import sys
+import netCDF4
 import pytest
 import context
 import dfastmi.batch
 
-import os
-
-import sys
-import numpy
-import netCDF4
 from contextlib import contextmanager
 from io import StringIO
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.Reach import ReachAdvanced
+from dfastmi.io.CelerObject import CelerProperties, CelerDischarge
+from dfastmi.kernel.typehints import Vector
 
 @contextmanager
 def captured_output():
@@ -217,5 +218,162 @@ class Test_batch_mode():
             assert str(cm.value) == 'Version number of configuration file (2.0) must match version number of rivers file (1.0)'
         finally:
             os.chdir(cwd)
+
+class Test_batch_countq():       
+    @pytest.mark.parametrize("vector_data, expected_non_empty_discharges_count", [
+        ([0.123, None, 0.456, 0.789, None], 3),
+        ([0.123, 0.123, 0.456, 0.789, 0.123], 5),
+        ([None, None, None, None, None], 0),
+    ])    
+    def given_vector_with_discharges_when_countq_then_return_expected_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
+        assert dfastmi.batch.countQ(vector_data) == expected_non_empty_discharges_count
+ 
+class Test_batch_write_report():   
+    @pytest.mark.parametrize("slength", [
+        0.2,
+        1.2
+    ])       
+    def given_input_data_with_varying_slength_when_write_report_then_expect_messages_written_in_report(self, slength :float):
+        report = StringIO()
+        reach = "reach"
+        q_location = "location"
+        q_threshold = 0.1
+        q_bankfull = 0.4
+        q_stagnant = 0.7
+        tstag = 0.1
+        q_fit = [0.1, 0.1]
+        Q = [0.2, 0.2, 0.2]
+        T = [0.3, 0.3, 0.3]
         
+        ApplicationSettingsHelper.PROGTEXTS = None
         
+        dfastmi.batch.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
+
+        report_lines = report.getvalue().split('\n')
+                
+        prefix = 'No message found for '
+        assert prefix + 'reach' in report_lines
+        assert prefix + 'report_qthreshold' in report_lines
+        assert prefix + 'report_qbankfull' in report_lines
+        assert prefix + 'closed_barriers' in report_lines
+        assert prefix + 'char_discharge' in report_lines
+        assert report_lines.count(prefix + 'char_discharge') == 3
+        assert prefix + 'char_period' in report_lines
+        assert report_lines.count(prefix + 'char_period') == 3
+        assert prefix + 'need_multiple_input' in report_lines
+        assert prefix + 'lowwater' in report_lines
+        assert prefix + 'transition' in report_lines
+        assert prefix + 'highwater' in report_lines
+        assert prefix + 'length_estimate' in report_lines
+        assert prefix + 'prepare_input' in report_lines
+         
+class Test_get_levels_v2():
+    
+    @pytest.fixture    
+    def reach(self):
+        reach = ReachAdvanced()
+        reach.hydro_q = [6.7, 8.9, 10.1]
+        reach.autotime = True
+        reach.qfit = [11.11, 12.12]
+        reach.celer_form = 1
+        reach.celer_object = CelerProperties()
+        reach.celer_object.prop_q = [13.13, 14.14]
+        reach.celer_object.prop_c = [15.13, 16.14]
+        return reach
+
+    def given_auto_time_true_when_get_levels_v2_then_return_expected_values(self, reach : ReachAdvanced):
+        reach.qstagnant = 4.5
+        q_threshold = 1.2
+        nwidth = 3.4
+
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+        assert Q == [6.7, 8.9, 10.1]
+        assert apply_q == (True, True, True)
+        assert time_mi == (0.0, 0.0, 1.0)
+        assert tstag == 0
+        assert T == (0.0, 0.0, 1.0)
+        assert rsigma == (1.0, 1.0, 0.0)
+        assert celerity == (15.13, 15.13, 15.13)
+        
+    def given_auto_time_true_when_get_levels_v2_then_return_values_have_expected_length(self, reach : ReachAdvanced):
+        reach.qstagnant = 4.5
+        q_threshold = 1.2
+        nwidth = 3.4
+
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+        assert len(Q) == len(reach.hydro_q)
+        assert len(apply_q) == len(reach.hydro_q)
+        assert len(time_mi) == len(reach.hydro_q)
+        assert tstag == 0
+        assert len(T) == len(reach.hydro_q)
+        assert len(rsigma) == len(reach.hydro_q)
+        assert len(celerity) == len(reach.hydro_q)
+
+    def given_auto_time_true_with_qstagnant_above_one_Q_when_get_levels_v2_then_return_expected_values_with_one_celerity_zero(self, reach : ReachAdvanced):
+        reach.qstagnant = 7.8
+        q_threshold = 7.3
+        nwidth = 3.4
+
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+        assert Q == [6.7, 8.9, 10.1]
+        assert apply_q == (True, True, True)
+        assert time_mi == (0.0, 0.0, 1.0)
+        assert tstag == 0
+        assert T == (0.0, 0.0, 1.0)
+        assert rsigma == (1.0, 1.0, 0.0)
+        assert celerity == (0.0, 15.13, 15.13)
+
+    def given_auto_time_true_with_multiple_qstagnant_above_Q_when_get_levels_v2_then_return_expected_values_with_multiple_celerity_zero(self, reach : ReachAdvanced):
+        reach.qstagnant = 9.0
+        q_threshold = 7.3
+        nwidth = 3.4
+
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+        assert Q == [6.7, 8.9, 10.1]
+        assert apply_q == (True, True, True)
+        assert time_mi == (0.0, 0.0, 1.0)
+        assert tstag == 0
+        assert T == (0.0, 0.0, 1.0)
+        assert rsigma == (1.0, 1.0, 0.0)
+        assert celerity == (0.0, 0.0, 15.13)
+        
+    def given_auto_time_false_when_get_levels_v2_then_return_expected_values(self, reach : ReachAdvanced):
+        reach.qstagnant = 4.5
+        reach.autotime = False
+        reach.hydro_t = [0.0, 1.0, 0.0]
+        q_threshold = 1.2
+        nwidth = 3.4
+
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+        assert Q == [6.7, 8.9, 10.1]
+        assert apply_q == (True, True, True)
+        assert time_mi == (0.0, 1.0, 0.0)
+        assert tstag == 0
+        assert T == (0.0, 1.0, 0.0)
+        assert rsigma == (1.0, 0.0, 1.0)
+        assert celerity == (15.13, 15.13, 15.13)
+        
+    def given_auto_time_false_and_celer_discharge_when_get_levels_v2_then_return_expected_values(self, reach : ReachAdvanced):
+        reach.qstagnant = 4.5
+        reach.autotime = False
+        reach.celer_form = 2
+        reach.celer_object = CelerDischarge()
+        reach.celer_object.cdisch = [1.0, 1.0]
+        reach.hydro_t = [0.0, 1.0, 0.0]
+        q_threshold = 1.2
+        nwidth = 3.4
+
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+
+        assert Q == [6.7, 8.9, 10.1]
+        assert apply_q == (True, True, True)
+        assert time_mi == (0.0, 1.0, 0.0)
+        assert tstag == 0
+        assert T == (0.0, 1.0, 0.0)
+        assert rsigma == (1.0, 0.0, 1.0)
+        assert celerity == (6.7, 8.9, 10.1)
