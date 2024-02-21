@@ -84,7 +84,6 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     else:
         batch_mode_core(rivers, reduced_output, config, rootdir = rootdir)
 
-
 def batch_mode_core(
     rivers: RiversObject, reduced_output: bool, config: configparser.ConfigParser, rootdir: str = "", gui: bool = False
 ) -> bool:
@@ -321,8 +320,6 @@ def batch_mode_core(
 
     return success
 
-
-
 def get_levels_v2(
     reach : ReachAdvanced, q_threshold: float, nwidth: float
 ) -> (Vector, BoolVector, Vector, float, Vector, Vector, Vector):
@@ -399,7 +396,6 @@ def get_levels_v2(
 
     return (Q, apply_q, time_mi, tstag, T, rsigma, celerity)
 
-
 def countQ(Q: Vector) -> int:
     """
     Count the number of non-empty discharges.
@@ -415,7 +411,6 @@ def countQ(Q: Vector) -> int:
         Number of non-empty discharges.
     """
     return sum([not q is None for q in Q])
-
 
 def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Vector:
     """
@@ -489,8 +484,6 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
     time_mi = tuple(ti for ti in tvec_mi)
 
     return T, time_mi
-
-
 
 def get_filenames(
     imode: int,
@@ -661,10 +654,6 @@ def analyse_and_report(
             plotops,
         )
 
-
-
-
-
 def write_report(
     report: TextIO,
     reach: str,
@@ -768,7 +757,6 @@ def write_report(
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     ApplicationSettingsHelper.log_text("prepare_input", file=report)
 
-
 def config_to_absolute_paths(
     rootdir: str, config: configparser.ConfigParser
 ) -> configparser.ConfigParser:
@@ -802,7 +790,6 @@ def config_to_absolute_paths(
                 rootdir, config[qstr]["WithMeasure"]
             )
     return config
-
 
 def load_configuration_file(filename: str) -> configparser.ConfigParser:
     """
@@ -842,7 +829,6 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     rootdir = os.path.dirname(filename)
     return config_to_absolute_paths(rootdir, config)
 
-
 def check_configuration(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
     """
     Check if an analysis configuration is valid.
@@ -872,11 +858,6 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
         raise e
     except:
         return False
-
-
-
-
-
 
 def config_to_relative_paths(
     rootdir: str, config: configparser.ConfigParser
@@ -912,7 +893,6 @@ def config_to_relative_paths(
             )
     return config
 
-
 def save_configuration_file(filename: str, config):
     """
     Convert a configuration to relative paths and save to file.
@@ -932,7 +912,6 @@ def save_configuration_file(filename: str, config):
     config = config_to_relative_paths(rootdir, config)
     ConfigFileOperations.write_config(filename, config)
 
-
 def stagename(i: int) -> str:
     """
     Code name of the discharge level.
@@ -949,9 +928,6 @@ def stagename(i: int) -> str:
     """
     stagenames = ["lowwater", "transition", "highwater"]
     return stagenames[i]
-
-
-
 
 def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> List[Tuple[float, float]]:
     """
@@ -1004,7 +980,6 @@ def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline:
 
     return kmzoom, xyzoom
 
-
 def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool = False) -> numpy.ndarray:
     """
     [identical to dfastbe.kernel.get_km_bins]
@@ -1055,5 +1030,3 @@ def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool 
     km = km_bin[0] + dx + numpy.arange(lb, ub) * km_step
 
     return km
-
-
