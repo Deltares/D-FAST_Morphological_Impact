@@ -2,7 +2,7 @@ import os
 import sys
 import netCDF4
 import pytest
-import dfastmi.batch
+import dfastmi.batch.core
 
 from contextlib import contextmanager
 from io import StringIO

@@ -1,6 +1,6 @@
 import os
 import pytest
-import dfastmi.batch
+import dfastmi.batch.core
 
 from dfastmi.io.RiversObject import RiversObject
 from configparser import ConfigParser
