@@ -33,7 +33,7 @@ from dfastmi.io.Reach import ReachAdvanced, ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.RiverParameterData import RiverParameterData
+from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.GridOperations import GridOperations
 from dfastmi.io.FileUtils import FileUtils
@@ -112,12 +112,12 @@ def batch_mode_core(
     apply_q : BoolVector
 
     display = False
-    data = RiverParameterData(config)
+    data = DFastMIConfigParser(config)
     
     # check outputdir
     if rootdir == "":
         rootdir = os.getcwd()
-    outputdir = data.config_get_str("General", "OutputDir", rootdir + os.sep + "output")
+    outputdir = data.config_get(str, "General", "OutputDir", rootdir + os.sep + "output")
     if os.path.exists(outputdir):
         if display:
             ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": outputdir})
@@ -213,7 +213,7 @@ def batch_mode_core(
                 )
             filenames = get_filenames(mode, needs_tide, config)
             old_zmin_zmax = False
-            kmfile = data.config_get_str("General", "RiverKM", "")
+            kmfile = data.config_get(str, "General", "RiverKM", "")
             if kmfile != "":
                 xykm = DataTextFileOperations.get_xykm(kmfile)
                 xykline = numpy.array(xykm)
@@ -227,13 +227,13 @@ def batch_mode_core(
 
             # set plotting flags
             
-            plotting = data.config_get_bool("General", "Plotting", False)
+            plotting = data.config_get(bool, "General", "Plotting", False)
             if plotting:
-                saveplot = data.config_get_bool("General", "SavePlots", True)
+                saveplot = data.config_get(bool, "General", "SavePlots", True)
                 if kmfile != "":
-                    saveplot_zoomed = data.config_get_bool("General", "SaveZoomPlots", False)
+                    saveplot_zoomed = data.config_get(bool, "General", "SaveZoomPlots", False)
                     zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
-                    zoom_km_step = data.config_get_float("General", "ZoomStepKM", zoom_km_step)
+                    zoom_km_step = data.config_get(float, "General", "ZoomStepKM", zoom_km_step)
                 else:
                     saveplot_zoomed = False
                     zoom_km_step = 1.0
@@ -244,7 +244,7 @@ def batch_mode_core(
                 else:
                     kmzoom = []
                     xyzoom = []
-                closeplot = data.config_get_bool("General", "ClosePlots", False)
+                closeplot = data.config_get(bool, "General", "ClosePlots", False)
             else:
                 saveplot = False
                 saveplot_zoomed = False
@@ -254,7 +254,7 @@ def batch_mode_core(
     
             # as appropriate check output dir for figures and file format
             if saveplot:
-                figdir = data.config_get_str(
+                figdir = data.config_get(str,
                     "General", "FigureDir", rootdir + os.sep + "figure"
                 )
                 if display:
@@ -264,7 +264,7 @@ def batch_mode_core(
                         ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": figdir})
                 else:
                     os.makedirs(figdir)
-                plot_ext = data.config_get_str("General", "FigureExt", ".png")
+                plot_ext = data.config_get(str, "General", "FigureExt", ".png")
             else:
                 figdir = ''
                 plot_ext = ''
