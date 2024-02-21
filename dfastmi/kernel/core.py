@@ -68,45 +68,53 @@ def char_discharges(
     Q3: float
 
     if q_threshold is None:  # no threshold discharge
-        Q1 = q_levels[0]
-        use1 = True
+        Q1, Q2, Q3, use1, use2 = __get_discharges_without_threshold(q_levels, dq, q_bankfull)
+    else:  # has threshold discharge
+        Q1, Q2, Q3, use1, use2 = __get_discharges_with_threshold(q_levels, dq, q_threshold, q_bankfull)
+
+    return (Q1, Q2, Q3), (use1, use2, True) 
+
+def __get_discharges_without_threshold(q_levels, dq, q_bankfull):
+    Q1 = q_levels[0]
+    use1 = True
+    use2 = True
+    if q_bankfull < q_levels[2]:
+        Q2 = max(q_levels[1], q_bankfull)
+        Q3 = q_levels[2]
+    else:
+        Q2 = min(q_levels[1], q_bankfull - dq[1])
+        Q3 = q_bankfull
+    return Q1,Q2,Q3,use1,use2 
+
+def __get_discharges_with_threshold(q_levels, dq, q_threshold, q_bankfull):
+    Q1 = q_threshold
+    use1 = False
+    if q_threshold < q_levels[0]:
         use2 = True
         if q_bankfull < q_levels[2]:
-            Q2 = max(q_levels[1], q_bankfull)
-            Q3 = q_levels[2]
-        else:
-            Q2 = min(q_levels[1], q_bankfull - dq[1])
-            Q3 = q_bankfull
-    else:  # has threshold discharge
-        Q1 = q_threshold
-        use1 = False
-        if q_threshold < q_levels[0]:
-            use2 = True
-            if q_bankfull < q_levels[2]:
-                Q2 = max(q_bankfull, q_threshold + dq[1])
-                Q3 = max(q_levels[2], Q2 + dq[1])
-            else:
-                Q2 = q_levels[1]
-                Q3 = q_bankfull
-        elif q_threshold < q_levels[1]:
-            use2 = True
             Q2 = max(q_bankfull, q_threshold + dq[1])
-            Q3 = q_levels[2]
-        else:  # q_threshold >= q_levels[1]
-            Q2 = None
-            use2 = False
-            if q_threshold > q_levels[2]:
-                Q3 = min(q_threshold + dq[0], q_levels[3])
-            else:
-                Q3 = max(q_levels[2], q_threshold + dq[0])
-
-    return (Q1, Q2, Q3), (use1, use2, True)
+            Q3 = max(q_levels[2], Q2 + dq[1])
+        else:
+            Q2 = q_levels[1]
+            Q3 = q_bankfull
+    elif q_threshold < q_levels[1]:
+        use2 = True
+        Q2 = max(q_bankfull, q_threshold + dq[1])
+        Q3 = q_levels[2]
+    else:  # q_threshold >= q_levels[1]
+        Q2 = None
+        use2 = False
+        if q_threshold > q_levels[2]:
+            Q3 = min(q_threshold + dq[0], q_levels[3])
+        else:
+            Q3 = max(q_levels[2], q_threshold + dq[0])
+    return Q1,Q2,Q3,use1,use2  
 
 
 def char_times(
     q_fit: Tuple[float, float],
     q_stagnant: float,
-    Q: QRuns,
+    discharge_values: QRuns,
     celerity_hg: float,
     celerity_lw: float,
     nwidth: float,
@@ -151,32 +159,32 @@ def char_times(
     else:
         t_stagnant_yr = 0
 
-    T_yr = [0.0] * 3
-    if not Q[0] is None:
-        T_yr[0] = 1 - math.exp((q_fit[0] - Q[0]) / q_fit[1]) - t_stagnant_yr
-    if not Q[1] is None and not Q[0] is None:
-        T_yr[1] = math.exp((q_fit[0] - Q[0]) / q_fit[1]) - math.exp(
-            (q_fit[0] - Q[1]) / q_fit[1]
+    t_yr = [0.0] * 3
+    if discharge_values[0] is not None:
+        t_yr[0] = 1 - math.exp((q_fit[0] - discharge_values[0]) / q_fit[1]) - t_stagnant_yr
+    if discharge_values[1] is not None and discharge_values[0] is not None:
+        t_yr[1] = math.exp((q_fit[0] - discharge_values[0]) / q_fit[1]) - math.exp(
+            (q_fit[0] - discharge_values[1]) / q_fit[1]
         )
-    T_yr[2] = max(1 - T_yr[0] - T_yr[1] - t_stagnant_yr, 0)
+    t_yr[2] = max(1 - t_yr[0] - t_yr[1] - t_stagnant_yr, 0)
 
-    rsigma0 = math.exp(-500 * celerity_lw * T_yr[0] / nwidth)
-    rsigma1 = math.exp(-500 * celerity_hg * T_yr[1] / nwidth)
-    rsigma2 = math.exp(-500 * celerity_hg * T_yr[2] / nwidth)
+    rsigma0 = math.exp(-500 * celerity_lw * t_yr[0] / nwidth)
+    rsigma1 = math.exp(-500 * celerity_hg * t_yr[1] / nwidth)
+    rsigma2 = math.exp(-500 * celerity_hg * t_yr[2] / nwidth)
     
     rsigma = (rsigma0, rsigma1, rsigma2)
-    T = (T_yr[0], T_yr[1], T_yr[2])
+    T = (t_yr[0], t_yr[1], t_yr[2])
 
     return t_stagnant_yr, T, rsigma
 
 
-def relax_factors(Q: Vector, T: Vector, q_stagnant: float, celerity: Vector, nwidth: float) -> Vector:
-    lsigma = [-1.0] * len(Q)
-    for i,q in enumerate(Q):
+def relax_factors(discharge_values: Vector, year_fraction_values: Vector, q_stagnant: float, celerity: Vector, nwidth: float) -> Vector:
+    lsigma = [-1.0] * len(discharge_values)
+    for i,q in enumerate(discharge_values):
          if q <= q_stagnant:
              lsigma[i] = 1.0
          else:
-             lsigma[i] = math.exp(-500 * celerity[i] * T[i] / nwidth)
+             lsigma[i] = math.exp(-500 * celerity[i] * year_fraction_values[i] / nwidth)
     rsigma = tuple(s for s in lsigma)
 
     return rsigma
