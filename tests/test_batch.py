@@ -303,13 +303,13 @@ class Test_get_levels_v2():
 
         Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
 
-        assert len(Q) == 3
-        assert len(apply_q) == 3
-        assert len(time_mi) == 3
+        assert len(Q) == len(reach.hydro_q)
+        assert len(apply_q) == len(reach.hydro_q)
+        assert len(time_mi) == len(reach.hydro_q)
         assert tstag == 0
-        assert len(T) == 3
-        assert len(rsigma) == 3
-        assert len(celerity) == 3
+        assert len(T) == len(reach.hydro_q)
+        assert len(rsigma) == len(reach.hydro_q)
+        assert len(celerity) == len(reach.hydro_q)
 
     def given_auto_time_true_with_qstagnant_above_one_Q_when_get_levels_v2_then_return_expected_values_with_one_celerity_zero(self, reach : ReachAdvanced):
         reach.qstagnant = 7.8
