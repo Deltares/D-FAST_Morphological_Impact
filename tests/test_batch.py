@@ -3,7 +3,7 @@ import sys
 import netCDF4
 import pytest
 import context
-import dfastmi.batch
+import dfastmi.batch.core
 
 from contextlib import contextmanager
 from io import StringIO
@@ -33,7 +33,7 @@ class Test_batch_mode():
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         with captured_output() as (out, err):
-            dfastmi.batch.batch_mode("config.cfg", rivers, False)
+            dfastmi.batch.core.batch_mode("config.cfg", rivers, False)
         outstr = out.getvalue().splitlines()
         #
         #for s in outstr:
@@ -52,7 +52,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("c01.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("c01.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -93,7 +93,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("c01.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("c01.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -136,7 +136,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("Qmin_4000.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("Qmin_4000.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -175,7 +175,7 @@ class Test_batch_mode():
             os.chdir(tstdir)
             rivers = RiversObject("rivers_Q4000_v2.ini")
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("Qmin_4000_v2.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("Qmin_4000_v2.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -212,10 +212,10 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             config_file = "Qmin_4000_v2.cfg"
-            config = dfastmi.batch.load_configuration_file(config_file)
+            config = dfastmi.batch.core.load_configuration_file(config_file)
             rootdir = os.path.dirname(config_file)
             with pytest.raises(Exception) as cm:
-                dfastmi.batch.batch_mode_core(rivers, False, config, rootdir)
+                dfastmi.batch.core.batch_mode_core(rivers, False, config, rootdir)
             assert str(cm.value) == 'Version number of configuration file (2.0) must match version number of rivers file (1.0)'
         finally:
             os.chdir(cwd)
@@ -236,7 +236,7 @@ class Test_batch_save_configuration_file():
         file_path = tmp_path / "test_file.cfg"
         config = self.sample_config(tmp_path)
         
-        dfastmi.batch.save_configuration_file(file_path, config)
+        dfastmi.batch.core.save_configuration_file(file_path, config)
         
         assert os.path.exists(file_path)
         with open(file_path, 'r') as file:
@@ -266,7 +266,7 @@ class Test_batch_countq():
         ([None, None, None, None, None], 0),
     ])    
     def given_vector_with_discharges_when_countq_then_return_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
-        assert dfastmi.batch.countQ(vector_data) == expected_non_empty_discharges_count
+        assert dfastmi.batch.core.countQ(vector_data) == expected_non_empty_discharges_count
  
 class Test_batch_write_report():   
     @pytest.mark.parametrize("slength", [
@@ -287,7 +287,7 @@ class Test_batch_write_report():
         
         ApplicationSettingsHelper.PROGTEXTS.clear()
         
-        dfastmi.batch.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
+        dfastmi.batch.core.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
 
         report_lines = report.getvalue().split('\n')
                 
@@ -313,7 +313,7 @@ class Test_batch_check_configuration():
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         config = ConfigParser()
         
-        assert dfastmi.batch.check_configuration(rivers, config) is False
+        assert dfastmi.batch.core.check_configuration(rivers, config) is False
         
     def given_version_with_no_matching_version_when_check_configuration_then_return_false(self):
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
@@ -322,7 +322,7 @@ class Test_batch_check_configuration():
         config.add_section("General")
         config.set("General", "Version", "0.0")
         
-        assert dfastmi.batch.check_configuration(rivers, config) is False
+        assert dfastmi.batch.core.check_configuration(rivers, config) is False
     
     class Test_check_configuration_v1():
         @pytest.fixture
@@ -334,36 +334,36 @@ class Test_batch_check_configuration():
             return  ConfigParser()
                     
         def given_version_1_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_general_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "1.0")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_general_section_with_qthreshold_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "1.0")
             config.set("General", "Qthreshold", "100")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_general_section_with_qthreshold_and_qbankfull_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config, "1.0")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_q_sections_with_discharge_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):           
             self.set_valid_general_section_with_q_values(config, "1.0")
             self.add_q_section(config)
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_mode_specific_test_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config, "1.0")
             self.add_q_section(config)
             config.set("General", "mode", "test")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is True
+            assert dfastmi.batch.core.check_configuration(rivers, config) is True
             
         def set_valid_general_section(self, config : ConfigParser, version : str):
             config.add_section("General")
@@ -394,25 +394,25 @@ class Test_batch_check_configuration():
             return  ConfigParser()
         
         def given_version_2_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
         
         def given_general_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "2.0")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_general_section_and_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "2.0")
             config.add_section("C1")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_only_discharge_in_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "2.0")
             config.add_section("C1")
             config.set("C1", "Discharge", "1300.0")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
             
         def given_partial_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "2.0")
@@ -420,7 +420,7 @@ class Test_batch_check_configuration():
             config.set("C1", "Discharge", "1300.0")
             config.set("C1", "Reference", "1300.0")
             
-            assert dfastmi.batch.check_configuration(rivers, config) is False
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False
 
         def given_c_sections_with_incorrect_values_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "2.0")
@@ -431,7 +431,7 @@ class Test_batch_check_configuration():
             self.add_c_section(config, "C5", "1300.0")
             self.add_c_section(config, "C6", "1300.0")
                 
-            assert dfastmi.batch.check_configuration(rivers, config) is False        
+            assert dfastmi.batch.core.check_configuration(rivers, config) is False        
                 
         def given_correct_c_sections_when_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config, "2.0")
@@ -442,7 +442,7 @@ class Test_batch_check_configuration():
             self.add_c_section(config, "C5", "6000.0")
             self.add_c_section(config, "C6", "8000.0")
                 
-            assert dfastmi.batch.check_configuration(rivers, config) is True
+            assert dfastmi.batch.core.check_configuration(rivers, config) is True
         
         def set_valid_general_section(self, config : ConfigParser, version : str):
             config.add_section("General")
@@ -475,7 +475,7 @@ class Test_batch_check_configuration():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
             assert Q == [6.7, 8.9, 10.1]
             assert apply_q == (True, True, True)
@@ -490,7 +490,7 @@ class Test_batch_check_configuration():
             q_threshold = 7.3
             nwidth = 3.4
 
-            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
             assert Q == [6.7, 8.9, 10.1]
             assert apply_q == (True, True, True)
@@ -505,7 +505,7 @@ class Test_batch_check_configuration():
             q_threshold = 7.3
             nwidth = 3.4
 
-            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
             assert Q == [6.7, 8.9, 10.1]
             assert apply_q == (True, True, True)
@@ -522,7 +522,7 @@ class Test_batch_check_configuration():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
             assert Q == [6.7, 8.9, 10.1]
             assert apply_q == (True, True, True)
@@ -542,7 +542,7 @@ class Test_batch_check_configuration():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+            Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
             assert Q == [6.7, 8.9, 10.1]
             assert apply_q == (True, True, True)

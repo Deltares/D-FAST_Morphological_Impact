@@ -31,7 +31,7 @@ from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io.Branch import Branch
 from dfastmi.io.Reach import Reach, ReachLegacy
 import dfastmi.kernel.core
-import dfastmi.batch
+import dfastmi.batch.core
 
 from dfastmi.kernel.core import QRuns
 from dfastmi.io.RiversObject import RiversObject
@@ -119,7 +119,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                     ucrit = ucritMin
 
             ApplicationSettingsHelper.log_text("", repeat=19)
-            filenames = dfastmi.batch.get_filenames(0, False)
+            filenames = dfastmi.batch.core.get_filenames(0, False)
             imode = 0
             display = True
             old_zmin_zmax = True
@@ -130,7 +130,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             kmbounds = [0,1]
             outputdir = "."
             plotops = {}
-            Success = dfastmi.batch.analyse_and_report(
+            Success = dfastmi.batch.core.analyse_and_report(
                 imode,
                 display,
                 report,
@@ -499,7 +499,7 @@ def write_report_nodata(
         Flag indicating whether the program should be closed.
     """
     ApplicationSettingsHelper.log_text("---")
-    nQ = dfastmi.batch.countQ(Q)
+    nQ = dfastmi.batch.core.countQ(Q)
     if nQ == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
@@ -515,7 +515,7 @@ def write_report_nodata(
     ApplicationSettingsHelper.log_text("canclose")
     all_done = interactive_get_bool(src, "confirm_or_repeat")
     if all_done:
-        dfastmi.batch.write_report(
+        dfastmi.batch.core.write_report(
             report,
             reach,
             q_location,

@@ -38,11 +38,10 @@ from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
-from dfastmi.batch_dir import AnalyserAndReporterDflowfm
-from dfastmi.batch_dir import AnalyserAndReporterWaqua
-from dfastmi.batch_dir import ConfigurationChecker
-
-from dfastmi.batch_dir import FileNameRetriever
+from dfastmi.batch import AnalyserAndReporterDflowfm
+from dfastmi.batch import AnalyserAndReporterWaqua
+from dfastmi.batch import ConfigurationChecker
+from dfastmi.batch import FileNameRetriever
 
 import os
 import math
@@ -54,7 +53,6 @@ import matplotlib
 import configparser
 import shapely
 from packaging import version
-import netCDF4
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"

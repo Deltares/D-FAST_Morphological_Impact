@@ -32,7 +32,7 @@ from dfastmi.kernel.core import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
 
-from dfastmi.batch_dir import DetectAndPlot
+from dfastmi.batch import DetectAndPlot
 
 import os
 import math
