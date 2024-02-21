@@ -79,7 +79,7 @@ def run(
         abs_rivers_file = FileUtils.absolute_path(progloc, rivers_file)
         rivers = RiversObject(abs_rivers_file)
         if runmode == "BATCH":
-            dfastmi.batch.batch_mode(configfile, rivers, reduced_output)
+            dfastmi.batch.core.batch_mode(configfile, rivers, reduced_output)
         elif runmode == "CLI":
             if configfile != "dfastmi.cfg":
                 ApplicationSettingsHelper.log_text("ignoring_config")

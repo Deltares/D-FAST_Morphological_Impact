@@ -36,7 +36,7 @@ from functools import partial
 import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
-import dfastmi.batch
+import dfastmi.batch.core
 from dfastmi.io.Reach import ReachAdvanced
 import dfastmi.kernel.core
 from dfastmi.io.RiversObject import RiversObject
@@ -378,7 +378,7 @@ def update_qvalues(reach:ReachAdvanced) -> None:
     try:
         nwidth = reach.normal_width
         q_threshold = float(dialog["qthr"].text())
-        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
         slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
     except:
@@ -447,7 +447,7 @@ def load_configuration(filename: str) -> None:
         Name of the configuration file to be opened.
     """
     try:
-        config = dfastmi.batch.load_configuration_file(filename)
+        config = dfastmi.batch.core.load_configuration_file(filename)
     except:
         if filename != "dfastmi.cfg":
             showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
@@ -527,7 +527,7 @@ def menu_save_configuration() -> None:
     filename = fil[0]
     if filename != "":
         config = get_configuration()
-        dfastmi.batch.save_configuration_file(filename, config)
+        dfastmi.batch.core.save_configuration_file(filename, config)
 
 
 def get_configuration() -> configparser.ConfigParser:
@@ -582,9 +582,9 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    if dfastmi.batch.check_configuration(rivers, config):
+    if dfastmi.batch.core.check_configuration(rivers, config):
         try:
-            success = dfastmi.batch.batch_mode_core(rivers, False, config)
+            success = dfastmi.batch.core.batch_mode_core(rivers, False, config)
         except:
             success = False
         report = ApplicationSettingsHelper.get_filename("report.out")

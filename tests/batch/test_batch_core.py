@@ -2,8 +2,7 @@ import os
 import sys
 import netCDF4
 import pytest
-import context
-import dfastmi.batch
+import dfastmi.batch.core
 
 from contextlib import contextmanager
 from io import StringIO
@@ -23,7 +22,6 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-
 class Test_batch_mode():
     def test_batch_mode_00(self):
         """
@@ -32,7 +30,7 @@ class Test_batch_mode():
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         with captured_output() as (out, err):
-            dfastmi.batch.batch_mode("config.cfg", rivers, False)
+            dfastmi.batch.core.batch_mode("config.cfg", rivers, False)
         outstr = out.getvalue().splitlines()
         #
         #for s in outstr:
@@ -51,7 +49,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("c01.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("c01.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -92,7 +90,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("c01.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("c01.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -135,7 +133,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("Qmin_4000.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("Qmin_4000.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -174,7 +172,7 @@ class Test_batch_mode():
             os.chdir(tstdir)
             rivers = RiversObject("rivers_Q4000_v2.ini")
             with captured_output() as (out, err):
-                dfastmi.batch.batch_mode("Qmin_4000_v2.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("Qmin_4000_v2.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -211,10 +209,10 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             config_file = "Qmin_4000_v2.cfg"
-            config = dfastmi.batch.load_configuration_file(config_file)
+            config = dfastmi.batch.core.load_configuration_file(config_file)
             rootdir = os.path.dirname(config_file)
             with pytest.raises(Exception) as cm:
-                dfastmi.batch.batch_mode_core(rivers, False, config, rootdir)
+                dfastmi.batch.core.batch_mode_core(rivers, False, config, rootdir)
             assert str(cm.value) == 'Version number of configuration file (2.0) must match version number of rivers file (1.0)'
         finally:
             os.chdir(cwd)
@@ -226,7 +224,7 @@ class Test_batch_countq():
         ([None, None, None, None, None], 0),
     ])    
     def given_vector_with_discharges_when_countq_then_return_expected_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
-        assert dfastmi.batch.countQ(vector_data) == expected_non_empty_discharges_count
+        assert dfastmi.batch.core.countQ(vector_data) == expected_non_empty_discharges_count
  
 class Test_batch_write_report():   
     @pytest.mark.parametrize("slength", [
@@ -247,7 +245,7 @@ class Test_batch_write_report():
         
         ApplicationSettingsHelper.PROGTEXTS = None
         
-        dfastmi.batch.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
+        dfastmi.batch.core.write_report(report, reach, q_location, q_threshold, q_bankfull, q_stagnant, tstag, q_fit, Q, T, slength)
 
         report_lines = report.getvalue().split('\n')
                 
@@ -286,7 +284,7 @@ class Test_get_levels_v2():
         q_threshold = 1.2
         nwidth = 3.4
 
-        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
         assert Q == [6.7, 8.9, 10.1]
         assert apply_q == (True, True, True)
@@ -301,7 +299,7 @@ class Test_get_levels_v2():
         q_threshold = 1.2
         nwidth = 3.4
 
-        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
         assert len(Q) == len(reach.hydro_q)
         assert len(apply_q) == len(reach.hydro_q)
@@ -316,7 +314,7 @@ class Test_get_levels_v2():
         q_threshold = 7.3
         nwidth = 3.4
 
-        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
         assert Q == [6.7, 8.9, 10.1]
         assert apply_q == (True, True, True)
@@ -331,7 +329,7 @@ class Test_get_levels_v2():
         q_threshold = 7.3
         nwidth = 3.4
 
-        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
         assert Q == [6.7, 8.9, 10.1]
         assert apply_q == (True, True, True)
@@ -348,7 +346,7 @@ class Test_get_levels_v2():
         q_threshold = 1.2
         nwidth = 3.4
 
-        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
         assert Q == [6.7, 8.9, 10.1]
         assert apply_q == (True, True, True)
@@ -368,7 +366,7 @@ class Test_get_levels_v2():
         q_threshold = 1.2
         nwidth = 3.4
 
-        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.get_levels_v2(reach, q_threshold, nwidth)
+        Q, apply_q, time_mi, tstag, T, rsigma, celerity = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
 
         assert Q == [6.7, 8.9, 10.1]
         assert apply_q == (True, True, True)
