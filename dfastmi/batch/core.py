@@ -512,15 +512,8 @@ def get_filenames(
         can be the discharge index, discharge value or a tuple of forcing
         conditions, such as a Discharge and Tide forcing tuple.
     """
-    filenames: Dict[Any, Tuple[str,str]]
-    if imode == 0 or config is None:
-        filenames = {}
-    elif version.parse(config["General"]["Version"]) == version.parse("1"):
-        filenames = FileNameRetriever.get_filenames_version1(config)
-    else:
-        filenames = FileNameRetriever.get_filenames_version2(needs_tide, config)
-
-    return filenames
+    file_name_retriever = FileNameRetriever.get_filename_retriever(imode, config, needs_tide)
+    return file_name_retriever.get_file_names(config)
 
 def analyse_and_report(
     imode: int,
