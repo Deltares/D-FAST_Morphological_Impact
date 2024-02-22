@@ -104,12 +104,10 @@ def analyse_and_report_waqua(
     for i in range(3):
         if success and apply_q[i]:
             if first_discharge:
-                dzq[i], firstm, firstn = get_values_waqua3(
-                    i+1, Q[i], ucrit, display, report, reduced_output
-                )
+                dzq[i], firstm, firstn = _get_values_waqua3(i+1, Q[i], ucrit, display, report, reduced_output)
                 first_discharge = False
             else:
-                dzq[i] = get_values_waqua1(i+1, Q[i], ucrit, display, report, reduced_output)
+                dzq[i], _, _ = _get_values_waqua3(i+1, Q[i], ucrit, display, report, reduced_output)
             if dzq[i] is None:
                 success = False
         else:
@@ -145,40 +143,7 @@ def analyse_and_report_waqua(
 
     return success
 
-def get_values_waqua1(
-    stage: int, q: float, ucrit: float, display: bool, report, reduced_output: bool
-) -> numpy.ndarray:
-    """
-    Read data files exported from WAQUA for the specified stage, and return equilibrium bed level change.
-
-    Arguments
-    ---------
-    stage : int
-        Discharge level (1, 2 or 3).
-    q : float
-        Discharge value.
-    ucrit : float
-        Critical flow velocity.
-    display : bool
-        Flag indicating text output to stdout.
-    report : TextIO
-        Text stream for log file.
-    reduced_output : bool
-        Flag to indicate whether WAQUA output should be reduced to the area of
-        interest only.
-
-    Returns
-    -------
-    dzq : numpy.ndarray
-        Array containing equilibrium bed level change.
-    """
-    dzq, firstm, firstn = get_values_waqua3(
-        stage, q, ucrit, display, report, reduced_output
-    )
-    return dzq
-
-
-def get_values_waqua3(
+def _get_values_waqua3(
     stage: int, q: float, ucrit: float, display: bool, report, reduced_output: bool
 ) -> Tuple[numpy.ndarray, int, int]:
     """
