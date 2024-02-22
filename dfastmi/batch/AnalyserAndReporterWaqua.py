@@ -96,6 +96,14 @@ def analyse_and_report_waqua(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
+    success, firstm, firstn, data_zgem, data_zmax, data_zmin = analyze_waqua(display, report, reduced_output, tstag, Q, apply_q, T, rsigma, ucrit, old_zmin_zmax)
+
+    if success:
+        write_report_waqua(outputdir, firstm, firstn, data_zgem, data_zmax, data_zmin)
+
+    return success
+
+def analyze_waqua(display, report, reduced_output, tstag, Q, apply_q, T, rsigma, ucrit, old_zmin_zmax):
     success = True
     first_discharge = True
     
@@ -130,18 +138,19 @@ def analyse_and_report_waqua(
             # get old zmax and zmin
             data_zmax = dzb[0]
             data_zmin = dzb[1]
+            
+    return success,firstm,firstn,data_zgem,data_zmax,data_zmin
 
-        DataTextFileOperations.write_simona_box(
+def write_report_waqua(outputdir, firstm, firstn, data_zgem, data_zmax, data_zmin):
+    DataTextFileOperations.write_simona_box(
             outputdir + os.sep + ApplicationSettingsHelper.get_filename("avgdzb.out"), data_zgem, firstm, firstn
         )
-        DataTextFileOperations.write_simona_box(
+    DataTextFileOperations.write_simona_box(
             outputdir + os.sep + ApplicationSettingsHelper.get_filename("maxdzb.out"), data_zmax, firstm, firstn
         )
-        DataTextFileOperations.write_simona_box(
+    DataTextFileOperations.write_simona_box(
             outputdir + os.sep + ApplicationSettingsHelper.get_filename("mindzb.out"), data_zmin, firstm, firstn
         )
-
-    return success
 
 def _get_values_waqua3(
     stage: int, q: float, ucrit: float, display: bool, report, reduced_output: bool
