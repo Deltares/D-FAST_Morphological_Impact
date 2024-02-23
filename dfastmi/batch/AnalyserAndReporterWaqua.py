@@ -41,14 +41,11 @@ def analyse_and_report_waqua(
     display: bool,
     report: TextIO,
     reduced_output: bool,
-    reach: str,
-    q_location: str,
     tstag: float,
     Q: Vector,
     apply_q: BoolVector,
     T: Vector,
     rsigma: Vector,
-    slength: float,
     ucrit: float,
     old_zmin_zmax: bool,
     outputdir: str
@@ -68,10 +65,6 @@ def analyse_and_report_waqua(
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
-    reach : str
-        Name of the reach.
-    q_location : str
-        Name of the location at which the discharge is
     tstag : float
         Number of days that the river is stagnant.
     Q : Vector
@@ -82,8 +75,6 @@ def analyse_and_report_waqua(
         Fraction of year represented by each forcing condition.
     rsigma : Vector
         Array of relaxation factors; one per forcing condition.
-    slength : float
-        The expected yearly impacted sedimentation length.
     ucrit : float
         Critical flow velocity [m/s].
     old_zmin_zmax : bool
@@ -96,8 +87,8 @@ def analyse_and_report_waqua(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    waqua = AnalyzerWaqua()
-    success, output_data = waqua.analyze(display, report, reduced_output, tstag, Q, apply_q, T, rsigma, ucrit, old_zmin_zmax)
+    waqua = AnalyzerWaqua(display, report, reduced_output, tstag, Q, apply_q, ucrit, old_zmin_zmax)
+    success, output_data = waqua.analyze(T, rsigma)
 
     if success:
         waqua_reporter = ReporterWaqua(outputdir)
@@ -134,56 +125,64 @@ class ReporterWaqua():
         return self.output_dir + os.sep + ApplicationSettingsHelper.get_filename(file_name)
 
 class AnalyzerWaqua():
-    def analyze(self, display, report, reduced_output, tstag, Q, apply_q, T, rsigma, ucrit, old_zmin_zmax):
+    def __init__(self, display, report, reduced_output, tstag, Q, apply_q, ucrit, old_zmin_zmax):
+        self.display = display
+        self.report = report
+        self.reduced_output = reduced_output
+        self.tstag = tstag
+        self.Q = Q
+        self.apply_q = apply_q
+        self.ucrit = ucrit
+        self.old_zmin_zmax = old_zmin_zmax
+        
+    def analyze(self, T, rsigma):
            
-        success, dzq, firstm, firstn = self._get_output_values(display, report, reduced_output, Q, apply_q, ucrit,)
-        output_data = self._calculate_output_data(display, tstag, T, rsigma, old_zmin_zmax, dzq, firstm, firstn)      
+        success, dzq, firstm, firstn = self._get_output_values()
+        output_data = self._calculate_output_data( T, rsigma, dzq, firstm, firstn)
                
         return success, output_data
 
-    def _calculate_output_data(self, display, tstag, T, rsigma, old_zmin_zmax, dzq, firstm, firstn):
-        if display:
+    def _calculate_output_data(self, T, rsigma, dzq, firstm, firstn):
+        if self.display:
             ApplicationSettingsHelper.log_text("char_bed_changes")
                 
-        if tstag > 0:
+        if self.tstag > 0:
             dzq = [dzq[0], 0.0, dzq[1], dzq[2]]
-            T = (T[0], tstag, T[1], T[2])
+            T = (T[0], self.tstag, T[1], T[2])
             rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
             
-            # main_computation now returns new pointwise zmin and zmax
+        # main_computation now returns new pointwise zmin and zmax
         data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.core.main_computation(
                 dzq, T, rsigma
             )
         
-        if old_zmin_zmax:
-                # get old zmax and zmin
+        if self.old_zmin_zmax:
+            # get old zmax and zmin
             data_zmax = dzb[0]
             data_zmin = dzb[1]
                 
         output_data = OutputDataWaqua(firstm, firstn, data_zgem, data_zmax, data_zmin)
         return output_data
 
-    def _get_output_values(self, display, report, reduced_output, Q, apply_q, ucrit):
+    def _get_output_values(self):
         success = True
         first_discharge = True
         dzq : List[Optional[Union[float, numpy.ndarray]]]
-        dzq = [None] * len(Q)
+        dzq = [None] * len(self.Q)
         for i in range(3):
-            if success and apply_q[i]:
+            if success and self.apply_q[i]:
                 if first_discharge:
-                    dzq[i], firstm, firstn = self._get_values_waqua3(i+1, Q[i], ucrit, display, report, reduced_output)
+                    dzq[i], firstm, firstn = self._get_values_waqua3(i+1, self.Q[i])
                     first_discharge = False
                 else:
-                    dzq[i], _, _ = self._get_values_waqua3(i+1, Q[i], ucrit, display, report, reduced_output)
+                    dzq[i], _, _ = self._get_values_waqua3(i+1, self.Q[i])
                 if dzq[i] is None:
                     success = False
             else:
                 dzq[i] = 0.0
         return success,dzq,firstm,firstn
 
-    def _get_values_waqua3(
-        self, stage: int, q: float, ucrit: float, display: bool, report, reduced_output: bool
-    ) -> Tuple[numpy.ndarray, int, int]:
+    def _get_values_waqua3(self, stage: int, q: float) -> Tuple[numpy.ndarray, int, int]:
         """
         Read data files exported from WAQUA for the specified stage, and return equilibrium bed level change and minimum M and N.
 
@@ -213,7 +212,7 @@ class AnalyzerWaqua():
             Minimum N index read (0 if reduced_output is False).
         """
         cblok = str(stage)
-        if display:
+        if self.display:
             ApplicationSettingsHelper.log_text("input_xyz", dict={"stage": stage, "q": q})
             ApplicationSettingsHelper.log_text("---")
             ApplicationSettingsHelper.log_text("")
@@ -222,24 +221,24 @@ class AnalyzerWaqua():
         quantities = ["velocity-zeta.001", "waterdepth-zeta.001", "velocity-zeta.002"]
         files = []
         for i in range(3):
-            if display:
+            if self.display:
                 ApplicationSettingsHelper.log_text("input_xyz_name", dict={"name": discriptions[i]})
             cifil = "xyz_" + quantities[i] + ".Q" + cblok + ".xyz"
-            if display:
+            if self.display:
                 print(cifil)
             if not os.path.isfile(cifil):
                 ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil})
-                ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil}, file=report)
-                ApplicationSettingsHelper.log_text("end_program", file=report)
+                ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil}, file=self.report)
+                ApplicationSettingsHelper.log_text("end_program", file=self.report)
                 return numpy.array([]), 0, 0
             else:
-                if display:
+                if self.display:
                     ApplicationSettingsHelper.log_text("input_xyz_found", dict={"name": cifil})
             files.extend([cifil])
-            if display:
+            if self.display:
                 ApplicationSettingsHelper.log_text("")
 
-        if display:
+        if self.display:
             ApplicationSettingsHelper.log_text("input_xyz_read", dict={"stage": stage})
             
         u0temp = DataTextFileOperations.read_waqua_xyz(files[0], cols=(2, 3, 4))
@@ -249,7 +248,7 @@ class AnalyzerWaqua():
         h0temp = DataTextFileOperations.read_waqua_xyz(files[1])
         u1temp = DataTextFileOperations.read_waqua_xyz(files[2])
 
-        if reduced_output:
+        if self.reduced_output:
             firstm = min(m)
             firstn = min(n)
         else:
@@ -274,9 +273,9 @@ class AnalyzerWaqua():
         h0 = h0.reshape(sz)
         u1 = u1.reshape(sz)
 
-        dzq = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, ucrit)
+        dzq = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, self.ucrit)
         
-        if display:
+        if self.display:
             ApplicationSettingsHelper.log_text("---")
             
         return dzq, firstm, firstn
