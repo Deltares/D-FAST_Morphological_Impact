@@ -99,7 +99,7 @@ class OutputDataWaqua():
     """
     Class that holds the output data that is written to the report for waqua.
     """
-    def __init__(self, firstm : int, firstn : int, data_zgem, data_zmax, data_zmin):
+    def __init__(self, firstm : int, firstn : int, data_zgem : numpy.ndarray, data_zmax : numpy.ndarray, data_zmin : numpy.ndarray):
         """
         Init of the OutputDataWaqua.
 

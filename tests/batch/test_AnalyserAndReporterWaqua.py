@@ -1,7 +1,14 @@
+from typing import Tuple
 import os
 import pytest
-import dfastmi.batch.AnalyserAndReporterWaqua
+import numpy
+from unittest.mock import MagicMock, patch
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.batch.AnalyserAndReporterWaqua import analyse_and_report_waqua
+from dfastmi.batch.AnalyserAndReporterWaqua import ReporterWaqua, OutputDataWaqua
+from dfastmi.batch.AnalyserAndReporterWaqua import AnalyzerWaqua
+from dfastmi.io.DataTextFileOperations import DataTextFileOperations
+import dfastmi.kernel.core
 
 class Test_analyse_and_report_waqua_mode():
     @pytest.mark.parametrize("display, reduced_output, old_zmin_zmax", [
@@ -29,7 +36,7 @@ class Test_analyse_and_report_waqua_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            succes = dfastmi.batch.AnalyserAndReporterWaqua.analyse_and_report_waqua(
+            succes = analyse_and_report_waqua(
             display,
             None,
             reduced_output,
@@ -76,7 +83,7 @@ class Test_analyse_and_report_waqua_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            succes = dfastmi.batch.AnalyserAndReporterWaqua.analyse_and_report_waqua(
+            succes = analyse_and_report_waqua(
             display,
             None,
             reduced_output,
@@ -97,3 +104,83 @@ class Test_analyse_and_report_waqua_mode():
         assert "jaargem.out" in files_in_tmp
         assert "maxmorf.out" in files_in_tmp
         assert "minmorf.out" in files_in_tmp
+        
+class Test_ReporterWaqua():
+    def given_output_data_and_mocked_write_files_when_write_report_then_expect_3_calls_for_writing_report(self):
+        reporter = ReporterWaqua("filepath")
+        firstm = 0
+        firstn = 0
+        data_zgem = numpy.array([1, 2, 3, 4, 5])
+        data_zmax = numpy.array([1, 2, 3, 4, 5])
+        data_zmin = numpy.array([1, 2, 3, 4, 5])
+        output_data = OutputDataWaqua(firstm, firstn, data_zgem, data_zmax, data_zmin)
+        
+        mocked_write_simona_box =  MagicMock()
+        mocked_get_file_name = self.get_mocked_get_filename()
+        
+        def mocked_get_filename(*args):
+            if args[0] == "avgdzb.out":
+                return "file_1.out"
+            elif args[0] == "maxdzb.out":
+                return "file_2.out"
+            else:
+                return "file_3.out"
+        
+        mocked_get_file_name.side_effect = mocked_get_filename
+        
+        ApplicationSettingsHelper.get_filename = mocked_get_file_name
+        DataTextFileOperations.write_simona_box = mocked_write_simona_box
+        
+        reporter.write_report(output_data)
+        
+        assert mocked_write_simona_box.call_count == 3
+        assert mocked_get_file_name.call_count == 3
+        
+    def get_mocked_get_filename(self):
+        mock = MagicMock()
+        def mocked_get_filename(*args):
+            if args[0] == "avgdzb.out":
+                return "file_1.out"
+            elif args[0] == "maxdzb.out":
+                return "file_2.out"
+            else:
+                return "file_3.out"
+        
+        mock.side_effect = mocked_get_filename
+        return mock
+
+class Test_AnalyzerWaqua():
+    
+    @pytest.mark.parametrize("display, reduced_output, old_zmin_zmax", [
+        (False, False, False),
+        (True, False, False),
+        (True, True, False),
+        (True, True, True),
+        (False, True, False),
+        (False, True, True),
+        (False, False, True),
+        (True, False, True),
+    ])   
+    def given_data_and_mocked_classes_when_analyze_then_return_success_and_empty_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
+        tstag = 0.0
+        discharges = [1.0, 2.0, 3.0]
+        apply_q = [True, True, True]
+        fraction_of_year = [1.0, 2.0, 3.0]
+        rsigma = [0.1, 0.2, 0.3]
+        ucrit = 0.3
+        report = False
+        waqua = AnalyzerWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
+        
+        ApplicationSettingsHelper.log_text = MagicMock()
+        ApplicationSettingsHelper.get_text = MagicMock(return_value = "description")
+        DataTextFileOperations.read_waqua_xyz = MagicMock(return_value = numpy.array([1, 2, 3, 4, 5]))
+        dfastmi.kernel.core.dzq_from_du_and_h = MagicMock(return_value = numpy.array([1, 2, 3, 4, 5]))
+
+        success, output_data = waqua.analyze(fraction_of_year, rsigma)
+        
+        assert success
+        assert len(output_data.data_zgem) == 0
+        assert len(output_data.data_zmax) == 0
+        assert len(output_data.data_zmin) == 0
+        assert output_data.firstm == 0
+        assert output_data.firstn == 0
