@@ -267,7 +267,7 @@ class AnalyzerWaqua():
             
         return dzq, firstm, firstn
     
-    def _search_files(self, stage: int, discharge_value: float) -> bool:
+    def _search_files(self, stage: int, discharge_value: float) -> Tuple[bool, list]:
         cblok = str(stage)
         if self.display:
             ApplicationSettingsHelper.log_text("input_xyz", dict={"stage": stage, "q": discharge_value})
