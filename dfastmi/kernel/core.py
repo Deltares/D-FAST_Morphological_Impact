@@ -258,7 +258,7 @@ def dzq_from_du_and_h(
 
 def main_computation(
     dzq: List[numpy.ndarray],
-    number_of_days: Vector,
+    fraction_of_year: Vector,
     rsigma: Vector,
 ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[numpy.ndarray]]:
     """
@@ -270,7 +270,7 @@ def main_computation(
     ---------
     dzq : List[numpy.ndarray]
         A list of arrays containing the equilibrium bed level change for each respective discharge period.
-    number_of_days : Vector
+    fraction_of_year : Vector
         A tuple of periods indicating the number of days during which each discharge applies.
     rsigma : Vector
         A tuple of relaxation factors, one for each period.
@@ -291,7 +291,7 @@ def main_computation(
     dzb = blc.get_bed_level_changes(dzq, rsigma)
     dzmax = blc.get_element_wise_maximum(dzb)
     dzmin = blc.get_element_wise_minimum(dzb)
-    dzgem = blc.get_linear_average(number_of_days, dzb)
+    dzgem = blc.get_linear_average(fraction_of_year, dzb)
     
     return dzgem, dzmax, dzmin, dzb
 
