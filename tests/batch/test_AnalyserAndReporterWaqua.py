@@ -114,40 +114,15 @@ class Test_ReporterWaqua():
         data_zmax = numpy.array([1, 2, 3, 4, 5])
         data_zmin = numpy.array([1, 2, 3, 4, 5])
         output_data = OutputDataWaqua(firstm, firstn, data_zgem, data_zmax, data_zmin)
+        with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_filename') as mocked_get_file_name:
+            with patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.write_simona_box') as mocked_write_simona_box:
+                mocked_get_file_name.return_value = "filename.file"
+                mocked_get_file_name.side_effect = "file.file"
         
-        mocked_write_simona_box =  MagicMock()
-        mocked_get_file_name = self.get_mocked_get_filename()
-        
-        def mocked_get_filename(*args):
-            if args[0] == "avgdzb.out":
-                return "file_1.out"
-            elif args[0] == "maxdzb.out":
-                return "file_2.out"
-            else:
-                return "file_3.out"
-        
-        mocked_get_file_name.side_effect = mocked_get_filename
-        
-        ApplicationSettingsHelper.get_filename = mocked_get_file_name
-        DataTextFileOperations.write_simona_box = mocked_write_simona_box
-        
-        reporter.write_report(output_data)
-        
-        assert mocked_write_simona_box.call_count == 3
-        assert mocked_get_file_name.call_count == 3
-        
-    def get_mocked_get_filename(self):
-        mock = MagicMock()
-        def mocked_get_filename(*args):
-            if args[0] == "avgdzb.out":
-                return "file_1.out"
-            elif args[0] == "maxdzb.out":
-                return "file_2.out"
-            else:
-                return "file_3.out"
-        
-        mock.side_effect = mocked_get_filename
-        return mock
+                reporter.write_report(output_data)
+                
+                assert mocked_write_simona_box.call_count == 3
+                assert mocked_get_file_name.call_count == 3
 
 class Test_AnalyzerWaqua():
     
