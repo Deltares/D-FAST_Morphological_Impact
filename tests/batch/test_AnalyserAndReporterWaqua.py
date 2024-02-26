@@ -2,7 +2,7 @@ from unittest.mock import patch
 import pytest
 import numpy
 from dfastmi.batch.AnalyserAndReporterWaqua import ReporterWaqua, OutputDataWaqua
-from dfastmi.batch.AnalyserAndReporterWaqua import AnalyzerWaqua
+from dfastmi.batch.AnalyserAndReporterWaqua import AnalyserWaqua
         
 class Test_ReporterWaqua():
     def given_output_data_and_mocked_write_files_when_write_report_then_expect_3_calls_for_writing_report(self):
@@ -24,7 +24,7 @@ class Test_ReporterWaqua():
             assert mocked_write_simona_box.call_count == 3
             assert mocked_get_file_name.call_count == 3
 
-class Test_AnalyzerWaqua():
+class Test_AnalyserWaqua():
     
     @pytest.mark.parametrize("display, reduced_output, old_zmin_zmax", [
         (False, False, False),
@@ -36,7 +36,7 @@ class Test_AnalyzerWaqua():
         (False, False, True),
         (True, False, True),
     ])
-    def given_data_and_mocked_classes_with_missing_file_location_when_analyze_then_return_success_and_empty_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
+    def given_data_and_mocked_classes_with_missing_file_location_when_analyse_then_return_success_and_empty_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
         tstag = 0.0
         discharges = [1.0, 2.0, 3.0]
         apply_q = [True, True, True]
@@ -44,7 +44,7 @@ class Test_AnalyzerWaqua():
         rsigma = [0.1, 0.2, 0.3]
         ucrit = 0.3
         report = False
-        waqua = AnalyzerWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
+        waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
 
         with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'), \
         patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
@@ -55,7 +55,7 @@ class Test_AnalyzerWaqua():
             mocked_read_waqua_xyz.return_value=numpy.array([1, 2, 3, 4, 5])
             mocked_dzq_from_du_and_h.return_value=numpy.array([1, 2, 3, 4, 5])
 
-            success, output_data = waqua.analyze(fraction_of_year, rsigma)
+            success, output_data = waqua.analyse(fraction_of_year, rsigma)
 
         assert success
         assert len(output_data.data_zgem) == 0
@@ -75,7 +75,7 @@ class Test_AnalyzerWaqua():
         (False, False, True),
         (True, False, True),
     ])
-    def given_data_and_mocked_classes_when_analyze_then_return_success_and_expected_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
+    def given_data_and_mocked_classes_when_analyse_then_return_success_and_expected_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
         tstag = 0.0
         discharges = [1.0, 2.0, 3.0]
         apply_q = [True, True, True]
@@ -83,7 +83,7 @@ class Test_AnalyzerWaqua():
         rsigma = [0.1, 0.2, 0.3]
         ucrit = 0.3
         report = False
-        waqua = AnalyzerWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
+        waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
 
         with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'), \
         patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
@@ -93,7 +93,7 @@ class Test_AnalyzerWaqua():
             
             self.setup_mocks(mocked_get_text, mocked_read_waqua_xyz, mocked_isfile)
 
-            success, output_data = waqua.analyze(fraction_of_year, rsigma)
+            success, output_data = waqua.analyse(fraction_of_year, rsigma)
 
         assert success
         assert len(output_data.data_zgem) == 0
@@ -112,7 +112,7 @@ class Test_AnalyzerWaqua():
         (False, False, True),
         (True, False, True),
     ])
-    def given_data_and_mocked_classes_with_tstag_above_zero_when_analyze_then_return_success_and_expected_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
+    def given_data_and_mocked_classes_with_tstag_above_zero_when_analyse_then_return_success_and_expected_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
         tstag = 1.0
         discharges = [1.0, 2.0, 3.0]
         apply_q = [True, True, True]
@@ -120,7 +120,7 @@ class Test_AnalyzerWaqua():
         rsigma = [0.1, 0.2, 0.3]
         ucrit = 0.3
         report = False
-        waqua = AnalyzerWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
+        waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
 
         with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'), \
             patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
@@ -130,7 +130,7 @@ class Test_AnalyzerWaqua():
                 
                 self.setup_mocks(mocked_get_text, mocked_read_waqua_xyz, mocked_isfile)
 
-                success, output_data = waqua.analyze(fraction_of_year, rsigma)
+                success, output_data = waqua.analyse(fraction_of_year, rsigma)
 
         assert success
         assert len(output_data.data_zgem) == 0

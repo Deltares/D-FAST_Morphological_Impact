@@ -86,8 +86,8 @@ def analyse_and_report_waqua(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    waqua = AnalyzerWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
-    success, output_data = waqua.analyze(fraction_of_year, rsigma)
+    waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
+    success, output_data = waqua.analyse(fraction_of_year, rsigma)
 
     if success:
         waqua_reporter = ReporterWaqua(outputdir)
@@ -161,13 +161,13 @@ class ReporterWaqua():
     def _get_file_location(self, output_file_name : str) -> str:
         return self.output_dir + os.sep + ApplicationSettingsHelper.get_filename(output_file_name)
 
-class AnalyzerWaqua():
+class AnalyserWaqua():
     """
-    Class that analyzes information for waqua.
+    Class that analyses information for waqua.
     """
     def __init__(self, display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax):
         """
-        Init of the analyzer.
+        Init of the analyser.
 
         Arguments
         ---------
@@ -198,7 +198,7 @@ class AnalyzerWaqua():
         self.ucrit = ucrit
         self.old_zmin_zmax = old_zmin_zmax
         
-    def analyze(self, fraction_of_year : Vector, rsigma : Vector) -> tuple[bool, OutputDataWaqua]:
+    def analyse(self, fraction_of_year : Vector, rsigma : Vector) -> tuple[bool, OutputDataWaqua]:
         """
         Read data from samples files exported from WAQUA simulations and performanalysis.
 
