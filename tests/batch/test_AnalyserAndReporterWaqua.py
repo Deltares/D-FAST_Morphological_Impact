@@ -135,7 +135,7 @@ class Test_AnalyzerWaqua():
         (False, True, True),
         (False, False, True),
         (True, False, True),
-    ])   
+    ])
     def given_data_and_mocked_classes_when_analyze_then_return_success_and_empty_output_data(self, display : bool, reduced_output : bool, old_zmin_zmax : bool):
         tstag = 0.0
         discharges = [1.0, 2.0, 3.0]
@@ -145,14 +145,17 @@ class Test_AnalyzerWaqua():
         ucrit = 0.3
         report = False
         waqua = AnalyzerWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
-        
-        ApplicationSettingsHelper.log_text = MagicMock()
-        ApplicationSettingsHelper.get_text = MagicMock(return_value = "description")
-        DataTextFileOperations.read_waqua_xyz = MagicMock(return_value = numpy.array([1, 2, 3, 4, 5]))
-        dfastmi.kernel.core.dzq_from_du_and_h = MagicMock(return_value = numpy.array([1, 2, 3, 4, 5]))
 
-        success, output_data = waqua.analyze(fraction_of_year, rsigma)
-        
+        with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'):
+            with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text:
+                with patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz:
+                    with patch('dfastmi.batch.AnalyserAndReporterWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_dzq_from_du_and_h:
+                        mocked_get_text.return_value="description"
+                        mocked_read_waqua_xyz.return_value=numpy.array([1, 2, 3, 4, 5])
+                        mocked_dzq_from_du_and_h.return_value=numpy.array([1, 2, 3, 4, 5])
+
+                        success, output_data = waqua.analyze(fraction_of_year, rsigma)
+
         assert success
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
