@@ -111,6 +111,27 @@ class Test_FileNameRetriever():
             with pytest.raises(Exception) as e:
                 file_name_retriever.get_file_names(config)
             assert str(e.value) == expected_exception_message
+            
+        @pytest.mark.parametrize("not_a_float_string", [
+            "not a float",
+            "1,0",
+            "#"
+            "--=+"
+        ])
+        def given_config_parser_with_not_a_float_for_discharge_when_get_file_names_then_throw_type_error_with_expected_message(self, not_a_float_string):
+            file_name_retriever = dfastmi.batch.FileNameRetriever.FileNameRetriever(False)
+            
+            key = "Discharge"
+            chap = "C1"
+            expected_exception_message = f'{not_a_float_string} from Discharge could now be handled as a float.'
+            
+            config = ConfigParser()
+            config.add_section(chap)
+            config.set(chap, key, not_a_float_string)
+            
+            with pytest.raises(TypeError) as e:
+                file_name_retriever.get_file_names(config)
+            assert str(e.value) == expected_exception_message
         
         @pytest.mark.parametrize("use_tide", [
             True,

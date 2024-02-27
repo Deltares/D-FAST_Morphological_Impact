@@ -208,7 +208,13 @@ class FileNameRetriever(AFileNameRetriever):
             i = i + 1
             CSTR = f'C{i}'
             if CSTR in config:
-                Q = float(self._cfg_get(config, CSTR, "Discharge"))
+                q_string = self._cfg_get(config, CSTR, "Discharge")
+                
+                try:
+                    Q = float(q_string)
+                except ValueError as exc:
+                    raise TypeError(f'{q_string} from Discharge could now be handled as a float.') from exc
+                
                 reference = self._cfg_get(config, CSTR, "Reference")
                 measure = self._cfg_get(config, CSTR, "WithMeasure")
                 if self.needs_tide:
