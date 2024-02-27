@@ -205,7 +205,8 @@ class FileNameRetrieverV2(IFileNameRetriever):
         filenames = {}
         i = 0
         while True:
-            CSTR = f'C{i + 1}'
+            i = i + 1
+            CSTR = f'C{i}'
             if CSTR in config:
                 Q = float(self._cfg_get(config, CSTR, "Discharge"))
                 reference = self._cfg_get(config, CSTR, "Reference")
