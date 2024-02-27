@@ -32,7 +32,7 @@ import configparser
 from abc import ABC, abstractmethod
 from packaging import version
 
-class IFileNameRetriever(ABC):
+class AFileNameRetriever(ABC):
     """
     Abstract file name retriever.
     """
@@ -83,7 +83,7 @@ class IFileNameRetriever(ABC):
         except:
             raise Exception(f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.')
 
-def get_filename_retriever(imode : int, config : configparser.ConfigParser, need_tides : bool) -> IFileNameRetriever:
+def get_filename_retriever(imode : int, config : configparser.ConfigParser, need_tides : bool) -> AFileNameRetriever:
     """
     Retrieves the expected file name retriever based on the given values.
     
@@ -100,18 +100,18 @@ def get_filename_retriever(imode : int, config : configparser.ConfigParser, need
 
     Returns
     -------
-    filenames : IFileNameRetriever
-        returns the IFileNameRetriever which should be used.
+    filenames : AFileNameRetriever
+        returns the AFileNameRetriever which should be used.
     """
     if imode == 0 or config is None:
         return FileNameRetrieverUnsupported()
     
     if version.parse(config["General"]["Version"]) == version.parse("1"):
-        return FileNameRetrieverV1()
+        return FileNameRetrieverLegacy()
     
-    return FileNameRetrieverV2(need_tides)
+    return FileNameRetriever(need_tides)
 
-class FileNameRetrieverUnsupported(IFileNameRetriever):
+class FileNameRetrieverUnsupported(AFileNameRetriever):
     """
     File name retriever for unsupported file name retrieving, e.g. for imode = 0.
     """
@@ -132,9 +132,9 @@ class FileNameRetrieverUnsupported(IFileNameRetriever):
         """
         return {}
         
-class FileNameRetrieverV1(IFileNameRetriever):
+class FileNameRetrieverLegacy(AFileNameRetriever):
     """
-    File name retriever for version 1.
+    File name retriever for version 1 (Legacy).
     """
     
     def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
@@ -166,7 +166,7 @@ class FileNameRetrieverV1(IFileNameRetriever):
 
         return filenames
     
-class FileNameRetrieverV2(IFileNameRetriever):
+class FileNameRetriever(AFileNameRetriever):
     """
     File name retriever for version 2.
     """

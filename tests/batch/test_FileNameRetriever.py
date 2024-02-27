@@ -12,7 +12,7 @@ class Test_FileNameRetriever():
         
         assert isinstance(file_name_retriever, dfastmi.batch.FileNameRetriever.FileNameRetrieverUnsupported)
         
-    def given_values_for_v1_retriever_when_get_filename_retriever_then_return_expected_retriever_v1(self):
+    def given_values_for_legacy_retriever_when_get_filename_retriever_then_return_expected_retriever_legacy(self):
         imode = 1
         config = ConfigParser()
         config.add_section("General")
@@ -20,20 +20,20 @@ class Test_FileNameRetriever():
         
         file_name_retriever = dfastmi.batch.FileNameRetriever.get_filename_retriever(imode, config, False)
         
-        assert isinstance(file_name_retriever, dfastmi.batch.FileNameRetriever.FileNameRetrieverV1)
+        assert isinstance(file_name_retriever, dfastmi.batch.FileNameRetriever.FileNameRetrieverLegacy)
     
     @pytest.mark.parametrize("use_tide", [
         True,
         False
     ])
-    def given_values_for_v2_retriever_when_get_filename_retriever_then_return_expected_retriever_v2(self, use_tide):
+    def given_values_for_retriever_when_get_filename_retriever_then_return_expected_retriever(self, use_tide):
         imode = 1
         config = ConfigParser()
         config.add_section("General")
         config.set("General", "Version", "2")
         file_name_retriever = dfastmi.batch.FileNameRetriever.get_filename_retriever(imode, config, use_tide)
         
-        assert isinstance(file_name_retriever, dfastmi.batch.FileNameRetriever.FileNameRetrieverV2)
+        assert isinstance(file_name_retriever, dfastmi.batch.FileNameRetriever.FileNameRetriever)
     
     class Test_FileNameRetriever_Unsupported():
         def given_config_parser_when_get_file_names_unsupported_then_return_no_file_names(self):
@@ -44,9 +44,9 @@ class Test_FileNameRetriever():
             
             assert len(filenames) == 0
     
-    class Test_FileNameRetriever_v1():
-        def given_partial_setup_config_parser_when_get_file_names_version_1_then_throw_exception_with_expected_message(self):
-            fnrv1 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV1()
+    class Test_FileNameRetriever_legacy():
+        def given_partial_setup_config_parser_when_get_file_names_legacy_then_throw_exception_with_expected_message(self):
+            fnr_legacy = dfastmi.batch.FileNameRetriever.FileNameRetrieverLegacy()
             
             key = "Reference"
             chap = "Q1"
@@ -56,26 +56,26 @@ class Test_FileNameRetriever():
             config.add_section(chap)
             
             with pytest.raises(Exception) as e:
-                fnrv1.get_file_names(config)
+                fnr_legacy.get_file_names(config)
             assert str(e.value) == expected_exception_message
         
-        def given_empty_config_parser_when_get_file_names_version_1_then_return_no_file_names(self):
+        def given_empty_config_parser_when_get_file_names_legacy_then_return_no_file_names(self):
             config = ConfigParser()
-            fnrv1 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV1()
+            fnr_legacy = dfastmi.batch.FileNameRetriever.FileNameRetrieverLegacy()
             
-            filenames = fnrv1.get_file_names(config)
+            filenames = fnr_legacy.get_file_names(config)
             
             assert len(filenames) == 0
         
-        def given_config_parser_with_data_when_get_file_names_version_1_then_return_expected_file_names(self):
+        def given_config_parser_with_data_when_get_file_names_legacy_then_return_expected_file_names(self):
             config = ConfigParser()
-            fnrv1 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV1()
+            fnr_legacy = dfastmi.batch.FileNameRetriever.FileNameRetrieverLegacy()
             
             q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q1")
             q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q2")
             q3_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q3")
             
-            filenames = fnrv1.get_file_names(config)
+            filenames = fnr_legacy.get_file_names(config)
             
             assert filenames[0] == q1_expected_filename
             assert filenames[1] == q2_expected_filename
@@ -93,13 +93,13 @@ class Test_FileNameRetriever():
             
             return (q_reference_filename,q_with_measure_filename)
         
-    class Test_FileNameRetriever_v2():
+    class Test_FileNameRetriever():
         @pytest.mark.parametrize("use_tide", [
             True,
             False
         ])
-        def given_partial_setup_config_parser_when_get_file_names_version_2_then_throw_exception_with_expected_message(self, use_tide):
-            fnrv2 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV2(use_tide)
+        def given_partial_setup_config_parser_when_get_file_names_then_throw_exception_with_expected_message(self, use_tide):
+            file_name_retriever = dfastmi.batch.FileNameRetriever.FileNameRetriever(use_tide)
             
             key = "Discharge"
             chap = "C1"
@@ -109,44 +109,44 @@ class Test_FileNameRetriever():
             config.add_section(chap)
             
             with pytest.raises(Exception) as e:
-                fnrv2.get_file_names(config)
+                file_name_retriever.get_file_names(config)
             assert str(e.value) == expected_exception_message
         
         @pytest.mark.parametrize("use_tide", [
             True,
             False
         ])
-        def given_empty_config_parser_when_get_file_names_version_2_then_return_no_file_names(self, use_tide):
+        def given_empty_config_parser_when_get_file_names_then_return_no_file_names(self, use_tide):
             config = ConfigParser()
-            fnrv2 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV2(use_tide)
+            file_name_retriever = dfastmi.batch.FileNameRetriever.FileNameRetriever(use_tide)
             
-            filenames = fnrv2.get_file_names(config)
+            filenames = file_name_retriever.get_file_names(config)
             
             assert len(filenames) == 0
         
-        def given_config_parser_with_data_when_get_file_names_version_2_then_return_expected_file_names(self):
+        def given_config_parser_with_data_when_get_file_names_then_return_expected_file_names(self):
             config = ConfigParser()
-            fnrv2 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV2(False)
+            file_name_retriever = dfastmi.batch.FileNameRetriever.FileNameRetriever(False)
             
             q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "C1", "1.0")
             q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "C2", "2.0")
             q3_expected_filename= self.get_expected_q_filename_and_update_config(config, "C3", "3.0")
             
-            filenames = fnrv2.get_file_names(config)
+            filenames = file_name_retriever.get_file_names(config)
             
             assert filenames[1.0] == q1_expected_filename
             assert filenames[2.0] == q2_expected_filename
             assert filenames[3.0] == q3_expected_filename
             
-        def given_config_parser_with_data_and_need_of_tide_enable_when_get_file_names_version_2_then_return_expected_file_names_including_tide(self):
+        def given_config_parser_with_data_and_need_of_tide_enable_when_get_file_names_then_return_expected_file_names_including_tide(self):
             config = ConfigParser()
-            fnrv2 = dfastmi.batch.FileNameRetriever.FileNameRetrieverV2(True)
+            file_name_retriever = dfastmi.batch.FileNameRetriever.FileNameRetriever(True)
             
             q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "C1", "1.0", True)
             q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "C2", "2.0", True)
             q3_expected_filename= self.get_expected_q_filename_and_update_config(config, "C3", "3.0", True)
             
-            filenames = fnrv2.get_file_names(config)
+            filenames = file_name_retriever.get_file_names(config)
             
             assert filenames[(1.0,"C1-TideBC")] == q1_expected_filename
             assert filenames[(2.0,"C2-TideBC")] == q2_expected_filename
