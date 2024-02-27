@@ -81,7 +81,7 @@ class IFileNameRetriever(ABC):
         try:
             return config[chap][key]
         except:
-            raise Exception('Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(key,chap,))
+            raise Exception(f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.')
 
 def get_filename_retriever(imode : int, config : configparser.ConfigParser, need_tides : bool) -> IFileNameRetriever:
     """
@@ -158,7 +158,7 @@ class FileNameRetrieverV1(IFileNameRetriever):
         filenames: Dict[Any, Tuple[str,str]]
         filenames = {}
         for i in range(3):
-            qstr = "Q{}".format(i + 1)
+            qstr = f"Q{i+1}"
             if qstr in config:
                 reference = self._cfg_get(config, qstr, "Reference")
                 measure = self._cfg_get(config, qstr, "WithMeasure")
@@ -205,8 +205,7 @@ class FileNameRetrieverV2(IFileNameRetriever):
         filenames = {}
         i = 0
         while True:
-            i = i + 1
-            CSTR = "C{}".format(i)
+            CSTR = f'C{i + 1}'
             if CSTR in config:
                 Q = float(self._cfg_get(config, CSTR, "Discharge"))
                 reference = self._cfg_get(config, CSTR, "Reference")
