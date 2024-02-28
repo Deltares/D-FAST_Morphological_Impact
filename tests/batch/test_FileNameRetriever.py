@@ -56,9 +56,9 @@ class Test_FileNameRetriever():
             config = ConfigParser()
             config.add_section(chap)
             
-            with pytest.raises(Exception) as e:
+            with pytest.raises(KeyError) as e:
                 fnr_legacy.get_file_names(config)
-            assert str(e.value) == expected_exception_message
+            assert str(e.value.args[0]) == expected_exception_message
         
         def given_empty_config_parser_when_get_file_names_legacy_then_return_no_file_names(self):
             config = ConfigParser()
@@ -109,9 +109,9 @@ class Test_FileNameRetriever():
             config = ConfigParser()
             config.add_section(chap)
             
-            with pytest.raises(Exception) as e:
+            with pytest.raises(KeyError) as e:
                 file_name_retriever.get_file_names(config)
-            assert str(e.value) == expected_exception_message
+            assert str(e.value.args[0]) == expected_exception_message
             
         @pytest.mark.parametrize("not_a_float_string", [
             "not a float",

@@ -56,7 +56,7 @@ class AFileNameRetriever(ABC):
     def _cfg_get(self, config: configparser.ConfigParser, chap: str, key: str) -> str:
         """
         Get a single entry from the analysis configuration structure.
-        Raise clear exception message when it fails.
+        Raise KeyError message when it fails.
 
         Arguments
         ---------
@@ -69,7 +69,7 @@ class AFileNameRetriever(ABC):
 
         Raises
         ------
-        Exception
+        KeyError
             If the key in the chapter doesn't exist.
 
         Returns
@@ -77,10 +77,10 @@ class AFileNameRetriever(ABC):
         value : str
             The value specified for the key in the chapter.
         """
-        try:
-            return config[chap][key]
-        except:
-            raise Exception(f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.')
+        value = config.get(chap, key, fallback= None)
+        if value is None:
+            raise KeyError(f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.')
+        return value
 
 class FileNameRetrieverFactory:
     """
@@ -97,7 +97,21 @@ class FileNameRetrieverFactory:
         self._creators[version] = creator
 
     def generate(self, version: str, needs_tide: bool) -> AFileNameRetriever:
-        """Call the Constructor function to generate AFileNameRetriever object."""
+        """
+        Call the Constructor function to generate AFileNameRetriever object.
+        
+        Arguments
+        ---------
+        version: str
+            Version to retrieve the FileNameRetriever for.
+        needs_tide : bool
+            Specifies whether the tidal boundary is needed.
+
+        Returns
+        -------
+        FileNameRetriever : AFileNameRetriever
+            AFileNameRetriever object based on the given version, if no valid FileNameRetriever can be found FileNameRetrieverUnsupported is returned.
+        """
         constructor = self._creators.get(version)
         if constructor:
             return constructor(needs_tide)
@@ -166,7 +180,7 @@ class FileNameRetriever(AFileNameRetriever):
     
     def __init__(self, needs_tide: bool):
         """
-        Constructor of the FileNameRetrieverV2.
+        Constructor of the FileNameRetriever.
 
         Arguments
         ---------
