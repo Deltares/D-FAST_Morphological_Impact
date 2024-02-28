@@ -55,9 +55,8 @@ class Test_AnalyserWaqua():
             mocked_read_waqua_xyz.return_value=numpy.array([1, 2, 3, 4, 5])
             mocked_dzq_from_du_and_h.return_value=numpy.array([1, 2, 3, 4, 5])
 
-            success, output_data = waqua.analyse(fraction_of_year, rsigma)
+            output_data = waqua.analyse(fraction_of_year, rsigma)
 
-        assert success
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
         assert len(output_data.data_zmin) == 0
@@ -93,9 +92,8 @@ class Test_AnalyserWaqua():
             
             self.setup_mocks(mocked_get_text, mocked_read_waqua_xyz, mocked_isfile)
 
-            success, output_data = waqua.analyse(fraction_of_year, rsigma)
+            output_data = waqua.analyse(fraction_of_year, rsigma)
 
-        assert success
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
         assert len(output_data.data_zmin) == 0
@@ -130,9 +128,8 @@ class Test_AnalyserWaqua():
                 
                 self.setup_mocks(mocked_get_text, mocked_read_waqua_xyz, mocked_isfile)
 
-                success, output_data = waqua.analyse(fraction_of_year, rsigma)
+                output_data = waqua.analyse(fraction_of_year, rsigma)
 
-        assert success
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
         assert len(output_data.data_zmin) == 0
