@@ -84,16 +84,15 @@ def analyse_and_report_waqua(
     Returns
     -------
     success : bool
-        Flag indicating whether analysis could be carried out.
+        Flag indicating whether analysis could be carried out. (always true)
     """
     waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
-    success, output_data = waqua.analyse(fraction_of_year, rsigma)
+    output_data = waqua.analyse(fraction_of_year, rsigma)
 
-    if success:
-        waqua_reporter = ReporterWaqua(outputdir)
-        waqua_reporter.write_report(output_data)
+    waqua_reporter = ReporterWaqua(outputdir)
+    waqua_reporter.write_report(output_data)
 
-    return success
+    return True
 
 class OutputDataWaqua():
     """
@@ -243,7 +242,7 @@ class AnalyserWaqua():
         self.ucrit = ucrit
         self.old_zmin_zmax = old_zmin_zmax
         
-    def analyse(self, fraction_of_year : Vector, rsigma : Vector) -> tuple[bool, OutputDataWaqua]:
+    def analyse(self, fraction_of_year : Vector, rsigma : Vector) -> OutputDataWaqua:
         """
         Read data from samples files exported from WAQUA simulations and performanalysis.
 
@@ -256,22 +255,19 @@ class AnalyserWaqua():
 
         Returns
         -------
-        success : bool
-            Flag indicating whether analysis could be carried out.
         output_data : OutputDataWaqua
             data used to generate a report.
         """   
-        success, dzq, first_min_velocity_m, first_min_velocity_n = self._get_output_values()
+        dzq, first_min_velocity_m, first_min_velocity_n = self._process_files()
         output_data = self._calculate_output_data(fraction_of_year, rsigma, dzq, first_min_velocity_m, first_min_velocity_n)
-        return success, output_data
+        return output_data
 
-    def _get_output_values(self) -> Tuple[bool, numpy.ndarray, int, int]:
-        success = True
+    def _process_files(self) -> Tuple[numpy.ndarray, int, int]:
         first_discharge = True
         dzq : List[Optional[Union[float, numpy.ndarray]]]
         dzq = [None] * len(self.discharges)
         for i in range(3):
-            if success and self.apply_q[i]:
+            if self.apply_q[i]:
                 stage = i+1
                 discharge_value = self.discharges[i]
                 
@@ -280,7 +276,7 @@ class AnalyserWaqua():
                     dzq[i] = numpy.array([])
                 else:
                     u0temp, h0temp, u1temp = self._read_files(stage, files)
-                    dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
+                    dzq[i] = self._calculate_waqua_bedlevel_values(u0temp, h0temp, u1temp)
                     
                 if first_discharge:
                     if not files:
@@ -290,12 +286,9 @@ class AnalyserWaqua():
                         first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
                         first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
                     first_discharge = False
-                        
-                if dzq[i] is None:
-                    success = False
             else:
                 dzq[i] = 0.0
-        return success, dzq, first_min_velocity_m, first_min_velocity_n
+        return dzq, first_min_velocity_m, first_min_velocity_n
 
     def _search_files(self, stage: int, discharge_value: float) -> list:
         cblok = str(stage)
@@ -343,7 +336,7 @@ class AnalyserWaqua():
         else:
             return 0
 
-    def _calculate_waqua_values(self, u0temp : numpy.ndarray, h0temp : numpy.ndarray, u1temp : numpy.ndarray) -> numpy.ndarray:
+    def _calculate_waqua_bedlevel_values(self, u0temp : numpy.ndarray, h0temp : numpy.ndarray, u1temp : numpy.ndarray) -> numpy.ndarray:
         m = u0temp[:, 1].astype(int) - 1
         n = u0temp[:, 2].astype(int) - 1
         u0temp_first_column  = u0temp[:, 0]
