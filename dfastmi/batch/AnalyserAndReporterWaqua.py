@@ -294,8 +294,6 @@ class AnalyserWaqua():
                     files = self._search_files(stage, discharge_value)
                     if not files:
                         dzq[i] = numpy.array([])
-                        min_velocity_m = 0
-                        min_velocity_n = 0
                     else:
                         u0temp, h0temp, u1temp = self._read_files(stage, files)
                         _, _, dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
@@ -336,18 +334,28 @@ class AnalyserWaqua():
         u1temp = DataTextFileOperations.read_waqua_xyz(files[2])
         
         return u0temp, h0temp, u1temp
+    
+    def _calculate_waqua_values_minimal_velocity_m(self, velocity_u0temp : numpy.ndarray) -> int:
+        if self.reduced_output:
+            m = velocity_u0temp[:, 1].astype(int) - 1
+            return min(m)
+        else:
+            return 0
+        
+    def _calculate_waqua_values_minimal_velocity_n(self, velocity_u0temp : numpy.ndarray) -> int:
+        if self.reduced_output:
+            n = velocity_u0temp[:, 2].astype(int) - 1
+            return min(n)
+        else:
+            return 0
 
     def _calculate_waqua_values(self, u0temp : numpy.ndarray, h0temp : numpy.ndarray, u1temp : numpy.ndarray) -> Tuple[int, int, numpy.ndarray]:
         m = u0temp[:, 1].astype(int) - 1
         n = u0temp[:, 2].astype(int) - 1
-        u0temp = u0temp[:, 0]
-
-        if self.reduced_output:
-            min_velocity_m = min(m)
-            min_velocity_n = min(n)
-        else:
-            min_velocity_m = 0
-            min_velocity_n = 0
+        u0temp_first_column  = u0temp[:, 0]
+            
+        min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
+        min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
             
         szm = max(m) + 1 - min_velocity_m
         szn = max(n) + 1 - min_velocity_n
@@ -358,7 +366,7 @@ class AnalyserWaqua():
         h0 = numpy.zeros([szk])
         u1 = numpy.zeros([szk])
 
-        u0[k] = u0temp
+        u0[k] = u0temp_first_column 
         h0[k] = h0temp
         u1[k] = u1temp
 
