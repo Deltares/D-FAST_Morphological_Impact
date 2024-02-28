@@ -161,10 +161,56 @@ class ReporterWaqua():
     def _get_file_location(self, output_file_name : str) -> str:
         return self.output_dir + os.sep + ApplicationSettingsHelper.get_filename(output_file_name)
 
+class _WaquaLogger():
+    def __init__(self, display : bool, report : TextIO):
+        self.display = display
+        self.report = report
+    
+    def log_closing_statement_input(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text("")
+
+    def log_input_file_found(self, cifil : str):
+        if self.display:
+            ApplicationSettingsHelper.log_text("input_xyz_found", dict={"name": cifil})
+
+    def log_input_name(self, discriptions : List[str], i : int):
+        if self.display:
+            ApplicationSettingsHelper.log_text("input_xyz_name", dict={"name": discriptions[i]})
+
+    def log_input_initialization(self, stage : int, discharge_value : float):
+        if self.display:
+            ApplicationSettingsHelper.log_text("input_xyz", dict={"stage": stage, "q": discharge_value})
+            ApplicationSettingsHelper.log_text("---")
+            ApplicationSettingsHelper.log_text("")
+
+    def log_file_not_found(self, cifil : str):
+        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil})
+        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil}, file=self.report)
+        ApplicationSettingsHelper.log_text("end_program", file=self.report)
+        
+    def log_input_stage(self, stage : int):
+        if self.display:
+            ApplicationSettingsHelper.log_text("input_xyz_read", dict={"stage": stage})
+            
+    def log_dividers(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text("---")
+            
+    def log_char_bed_changes(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text("char_bed_changes")
+            
+    def print_cifil(self, cifil : str):
+        if self.display:
+            print(cifil)
+
 class AnalyserWaqua():
     """
     Class that analyses information for waqua.
     """
+    _logger : _WaquaLogger
+    
     def __init__(self, display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax):
         """
         Init of the analyser.
@@ -189,8 +235,7 @@ class AnalyserWaqua():
         old_zmin_zmax : bool
             Specifies the minimum and maximum should follow old or new definition.
         """
-        self.display = display
-        self.report = report
+        self._logger = _WaquaLogger(display, report)
         self.reduced_output = reduced_output
         self.tstag = tstag
         self.discharges = discharges
@@ -258,8 +303,8 @@ class AnalyserWaqua():
         firstn : int
             Minimum N index read (0 if reduced_output is False).
         """
-        files_found, files = self._search_files(stage, discharge_value)
-        if not files_found:
+        files = self._search_files(stage, discharge_value)
+        if not files:
             return numpy.array([]), 0, 0
 
         u0temp, h0temp, u1temp = self._read_files(stage, files)
@@ -267,39 +312,31 @@ class AnalyserWaqua():
             
         return dzq, firstm, firstn
     
-    def _search_files(self, stage: int, discharge_value: float) -> Tuple[bool, list]:
+    def _search_files(self, stage: int, discharge_value: float) -> list:
         cblok = str(stage)
-        if self.display:
-            ApplicationSettingsHelper.log_text("input_xyz", dict={"stage": stage, "q": discharge_value})
-            ApplicationSettingsHelper.log_text("---")
-            ApplicationSettingsHelper.log_text("")
+        
+        self._logger.log_input_initialization(stage, discharge_value)
 
         discriptions = ApplicationSettingsHelper.get_text("file_descriptions")
         quantities = ["velocity-zeta.001", "waterdepth-zeta.001", "velocity-zeta.002"]
         files = []
         for i in range(3):
-            if self.display:
-                ApplicationSettingsHelper.log_text("input_xyz_name", dict={"name": discriptions[i]})
+            self._logger.log_input_name(discriptions, i)
             cifil = "xyz_" + quantities[i] + ".Q" + cblok + ".xyz"
-            if self.display:
-                print(cifil)
+            self._logger.print_cifil(cifil)
+            
             if not os.path.isfile(cifil):
-                ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil})
-                ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil}, file=self.report)
-                ApplicationSettingsHelper.log_text("end_program", file=self.report)
-                return False, files
+                self._logger.log_file_not_found(cifil)
+                return None
             else:
-                if self.display:
-                    ApplicationSettingsHelper.log_text("input_xyz_found", dict={"name": cifil})
+                self._logger.log_input_file_found(cifil)
             files.extend([cifil])
-            if self.display:
-                ApplicationSettingsHelper.log_text("")
+            self._logger.log_closing_statement_input()
                 
-        return True, files
+        return files
     
     def _read_files(self, stage : int, files : list) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-        if self.display:
-            ApplicationSettingsHelper.log_text("input_xyz_read", dict={"stage": stage})
+        self._logger.log_input_stage(stage)
             
         u0temp = DataTextFileOperations.read_waqua_xyz(files[0], cols=(2, 3, 4))
         h0temp = DataTextFileOperations.read_waqua_xyz(files[1])
@@ -339,14 +376,12 @@ class AnalyserWaqua():
 
         dzq = dfastmi.kernel.core.dzq_from_du_and_h(u0, h0, u1, self.ucrit)
         
-        if self.display:
-            ApplicationSettingsHelper.log_text("---")
+        self._logger.log_dividers()
             
         return firstm, firstn, dzq
     
     def _calculate_output_data(self, fraction_of_year : Vector, rsigma : Vector, dzq : numpy.ndarray, firstm : int, firstn : int) -> OutputDataWaqua:
-        if self.display:
-            ApplicationSettingsHelper.log_text("char_bed_changes")
+        self._logger.log_char_bed_changes()
                 
         if self.tstag > 0:
             dzq = [dzq[0], 0.0, dzq[1], dzq[2]]
