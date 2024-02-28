@@ -272,46 +272,39 @@ class AnalyserWaqua():
         dzq = [None] * len(self.discharges)
         for i in range(3):
             if success and self.apply_q[i]:
+                stage = i+1
+                discharge_value = self.discharges[i]
+                
                 if first_discharge:
-                    dzq[i], min_velocity_m, min_velocity_n = self._get_values_waqua(i+1, self.discharges[i])
+                    stage = i+1
+                    discharge_value = self.discharges[i]
+                    files = self._search_files(stage, discharge_value)
+                    if not files:
+                        dzq[i] = numpy.array([])
+                        min_velocity_m = 0
+                        min_velocity_n = 0
+                    else:
+                        u0temp, h0temp, u1temp = self._read_files(stage, files)
+                        min_velocity_m, min_velocity_n, dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
+                    
                     first_discharge = False
-                else:
-                    dzq[i], _, _ = self._get_values_waqua(i+1, self.discharges[i])
+                else:                    
+                    stage = i+1
+                    discharge_value = self.discharges[i]
+                    files = self._search_files(stage, discharge_value)
+                    if not files:
+                        dzq[i] = numpy.array([])
+                        min_velocity_m = 0
+                        min_velocity_n = 0
+                    else:
+                        u0temp, h0temp, u1temp = self._read_files(stage, files)
+                        _, _, dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
                 if dzq[i] is None:
                     success = False
             else:
                 dzq[i] = 0.0
         return success, dzq, min_velocity_m, min_velocity_n
 
-    def _get_values_waqua(self, stage: int, discharge_value: float) -> Tuple[numpy.ndarray, int, int]:
-        """
-        Read data files exported from WAQUA for the specified stage, and return equilibrium bed level change and minimum M and N.
-
-        Arguments
-        ---------
-        stage : int
-            Discharge level (1, 2 or 3).
-        discharge_value : float
-            Discharge value.
-
-        Returns
-        -------
-        dzq : numpy.ndarray
-            Array containing equilibrium bed level change.
-        min_velocity_m : int
-            Minimum M index read (0 if reduced_output is False).
-        min_velocity_n : int
-            Minimum N index read (0 if reduced_output is False).
-        """
-        files = self._search_files(stage, discharge_value)
-        if not files:
-            return numpy.array([]), 0, 0
-
-        u0temp, h0temp, u1temp = self._read_files(stage, files)
-        min_velocity_m, min_velocity_n, dzq = self._calculate_waqua_values(u0temp, h0temp, u1temp)
-            
-        return dzq, min_velocity_m, min_velocity_n
-    
     def _search_files(self, stage: int, discharge_value: float) -> list:
         cblok = str(stage)
         
