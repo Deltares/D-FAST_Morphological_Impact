@@ -67,11 +67,11 @@ def analyse_and_report_waqua(
     tstag : float
         Number of days that the river is stagnant.
     discharges : Vector
-        Array of discharges; one for each forcing condition.
+        Array of discharges; one for each forcing condition. (Q list of discharges)
     apply_q : BoolVector
         A tuple of 3 flags indicating whether each value should be used or not.
     fraction_of_year : Vector
-        Fraction of year represented by each forcing condition.
+        Fraction of year represented by each forcing condition. (T list of fraction of year)
     rsigma : Vector
         Array of relaxation factors; one per forcing condition.
     ucrit : float
