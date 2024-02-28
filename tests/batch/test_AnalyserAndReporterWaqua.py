@@ -7,12 +7,12 @@ from dfastmi.batch.AnalyserAndReporterWaqua import AnalyserWaqua
 class Test_ReporterWaqua():
     def given_output_data_and_mocked_write_files_when_write_report_then_expect_3_calls_for_writing_report(self):
         reporter = ReporterWaqua("filepath")
-        firstm = 0
-        firstn = 0
+        first_min_velocity_m = 0
+        first_min_velocity_n = 0
         data_zgem = numpy.array([1, 2, 3, 4, 5])
         data_zmax = numpy.array([1, 2, 3, 4, 5])
         data_zmin = numpy.array([1, 2, 3, 4, 5])
-        output_data = OutputDataWaqua(firstm, firstn, data_zgem, data_zmax, data_zmin)
+        output_data = OutputDataWaqua(first_min_velocity_m, first_min_velocity_n, data_zgem, data_zmax, data_zmin)
         with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_filename') as mocked_get_file_name,\
         patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.write_simona_box') as mocked_write_simona_box:
             
