@@ -61,8 +61,8 @@ class Test_AnalyserWaqua():
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
         assert len(output_data.data_zmin) == 0
-        assert output_data.min_velocity_m == 0
-        assert output_data.min_velocity_n == 0
+        assert output_data.first_min_velocity_m == 0
+        assert output_data.first_min_velocity_n == 0
         
         
     @pytest.mark.parametrize("display, reduced_output, old_zmin_zmax", [
@@ -99,8 +99,8 @@ class Test_AnalyserWaqua():
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
         assert len(output_data.data_zmin) == 0
-        assert output_data.min_velocity_m == 0
-        assert output_data.min_velocity_n == 0
+        assert output_data.first_min_velocity_m == 0
+        assert output_data.first_min_velocity_n == 0
         
     @pytest.mark.parametrize("display, reduced_output, old_zmin_zmax", [
         (False, False, False),
@@ -136,8 +136,8 @@ class Test_AnalyserWaqua():
         assert len(output_data.data_zgem) == 0
         assert len(output_data.data_zmax) == 0
         assert len(output_data.data_zmin) == 0
-        assert output_data.min_velocity_m == 0
-        assert output_data.min_velocity_n == 0
+        assert output_data.first_min_velocity_m == 0
+        assert output_data.first_min_velocity_n == 0
         
     def setup_mocks(self, mocked_get_text, mocked_read_waqua_xyz, mocked_isfile):
         mocked_isfile.return_value = True

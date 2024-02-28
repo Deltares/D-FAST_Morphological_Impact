@@ -99,16 +99,16 @@ class OutputDataWaqua():
     """
     Class that holds the output data that is written to the report for waqua.
     """
-    def __init__(self, min_velocity_m : int, min_velocity_n : int, data_zgem : numpy.ndarray, data_zmax : numpy.ndarray, data_zmin : numpy.ndarray):
+    def __init__(self, first_min_velocity_m : int, first_min_velocity_n : int, data_zgem : numpy.ndarray, data_zmax : numpy.ndarray, data_zmin : numpy.ndarray):
         """
         Init of the OutputDataWaqua.
 
         Arguments
         ---------
-        min_velocity_m : int
-            Minimum M index read (0 if reduced_output is False).
-        min_velocity_n : int
-            Minimum N index read (0 if reduced_output is False).
+        first_min_velocity_m : int
+            first minimum M index read (0 if reduced_output is False).
+        first_min_velocity_n : int
+            first minimum N index read (0 if reduced_output is False).
         dzgem : numpy.ndarray
             Yearly mean bed level change.
         dzmax : numpy.ndarray
@@ -116,8 +116,8 @@ class OutputDataWaqua():
         dzmin : numpy.ndarray
             Minimum bed level change.
             """
-        self.min_velocity_m = min_velocity_m
-        self.min_velocity_n = min_velocity_n
+        self.first_min_velocity_m = first_min_velocity_m
+        self.first_min_velocity_n = first_min_velocity_n
         self.data_zgem = data_zgem
         self.data_zmax = data_zmax
         self.data_zmin = data_zmin
@@ -150,13 +150,13 @@ class ReporterWaqua():
             Output data that is to be writen to the related files.
         """
         avgdzb_file = self._get_file_location(self.avgdzb)
-        DataTextFileOperations.write_simona_box(avgdzb_file, output_data.data_zgem, output_data.min_velocity_m, output_data.min_velocity_n)
+        DataTextFileOperations.write_simona_box(avgdzb_file, output_data.data_zgem, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
         
         maxdzb_file = self._get_file_location(self.maxdzb)
-        DataTextFileOperations.write_simona_box(maxdzb_file, output_data.data_zmax, output_data.min_velocity_m, output_data.min_velocity_n)
+        DataTextFileOperations.write_simona_box(maxdzb_file, output_data.data_zmax, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
         
         mindzb_file = self._get_file_location(self.mindzb)
-        DataTextFileOperations.write_simona_box(mindzb_file, output_data.data_zmin, output_data.min_velocity_m, output_data.min_velocity_n)
+        DataTextFileOperations.write_simona_box(mindzb_file, output_data.data_zmin, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
         
     def _get_file_location(self, output_file_name : str) -> str:
         return self.output_dir + os.sep + ApplicationSettingsHelper.get_filename(output_file_name)
@@ -261,8 +261,8 @@ class AnalyserWaqua():
         output_data : OutputDataWaqua
             data used to generate a report.
         """   
-        success, dzq, min_velocity_m, min_velocity_n = self._get_output_values()
-        output_data = self._calculate_output_data(fraction_of_year, rsigma, dzq, min_velocity_m, min_velocity_n)
+        success, dzq, first_min_velocity_m, first_min_velocity_n = self._get_output_values()
+        output_data = self._calculate_output_data(fraction_of_year, rsigma, dzq, first_min_velocity_m, first_min_velocity_n)
         return success, output_data
 
     def _get_output_values(self) -> Tuple[bool, numpy.ndarray, int, int]:
@@ -275,33 +275,27 @@ class AnalyserWaqua():
                 stage = i+1
                 discharge_value = self.discharges[i]
                 
-                if first_discharge:
-                    stage = i+1
-                    discharge_value = self.discharges[i]
-                    files = self._search_files(stage, discharge_value)
-                    if not files:
-                        dzq[i] = numpy.array([])
-                        min_velocity_m = 0
-                        min_velocity_n = 0
-                    else:
-                        u0temp, h0temp, u1temp = self._read_files(stage, files)
-                        min_velocity_m, min_velocity_n, dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
+                files = self._search_files(stage, discharge_value)
+                if not files:
+                    dzq[i] = numpy.array([])
+                else:
+                    u0temp, h0temp, u1temp = self._read_files(stage, files)
+                    dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
                     
-                    first_discharge = False
-                else:                    
-                    stage = i+1
-                    discharge_value = self.discharges[i]
-                    files = self._search_files(stage, discharge_value)
+                if first_discharge:
                     if not files:
-                        dzq[i] = numpy.array([])
+                        first_min_velocity_m = 0
+                        first_min_velocity_n = 0
                     else:
-                        u0temp, h0temp, u1temp = self._read_files(stage, files)
-                        _, _, dzq[i] = self._calculate_waqua_values(u0temp, h0temp, u1temp)
+                        first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
+                        first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
+                    first_discharge = False
+                        
                 if dzq[i] is None:
                     success = False
             else:
                 dzq[i] = 0.0
-        return success, dzq, min_velocity_m, min_velocity_n
+        return success, dzq, first_min_velocity_m, first_min_velocity_n
 
     def _search_files(self, stage: int, discharge_value: float) -> list:
         cblok = str(stage)
@@ -349,7 +343,7 @@ class AnalyserWaqua():
         else:
             return 0
 
-    def _calculate_waqua_values(self, u0temp : numpy.ndarray, h0temp : numpy.ndarray, u1temp : numpy.ndarray) -> Tuple[int, int, numpy.ndarray]:
+    def _calculate_waqua_values(self, u0temp : numpy.ndarray, h0temp : numpy.ndarray, u1temp : numpy.ndarray) -> numpy.ndarray:
         m = u0temp[:, 1].astype(int) - 1
         n = u0temp[:, 2].astype(int) - 1
         u0temp_first_column  = u0temp[:, 0]
@@ -379,9 +373,9 @@ class AnalyserWaqua():
         
         self._logger.log_dividers()
             
-        return min_velocity_m, min_velocity_n, dzq
+        return dzq
     
-    def _calculate_output_data(self, fraction_of_year : Vector, rsigma : Vector, dzq : numpy.ndarray, min_velocity_m : int, min_velocity_n : int) -> OutputDataWaqua:
+    def _calculate_output_data(self, fraction_of_year : Vector, rsigma : Vector, dzq : numpy.ndarray, first_min_velocity_m : int, first_min_velocity_n : int) -> OutputDataWaqua:
         self._logger.log_char_bed_changes()
                 
         if self.tstag > 0:
@@ -399,5 +393,5 @@ class AnalyserWaqua():
             data_zmax = dzb[0]
             data_zmin = dzb[1]
                 
-        output_data = OutputDataWaqua(min_velocity_m, min_velocity_n, data_zgem, data_zmax, data_zmin)
+        output_data = OutputDataWaqua(first_min_velocity_m, first_min_velocity_n, data_zgem, data_zmax, data_zmin)
         return output_data
