@@ -27,10 +27,9 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional, Union, Dict, Any, Tuple
+from typing import Callable, Optional, Union, Dict, Any, Tuple
 import configparser
 from abc import ABC, abstractmethod
-from packaging import version
 
 class AFileNameRetriever(ABC):
     """
@@ -83,33 +82,27 @@ class AFileNameRetriever(ABC):
         except:
             raise Exception(f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.')
 
-def get_filename_retriever(imode : int, config : configparser.ConfigParser, need_tides : bool) -> AFileNameRetriever:
+class FileNameRetrieverFactory:
     """
-    Retrieves the expected file name retriever based on the given values.
-    
-        Arguments
-    ---------
-    imode : int
-        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
-
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
-        
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-
-    Returns
-    -------
-    filenames : AFileNameRetriever
-        returns the AFileNameRetriever which should be used.
+    Class is used to register and get creation of AFileNameRetriever Objects
     """
-    if imode == 0 or config is None:
-        return FileNameRetrieverUnsupported()
-    
-    if version.parse(config["General"]["Version"]) == version.parse("1"):
-        return FileNameRetrieverLegacy()
-    
-    return FileNameRetriever(need_tides)
+    _creators = {}
+    """Contains the AFileNameRetriever Objects creators to be used"""
+
+    def __init__(self):
+        self._creators = {}
+
+    def register_creator(self, version: str, creator: Callable[[bool], AFileNameRetriever]):
+        """Register creator function to create a AFileNameRetriever object."""
+        self._creators[version] = creator
+
+    def generate(self, version: str, needs_tide: bool) -> AFileNameRetriever:
+        """Call the Constructor function to generate AFileNameRetriever object."""
+        constructor = self._creators.get(version)
+        if constructor:
+            return constructor(needs_tide)
+        else:
+            return FileNameRetrieverUnsupported()
 
 class FileNameRetrieverUnsupported(AFileNameRetriever):
     """
