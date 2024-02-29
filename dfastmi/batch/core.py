@@ -487,7 +487,6 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
 
 def _initialize_file_name_retriever_factory() -> FileNameRetriever.FileNameRetrieverFactory:
     factory = FileNameRetriever.FileNameRetrieverFactory()
-    factory.register_creator(version.Version("0.0"), lambda needs_tide: FileNameRetriever.FileNameRetrieverUnsupported())
     factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetriever.FileNameRetrieverLegacy())
     factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever.FileNameRetriever(needs_tide))
     return factory
@@ -519,17 +518,19 @@ def get_filenames(
         can be the discharge index, discharge value or a tuple of forcing
         conditions, such as a Discharge and Tide forcing tuple.
     """
-
-    if imode != 0:
-        general_version = config.get("General", "Version", fallback= "0")
-    else:
-        general_version = "0"
-        
-    file_name_retriever_version = version.Version(general_version)
-    
     factory = _initialize_file_name_retriever_factory()
-    file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
+    
+    if imode != 0:
+        general_version = config.get("General", "Version", fallback= None)
+    else:
+        general_version = None
+
+    if general_version:
+        file_name_retriever_version = version.Version(general_version)
+    else:
+        file_name_retriever_version = None
         
+    file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
     return file_name_retriever.get_file_names(config)
 
 def analyse_and_report(
