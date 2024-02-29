@@ -13,6 +13,7 @@ class Test_FileNameRetriever():
             return factory
         
         @pytest.mark.parametrize("string_version", [
+            "1",
             "1.0",
             "1.0.0",
             "1.0.0.0"
@@ -43,6 +44,7 @@ class Test_FileNameRetriever():
             assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetriever)
         
         @pytest.mark.parametrize("string_version", [
+            "2",
             "2.0",
             "2.0.0",
             "2.0.0.0"
@@ -53,7 +55,7 @@ class Test_FileNameRetriever():
             when :  generate 
             then  : return FileNameRetrieverLegacy
             """
-            file_name_retriever_version = version.Version("2.0")
+            file_name_retriever_version = version.Version(string_version)
             file_name_retriever = factory.generate(file_name_retriever_version, True)
             assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetriever)
         
