@@ -645,12 +645,9 @@ def analyse_and_report(
         return AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
-            reach,
-            q_location,
             q_threshold,
             tstag,
             Q,
-            apply_q,
             T,
             rsigma,
             slength,

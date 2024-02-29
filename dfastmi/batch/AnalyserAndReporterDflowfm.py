@@ -46,12 +46,9 @@ import netCDF4
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
-    reach: str,
-    q_location: str,
     q_threshold: float,
     tstag: float,
     Q: Vector,
-    apply_q: BoolVector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -79,18 +76,12 @@ def analyse_and_report_dflowfm(
         Flag indicating text output to stdout.
     report : TextIO
         Text stream for log file.
-    reach : str
-        Name of the reach.
-    q_location : str
-        Name of the location at which the discharge is defined.
     q_threshold : float
         Threshold discharge above which the measure is active.
     tstag : float
         Fraction of year that the river is stagnant.
     Q : Vector
         Array of discharges; one for each forcing condition.
-    apply_q : BoolVector
-        A tuple of 3 flags indicating whether each value should be used or not.
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
