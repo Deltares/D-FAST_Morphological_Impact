@@ -27,13 +27,14 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
-
+from typing import Tuple
+from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.io.RiversObject import RiversObject
+
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.io.Reach import Reach
-
 class ConfigurationChecker(AConfigurationCheckerBase):
     """
         Check if a version 2 analysis configuration is valid.

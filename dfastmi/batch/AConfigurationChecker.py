@@ -32,10 +32,7 @@ from abc import ABC, abstractmethod
 from typing import Type, TypeVar
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.IReach import IReach
-
 from dfastmi.io.RiversObject import RiversObject
-
-T = TypeVar('T', bound=IReach)
 
 class AConfigurationCheckerBase(ABC):
     """
