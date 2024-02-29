@@ -46,6 +46,12 @@ class Test_analyse_and_report_waqua_mode():
         (True, False, True),
     ])   
     def given_varying_boolean_inputs_with_tstag_zero_when_analyse_and_report_waqua_then_return_expected_succes(self, tmp_path, display : bool, reduced_output : bool, old_zmin_zmax : bool):
+        """
+        given : varying boolean inputs with tstag zero
+        when :  analyse and report waqua 
+        then  : return expected succes
+        """
+        
         tstag = 0.0
         
         succes = self.setup_and_execute_analyse_and_report_waqua(tmp_path, display, reduced_output, old_zmin_zmax, tstag)
@@ -68,6 +74,11 @@ class Test_analyse_and_report_waqua_mode():
         (True, False, True),
     ])   
     def given_varying_boolean_inputs_with_tstag_above_zero_when_analyse_and_report_waqua_then_return_expected_succes(self, tmp_path, display : bool, reduced_output : bool, old_zmin_zmax : bool):
+        """
+        given : varying boolean inputs with tstag above zero
+        when :  analyse and report waqua 
+        then  : return expected succes
+        """
         tstag = 1.0
         
         succes = self.setup_and_execute_analyse_and_report_waqua(tmp_path, display, reduced_output, old_zmin_zmax, tstag)
