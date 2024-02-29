@@ -29,6 +29,15 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 import sys
+import os
+import math
+import configparser
+import numpy
+import matplotlib
+import shapely
+from packaging import version
+from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
 
 from dfastmi.io.Reach import ReachAdvanced
 from dfastmi.io.RiversObject import RiversObject
@@ -47,16 +56,8 @@ from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
 from dfastmi.batch.FileNameRetriever import FileNameRetriever
 from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
-import os
-import math
-import numpy
 import dfastmi.kernel.core
 import dfastmi.plotting
-
-import matplotlib
-import configparser
-import shapely
-from packaging import version
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
@@ -170,7 +171,7 @@ def batch_mode_core(
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
-                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationChecker.get_levels_v1(reach, config, nwidth)
+                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationCheckerLegacy()._get_levels(reach, config, nwidth)
                 needs_tide = False
                 n_fields = 1
 
@@ -857,20 +858,17 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
     success : bool
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
-    try:
-        cfg_version = config["General"]["Version"]
+    cfg_version = config.get("General", "Version", fallback=None)
         
-        if version.parse(cfg_version) != rivers.version:
-            return False
-        if version.parse(cfg_version) == version.parse("1.0"):
-            return ConfigurationChecker.check_configuration_v1(rivers, config)
-        else:
-            return ConfigurationChecker.check_configuration_v2(rivers, config)
+    try:        
+        configuration_version = version.parse(cfg_version)
+        configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
+        return configuration_checker.check_configuration(rivers, config)
     except SystemExit as e:
         raise e
     except:
         return False
-
+    
 def config_to_relative_paths(
     rootdir: str, config: configparser.ConfigParser
 ) -> configparser.ConfigParser:
