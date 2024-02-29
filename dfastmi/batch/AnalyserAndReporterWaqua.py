@@ -274,24 +274,26 @@ class AnalyserWaqua():
                 files = self._search_files(stage, discharge_value)
                 if not files:
                     dzq[i] = numpy.array([])
+                    u0temp = None
                 else:
                     u0temp, h0temp, u1temp = self._read_files(stage, files)
                     dzq[i] = self._calculate_waqua_bedlevel_values(u0temp, h0temp, u1temp)
                     
-                first_min_velocity_m, first_min_velocity_n = self.get_first_minimal_velocities(first_discharge, files, u0temp)
+                if first_discharge:
+                    first_min_velocity_m, first_min_velocity_n = self.get_first_minimal_velocities(files, u0temp)
+                    first_discharge = False
             else:
                 dzq[i] = 0.0
         return dzq, first_min_velocity_m, first_min_velocity_n
 
-    def get_first_minimal_velocities(self, first_discharge : bool, files : list, u0temp : numpy.ndarray) -> Tuple[int, int]:
-        if first_discharge:
-            if not files:
-                first_min_velocity_m = 0
-                first_min_velocity_n = 0
-            else:
-                first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
-                first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
-            first_discharge = False
+    def get_first_minimal_velocities(self, files : list, u0temp : numpy.ndarray) -> Tuple[int, int]:
+        if not files:
+            first_min_velocity_m = 0
+            first_min_velocity_n = 0
+        else:
+            first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
+            first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
+            
         return first_min_velocity_m,first_min_velocity_n
 
     def _search_files(self, stage: int, discharge_value: float) -> list:
