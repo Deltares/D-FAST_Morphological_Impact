@@ -12,11 +12,11 @@ class Test_FileNameRetriever():
             return factory
         
         def given_version_1_with_varying_needs_tide_when_generate_then_return_FileNameRetrieverLegacy(self, factory : FileNameRetriever.FileNameRetrieverFactory):
-          """"
-          given : version 1 with varying needs tide
-          when :  generate 
-          then  : FileNameRetrieverLegacy
-          """
+            """
+            given : version 1 with varying needs tide
+            when :  generate 
+            then  : return FileNameRetrieverLegacy
+            """
             version = "1.0"
             needs_tide = True
             file_name_retriever = factory.generate(version, needs_tide)
@@ -27,6 +27,11 @@ class Test_FileNameRetriever():
             False
         ])
         def given_version_2_with_varying_needs_tide_when_generate_then_return_FileNameRetriever(self, factory : FileNameRetriever.FileNameRetrieverFactory, needs_tide : bool):
+            """
+            given : version 2 with varying needs tide
+            when :  generate 
+            then  : return FileNameRetriever
+            """
             version = "2.0"
             file_name_retriever = factory.generate(version, needs_tide)
             assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetriever)
@@ -37,12 +42,22 @@ class Test_FileNameRetriever():
             None
         ])
         def given_unsupported_version_when_generate_then_return_FileNameRetrieverUnsupported(self, factory : FileNameRetriever.FileNameRetrieverFactory, version):
+            """
+            given : unsupported version
+            when :  generate 
+            then  : return FileNameRetrieverUnsupported
+            """
             needs_tide = True
             file_name_retriever = factory.generate(version, needs_tide)
             assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetrieverUnsupported)
     
     class Test_FileNameRetriever_Unsupported():
         def given_config_parser_when_get_file_names_unsupported_then_return_no_file_names(self):
+            """
+            given : config parser
+            when :  get file names unsupported 
+            then  : return no file names
+            """
             config = ConfigParser()
             fnrvu = FileNameRetriever.FileNameRetrieverUnsupported()
             
@@ -51,7 +66,12 @@ class Test_FileNameRetriever():
             assert len(filenames) == 0
     
     class Test_FileNameRetriever_legacy():
-        def given_partial_setup_config_parser_when_get_file_names_legacy_then_throw_exception_with_expected_message(self):
+        def given_partial_setup_config_parser_when_get_file_names_legacy_then_throw_key_error_with_expected_message(self):
+            """
+            given : partial setup config parser
+            when :  get file names legacy
+            then  : throw key error with expected message
+            """
             fnr_legacy = FileNameRetriever.FileNameRetrieverLegacy()
             
             key = "Reference"
@@ -66,6 +86,11 @@ class Test_FileNameRetriever():
             assert str(e.value.args[0]) == expected_exception_message
         
         def given_empty_config_parser_when_get_file_names_legacy_then_return_no_file_names(self):
+            """
+            given : empty config parser
+            when :  get file names legacy
+            then  : return no file names
+            """
             config = ConfigParser()
             fnr_legacy = FileNameRetriever.FileNameRetrieverLegacy()
             
@@ -74,6 +99,11 @@ class Test_FileNameRetriever():
             assert len(filenames) == 0
         
         def given_config_parser_with_data_when_get_file_names_legacy_then_return_expected_file_names(self):
+            """
+            given : config parser with data
+            when :  get file names legacy
+            then  : return expected file names
+            """
             config = ConfigParser()
             fnr_legacy = FileNameRetriever.FileNameRetrieverLegacy()
             
@@ -104,7 +134,12 @@ class Test_FileNameRetriever():
             True,
             False
         ])
-        def given_partial_setup_config_parser_when_get_file_names_then_throw_exception_with_expected_message(self, use_tide):
+        def given_partial_setup_config_parser_when_get_file_names_then_throw_key_error_with_expected_message(self, use_tide):
+            """
+            given : partial setup config parser
+            when :  get file names
+            then  : throw key error with expected message
+            """
             file_name_retriever = FileNameRetriever.FileNameRetriever(use_tide)
             
             key = "Discharge"
@@ -125,6 +160,11 @@ class Test_FileNameRetriever():
             "--=+"
         ])
         def given_config_parser_with_not_a_float_for_discharge_when_get_file_names_then_throw_type_error_with_expected_message(self, not_a_float_string):
+            """
+            given : config parser with not a float for discharge
+            when :  get file names
+            then  : throw type error with expected message
+            """
             file_name_retriever = FileNameRetriever.FileNameRetriever(False)
             
             key = "Discharge"
@@ -144,6 +184,11 @@ class Test_FileNameRetriever():
             False
         ])
         def given_empty_config_parser_when_get_file_names_then_return_no_file_names(self, use_tide):
+            """
+            given : empty config parser
+            when :  get file names
+            then  : return no file names
+            """
             config = ConfigParser()
             file_name_retriever = FileNameRetriever.FileNameRetriever(use_tide)
             
@@ -152,6 +197,11 @@ class Test_FileNameRetriever():
             assert len(filenames) == 0
         
         def given_config_parser_with_data_when_get_file_names_then_return_expected_file_names(self):
+            """
+            given : config parser with data
+            when :  get file names
+            then  : return expected file names
+            """
             config = ConfigParser()
             file_name_retriever = FileNameRetriever.FileNameRetriever(False)
             
@@ -166,6 +216,11 @@ class Test_FileNameRetriever():
             assert filenames[3.0] == q3_expected_filename
             
         def given_config_parser_with_data_and_need_of_tide_enable_when_get_file_names_then_return_expected_file_names_including_tide(self):
+            """
+            given : config parser with data and need of tide enable
+            when :  get file names
+            then  : return expected file names including tide
+            """
             config = ConfigParser()
             file_name_retriever = FileNameRetriever.FileNameRetriever(True)
             

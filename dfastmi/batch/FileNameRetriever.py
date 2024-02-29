@@ -26,6 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+
 """
 Module for Abstract class AFileNameRetriever, FileNameRetriever implementations and the FileNameRetrieverFactory classes
 
@@ -33,7 +34,7 @@ Abstract Class:
     AFileNameRetriever
     
 Class: 
-    FileNameRetrieverUnkown
+    FileNameRetrieverUnsupported
     FileNameRetrieverLegacy
     FileNameRetriever
 
