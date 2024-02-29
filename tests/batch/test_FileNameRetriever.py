@@ -12,6 +12,11 @@ class Test_FileNameRetriever():
             return factory
         
         def given_version_1_with_varying_needs_tide_when_generate_then_return_FileNameRetrieverLegacy(self, factory : FileNameRetriever.FileNameRetrieverFactory):
+          """"
+          given : version 1 with varying needs tide
+          when :  generate 
+          then  : FileNameRetrieverLegacy
+          """
             version = "1.0"
             needs_tide = True
             file_name_retriever = factory.generate(version, needs_tide)
@@ -51,7 +56,7 @@ class Test_FileNameRetriever():
             
             key = "Reference"
             chap = "Q1"
-            expected_exception_message = 'Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(key, chap)
+            expected_exception_message = f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.'
             
             config = ConfigParser()
             config.add_section(chap)
@@ -104,7 +109,7 @@ class Test_FileNameRetriever():
             
             key = "Discharge"
             chap = "C1"
-            expected_exception_message = 'Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(key, chap)
+            expected_exception_message = f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.'
             
             config = ConfigParser()
             config.add_section(chap)
