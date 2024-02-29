@@ -46,6 +46,7 @@ Static Class:
 from typing import Callable, Optional, Union, Dict, Any, Tuple
 import configparser
 from abc import ABC, abstractmethod
+from packaging import version
 
 class AFileNameRetriever(ABC):
     """
@@ -108,17 +109,17 @@ class FileNameRetrieverFactory:
     def __init__(self):
         self._creators = {}
 
-    def register_creator(self, version: str, creator: Callable[[bool], AFileNameRetriever]):
+    def register_creator(self, file_name_retriever_version: version, creator: Callable[[bool], AFileNameRetriever]):
         """Register creator function to create a AFileNameRetriever object."""
-        self._creators[version] = creator
+        self._creators[file_name_retriever_version] = creator
 
-    def generate(self, version: str, needs_tide: bool) -> AFileNameRetriever:
+    def generate(self, file_name_retriever_version: version, needs_tide: bool) -> AFileNameRetriever:
         """
         Call the Constructor function to generate AFileNameRetriever object.
         
         Arguments
         ---------
-        version: str
+        file_name_retriever_version: version
             Version to retrieve the FileNameRetriever for.
         needs_tide : bool
             Specifies whether the tidal boundary is needed.
@@ -128,7 +129,7 @@ class FileNameRetrieverFactory:
         FileNameRetriever : AFileNameRetriever
             AFileNameRetriever object based on the given version, if no valid FileNameRetriever can be found FileNameRetrieverUnsupported is returned.
         """
-        constructor = self._creators.get(version)
+        constructor = self._creators.get(file_name_retriever_version)
         if constructor:
             return constructor(needs_tide)
         else:
