@@ -278,17 +278,21 @@ class AnalyserWaqua():
                     u0temp, h0temp, u1temp = self._read_files(stage, files)
                     dzq[i] = self._calculate_waqua_bedlevel_values(u0temp, h0temp, u1temp)
                     
-                if first_discharge:
-                    if not files:
-                        first_min_velocity_m = 0
-                        first_min_velocity_n = 0
-                    else:
-                        first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
-                        first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
-                    first_discharge = False
+                first_min_velocity_m, first_min_velocity_n = self.get_first_minimal_velocities(first_discharge, files, u0temp)
             else:
                 dzq[i] = 0.0
         return dzq, first_min_velocity_m, first_min_velocity_n
+
+    def get_first_minimal_velocities(self, first_discharge : bool, files : list, u0temp : numpy.ndarray) -> Tuple[int, int]:
+        if first_discharge:
+            if not files:
+                first_min_velocity_m = 0
+                first_min_velocity_n = 0
+            else:
+                first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
+                first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
+            first_discharge = False
+        return first_min_velocity_m,first_min_velocity_n
 
     def _search_files(self, stage: int, discharge_value: float) -> list:
         cblok = str(stage)
@@ -305,7 +309,7 @@ class AnalyserWaqua():
             
             if not os.path.isfile(cifil):
                 self._logger.log_file_not_found(cifil)
-                return None
+                return []
             else:
                 self._logger.log_input_file_found(cifil)
             files.extend([cifil])
