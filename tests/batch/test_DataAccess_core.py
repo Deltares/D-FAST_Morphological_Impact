@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from dfastmi.batch.ConfigurationCheckerLegacy import WAQUA_EXPORT, DFLOWFM_MAP
 import dfastmi.batch.core
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
 from dfastmi.io.RiversObject import RiversObject
 from configparser import ConfigParser
@@ -24,7 +25,7 @@ class Test_batch_save_configuration_file():
         file_path = tmp_path / "test_file.cfg"
         config = self.sample_config(tmp_path)
         
-        dfastmi.batch.core.save_configuration_file(file_path, config)
+        ConfigFileOperations.save_configuration_file(file_path, config)
         
         assert os.path.exists(file_path)
         with open(file_path, 'r') as file:

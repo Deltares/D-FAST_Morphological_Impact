@@ -7,6 +7,7 @@ import dfastmi.batch.core
 from contextlib import contextmanager
 from io import StringIO
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.Reach import Reach
 from dfastmi.io.CelerObject import CelerProperties, CelerDischarge
@@ -276,7 +277,7 @@ class Test_batch_mode():
         try:
             os.chdir(tstdir)
             config_file = "Qmin_4000_v2.cfg"
-            config = dfastmi.batch.core.load_configuration_file(config_file)
+            config = ConfigFileOperations.load_configuration_file(config_file)
             rootdir = os.path.dirname(config_file)
             with pytest.raises(Exception) as cm:
                 dfastmi.batch.core.batch_mode_core(rivers, False, config, rootdir)

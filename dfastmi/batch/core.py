@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional, List, Dict, Any, Tuple, TextIO
+from typing import Optional, Dict, Any, Tuple, TextIO
 import sys
 import os
 import math
@@ -45,8 +45,6 @@ from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
-from dfastmi.io.FileUtils import FileUtils
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch import AnalyserAndReporterWaqua
@@ -82,7 +80,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
         ApplicationSettingsHelper.log_text("reduce_output")
 
     try:
-        config = load_configuration_file(config_file)
+        config = ConfigFileOperations.load_configuration_file(config_file)
         rootdir = os.path.dirname(config_file)
     except:
         print(sys.exc_info()[1])
@@ -762,10 +760,14 @@ def write_report(
         ApplicationSettingsHelper.log_text(
             "need_multiple_input", dict={"reach": reach, "numq": nQ}, file=report,
         )
+
+    stagenames = ["lowwater", "transition", "highwater"]
+    # Code name of the discharge level.
+
     for i in range(3):
         if not Q[i] is None:
             ApplicationSettingsHelper.log_text(
-                stagename(i), dict={"q": Q[i], "border": q_location}, file=report
+                stagenames[i], dict={"q": Q[i], "border": q_location}, file=report
             )
     ApplicationSettingsHelper.log_text("---", file=report)
     if slength > 1:
@@ -774,92 +776,6 @@ def write_report(
         nlength = slength
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     ApplicationSettingsHelper.log_text("prepare_input", file=report)
-
-def config_to_absolute_paths(
-    rootdir: str, config: configparser.ConfigParser
-) -> configparser.ConfigParser:
-    """
-    Convert a configuration object to contain absolute paths (for editing).
-
-    Arguments
-    ---------
-    rootdir : str
-        The path to be used as base for the absolute paths.
-    config : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with absolute or relative paths.
-
-    Returns
-    -------
-    aconfig : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
-    """
-    for key in ("RiverKM", "FigureDir", "OutputDir"):
-        if key in config["General"]:
-            _update_to_absolute_path(rootdir, config, "General", key)
-    for qstr in config.keys():
-        if "Reference" in config[qstr]:
-            _update_to_absolute_path(rootdir, config, qstr, "Reference")
-        if "WithMeasure" in config[qstr]:
-            _update_to_absolute_path(rootdir, config, qstr, "WithMeasure")
-    return config
-
-def _update_to_absolute_path(rootdir : str, config : configparser.ConfigParser, section : str, key : str):
-    """
-    Convert a configuration object to contain absolute paths (for editing).
-     Arguments
-    ---------
-    rootdir : str
-        The path to be used as base for the absolute paths.
-    config : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with relative paths 
-        to be converted to absolute paths.
-    section : str
-        Where in the configuration we need to update the relative path
-    key : str
-        Where in the configuration we need to update the relative path
-
-    Returns
-    -------
-    aconfig : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
-    """
-    relative_path = config.get(section, key, fallback="")
-    relative_path_converted_to_absolute_path = FileUtils.absolute_path(rootdir, relative_path)
-    config.set(section, key, relative_path_converted_to_absolute_path)
-
-def load_configuration_file(filename: str) -> configparser.ConfigParser:
-    """
-    Open a configuration file and return a configuration object with absolute paths.
-
-    Arguments
-    ---------
-    filename : str
-        The name of the file: all relative paths in the configuration will be assumed relative to this.
-
-    Raises
-    ------
-    Exception
-        If the configuration file does not include version information.
-        If the version number in the configuration file is not equal to 1.0.
-
-    Returns
-    -------
-    aconfig : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
-    """
-    config = configparser.ConfigParser()
-    with open(filename, "r") as configfile:
-        config.read_file(configfile)
-    
-    file_version = config.get("General", "Version", fallback= "")
-    if len(file_version) == 0 :
-        raise LookupError("No version information in the file!")
-
-    if not (version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2")):
-        raise ValueError(f"Unsupported version number {file_version} in the file!")
-
-    rootdir = os.path.dirname(filename)
-    return config_to_absolute_paths(rootdir, config)
 
 def check_configuration(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
     """
@@ -887,193 +803,4 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
         raise e
     except:
         return False
-    
-def config_to_relative_paths(
-    rootdir: str, config: configparser.ConfigParser
-) -> configparser.ConfigParser:
-    """
-    Convert a configuration object to contain relative paths (for saving).
 
-    Arguments
-    ---------
-    rootdir : str
-        The path to be used as base for the absolute paths.
-    config : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
-
-    Returns
-    -------
-    rconfig : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
-    """
-    for key in ("RiverKM", "FigureDir", "OutputDir"):
-        if key in config["General"]:
-            _update_to_relative_path(rootdir, config, "General", key)
-    for qstr in config.keys():
-        if "Reference" in config[qstr]:
-            _update_to_relative_path(rootdir, config, qstr, "Reference")
-        if "WithMeasure" in config[qstr]:
-            _update_to_relative_path(rootdir, config, qstr, "WithMeasure")
-    return config
-
-def _update_to_relative_path(rootdir : str, config : configparser.ConfigParser, section : str, key : str):
-    """
-    Convert a configuration object to contain absolute paths (for editing).
-     Arguments
-    ---------
-    rootdir : str
-        The path to be used as base for the absolute paths.
-    config : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with absolute paths 
-        to be converted to relative paths.
-    section : str
-        Where in the configuration we need to update the absolute path
-    key : str
-        Where in the configuration we need to update the absolute path
-
-    Returns
-    -------
-    aconfig : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis with only relative paths.
-    """
-    absolute_path = config.get(section, key, fallback="")
-    absolute_path_converted_to_relative_path = FileUtils.relative_path(rootdir, absolute_path)
-    config.set(section, key, absolute_path_converted_to_relative_path)
-
-def save_configuration_file(filename: str, config):
-    """
-    Convert a configuration to relative paths and save to file.
-
-    Arguments
-    ---------
-    filename : str
-        The name of the configuration file to be saved.
-    config : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis to be saved.
-
-    Returns
-    -------
-    None
-    """
-    rootdir = os.path.dirname(filename)
-    config = config_to_relative_paths(rootdir, config)
-    ConfigFileOperations.write_config(filename, config)
-
-def stagename(i: int) -> str:
-    """
-    Code name of the discharge level.
-
-    Arguments
-    ---------
-    i : int
-        Integer level specification.
-
-    Returns
-    -------
-    name : str
-        Name of the discharge level.
-    """
-    stagenames = ["lowwater", "transition", "highwater"]
-    return stagenames[i]
-
-def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> List[Tuple[float, float]]:
-    """
-    Zoom .
-
-    Arguments
-    ---------
-    km_min : float
-        Minimum value for the chainage range of interest.
-    km_max : float
-        Maximum value for the chainage range of interest.
-    zoom_km_step : float
-        Preferred chainage length of zoom box.
-    xykline : numpy.ndarray 
-        Array containing the x,y and chainage data of a line.
-
-    Returns
-    -------
-    kmzoom : List[Tuple[float, float]]
-        Zoom ranges for plots with chainage along x-axis.
-    xyzoom : List[Tuple[float, float, float, float]]
-        Zoom ranges for xy-plots.
-    """
-
-    zoom_km_bin = (km_min, km_max, zoom_km_step)
-    zoom_km_bnd = get_km_bins(zoom_km_bin, type=0, adjust=True)
-    eps = 0.1 * zoom_km_step
-
-    kmzoom: List[Tuple[float, float]] = []
-    xyzoom: List[Tuple[float, float, float, float]] = []
-    for i in range(len(zoom_km_bnd)-1):
-        km_min = zoom_km_bnd[i] - eps
-        km_max = zoom_km_bnd[i + 1] + eps
-
-        # only append zoom range if there are any chainage points in that range
-        # (might be none if there is a chainage discontinuity in the region of
-        # interest)
-        irange = (xykline[:,2] >= km_min) & (xykline[:,2] <= km_max)
-        if any(irange):
-           kmzoom.append((km_min, km_max))
-           
-           range_crds = xykline[irange, :]
-           x = range_crds[:, 0]
-           y = range_crds[:, 1]
-           xmin = min(x)
-           xmax = max(x)
-           ymin = min(y)
-           ymax = max(y)
-           xyzoom.append((xmin, xmax, ymin, ymax))
-
-    return kmzoom, xyzoom
-
-def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool = False) -> numpy.ndarray:
-    """
-    [identical to dfastbe.kernel.get_km_bins]
-    Get an array of representative chainage values.
-    
-    Arguments
-    ---------
-    km_bin : Tuple[float, float, float]
-        Tuple containing (start, end, step) for the chainage bins
-    type : int
-        Type of characteristic chainage values returned
-            0: all bounds (N+1 values)
-            1: lower bounds (N values)
-            2: upper bounds (N values) - default
-            3: mid points (N values)
-    adjust : bool
-        Flag indicating whether the step size should be adjusted to include an integer number of steps
-    
-    Returns
-    -------
-    km : numpy.ndarray
-        Array containing the chainage bin upper bounds
-    """
-    km_step = km_bin[2]
-    nbins = int(math.ceil((km_bin[1] - km_bin[0]) / km_step))
-    
-    lb = 0
-    ub = nbins + 1
-    dx = 0.0
-    
-    if adjust:
-        km_step = (km_bin[1] - km_bin[0]) / nbins
-
-    if type == 0:
-        # all bounds
-        pass
-    elif type == 1:
-        # lower bounds
-        ub = ub - 1
-    elif type == 2:
-        # upper bounds
-        lb = lb + 1
-    elif type == 3:
-        # midpoint values
-        ub = ub - 1
-        dx = km_bin[2] / 2
-
-    km = km_bin[0] + dx + numpy.arange(lb, ub) * km_step
-
-    return km

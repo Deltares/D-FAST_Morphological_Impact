@@ -38,6 +38,7 @@ from PyQt5 import QtWidgets
 import PyQt5.QtGui
 import dfastmi.batch.core
 from dfastmi.io.Reach import Reach
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 import dfastmi.kernel.core
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.FileUtils import FileUtils
@@ -447,7 +448,7 @@ def load_configuration(filename: str) -> None:
         Name of the configuration file to be opened.
     """
     try:
-        config = dfastmi.batch.core.load_configuration_file(filename)
+        config = ConfigFileOperations.load_configuration_file(filename)
     except:
         if filename != "dfastmi.cfg":
             showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
@@ -527,7 +528,7 @@ def menu_save_configuration() -> None:
     filename = fil[0]
     if filename != "":
         config = get_configuration()
-        dfastmi.batch.core.save_configuration_file(filename, config)
+        ConfigFileOperations.save_configuration_file(filename, config)
 
 
 def get_configuration() -> configparser.ConfigParser:
