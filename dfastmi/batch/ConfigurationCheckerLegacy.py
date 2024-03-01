@@ -274,6 +274,56 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         else:
             q_bankfull = 0
         return q_bankfull
+    def _get_q_bankfull_from_config(self, config, q_threshold, q_levels):
+        """
+        Get the simulation discharge at which measure reaches bankfull 
+        from configuration in batch mode (no user interaction).
+
+        Arguments
+        ---------
+        config : configparser.ConfigParser
+            Configuration of the analysis to be run.
+        q_threshold : Optional[float]
+            River discharge at which the measure becomes active 
+        q_levels : 
+            Characteristic discharges used by algorithm [m3/s].
+        Results
+        -------
+        q_bankfull : float
+            River discharge at which the measure is bankfull [m3/s].
+        """
+        if q_threshold is None or q_threshold < q_levels[1]:
+            q_bankfull = config.get("General", "Qbankfull", fallback="")
+            if self._is_float_str(q_bankfull):
+                q_bankfull = float(q_bankfull)
+            else:
+                q_bankfull = 0
+        else:
+            q_bankfull = 0
+
+    def _get_q_threshold_from_config(self, config):
+        """
+        Get the simulation discharge threshold from configuration in batch mode (no user interaction).
+
+        Arguments
+        ---------
+        config : configparser.ConfigParser
+            Configuration of the analysis to be run.
+        
+        Results
+        -------
+        q_threshold : Optional[float]
+            River discharge at which the measure becomes active [m3/s].
+        """
+
+        q_threshold = config.get("General", "Qthreshold", fallback="")
+        if self._is_float_str(q_threshold):
+            q_threshold = float(q_threshold)
+        else:
+            q_threshold = None
+        return q_threshold
+
+        return q_bankfull
 
     def _get_q_threshold_from_config(self, config):
         """
