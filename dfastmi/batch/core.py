@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 import sys
+
 from dfastmi.io.Reach import ReachAdvanced
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import Vector, BoolVector, QRuns
@@ -41,7 +42,10 @@ from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch import AnalyserAndReporterWaqua
 from dfastmi.batch import ConfigurationChecker
-from dfastmi.batch import FileNameRetriever
+
+from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from dfastmi.batch.FileNameRetriever import FileNameRetriever
+from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
 import os
 import math
@@ -485,6 +489,12 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
 
     return T, time_mi
 
+def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
+    factory = FileNameRetrieverFactory()
+    factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
+    factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
+    return factory
+
 def get_filenames(
     imode: int,
     needs_tide: bool,
@@ -512,15 +522,20 @@ def get_filenames(
         can be the discharge index, discharge value or a tuple of forcing
         conditions, such as a Discharge and Tide forcing tuple.
     """
-    filenames: Dict[Any, Tuple[str,str]]
-    if imode == 0 or config is None:
-        filenames = {}
-    elif version.parse(config["General"]["Version"]) == version.parse("1"):
-        filenames = FileNameRetriever.get_filenames_version1(config)
+    factory = _initialize_file_name_retriever_factory()
+    
+    if imode != 0:
+        general_version = config.get("General", "Version", fallback= None)
     else:
-        filenames = FileNameRetriever.get_filenames_version2(needs_tide, config)
+        general_version = None
 
-    return filenames
+    if general_version:
+        file_name_retriever_version = version.Version(general_version)
+    else:
+        file_name_retriever_version = None
+        
+    file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
+    return file_name_retriever.get_file_names(config)
 
 def analyse_and_report(
     imode: int,
