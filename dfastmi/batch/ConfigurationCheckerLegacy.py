@@ -27,10 +27,9 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 import dfastmi.kernel.core
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Reach import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import BoolVector, QRuns, Vector
@@ -134,8 +133,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
 
         Return
         ------
-        Q : Vector
-            Array of discharges; one for each forcing condition [m3/s].
+        discharges : Vector
+            Array of discharges (Q); one for each forcing condition [m3/s].
         apply_q : BoolVector
             A list of flags indicating whether the corresponding entry in Q should be used.
         q_threshold : float
@@ -144,8 +143,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
         tstag : float
             Fraction of year during which flow velocity is considered negligible [-].
-        T : Vector
-            A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+        fractions_of_the_year : Vector
+            A vector of values each representing the fraction of the year (T) during which the discharge is given by the corresponding entry in Q [-].
         rsigma : Vector
             A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
         celerity : Vector
@@ -156,24 +155,21 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         celerity_lw = reach.proprate_low
 
         (
-            all_q,
             q_threshold,
-            q_bankfull,
-            q_fit,
             Q1,
             apply_q1,
             tstag,
-            T,
+            fractions_of_the_year,
             rsigma,
         ) = self._batch_get_discharges(
             reach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
         )
-        Q = Q1
+        discharges = Q1
         apply_q = apply_q1
-        time_mi = tuple(0 if Q[i] is None or Q[i]<=q_stagnant else T[i] for i in range(len(T)))
+        time_mi = tuple(0 if discharges[i] is None or discharges[i]<=q_stagnant else fractions_of_the_year[i] for i in range(len(fractions_of_the_year)))
         celerity = (celerity_lw, celerity_hg, celerity_hg)
 
-        return (Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity)
+        return (discharges, apply_q, q_threshold, time_mi, tstag, fractions_of_the_year, rsigma, celerity)
 
     def _batch_get_discharges(
         self,
@@ -184,10 +180,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         celerity_lw: float,
         nwidth: float,
     ) -> Tuple[
-        bool,
         Optional[float],
-        float,
-        Tuple[float, float],
         QRuns,
         Tuple[bool, bool, bool],
         float,
@@ -218,68 +211,75 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
 
         Results
         -------
-        all_q : bool
-            Flag indicating whether simulation data for all discharges is available.
         q_threshold : Optional[float]
             River discharge at which the measure becomes active [m3/s].
-        q_bankfull : float
-            River discharge at which the measure is bankfull [m3/s].
-        q_fit : Tuple[float, float]
-            A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file) [m3/s].
-        Q : QRuns
+        three_characteristic_discharges : QRuns
             Tuple of (at most) three characteristic discharges [m3/s].
         apply_q : Tuple[bool, bool, bool]
             A list of 3 flags indicating whether each value should be used or not.
             The Q1 value can't be set to None because it's needed for char_times.
         tstag : float
             Fraction of year during which flow velocity is considered negligible [-].
-        T : Vector
+        fractions_of_the_year : Vector
             A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
         rsigma : Vector
             A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
         """
-        q_threshold: Optional[float]
-
-        stages = ApplicationSettingsHelper.get_text("stage_descriptions")
-
         q_fit = reach.qfit
         q_levels = reach.qlevels
         dq = reach.dq
 
-        q_min = reach.qmin
         q_threshold = self._get_q_threshold_from_config(config)
         q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, q_levels)
 
-        Q, apply_q = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+        three_characteristic_discharges, apply_q = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-        tstag, T, rsigma = dfastmi.kernel.core.char_times(
-            q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
+        tstag, fractions_of_the_year, rsigma = dfastmi.kernel.core.char_times(
+            q_fit, q_stagnant, three_characteristic_discharges, celerity_hg, celerity_lw, nwidth
         )
 
-        q_list = list(Q)
+        q_list = self._discharge_from_config(config, three_characteristic_discharges, apply_q)
+        three_characteristic_discharges = (q_list[0], q_list[1], q_list[2])
+
+        return (
+            q_threshold,
+            three_characteristic_discharges,
+            apply_q,
+            tstag,
+            fractions_of_the_year,
+            rsigma,
+        )
+
+    def _discharge_from_config(self, config : configparser.ConfigParser, three_characteristic_discharges : QRuns, apply_q : BoolVector) -> List:
+        """
+        Tuple of (at most) three characteristic discharges [m3/s].
+        
+        Arguments
+        ---------
+        config : configparser.ConfigParser
+            Configuration of the analysis to be run.
+        three_characteristic_discharges : QRuns
+            A tuple of 3 discharges for which simulations should be run (can later
+            be adjusted by the user)
+        apply_q : BoolVector
+            A tuple of 3 flags indicating whether each value should be used or not.
+            The Q1 value can't be set to None because it's needed for char_times.
+        Results
+        -------
+        q_list : list 
+            A list of discharges
+        """
+        q_list = list(three_characteristic_discharges)
         for iq in range(3):
             if apply_q[iq]:
                 discharge = config.get(f"Q{iq + 1}", "Discharge", fallback="")
                 if self._is_float_str(discharge):
                     q_list[iq] = float(discharge)
                 else:
-                    q_list[iq] = None                
+                    q_list[iq] = None
             else:
                 q_list[iq] = None
-        Q = (q_list[0], q_list[1], q_list[2])
-
-        all_q = True
-        return (
-            all_q,
-            q_threshold,
-            q_bankfull,
-            q_fit,
-            Q,
-            apply_q,
-            tstag,
-            T,
-            rsigma,
-        )
+        return q_list
 
     def _get_q_bankfull_from_config(self, config, q_threshold, q_levels):
         """
@@ -371,12 +371,12 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         success : bool
             Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
-        cond = "Q" + str(i+1) 
+        cond = "Q" + str(i+1)
         # condition block to be checked.
         # condition block must be specified since it must contain the Reference and WithMeasure file names
         if cond not in config.sections():
             return False
-        
+
         # condition block may not be specified since it doesn't contain any required keys
         if config.has_section(cond) and cond in config.sections() and "Discharge" in config[cond]:
             # if discharge is specified, it must be a number
@@ -384,7 +384,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             if not self._is_float_str(discharge_value):
                 return False
         return True
-    
+
     def _check_configuration_cond_fm(
             self,
             config: configparser.ConfigParser,
@@ -404,7 +404,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         success : bool
             Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
-        cond = "Q" + str(i+1) 
+        cond = "Q" + str(i+1)
         # condition block to be checked.
         # condition block must be specified since it must contain the Reference and WithMeasure file names
         if cond not in config.sections():
@@ -423,3 +423,4 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             return False
 
         return True
+    
