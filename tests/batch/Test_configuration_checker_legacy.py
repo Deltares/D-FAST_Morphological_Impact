@@ -42,10 +42,6 @@ class Test_configuration_checker_legacy():
     def given_version_1_when_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
         assert not configuration_checker.check_configuration(rivers, config)
     
-    def given_version_1_when_check_configuration_then_return_false_1(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
-        self.set_valid_general_section(config)
-        assert not configuration_checker.check_configuration(rivers, config)
-
     def given_general_section_when_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
         self.set_valid_general_section(config)
 
@@ -82,12 +78,43 @@ class Test_configuration_checker_legacy():
 
         assert configuration_checker.check_configuration(rivers, config)
     
+    def given_mode_DFLOWFM_MAP_with_empty_discharge_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
+        self.set_valid_general_section_with_q_values(config)
+        config.set("General", "mode", DFLOWFM_MAP)
+        config.add_section("Q2")
+        config.set("Q2", "Discharge", "")
+        
+        assert not configuration_checker.check_configuration(rivers, config)
+    
+    def given_mode_DFLOWFM_MAP_with_valid_discharge_check_with_valid_reference_check_but_with_invalid_with_measure_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
+        self.set_valid_general_section_with_q_values(config)
+        config.set("General", "mode", DFLOWFM_MAP)
+        config.add_section("Q2")
+        config.set("Q2", "Discharge", "80.1")
+        config.set("Q2", "Reference", "my_file.nc")
+        
+        assert not configuration_checker.check_configuration(rivers, config)
+    
     def given_mode_WAQUA_export_with_discharge_check_configuration_then_return_true(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
         self.set_valid_general_section_with_q_values(config)
         self.add_q_section_waqua(config)
         config.set("General", "mode", WAQUA_EXPORT)
 
         assert configuration_checker.check_configuration(rivers, config)
+
+    def given_mode_WAQUA_export_without_discharge_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
+        self.set_valid_general_section_with_q_values(config)
+        config.set("General", "mode", WAQUA_EXPORT)
+
+        assert not configuration_checker.check_configuration(rivers, config)
+    
+    def given_mode_WAQUA_export_with_empty_discharge_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
+        self.set_valid_general_section_with_q_values(config)
+        config.set("General", "mode", WAQUA_EXPORT)
+        config.add_section("Q2")
+        config.set("Q2", "Discharge", "")
+        
+        assert not configuration_checker.check_configuration(rivers, config)
 
     def set_valid_general_section(self, config : ConfigParser):
         config.add_section("General")

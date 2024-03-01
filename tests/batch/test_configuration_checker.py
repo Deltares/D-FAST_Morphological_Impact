@@ -8,6 +8,42 @@ from dfastmi.io.Reach import ReachAdvanced
 
 from dfastmi.io.RiversObject import RiversObject
 
+class Test_a_configuration_checker():
+    @pytest.fixture
+    def configuration_checker(self):
+        return ConfigurationChecker()
+    
+    @pytest.fixture
+    def rivers(self):
+        mock_reach = MagicMock(spec=ReachAdvanced)
+        mock_reach.name = "myReach1"
+        mock_reach.hydro_q = (80.1, 80.2)        
+
+        mock_branch = MagicMock(spec=Branch)
+        mock_branch.name = "myBranch"
+        mock_branch.reaches = [mock_reach]
+        
+        rivers = MagicMock(spec=RiversObject)
+        rivers.branches = [mock_branch]
+        return rivers
+
+    @pytest.fixture
+    def config(self):
+        config = ConfigParser()
+        self.set_valid_general_section(config)
+        return  config
+
+    def given_correct_branch_but_invalid_reach_when_get_reach_then_throw_lookup_exception(self, configuration_checker: ConfigurationChecker, rivers : RiversObject, config : ConfigParser):
+        with pytest.raises(Exception) as cm:
+            configuration_checker._get_reach(rivers, config)    
+        assert str(cm.value) == "Reach not in file myReach!"
+
+    def set_valid_general_section(self, config : ConfigParser):
+        config.add_section("General")
+        config.set("General", "Version", "2.0")
+        config.set("General", "Branch", "myBranch")
+        config.set("General", "Reach", 'myReach')
+
 class Test_configuration_checker():
     @pytest.fixture
     def configuration_checker(self):
