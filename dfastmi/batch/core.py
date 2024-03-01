@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 import sys
+
 from dfastmi.io.Reach import ReachAdvanced
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.core import Vector, BoolVector, QRuns
@@ -41,7 +42,10 @@ from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch import AnalyserAndReporterWaqua
 from dfastmi.batch import ConfigurationChecker
-from dfastmi.batch import FileNameRetriever
+
+from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from dfastmi.batch.FileNameRetriever import FileNameRetriever
+from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
 import os
 import math
@@ -485,10 +489,10 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
 
     return T, time_mi
 
-def _initialize_file_name_retriever_factory() -> FileNameRetriever.FileNameRetrieverFactory:
-    factory = FileNameRetriever.FileNameRetrieverFactory()
-    factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetriever.FileNameRetrieverLegacy())
-    factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever.FileNameRetriever(needs_tide))
+def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
+    factory = FileNameRetrieverFactory()
+    factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
+    factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
     return factory
 
 def get_filenames(

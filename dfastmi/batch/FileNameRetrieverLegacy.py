@@ -31,31 +31,20 @@ from typing import Any, Dict, Optional, Tuple
 import configparser
 from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
 
-class FileNameRetriever(AFileNameRetriever):
+class FileNameRetrieverLegacy(AFileNameRetriever):
     """
-    File name retriever for version 2.
+    File name retriever for version 1 (Legacy).
     """
-    
-    def __init__(self, needs_tide: bool):
-        """
-        Constructor of the FileNameRetriever.
 
-        Arguments
-        ---------
-        needs_tide : bool
-            Specifies whether the tidal boundary is needed.
-        """
-        self.needs_tide = needs_tide
-    
     def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
         """
-        Extract the list of 2N file names from the configuration.
-        This routine is valid for version 2 configuration files.
+        Extract the list of six file names from the configuration.
+        This routine is valid for version 1 configuration files.
 
         Arguments
         ---------
         config : Optional[configparser.ConfigParser]
-            The variable containing the configuration (may be None for if 0).
+            The variable containing the configuration (may be None for imode = 0).
 
         Returns
         -------
@@ -66,29 +55,12 @@ class FileNameRetriever(AFileNameRetriever):
             conditions, such as a Discharge and Tide forcing tuple.
         """
         filenames: Dict[Any, Tuple[str,str]]
-        key: Union[Tuple[float, int], float]
         filenames = {}
-        i = 0
-        while True:
-            i = i + 1
-            CSTR = f'C{i}'
-            if CSTR in config:
-                q_string = self._cfg_get(config, CSTR, "Discharge")
-                
-                try:
-                    Q = float(q_string)
-                except ValueError as exc:
-                    raise TypeError(f'{q_string} from Discharge could now be handled as a float.') from exc
-                
-                reference = self._cfg_get(config, CSTR, "Reference")
-                measure = self._cfg_get(config, CSTR, "WithMeasure")
-                if self.needs_tide:
-                    T = self._cfg_get(config, CSTR, "TideBC")
-                    key = (Q,T)
-                else:
-                    key = Q
-                filenames[key] = (reference, measure)
-            else:
-                break
+        for i in range(3):
+            qstr = f"Q{i+1}"
+            if qstr in config:
+                reference = self._cfg_get(config, qstr, "Reference")
+                measure = self._cfg_get(config, qstr, "WithMeasure")
+                filenames[i] = (reference, measure)
 
         return filenames

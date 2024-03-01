@@ -1,15 +1,18 @@
 import pytest
-from dfastmi.batch import FileNameRetriever
 from configparser import ConfigParser
 from packaging import version
+from dfastmi.batch.FileNameRetriever import FileNameRetriever
+from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
+from dfastmi.batch.FileNameRetrieverUnsupported import FileNameRetrieverUnsupported
 
 class Test_FileNameRetriever():
     class Test_FileNameRetrieverFactory():
         @pytest.fixture
-        def factory(self) -> FileNameRetriever.FileNameRetrieverFactory:
-            factory = FileNameRetriever.FileNameRetrieverFactory()
-            factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetriever.FileNameRetrieverLegacy())
-            factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever.FileNameRetriever(needs_tide))
+        def factory(self) -> FileNameRetrieverFactory:
+            factory = FileNameRetrieverFactory()
+            factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
+            factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
             return factory
         
         @pytest.mark.parametrize("string_version", [
@@ -18,7 +21,7 @@ class Test_FileNameRetriever():
             "1.0.0",
             "1.0.0.0"
         ])
-        def given_varying_version_1_when_generate_then_return_FileNameRetrieverLegacy(self, factory : FileNameRetriever.FileNameRetrieverFactory, string_version : str):
+        def given_varying_version_1_when_generate_then_return_FileNameRetrieverLegacy(self, factory : FileNameRetrieverFactory, string_version : str):
             """
             given : varying version 1
             when :  generate 
@@ -27,13 +30,13 @@ class Test_FileNameRetriever():
             file_name_retriever_version = version.Version(string_version)
             needs_tide = True
             file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
-            assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetrieverLegacy)
+            assert isinstance(file_name_retriever, FileNameRetrieverLegacy)
         
         @pytest.mark.parametrize("needs_tide", [
             True,
             False
         ])
-        def given_version_2_with_varying_needs_tide_when_generate_then_return_FileNameRetriever(self, factory : FileNameRetriever.FileNameRetrieverFactory, needs_tide : bool):
+        def given_version_2_with_varying_needs_tide_when_generate_then_return_FileNameRetriever(self, factory : FileNameRetrieverFactory, needs_tide : bool):
             """
             given : version 2 with varying needs tide
             when :  generate 
@@ -41,7 +44,7 @@ class Test_FileNameRetriever():
             """
             file_name_retriever_version = version.Version("2.0")
             file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
-            assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetriever)
+            assert isinstance(file_name_retriever, FileNameRetriever)
         
         @pytest.mark.parametrize("string_version", [
             "2",
@@ -49,7 +52,7 @@ class Test_FileNameRetriever():
             "2.0.0",
             "2.0.0.0"
         ])    
-        def given_varying_version_2_when_generate_then_return_FileNameRetrieverLegacy(self, factory : FileNameRetriever.FileNameRetrieverFactory, string_version : str):
+        def given_varying_version_2_when_generate_then_return_FileNameRetrieverLegacy(self, factory : FileNameRetrieverFactory, string_version : str):
             """
             given : varying version 2
             when :  generate 
@@ -57,13 +60,13 @@ class Test_FileNameRetriever():
             """
             file_name_retriever_version = version.Version(string_version)
             file_name_retriever = factory.generate(file_name_retriever_version, True)
-            assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetriever)
+            assert isinstance(file_name_retriever, FileNameRetriever)
         
         @pytest.mark.parametrize("string_version", [
             "0.0",
             "999.0"
         ])
-        def given_unsupported_version_when_generate_then_return_FileNameRetrieverUnsupported(self, factory : FileNameRetriever.FileNameRetrieverFactory, string_version : str):
+        def given_unsupported_version_when_generate_then_return_FileNameRetrieverUnsupported(self, factory : FileNameRetrieverFactory, string_version : str):
             """
             given : unsupported version
             when :  generate 
@@ -72,7 +75,7 @@ class Test_FileNameRetriever():
             needs_tide = True
             file_name_retriever_version = version.Version(string_version)
             file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
-            assert isinstance(file_name_retriever, FileNameRetriever.FileNameRetrieverUnsupported)
+            assert isinstance(file_name_retriever, FileNameRetrieverUnsupported)
     
     class Test_FileNameRetriever_Unsupported():
         def given_config_parser_when_get_file_names_unsupported_then_return_no_file_names(self):
@@ -82,7 +85,7 @@ class Test_FileNameRetriever():
             then  : return no file names
             """
             config = ConfigParser()
-            fnrvu = FileNameRetriever.FileNameRetrieverUnsupported()
+            fnrvu = FileNameRetrieverUnsupported()
             
             filenames = fnrvu.get_file_names(config)
             
@@ -95,7 +98,7 @@ class Test_FileNameRetriever():
             when :  get file names legacy
             then  : throw key error with expected message
             """
-            fnr_legacy = FileNameRetriever.FileNameRetrieverLegacy()
+            fnr_legacy = FileNameRetrieverLegacy()
             
             key = "Reference"
             chap = "Q1"
@@ -115,7 +118,7 @@ class Test_FileNameRetriever():
             then  : return no file names
             """
             config = ConfigParser()
-            fnr_legacy = FileNameRetriever.FileNameRetrieverLegacy()
+            fnr_legacy = FileNameRetrieverLegacy()
             
             filenames = fnr_legacy.get_file_names(config)
             
@@ -128,7 +131,7 @@ class Test_FileNameRetriever():
             then  : return expected file names
             """
             config = ConfigParser()
-            fnr_legacy = FileNameRetriever.FileNameRetrieverLegacy()
+            fnr_legacy = FileNameRetrieverLegacy()
             
             q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q1")
             q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q2")
@@ -163,7 +166,7 @@ class Test_FileNameRetriever():
             when :  get file names
             then  : throw key error with expected message
             """
-            file_name_retriever = FileNameRetriever.FileNameRetriever(use_tide)
+            file_name_retriever = FileNameRetriever(use_tide)
             
             key = "Discharge"
             chap = "C1"
@@ -188,7 +191,7 @@ class Test_FileNameRetriever():
             when :  get file names
             then  : throw type error with expected message
             """
-            file_name_retriever = FileNameRetriever.FileNameRetriever(False)
+            file_name_retriever = FileNameRetriever(False)
             
             key = "Discharge"
             chap = "C1"
@@ -213,7 +216,7 @@ class Test_FileNameRetriever():
             then  : return no file names
             """
             config = ConfigParser()
-            file_name_retriever = FileNameRetriever.FileNameRetriever(use_tide)
+            file_name_retriever = FileNameRetriever(use_tide)
             
             filenames = file_name_retriever.get_file_names(config)
             
@@ -226,7 +229,7 @@ class Test_FileNameRetriever():
             then  : return expected file names
             """
             config = ConfigParser()
-            file_name_retriever = FileNameRetriever.FileNameRetriever(False)
+            file_name_retriever = FileNameRetriever(False)
             
             q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "C1", "1.0")
             q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "C2", "2.0")
@@ -245,7 +248,7 @@ class Test_FileNameRetriever():
             then  : return expected file names including tide
             """
             config = ConfigParser()
-            file_name_retriever = FileNameRetriever.FileNameRetriever(True)
+            file_name_retriever = FileNameRetriever(True)
             
             q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "C1", "1.0", True)
             q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "C2", "2.0", True)
