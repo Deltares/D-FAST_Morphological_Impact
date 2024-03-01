@@ -242,13 +242,12 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
 
         stages = ApplicationSettingsHelper.get_text("stage_descriptions")
 
-        q_stagnant = reach.qstagnant
         q_fit = reach.qfit
         q_levels = reach.qlevels
         dq = reach.dq
 
         q_min = reach.qmin
-        q_threshold = self._get_q_threshold_from_config(config)        
+        q_threshold = self._get_q_threshold_from_config(config)
         q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, q_levels)
 
         Q, apply_q = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
@@ -257,17 +256,17 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
         )
 
-        QList = list(Q)
+        q_list = list(Q)
         for iq in range(3):
             if apply_q[iq]:
                 discharge = config.get(f"Q{iq + 1}", "Discharge", fallback="")
                 if self._is_float_str(discharge):
-                    QList[iq] = float(discharge)
+                    q_list[iq] = float(discharge)
                 else:
-                    QList[iq] = None                
+                    q_list[iq] = None                
             else:
-                QList[iq] = None
-        Q = (QList[0], QList[1], QList[2])
+                q_list[iq] = None
+        Q = (q_list[0], q_list[1], q_list[2])
 
         all_q = True
         return (
