@@ -1,8 +1,9 @@
 from unittest.mock import patch
 import pytest
 import numpy
-from dfastmi.batch.AnalyserAndReporterWaqua import ReporterWaqua, OutputDataWaqua
-from dfastmi.batch.AnalyserAndReporterWaqua import AnalyserWaqua
+from dfastmi.batch.ReporterWaqua import ReporterWaqua
+from dfastmi.batch.AnalyserWaqua import AnalyserWaqua
+from dfastmi.batch.OutputDataWaqua import OutputDataWaqua
         
 class Test_ReporterWaqua():
     def given_output_data_and_mocked_write_files_when_write_report_then_expect_3_calls_for_writing_report(self):
@@ -18,8 +19,8 @@ class Test_ReporterWaqua():
         data_zmax = numpy.array([1, 2, 3, 4, 5])
         data_zmin = numpy.array([1, 2, 3, 4, 5])
         output_data = OutputDataWaqua(first_min_velocity_m, first_min_velocity_n, data_zgem, data_zmax, data_zmin)
-        with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_filename') as mocked_get_file_name,\
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.write_simona_box') as mocked_write_simona_box:
+        with patch('dfastmi.batch.ReporterWaqua.ApplicationSettingsHelper.get_filename') as mocked_get_file_name,\
+        patch('dfastmi.batch.ReporterWaqua.DataTextFileOperations.write_simona_box') as mocked_write_simona_box:
             
             mocked_get_file_name.return_value = "filename.file"
             mocked_get_file_name.side_effect = "file.file"
@@ -57,10 +58,10 @@ class Test_AnalyserWaqua():
         report = False
         waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
 
-        with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'), \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz, \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_kernel_core:
+        with patch('dfastmi.batch.AnalyserWaqua.ApplicationSettingsHelper.log_text'), \
+        patch('dfastmi.batch.AnalyserWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
+        patch('dfastmi.batch.AnalyserWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz, \
+        patch('dfastmi.batch.AnalyserWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_kernel_core:
             
             mocked_get_text.return_value="description"
             mocked_read_waqua_xyz.return_value=numpy.array([1, 2, 3, 4, 5])
@@ -103,11 +104,11 @@ class Test_AnalyserWaqua():
         report = False
         waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
 
-        with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'), \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz, \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_kernel_core, \
-        patch('dfastmi.batch.AnalyserAndReporterWaqua.os.path.isfile') as mocked_isfile:
+        with patch('dfastmi.batch.AnalyserWaqua.ApplicationSettingsHelper.log_text'), \
+        patch('dfastmi.batch.AnalyserWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
+        patch('dfastmi.batch.AnalyserWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz, \
+        patch('dfastmi.batch.AnalyserWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_kernel_core, \
+        patch('dfastmi.batch.AnalyserWaqua.os.path.isfile') as mocked_isfile:
             
             self.setup_mocks(mocked_get_text, mocked_read_waqua_xyz, mocked_isfile)
 
@@ -147,11 +148,11 @@ class Test_AnalyserWaqua():
         report = False
         waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
 
-        with patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.log_text'), \
-            patch('dfastmi.batch.AnalyserAndReporterWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
-            patch('dfastmi.batch.AnalyserAndReporterWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz, \
-            patch('dfastmi.batch.AnalyserAndReporterWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_kernel_core, \
-            patch('dfastmi.batch.AnalyserAndReporterWaqua.os.path.isfile') as mocked_isfile:
+        with patch('dfastmi.batch.AnalyserWaqua.ApplicationSettingsHelper.log_text'), \
+            patch('dfastmi.batch.AnalyserWaqua.ApplicationSettingsHelper.get_text') as mocked_get_text, \
+            patch('dfastmi.batch.AnalyserWaqua.DataTextFileOperations.read_waqua_xyz') as mocked_read_waqua_xyz, \
+            patch('dfastmi.batch.AnalyserWaqua.dfastmi.kernel.core.dzq_from_du_and_h') as mocked_kernel_core, \
+            patch('dfastmi.batch.AnalyserWaqua.os.path.isfile') as mocked_isfile:
                 
                 self.setup_mocks(mocked_get_text, mocked_read_waqua_xyz, mocked_isfile)
 
