@@ -138,28 +138,27 @@ def batch_mode_core(
     ApplicationSettingsHelper.log_text("limits", file=report)
     ApplicationSettingsHelper.log_text("===", file=report)
 
-    cfg_version = config["General"]["Version"]
+    cfg_version = config.get("General", "Version", fallback="")
     
     if version.parse(cfg_version) != rivers.version:
-        raise Exception(
-            "Version number of configuration file ({}) must match version number of rivers file ({})".format(
-                cfg_version,
-                rivers.version
-            )
-        )
+        raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
     
-    branch_name = config["General"]["Branch"]
-    try:
-        ibranch = next((i for i, branch in enumerate(rivers.branches) if branch.name == branch_name), -1)
-    except:
+    branch_name = config.get("General", "Branch", fallback="")
+    ibranch = next((i for i, branch in enumerate(rivers.branches) if branch.name == branch_name), -1)
+    if ibranch < 0:
         ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch_name}, file=report)
         success = False
     else:
-        reach_name = config["General"]["Reach"]
+        reach_name = config.get("General", "Reach", fallback="")
+        ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
+        if ireach < 0 :
+            ApplicationSettingsHelper.log_text(
+                "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
+            )
+            success = False
         try:
-            ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
             reach = rivers.branches[ibranch].reaches[ireach]
-        except:
+        except IndexError:
             ApplicationSettingsHelper.log_text(
                 "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
             )
@@ -179,27 +178,33 @@ def batch_mode_core(
                 # version 2
                 q_stagnant = reach.qstagnant
                 if "Qthreshold" in config["General"]:
-                    q_threshold = float(config["General"]["Qthreshold"])
+                    try:
+                        q_threshold = float(config.get("General", "Qthreshold", fallback=""))
+                    except ValueError:
+                        q_threshold = q_stagnant # Or should I raise ValueError exception?
                 else:
                     q_threshold = q_stagnant
                 [Q, apply_q, time_mi, tstag, T, rsigma, celerity] = get_levels_v2(reach, q_threshold, nwidth)
                 needs_tide = reach.tide
                 if needs_tide:
                     tide_bc = reach.tide_bc
-                    n_fields = int(config["General"]["NFields"])
+                    try:
+                        n_fields = int(config.get("General", "NFields", fallback=""))
+                    except ValueError:
+                        n_fields = 1 # Or should I raise ValueError exception?
                     if n_fields == 1:
-                        raise Exception("Unexpected combination of tides and NFields = 1!")
+                        raise ValueError("Unexpected combination of tides and NFields = 1!")
                 else:
                     n_fields = 1
 
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
             
             try:
-                ucrit = float(config["General"]["Ucrit"])
-            except:
+                ucrit = float(config.get("General", "Ucrit", fallback=""))
+            except ValueError:
                 ucrit = reach.ucritical
-            ucritMin = 0.01
-            ucrit = max(ucritMin, ucrit)
+            ucrit_min = 0.01
+            ucrit = max(ucrit_min, ucrit)
             mode_str = config["General"].get("Mode",DFLOWFM_MAP)
             if mode_str == WAQUA_EXPORT:
                 mode = 0
@@ -790,19 +795,37 @@ def config_to_absolute_paths(
     """
     for key in ("RiverKM", "FigureDir", "OutputDir"):
         if key in config["General"]:
-            config["General"][key] = FileUtils.absolute_path(
-                rootdir, config["General"][key]
-            )
+            _update_to_absolute_path(rootdir, config, "General", key)
     for qstr in config.keys():
         if "Reference" in config[qstr]:
-            config[qstr]["Reference"] = FileUtils.absolute_path(
-                rootdir, config[qstr]["Reference"]
-            )
+            _update_to_absolute_path(rootdir, config, qstr, "Reference")
         if "WithMeasure" in config[qstr]:
-            config[qstr]["WithMeasure"] = FileUtils.absolute_path(
-                rootdir, config[qstr]["WithMeasure"]
-            )
+            _update_to_absolute_path(rootdir, config, qstr, "WithMeasure")
     return config
+
+def _update_to_absolute_path(rootdir : str, config : configparser.ConfigParser, section : str, key : str):
+    """
+    Convert a configuration object to contain absolute paths (for editing).
+     Arguments
+    ---------
+    rootdir : str
+        The path to be used as base for the absolute paths.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with relative paths 
+        to be converted to absolute paths.
+    section : str
+        Where in the configuration we need to update the relative path
+    key : str
+        Where in the configuration we need to update the relative path
+
+    Returns
+    -------
+    aconfig : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
+    """
+    relative_path = config.get(section, key, fallback="")
+    relative_path_converted_to_absolute_path = FileUtils.absolute_path(rootdir, relative_path)
+    config.set(section, key, relative_path_converted_to_absolute_path)
 
 def load_configuration_file(filename: str) -> configparser.ConfigParser:
     """
@@ -827,17 +850,13 @@ def load_configuration_file(filename: str) -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     with open(filename, "r") as configfile:
         config.read_file(configfile)
-    try:
-        file_version = config["General"]["Version"]
-    except:
-        raise Exception("No version information in the file!")
+    
+    file_version = config.get("General", "Version", fallback= "")
+    if len(file_version) == 0 :
+        raise LookupError("No version information in the file!")
 
-    if version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2"):
-        section = config["General"]
-        branch = section["Branch"]
-        reach = section["Reach"]
-    else:
-        raise Exception("Unsupported version number {} in the file!".format(file_version))
+    if not (version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2")):
+        raise ValueError(f"Unsupported version number {file_version} in the file!")
 
     rootdir = os.path.dirname(filename)
     return config_to_absolute_paths(rootdir, config)
@@ -889,19 +908,37 @@ def config_to_relative_paths(
     """
     for key in ("RiverKM", "FigureDir", "OutputDir"):
         if key in config["General"]:
-            config["General"][key] = FileUtils.relative_path(
-                rootdir, config["General"][key]
-            )
+            _update_to_relative_path(rootdir, config, "General", key)
     for qstr in config.keys():
         if "Reference" in config[qstr]:
-            config[qstr]["Reference"] = FileUtils.relative_path(
-                rootdir, config[qstr]["Reference"]
-            )
+            _update_to_relative_path(rootdir, config, qstr, "Reference")
         if "WithMeasure" in config[qstr]:
-            config[qstr]["WithMeasure"] = FileUtils.relative_path(
-                rootdir, config[qstr]["WithMeasure"]
-            )
+            _update_to_relative_path(rootdir, config, qstr, "WithMeasure")
     return config
+
+def _update_to_relative_path(rootdir : str, config : configparser.ConfigParser, section : str, key : str):
+    """
+    Convert a configuration object to contain absolute paths (for editing).
+     Arguments
+    ---------
+    rootdir : str
+        The path to be used as base for the absolute paths.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with absolute paths 
+        to be converted to relative paths.
+    section : str
+        Where in the configuration we need to update the absolute path
+    key : str
+        Where in the configuration we need to update the absolute path
+
+    Returns
+    -------
+    aconfig : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis with only relative paths.
+    """
+    absolute_path = config.get(section, key, fallback="")
+    absolute_path_converted_to_relative_path = FileUtils.relative_path(rootdir, absolute_path)
+    config.set(section, key, absolute_path_converted_to_relative_path)
 
 def save_configuration_file(filename: str, config):
     """
