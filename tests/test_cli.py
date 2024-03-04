@@ -1,11 +1,13 @@
 import context
 import dfastmi.cli
-import dfastmi.io
 import os
 
 import sys
 from contextlib import contextmanager
 from io import StringIO
+
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.RiversObject import RiversObject
 
 @contextmanager
 def captured_output():
@@ -21,9 +23,9 @@ class Test_interactive_mode():
     def test_interactive_mode_01(self):
         """
         Testing interactive_mode in Dutch.
-        """
-        dfastmi.io.load_program_texts("dfastmi/messages.NL.ini")
-        rivers = dfastmi.RiversObject.read_rivers("dfastmi/Dutch_rivers_v1.ini")
+        """        
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
@@ -65,8 +67,8 @@ class Test_interactive_mode():
         """
         Testing interactive_mode in English.
         """
-        dfastmi.io.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = dfastmi.RiversObject.read_rivers("dfastmi/Dutch_rivers_v1.ini")
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:

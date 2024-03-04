@@ -135,11 +135,7 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
             rivers_file = "Dutch_rivers_v2.ini"
 
     if language not in ["NL", "UK"]:
-        raise Exception(
-            'Incorrect language "{}" specified. Should read "NL" or "UK".'.format(
-                language
-            )
-        )
+        raise LookupError(f'Incorrect language "{language}" specified. Should read "NL" or "UK".')
     return language, runmode, config, rivers_file, reduced_output
 
 
