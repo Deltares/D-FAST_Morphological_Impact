@@ -76,6 +76,104 @@ In order to characterize the flow patterns during flood it's necessary to distin
 However, as these conditions varied depending on the thresholds specified by the user, the tool could give different results depending on the user.
 In \dfastmi version 3, a new method has been implemented that removes most input parameters; only the minimum discharge at which the measure becomes active is still used as an input besides the general location characteristics of the branch and reach in which the measure is located.
 
-\section{Scientific background}
-\todo{Scientific background to be included.}
-A general introduction on the use of a ``hydrograph'' approach configured in the rivers configuration file: for the bovenrivieren a set of discharges, extended to a combination of discharge and tidal boundary conditions in the future for the benedenrivieren
+
+\section{Equilibrium bed level change: the discharge dominated case}
+
+\dfastmi is based on a highly simplified model of river morphodynamics.
+The derivation of the algorithm starts by assuming a quasi-stationary flow pattern and an outflow of discharge and sediment from the main channel while the local water level is independent of the hydraulic and morphological changes in the main channel (a \emph{rigid-lid} approximation).
+Note that the outflow of sediment is assumed to be a consequence of the outflow of discharge only; the conceptual framework does not allow for selective removal of only sediments.
+%
+\begin{align}
+&\text{water} & \pdiff{q_\text{mc}}{s} = -q_\text{out} \label{Eq:MassConcWater} \\
+&\text{sediment} & \pdiff{z_b}{t} + \pdiff{s_\text{mc}}{s} = -s_\text{out} \label{Eq:MassConcWater}
+\end{align}
+%
+in which
+%
+\begin{symbollist}
+\item[$q_\text{mc}$] main channel discharge per unit width \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1}}
+\item[$q_\text{out}$] discharge per channel unit width \emph{to} the flood plain per unit river length \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1} m\textsuperscript{-1}}
+\item[$s$] stream-wise coordinate \unitbrackets{m}
+\item[$z_b$] bed level change due to measure \unitbrackets{m}
+\item[$s_\text{mc}$] main channel sediment transport per unit width \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1}}
+\item[$s_\text{out}$] sediment transport per channel unit width \emph{to} the flood plan per unit river length \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1} m\textsuperscript{-1}}
+\end{symbollist}
+%
+The response of the main channel is represented here by a bed level change $\Delta z_b$ \unitbrackets{m} (raise or lowering) which is small relative to the local water depth.
+The sediment transport capacity per unit width of the main channel, $s_\text{mc}$, is approximated by $s_\text{mc} = m \left ( q_\text{mc} / h \right )^b$ with $h$ the water depth \unitbrackets{m} in the main channel, $m$ a calibration factor \unitbrackets{m\textsuperscript{2-b} s\textsuperscript{b-1}} and a dimensionless sediment transport exponent $b$, which is 5 for \citet{Engelundh67}.
+Based on these equations, one can derive that the bed level development during such a period of constant discharge is given by the following relaxation
+%
+\begin{equation}
+\Delta z_b = \Delta z_b (0) + [\Delta z_{b,\text{eq}} - \Delta z_b(0)](1 - e^{-t/T_m})
+\label{Eq:zbRelax}
+\end{equation}
+%
+where the morphological time scale $T_m$ is given by
+%
+\begin{equation}
+T_m \approx \frac{h L}{b s_\text{mc}}
+\label{Eq:MorTimeScale}
+\end{equation}
+%
+and the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product of the water depth and the relative change in the main channel velocity $u$ \unitbrackets{m/s}
+%
+\begin{equation}
+\Delta z_{b,\text{eq}} \approx -h \left ( \frac{\Delta u}{u} \right )
+\label{Eq:zbEqui}
+\end{equation}
+%
+The easiest way to understand this equation is to realize that it states that the velocity change caused by the measure will be compensated by a bed level change such that the velocity, and hence the sediment transport capacity, returns to the original value.
+%
+\begin{equation}
+ \Delta z_{b,\text{eq}} u + h \Delta u \approx 0.
+\label{Eq:zbEqui2}
+\end{equation}
+%
+In reality the discharge isn't constant throughout the year.
+Instead, the year is assumed to be represented by a hydrograph series of constant discharges.
+The bed level development during a single period of the hydrograph is given by \autoref{Eq:zbRelax}, such that at the end of period $i$ (lasting $T_i$ days) the morphological effect of the measure is given by
+%
+\begin{equation}
+\Delta z_{b,i+1}(0) = \Delta z_{b,i} (0) \sigma_i + \Delta z_{b,i,\text{eq}} (1-\sigma_i) \text{ with } \sigma_i = e^{-T_i/T_{m,i}}
+\label{Eq:zbOverTime}
+\end{equation}
+%
+Let $N$ be the number of periods of constant flow occurring in the order from $i=1$ to $i=N$ in the hydrograph; each period $i$ may have a different duration $T_i$.
+Note that the same discharge may occur multiple times during the hydrograph and there may be multiple peaks and lows in the hydrograph.
+The initial bed level change $\Delta z_{b,i}(0)$ of a period $i$ equals the final bed level change $\Delta z_{b,i-1}(T_{i-1})$ of the preceding period $i-1$.
+This gives a set of $N$ equations with $N$ unknowns $\Delta z_{b,i}(0)$ for the dynamic long-term equilibrium if we assume that the final bed level of the last period $\Delta z_{b,N}(T_N)$ or $\Delta z_{b,N+1}(0)$ equals the initial bed level of the first period $\Delta z_{b,1}(0)$.
+%
+\begin{equation}
+\Delta z_{b,i+1}(0) = \Delta z_{b,i}(0) \sigma_i + \Delta z_{b,i,\text{eq}} (1-\sigma_i) \text{ for $i$ equals 1 to $N$}
+\label{Eq:zbiNPeriods}
+\end{equation}
+%
+This set of equations can be solved for $\Delta z_{b,i}(0)$ giving
+%
+\begin{equation}
+\Delta z_{b,i}(0) = \frac{1}{\xi} \sum_{j=0}^{N-1} \Delta z_{b,i+j,\text{eq}} (1-\sigma_{i+j}) \prod_{k=j+1}^{N-1} \sigma_{i+k}
+\end{equation}
+%
+where $\xi = 1 - \prod_{i=1}^N \sigma_i$ and all indices $m>N$ are equivalent to $m-N$ for reasons of periodicity.
+If the impact of the measure increases as the discharge increases, the maximum bed level change is likely reached at the end of the period with the highest discharge.
+However, this isn't true for all hydrographs and for all measures.
+Similarly, the minimum bed level change is frequently reached at the end of the period with the lowest discharge, but this may also depend on the details of the hydrograph used (which may for instance include multiple low flow periods of different duration).
+For this reason, the minimum and maximum values are determined independently for every individual grid cell as the minimum and maximum over all $N$ fields of $\Delta z_{b,i}(0)$.
+The year-averaged bed level can be computed as
+%
+\begin{equation}
+\bar{\Delta z_b} = \frac{\sum{\Delta z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{(\Delta z_{b,i,\text{eq}} - \Delta z_{b,i}(0)) T_{m,i} (\sigma_i-1)}}{\sum{T_i}}
+\label{Eq:zbMean}
+\end{equation}
+%
+More details are given in \citet{JagersGiri2022}.
+
+
+\section{Equilibrium bed level change: extending to tides}
+
+The concept of the ``hydrograph'' consisting of $N$ periods of constant forcing.
+The forcing could besides the discharge that was discussed above, also include the downstream water level (storm surge and tidal conditions).
+Although the current \dfastmi version includes code preparations for such extensions; the application domain is, for the time being, limited to the river reaches where such effect can be ignored.
+
+
+%\section{Estimate for dredging volumes}

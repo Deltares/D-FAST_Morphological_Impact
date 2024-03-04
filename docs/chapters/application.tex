@@ -1,0 +1,33 @@
+\chapter{Steps in the analysis}\label{Chp:steps}
+
+To apply \dfastmi one should carry out the following five steps.
+
+\begin{enumerate}
+\item Characterize the measure to be evaluated using \dfastmi.
+Verify that it's appropriate to use \dfastmi instrument.
+Determine the threshold discharge $Q_\text{thr}$ (at Lobith/Borgharen) at which the measure (indirectly) starts to influence the flow pattern in the main channel.
+
+\item Determine the flow conditions for which \dflowfm simulations should be carried out based on the following table
+\newline
+\newline
+\begin{tabular}{l|l|l}
+river & location & flow conditions \\ \hline
+Rhine branches & Lobith & 1300, 2000, 3000, 4000, 6000, 8000 \SI{}{\metre\cubed\per\second}\\
+Meuse & Borgharen & 750, 1300, 1700, 2100, 2500, 3200 \SI{}{\metre\cubed\per\second}
+\end{tabular}
+\newline
+\newline
+It's not necessary to run simulations for conditions at which the measure doesn't influence the flow patterns (discharges below $Q_\text{thr}$).
+
+\item Perform the necessary hydrodynamic simulations (note that for each condition two runs are needed: one reference run and one run with the measure)
+
+\item Run \dfastmi to compute the characteristic bed level change per grid point in the main channel
+
+\begin{itemize}
+\item year-averaged mean value \unitbrackets{m}
+\item maximum value \unitbrackets{m}
+\item minimum value \unitbrackets{m}
+\end{itemize}
+
+\item{Visualize the characteristic bed level changes in a graph or on a map}
+\end{enumerate}
