@@ -216,7 +216,7 @@ def analyse_and_report_dflowfm(
         #xfi = face_mean(xni, FNCi)
         #yfi = face_mean(yni, FNCi)
     
-        xykline = numpy.array(xykm)
+        xykline = numpy.array(xykm.coords)
     
         # project all nodes onto the line, obtain the distance along (sni) and normal (dni) the line
         # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
