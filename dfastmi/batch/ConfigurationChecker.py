@@ -30,6 +30,7 @@ import configparser
 from typing import Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.Reach import Reach
 
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
