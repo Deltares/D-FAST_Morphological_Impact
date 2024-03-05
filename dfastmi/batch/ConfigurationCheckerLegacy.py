@@ -44,9 +44,9 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
     _validator : ConfigurationCheckerValidator
 
     def __init__(self):
-        _validator = ConfigurationCheckerValidator()
-        _validator.register_validator(WAQUA_EXPORT, self._check_configuration_cond_waqua)
-        _validator.register_validator(DFLOWFM_MAP, self._check_configuration_cond_fm)
+        self._validator = ConfigurationCheckerValidator()
+        self._validator.register_validator(WAQUA_EXPORT, self._check_configuration_cond_waqua)
+        self._validator.register_validator(DFLOWFM_MAP, self._check_configuration_cond_fm)
     
     def check_configuration(self, rivers: RiversObject, config: configparser.ConfigParser) -> bool:
         """
