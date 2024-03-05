@@ -22,6 +22,25 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
+
+def compare_text_files(dir1, dir2, file1, file2=None, prefixes=None):
+    result = open(dir1 + os.sep + file1, "r").read().splitlines()
+    if file2 is None:
+        file2 = file1
+    refstr = open(dir2 + os.sep + file2, "r").read().splitlines()
+    if not prefixes is None:
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+    assert result == refstr
+
+def compare_netcdf_fields(dir1, dir2, file, fields):
+    ncRes = netCDF4.Dataset(dir1 + os.sep + file)
+    ncRef = netCDF4.Dataset(dir2 + os.sep + file)
+    for f in fields:
+        result = ncRes.variables[f]
+        refdat = ncRef.variables[f]
+        assert (result[...] == refdat[...]).all()
+
 class Test_batch_mode():
     def test_batch_mode_00(self):
         """
@@ -46,6 +65,8 @@ class Test_batch_mode():
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
+        outdir = tstdir + os.sep + "output"
+        refdir = tstdir
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
@@ -59,25 +80,11 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        prefixes = ('Dit is versie')
+        compare_text_files(outdir, refdir, "verslag.run", prefixes=('Dit is versie'))
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "verslag.run", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_verslag.run", "r").read().splitlines()
-        result = [x for x in result if not x.startswith(prefixes)]
-        refstr = [x for x in refstr if not x.startswith(prefixes)]
-        assert result == refstr
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "jaargem.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
-        assert result == refstr
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "maxmorf.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
-        assert result == refstr
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "minmorf.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
-        assert result == refstr
+        compare_text_files(outdir, refdir, "jaargem.out", "ref_jaargem.out")
+        compare_text_files(outdir, refdir, "maxmorf.out", "ref_maxmorf.out")
+        compare_text_files(outdir, refdir, "minmorf.out", "ref_minmorf.out")
 
     def test_batch_mode_02(self):
         """
@@ -87,6 +94,8 @@ class Test_batch_mode():
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
+        outdir = tstdir + os.sep + "output"
+        refdir = tstdir
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
@@ -100,25 +109,11 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        prefixes = ('This is version')
+        compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_report.txt", "r").read().splitlines()
-        result = [x for x in result if not x.startswith(prefixes)]
-        refstr = [x for x in refstr if not x.startswith(prefixes)]
-        assert result == refstr
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "yearavg_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_jaargem.out", "r").read().splitlines()
-        assert result == refstr
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "max_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_maxmorf.out", "r").read().splitlines()
-        assert result == refstr
-        #
-        result = open(tstdir + os.sep + "output" + os.sep + "min_dzb.out", "r").read().splitlines()
-        refstr = open(tstdir + os.sep + "ref_minmorf.out", "r").read().splitlines()
-        assert result == refstr
+        compare_text_files(outdir, refdir, "yearavg_dzb.out", "ref_jaargem.out")
+        compare_text_files(outdir, refdir, "max_dzb.out", "ref_maxmorf.out")
+        compare_text_files(outdir, refdir, "min_dzb.out", "ref_minmorf.out")
 
     def test_batch_mode_03(self):
         """
@@ -129,6 +124,7 @@ class Test_batch_mode():
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
+        outdir = tstdir + os.sep + "output"
         refdir = tstdir + os.sep + "ref_Qmin_Q4000"
         try:
             os.chdir(tstdir)
@@ -142,22 +138,14 @@ class Test_batch_mode():
         print(outstr)
         assert outstr == []
         #
-        prefixes = ('This is version')
+        compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
-        refstr = open(refdir + os.sep + "report.txt", "r").read().splitlines()
-        result = [x for x in result if not x.startswith(prefixes)]
-        refstr = [x for x in refstr if not x.startswith(prefixes)]
-        assert result == refstr
-        #
-        ncRes = netCDF4.Dataset(tstdir + os.sep + "output" + os.sep + "dfastmi_results.nc")
-        ncRef = netCDF4.Dataset(refdir + os.sep + "dfastmi_results.nc")
-        
-        fields = ["avgdzb", "mindzb", "maxdzb"]
-        for f in fields:
-            result = ncRes.variables[f]
-            refdat = ncRef.variables[f]
-            assert (result[...] == refdat[...]).all()
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "dfastmi_results.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "avgdzb", "mindzb", "maxdzb"],
+        )
 
     def test_batch_mode_04(self):
         """
@@ -167,6 +155,7 @@ class Test_batch_mode():
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
+        outdir = tstdir + os.sep + "output"
         refdir = tstdir + os.sep + "ref_Qmin_Q4000"
         try:
             os.chdir(tstdir)
@@ -181,22 +170,59 @@ class Test_batch_mode():
         print(outstr)
         assert outstr == []
         #
-        prefixes = ('This is version')
+        compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
         #
-        result = open(tstdir + os.sep + "output" + os.sep + "report.txt", "r").read().splitlines()
-        refstr = open(refdir + os.sep + "report.txt", "r").read().splitlines()
-        result = [x for x in result if not x.startswith(prefixes)]
-        refstr = [x for x in refstr if not x.startswith(prefixes)]
-        assert result == refstr
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "dfastmi_results.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "avgdzb", "mindzb", "maxdzb"],
+        )
+
+    def test_batch_mode_05(self):
+        """
+        Same as test_batch_mode_04 but includes centreline snapping.
+        """
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        outdir = tstdir + os.sep + "output_rkm"
+        refdir = tstdir + os.sep + "ref_Qmin_Q4000_rkm"
+        try:
+            os.chdir(tstdir)
+            rivers = RiversObject("rivers_Q4000_v2.ini")
+            with captured_output() as (out, err):
+                dfastmi.batch.core.batch_mode("Qmin_4000_v2_rkm.cfg", rivers, False)
+            outstr = out.getvalue().splitlines()
+        finally:
+            os.chdir(cwd)
         #
-        ncRes = netCDF4.Dataset(tstdir + os.sep + "output" + os.sep + "dfastmi_results.nc")
-        ncRef = netCDF4.Dataset(refdir + os.sep + "dfastmi_results.nc")
-        
-        fields = ["avgdzb", "mindzb", "maxdzb"]
-        for f in fields:
-            result = ncRes.variables[f]
-            refdat = ncRef.variables[f]
-            assert (result[...] == refdat[...]).all()
+        # TODO: check screen output once cleaned up
+        #
+        compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "dfastmi_results.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "avgdzb", "mindzb", "maxdzb"],
+        )
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "projected_mesh.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "avgdzb"],
+        )
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "sedimentation_weights.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "interest_region", "sed_area", "ero_area", "wght_estimate1", "wbin"],
+        )
+        #
+        compare_text_files(outdir, refdir, "sedimentation_volumes.xyz")
 
     def given_configuration_file_version_different_as_river_file_version_when_running_batch_mode_core_then_throw_exception_version_mis_match(self):
         """
