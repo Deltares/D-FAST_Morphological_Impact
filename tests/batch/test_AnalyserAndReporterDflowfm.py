@@ -1,16 +1,53 @@
 from ast import List
 import os
 import random
-from typing import Tuple
+from typing import Any, Dict, TextIO, Tuple
 from unittest.mock import patch
 from matplotlib import pyplot as plt
 import numpy
 import pytest
+import shapely
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
+from dfastmi.kernel.typehints import Vector
 
 class Test_analyse_and_report_dflowfm_mode():
+
+    report: TextIO
+    q_threshold: float
+    tstag: float
+    Q: Vector
+    T: Vector
+    rsigma: Vector
+    slength: float
+    nwidth: float
+    ucrit: float
+    filenames: Dict[Any, Tuple[str,str]]
+    xykm: shapely.geometry.linestring.LineString
+    n_fields: int
+    tide_bc: Tuple[str, ...]
+    kmbounds: Tuple[float, float]
+    plotops: Dict
+    
+    @pytest.fixture
+    def setup(self):
+        self.report = None
+        self.q_threshold = 1.0
+        self.slength = 1.0
+        self.nwidth = 1.0
+        self.filenames = {}
+        self.xykm = None
+        self.n_fields = 3
+        self.tide_bc: Tuple[str, ...] = ("name1", "name2")
+        self.kmbounds : Tuple[float, float] = (1.0, 2.0)
+        self.plotops = {}
+        self.tstag = 1.0
+        self.Q = [1.0, 2.0, 3.0]
+        self.T = [1.0, 2.0, 3.0]
+        self.rsigma = [0.1, 0.2, 0.3]
+        self.ucrit = 0.3
+        
     
     @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
         (False, False, False),
@@ -22,46 +59,29 @@ class Test_analyse_and_report_dflowfm_mode():
         (False, False, True),
         (True, False, True),
     ])   
-    def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool):
-        report = None
-        q_threshold = 1.0
-        slength = 1.0
-        nwidth = 1.0
-        filenames = {}
-        xykm = None
-        n_fields = 3
-        tide_bc: Tuple[str, ...] = ("name1", "name2")
-        kmbounds : Tuple[float, float] = (1.0, 2.0)
-        plotops = {}
-        
-        tstag = 1.0
-        Q = [1.0, 2.0, 3.0]
-        T = [1.0, 2.0, 3.0]
-        rsigma = [0.1, 0.2, 0.3]
-        ucrit = 0.3
+    def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):
         outputdir = str(tmp_path)
-        
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                 display,
-                report,
-                q_threshold,
-                tstag,
-                Q,
-                T,
-                rsigma,
-                slength,
-                nwidth,
-                ucrit,
-                filenames,
-                xykm,
+                self.report,
+                self.q_threshold,
+                self.tstag,
+                self.Q,
+                self.T,
+                self.rsigma,
+                self.slength,
+                self.nwidth,
+                self.ucrit,
+                self.filenames,
+                self.xykm,
                 needs_tide,
-                n_fields,
-                tide_bc,
+                self.n_fields,
+                self.tide_bc,
                 old_zmin_zmax,
-                kmbounds,
+                self.kmbounds,
                 outputdir,
-                plotops)
+                self.plotops)
 
         assert succes
         
@@ -75,52 +95,36 @@ class Test_analyse_and_report_dflowfm_mode():
         (False, False, True),
         (True, False, True),
     ])   
-    def given_file_names_based_on_string_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool):
-        report = None
-        q_threshold = 1.0
-        slength = 1.0
-        nwidth = 1.0
-        filenames = {}
-        filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        filenames["1"] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        filenames["2"] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
-        xykm = None
-        n_fields = 3
-        tide_bc: Tuple[str, ...] = ("name1", "name2")
-        kmbounds : Tuple[float, float] = (1.0, 2.0)
-        plotops = {}
-        
-        tstag = 1.0
-        Q = [1.0, 2.0, 3.0]
-        T = [1.0, 2.0, 3.0]
-        rsigma = [0.1, 0.2, 0.3]
-        ucrit = 0.3
+    def given_file_names_based_on_string_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):
         outputdir = str(tmp_path)
         
+        self.filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
+        self.filenames["1"] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
+        self.filenames["2"] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                 display,
-                report,
-                q_threshold,
-                tstag,
-                Q,
-                T,
-                rsigma,
-                slength,
-                nwidth,
-                ucrit,
-                filenames,
-                xykm,
+                self.report,
+                self.q_threshold,
+                self.tstag,
+                self.Q,
+                self.T,
+                self.rsigma,
+                self.slength,
+                self.nwidth,
+                self.ucrit,
+                self.filenames,
+                self.xykm,
                 needs_tide,
-                n_fields,
-                tide_bc,
+                self.n_fields,
+                self.tide_bc,
                 old_zmin_zmax,
-                kmbounds,
+                self.kmbounds,
                 outputdir,
-                plotops)
+                self.plotops)
 
         assert succes
-        
+
         
     @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
         (False, False, False),
@@ -132,28 +136,16 @@ class Test_analyse_and_report_dflowfm_mode():
         (False, False, True),
         (True, False, True),
     ])   
-    def given_file_names_with_plotting_off_when_analyse_and_report_dflowfm_then_expect_return_true_and_eleven_grids_added(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool):
-        report = None
-        q_threshold = 1.0
-        slength = 1.0
-        nwidth = 1.0
-        filenames = {}
-        filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
-        xykm = None
-        n_fields = 1
-        tide_bc: Tuple[str, ...] = ("name1", "name2")
-        kmbounds : Tuple[float, float] = (1.0, 2.0)
-        plotops = {}
-        plotops['plotting'] = False
-        
-        tstag = 1.0
-        Q = [1.0, 2.0, 3.0]
-        T = [1.0, 2.0, 3.0]
-        rsigma = [0.1, 0.2, 0.3]
-        ucrit = 0.3
+    def given_file_names_with_plotting_off_when_analyse_and_report_dflowfm_then_expect_return_true_and_eleven_grids_added(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool , setup):        
         outputdir = str(tmp_path)
+        
+        self.n_fields = 1
+        
+        self.plotops['plotting'] = False
+        
+        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
+        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
+        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add:
         
@@ -165,24 +157,24 @@ class Test_analyse_and_report_dflowfm_mode():
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display,
-                    report,
-                    q_threshold,
-                    tstag,
-                    Q,
-                    T,
-                    rsigma,
-                    slength,
-                    nwidth,
-                    ucrit,
-                    filenames,
-                    xykm,
+                    self.report,
+                    self.q_threshold,
+                    self.tstag,
+                    self.Q,
+                    self.T,
+                    self.rsigma,
+                    self.slength,
+                    self.nwidth,
+                    self.ucrit,
+                    self.filenames,
+                    self.xykm,
                     needs_tide,
-                    n_fields,
-                    tide_bc,
+                    self.n_fields,
+                    self.tide_bc,
                     old_zmin_zmax,
-                    kmbounds,
+                    self.kmbounds,
                     outputdir,
-                    plotops)
+                    self.plotops)
             finally:
                 os.chdir(cwd)
         
@@ -199,46 +191,32 @@ class Test_analyse_and_report_dflowfm_mode():
         (False, False, True),
         (True, False, True),
     ])
-    def given_file_names_with_plotting_on_when_analyse_and_report_dflowfm_then_expect_return_true_and_eleven_grids_added(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool):
-        report = None
-        q_threshold = 1.0
-        slength = 1.0
-        nwidth = 1.0
-        filenames = {}
-        filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
-        xykm = None
-        n_fields = 1
-        tide_bc: Tuple[str, ...] = ("name1", "name2")
-        kmbounds : Tuple[float, float] = (1.0, 2.0)
-        plotops = {}
-        plotops['plotting'] = True
-        plotops['saveplot'] = True
-        plotops['saveplot_zoomed'] = True
-        plotops['figdir'] = str(tmp_path)
-        plotops['plot_ext'] = "plot_ext"
+    def given_file_names_with_plotting_on_when_analyse_and_report_dflowfm_then_expect_return_true_and_eleven_grids_added(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):        
+        outputdir = str(tmp_path)
+        
+        self.n_fields = 1
+        
+        self.plotops['plotting'] = True
+        self.plotops['saveplot'] = True
+        self.plotops['saveplot_zoomed'] = True
+        self.plotops['figdir'] = str(tmp_path)
+        self.plotops['plot_ext'] = "plot_ext"
         
         random_list: List[Tuple[float, float, float, float]] = [
             (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
         
-        plotops['xyzoom'] = random_list
+        self.plotops['xyzoom'] = random_list
         
-        tstag = 1.0
-        Q = [1.0, 2.0, 3.0]
-        T = [1.0, 2.0, 3.0]
-        rsigma = [0.1, 0.2, 0.3]
-        ucrit = 0.3
-        outputdir = str(tmp_path)
+        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
+        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
+        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
             
-            Figure = plt.figure
-            Axes = plt.axes
-            mocked_plotting_plot_overview.return_value = ((Figure(figsize=(8, 6)) ,Axes()))
+            mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -248,24 +226,24 @@ class Test_analyse_and_report_dflowfm_mode():
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display,
-                    report,
-                    q_threshold,
-                    tstag,
-                    Q,
-                    T,
-                    rsigma,
-                    slength,
-                    nwidth,
-                    ucrit,
-                    filenames,
-                    xykm,
+                    self.report,
+                    self.q_threshold,
+                    self.tstag,
+                    self.Q,
+                    self.T,
+                    self.rsigma,
+                    self.slength,
+                    self.nwidth,
+                    self.ucrit,
+                    self.filenames,
+                    self.xykm,
                     needs_tide,
-                    n_fields,
-                    tide_bc,
+                    self.n_fields,
+                    self.tide_bc,
                     old_zmin_zmax,
-                    kmbounds,
+                    self.kmbounds,
                     outputdir,
-                    plotops)
+                    self.plotops)
             finally:
                 os.chdir(cwd)
         
@@ -282,36 +260,25 @@ class Test_analyse_and_report_dflowfm_mode():
         (True, True),
         (False, True),
     ])
-    def given_xykm_display_false_when_analyse_and_report_dflowfm_then_expect_return_true_and_sixteen_grids_added(self, tmp_path, needs_tide : bool, old_zmin_zmax : bool):
-        report = None
-        q_threshold = 1.0
-        slength = 1.0
-        nwidth = 1.0
-        filenames = {}
-        filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
-        n_fields = 1
-        tide_bc: Tuple[str, ...] = ("name1", "name2")
-        kmbounds : Tuple[float, float] = (1.0, 2.0)
-        plotops = {}
-        plotops['plotting'] = True
-        plotops['saveplot'] = True
-        plotops['saveplot_zoomed'] = True
-        plotops['figdir'] = str(tmp_path)
-        plotops['plot_ext'] = "plot_ext"
+    def given_xykm_display_false_when_analyse_and_report_dflowfm_then_expect_return_true_and_sixteen_grids_added(self, tmp_path, needs_tide : bool, old_zmin_zmax : bool, setup):
+        outputdir = str(tmp_path)
+        
+        self.n_fields = 1
+        
+        self.plotops['plotting'] = True
+        self.plotops['saveplot'] = True
+        self.plotops['saveplot_zoomed'] = True
+        self.plotops['figdir'] = str(tmp_path)
+        self.plotops['plot_ext'] = "plot_ext"
         
         random_list: List[Tuple[float, float, float, float]] = [
             (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
         
-        plotops['xyzoom'] = random_list
+        self.plotops['xyzoom'] = random_list
         
-        tstag = 1.0
-        Q = [1.0, 2.0, 3.0]
-        T = [1.0, 2.0, 3.0]
-        rsigma = [0.1, 0.2, 0.3]
-        ucrit = 0.3
-        outputdir = str(tmp_path)
+        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
+        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
+        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
@@ -319,19 +286,9 @@ class Test_analyse_and_report_dflowfm_mode():
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
 
-            Figure = plt.figure
-            Axes = plt.axes
-            mocked_plotting_plot_overview.return_value = ((Figure(figsize=(8, 6)) ,Axes()))
+            mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
-            sedarea = None
-            sedvol = None
-            sed_area_list = []
-            eroarea = None
-            erovol = None
-            ero_area_list = []
-            wght_area_tot = numpy.zeros(2555)
-            wbini = numpy.zeros(2555)
-            mocked_comp_sedimentation_volume.return_value = (sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini)
+            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
 
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -342,28 +299,28 @@ class Test_analyse_and_report_dflowfm_mode():
                 
                 testing_working_dir = os.getcwd()
                 kmfile = testing_working_dir + "\\..\\files\\read_xyc_test.xyc"
-                xykm = DataTextFileOperations.get_xykm(kmfile)
+                self.xykm = DataTextFileOperations.get_xykm(kmfile)
                 
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     False,
-                    report,
-                    q_threshold,
-                    tstag,
-                    Q,
-                    T,
-                    rsigma,
-                    slength,
-                    nwidth,
-                    ucrit,
-                    filenames,
-                    xykm,
+                    self.report,
+                    self.q_threshold,
+                    self.tstag,
+                    self.Q,
+                    self.T,
+                    self.rsigma,
+                    self.slength,
+                    self.nwidth,
+                    self.ucrit,
+                    self.filenames,
+                    self.xykm,
                     needs_tide,
-                    n_fields,
-                    tide_bc,
+                    self.n_fields,
+                    self.tide_bc,
                     old_zmin_zmax,
-                    kmbounds,
+                    self.kmbounds,
                     outputdir,
-                    plotops)
+                    self.plotops)
             finally:
                 os.chdir(cwd)
         
