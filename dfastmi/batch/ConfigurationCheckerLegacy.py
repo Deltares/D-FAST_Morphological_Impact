@@ -68,6 +68,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             reach = self._get_reach(rivers, config, ReachLegacy)
         except LookupError:
             return False
+        except ValueError:
+            return False
 
         nwidth = reach.normal_width
         [_, apply_q, _, _, _, _, _, _] = self.get_levels(reach, config, nwidth)

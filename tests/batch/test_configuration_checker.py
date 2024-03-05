@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import create_autospec
 from configparser import ConfigParser
 import pytest
 
@@ -15,16 +15,20 @@ class Test_a_configuration_checker():
     
     @pytest.fixture
     def rivers(self):
-        mock_reach = MagicMock(spec=Reach)
+        mock_reach = create_autospec(Reach)
         mock_reach.name = "myReach1"
         mock_reach.hydro_q = (80.1, 80.2)        
 
-        mock_branch = MagicMock(spec=Branch)
+        mock_branch = create_autospec(Branch)
         mock_branch.name = "myBranch"
         mock_branch.reaches = [mock_reach]
-        
-        rivers = MagicMock(spec=RiversObject)
+        mock_branch.get_reach.return_value = None
+
+        rivers = create_autospec(RiversObject)
         rivers.branches = [mock_branch]
+        # Set the return value of the 'get_branch' method
+        rivers.get_branch.return_value = mock_branch       
+
         return rivers
 
     @pytest.fixture
@@ -51,16 +55,22 @@ class Test_configuration_checker():
     
     @pytest.fixture
     def rivers(self):
-        mock_reach = MagicMock(spec=Reach)
+        mock_reach = create_autospec(Reach)
         mock_reach.name = "myReach"
         mock_reach.hydro_q = (80.1, 80.2)        
 
-        mock_branch = MagicMock(spec=Branch)
+        mock_branch = create_autospec(Branch)
         mock_branch.name = "myBranch"
         mock_branch.reaches = [mock_reach]
-        
-        rivers = MagicMock(spec=RiversObject)
+
+        # Set the return value of the 'get_reach' method
+        mock_branch.get_reach.return_value = mock_reach
+
+        rivers = create_autospec(RiversObject)
         rivers.branches = [mock_branch]
+        # Set the return value of the 'get_branch' method
+        rivers.get_branch.return_value = mock_branch       
+
         return rivers
 
     @pytest.fixture

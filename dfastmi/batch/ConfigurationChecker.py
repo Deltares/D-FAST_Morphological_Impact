@@ -68,6 +68,8 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             reach = self._get_reach(rivers, config, Reach)
         except LookupError:
             return False
+        except ValueError:
+            return False
 
         hydro_q = reach.hydro_q
         n_cond = len(hydro_q)
