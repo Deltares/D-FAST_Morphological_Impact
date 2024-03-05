@@ -218,6 +218,19 @@ class Test_read_key():
             river_data.read_key(Tuple[float, ...], myKey, self._reach, expected_number_of_values=4)
         assert str(cm.value) == f'Reading {myKey} for reach {self._reach.name} on {self._reach.parent_branch.name} returns "{myVal}". Expecting 4 values.'
 
+    def given_simple_valid_tulple_str_key_value_and_expected_number_of_str_of_3_values_when_read_key_with_type_tuple_str_then_return_expected_value(self, setup_data):
+        """
+        Setup a simple config with a valid tuple str key values and expected number of values of 3
+        which can be parsed correctly will return the expected tuple str key values
+        """
+        myKey = "KEY"
+        myVal = "8.01 8.02 8.03"
+        self._config[self._my_group][myKey] = myVal
+        river_data = DFastMIConfigParser(self._config)
+        read_data = river_data.read_key(Tuple[str, ...], myKey, self._reach, expected_number_of_values=3)
+        assert len(read_data) == 3
+        assert read_data == ("8.01", "8.02", "8.03")
+
 class Test_config_get():
     """
     Class will validate the functionality of reading key values from a DFast application configuration file.
