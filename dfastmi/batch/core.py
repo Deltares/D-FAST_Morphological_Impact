@@ -73,7 +73,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     config_file : str
         Name of the configuration file.
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
@@ -98,7 +98,7 @@ def batch_mode_core(
     Arguments
     ---------
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
@@ -334,7 +334,7 @@ def get_levels_v2(
     Arguments
     ---------
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     ibranch : int
         Number of selected branch.
     ireach : int
@@ -849,7 +849,7 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
     Arguments
     ---------
     rivers: RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     config : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis.
 

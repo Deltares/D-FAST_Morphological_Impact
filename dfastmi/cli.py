@@ -52,7 +52,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     src : TextIO
         Source to read from (typically sys.stdin)
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
@@ -264,7 +264,7 @@ def interactive_get_location(
     src : TextIO
         Source to read from (typically sys.stdin)
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
 
     Returns
     -------
@@ -322,7 +322,7 @@ def interactive_get_discharges(
     src : TextIO
         Source to read from (typically sys.stdin)
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     ibranch : int
         Number of selected branch.
     ireach : int

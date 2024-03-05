@@ -50,12 +50,12 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
     
     def check_configuration(self, rivers: RiversObject, config: configparser.ConfigParser) -> bool:
         """
-        Check if a version 1 analysis configuration is valid.
+        Check if a version 1 / legacy analysis configuration is valid.
 
         Arguments
         ---------
         rivers: RiversObject
-            A dictionary containing the river data.
+            An object containing the river data.
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis.
 
@@ -93,12 +93,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
 
         Arguments
         ---------
-        rivers : RiversObject
-            A dictionary containing the river data.
-        ibranch : int
-            Number of selected branch.
-        ireach : int
-            Number of selected reach.
+        reach : ReachLegacy
+            The reach we want to get the levels from.
         config : configparser.ConfigParser
             Configuration of the analysis to be run.
         nwidth : float
@@ -165,12 +161,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
 
         Arguments
         ---------
-        rivers : RiversObject
-            A dictionary containing the river data.
-        ibranch : int
-            Number of selected branch.
-        ireach : int
-            Number of selected reach.
+        reach : ReachLegacy
+            The reach we want to get the discharges from.
         config : configparser.ConfigParser
             Configuration of the analysis to be run.
         q_stagnant : float

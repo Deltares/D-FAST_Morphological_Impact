@@ -645,7 +645,7 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
     Arguments
     ---------
     rivers_configuration : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     config : Optional[str]
         Optional name of configuration file.
     """

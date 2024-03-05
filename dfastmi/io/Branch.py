@@ -35,15 +35,16 @@ Classes:
 """
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
-from dfastmi.io.ObservableList import ObservableList
+from dfastmi.io.ObservableList import ObservableList, Observer
 from dfastmi.io.Reach import AReach
 
 
-class Branch(IBranch):
+class Branch(IBranch, Observer[AReach]):
     """Class for storing branch information"""
     _name : str
     _qlocation : str
-    _reaches : ObservableList
+    _reaches: ObservableList[AReach]  # Specify the type parameter AReach for ObservableList
+
 
     def __init__(self, branch_name : str = "Branch"):
         """
@@ -55,7 +56,7 @@ class Branch(IBranch):
         """
 
         self._name = branch_name
-        self._reaches = ObservableList()
+        self._reaches: ObservableList[AReach] = ObservableList[AReach]()
         self._reaches.add_observer(self)
 
     def get_reach(self, reach_name : str) -> IReach:
@@ -87,10 +88,10 @@ class Branch(IBranch):
         self._qlocation = value
 
     @property
-    def reaches(self) -> ObservableList:
+    def reaches(self) -> ObservableList[AReach]:
         """The reaches in this branch"""
         return self._reaches
 
-    def notify(self, reach:AReach):
+    def notify(self, reach:AReach) -> None:
         """When a reach is added to the reaches list we want to set the parent branch in the reach element"""
         reach.parent_branch = self

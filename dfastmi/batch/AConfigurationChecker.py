@@ -48,7 +48,7 @@ class AConfigurationCheckerBase(ABC):
         Arguments
         ---------
         rivers: RiversObject
-            A dictionary containing the river data.
+            An object containing the river data.
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis.
 

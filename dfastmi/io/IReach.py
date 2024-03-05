@@ -15,5 +15,5 @@ class IReach(ABC):
 
     @property
     @abstractmethod
-    def config_key_index(self) -> str:
+    def config_key_index(self) -> int:
         """Index number of the Reach in the branch"""

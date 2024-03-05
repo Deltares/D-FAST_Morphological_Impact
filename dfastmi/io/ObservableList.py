@@ -33,28 +33,54 @@ Classes:
     ObservableList
 
 """
-class ObservableList:
+from typing import Iterator, List, Protocol, TypeVar, Generic
+
+
+T = TypeVar('T')
+
+# Define an observer interface
+class Observer(Generic[T]):
+    """
+    An interface for observing changes in an ObservableList.
+    """
+
+    def notify(self, element: T) -> None:
+        """
+        Method called when an element is added to the ObservableList.
+        """
+        pass
+
+class ObservableList(Generic[T]):
     """
     This class is a list object, but notify it's observers when an element is added
     """
     def __init__(self):
-        self._list = []
-        self._observers = []
+        self._list: List[T] = []
+        self._observers : List[Observer[T]] = []
 
     def __getitem__(self, index):
         return self._list[index]
-
-    def append(self, element):
+    
+    def __iter__(self) -> Iterator[T]:
+        return iter(self._list)
+    
+    def append(self, element : T) -> None:
         """
         When an element is appended in the list we want to notify the observers 
         of the list so an action can be done from the observers to the element which is added.
         """
         self._list.append(element)
-        for observer in self._observers:
-            observer.notify(element)
+        self._notify_observers(element)
 
-    def add_observer(self, observer):
+    def add_observer(self, observer: 'Observer[T]') -> None:
         """
         Add an objects which will observer the list (currently on appending an element)
         """
         self._observers.append(observer)
+
+    def _notify_observers(self, element: T) -> None:
+        """
+        Notify all observers about the added element.
+        """
+        for observer in self._observers:
+            observer.notify(element)
