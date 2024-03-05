@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
-from dfastmi.kernel.core import Vector, BoolVector
+from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
 

@@ -30,10 +30,11 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from typing import Optional, Tuple
 from dfastmi.io.Reach import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.core import Vector, BoolVector, QRuns
+from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 import dfastmi.kernel.core
+import dfastmi.kernel.legacy
 import dfastmi.plotting
 import configparser
 
@@ -238,9 +239,9 @@ def batch_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, apply_q = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, apply_q = dfastmi.kernel.legacy.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-    tstag, T, rsigma = dfastmi.kernel.core.char_times(
+    tstag, T, rsigma = dfastmi.kernel.legacy.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
     )
 

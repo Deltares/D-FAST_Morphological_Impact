@@ -31,9 +31,10 @@ from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io.Branch import Branch
 from dfastmi.io.Reach import Reach, ReachLegacy
 import dfastmi.kernel.core
+import dfastmi.kernel.legacy
 import dfastmi.batch.core
 
-from dfastmi.kernel.core import QRuns
+from dfastmi.kernel.typehints import QRuns
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
@@ -398,9 +399,9 @@ def interactive_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, applyQ = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, applyQ = dfastmi.kernel.legacy.char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-    tstag, T, rsigma = dfastmi.kernel.core.char_times(
+    tstag, T, rsigma = dfastmi.kernel.legacy.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
     )
 
