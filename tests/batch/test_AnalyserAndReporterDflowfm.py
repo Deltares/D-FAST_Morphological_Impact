@@ -60,6 +60,11 @@ class Test_analyse_and_report_dflowfm_mode():
         (True, False, True),
     ])   
     def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):
+        """
+        given : no file names
+        when  : analyse and report dflowfm
+        then  : return true
+        """
         outputdir = str(tmp_path)
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
@@ -96,6 +101,11 @@ class Test_analyse_and_report_dflowfm_mode():
         (True, False, True),
     ])   
     def given_file_names_based_on_string_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):
+        """
+        given : file names based on string
+        when  : analyse and report dflowfm
+        then  : return true
+        """
         outputdir = str(tmp_path)
         
         self.filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
@@ -136,7 +146,12 @@ class Test_analyse_and_report_dflowfm_mode():
         (False, False, True),
         (True, False, True),
     ])   
-    def given_file_names_with_plotting_off_when_analyse_and_report_dflowfm_then_expect_return_true_and_eleven_grids_added(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool , setup):        
+    def given_file_names_based_on_numbers_with_plotting_off_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_not_called(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool , setup):        
+        """
+        given : file names based on numbers with plotting off
+        when  : analyse and report dflowfm
+        then  : return true and expect eleven grids added and plotting not called
+        """
         outputdir = str(tmp_path)
         
         self.n_fields = 1
@@ -147,8 +162,15 @@ class Test_analyse_and_report_dflowfm_mode():
         self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
         self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
         
-        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add:
-        
+        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+
+            mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
+            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
+            
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
             cwd = os.getcwd()
@@ -179,6 +201,9 @@ class Test_analyse_and_report_dflowfm_mode():
                 os.chdir(cwd)
         
         assert succes
+        assert mocked_plotting_plot_overview.call_count == 0
+        assert mocked_plotting_zoom_xy_and_save.call_count == 0
+        assert mocked_plotting_savefig.call_count == 0
         assert mocked_ugrid_add.call_count == 11
         
     @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
@@ -191,7 +216,12 @@ class Test_analyse_and_report_dflowfm_mode():
         (False, False, True),
         (True, False, True),
     ])
-    def given_file_names_with_plotting_on_when_analyse_and_report_dflowfm_then_expect_return_true_and_eleven_grids_added(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):        
+    def given_file_names_with_plotting_on_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_called(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):        
+        """
+        given : file names based on numbers with plotting on
+        when  : analyse and report dflowfm
+        then  : return true and expect eleven grids added and plotting called
+        """
         outputdir = str(tmp_path)
         
         self.n_fields = 1
@@ -214,9 +244,11 @@ class Test_analyse_and_report_dflowfm_mode():
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
-            
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
+            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
             
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -260,7 +292,12 @@ class Test_analyse_and_report_dflowfm_mode():
         (True, True),
         (False, True),
     ])
-    def given_xykm_display_false_when_analyse_and_report_dflowfm_then_expect_return_true_and_sixteen_grids_added(self, tmp_path, needs_tide : bool, old_zmin_zmax : bool, setup):
+    def given_xykm_and_no_display_when_analyse_and_report_dflowfm_then_return_true_and_expect_sixteen_grids_added_and_plotting_called(self, tmp_path, needs_tide : bool, old_zmin_zmax : bool, setup):
+        """
+        given : xykm and no display
+        when  : analyse and report dflowfm
+        then  : return true and expect sixteen grids addedand plotting called
+        """
         outputdir = str(tmp_path)
         
         self.n_fields = 1
@@ -287,7 +324,6 @@ class Test_analyse_and_report_dflowfm_mode():
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
-            
             mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
 
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
