@@ -197,7 +197,48 @@ class Test_batch_mode():
         finally:
             os.chdir(cwd)
         #
-        # TODO: check screen output once cleaned up
+        compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "dfastmi_results.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "avgdzb", "mindzb", "maxdzb"],
+        )
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "projected_mesh.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "avgdzb"],
+        )
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "sedimentation_weights.nc",
+            ["mesh2d_node_x", "mesh2d_node_y", "interest_region", "sed_area", "ero_area", "wght_estimate1", "wbin"],
+        )
+        #
+        compare_text_files(outdir, refdir, "sedimentation_volumes.xyz")
+
+    def test_batch_mode_06(self):
+        """
+        Same as test_batch_mode_05 but sets Tide = True and uses 2 time steps.
+        """
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        cwd = os.getcwd()
+        tstdir = "tests/c01 - GendtseWaardNevengeul"
+        outdir = tstdir + os.sep + "output_tide"
+        refdir = tstdir + os.sep + "ref_Qmin_Q4000_rkm"
+        try:
+            os.chdir(tstdir)
+            rivers = RiversObject("rivers_Q4000_v2_tide.ini")
+            with captured_output() as (out, err):
+                dfastmi.batch.core.batch_mode("Qmin_4000_v2_tide.cfg", rivers, False)
+            outstr = out.getvalue().splitlines()
+        finally:
+            os.chdir(cwd)
         #
         compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
         #
