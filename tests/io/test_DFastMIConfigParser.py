@@ -8,9 +8,9 @@ from io import StringIO
 from typing import Tuple
 import pytest
 import configparser
-
+from dfastmi.io.IReach import IReach
+from dfastmi.io.Reach import AReach
 from dfastmi.io.IBranch import IBranch
-from dfastmi.io.Reach import Reach, ReachAdvanced
 
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 
@@ -29,7 +29,7 @@ class Test_DFastMIConfigParser():
     Class will validate the functionality the DFastMConfigParser
     """
 
-    _reach : Reach
+    _reach : IReach
     _config : configparser.ConfigParser
     _my_group : str
     _my_key : str
@@ -40,7 +40,9 @@ class Test_DFastMIConfigParser():
     @pytest.fixture
     def setup_data(self):
         """Setup a reach with a branch to be used in the tests"""
-        self._reach = Reach("Reach1")
+        reach = Mock(AReach)
+        reach.name = "Reach1"
+        self._reach = reach
         branch = Mock(IBranch)
         branch.name = "Branch1"
         self._reach.parent_branch = branch
@@ -76,12 +78,14 @@ class Test_read_key():
     Class will validate the functionality of reading key values from a river configuration file
     """
 
-    _reach : Reach
+    _reach : IReach
     
     @pytest.fixture
     def setup_data(self):
         """setup the reach with a simple branch to be used in the test methods"""
-        self._reach = Reach("Reach1")
+        reach = Mock(AReach)
+        reach.name = "Reach1"
+        self._reach = reach
         branch = Mock(IBranch)
         branch.name = "Branch1"
         self._reach.parent_branch = branch

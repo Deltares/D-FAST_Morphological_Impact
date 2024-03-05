@@ -28,8 +28,9 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
+from dfastmi.io.IReach import IReach
 from dfastmi.io.Branch import Branch
-from dfastmi.io.Reach import Reach, ReachLegacy
+from dfastmi.io.Reach import ReachLegacy
 import dfastmi.kernel.core
 import dfastmi.kernel.legacy
 import dfastmi.batch.core
@@ -254,7 +255,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
 
 def interactive_get_location(
     src: TextIO, rivers: RiversObject,
-) -> Tuple[Optional[Branch], Optional[Reach]]:
+) -> Tuple[Optional[Branch], Optional[IReach]]:
     """
     Ask the user interactively for the branch and reach.
 

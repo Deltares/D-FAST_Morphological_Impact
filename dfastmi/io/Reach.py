@@ -35,29 +35,40 @@ Classes:
     ReachAdvanced
 
 """
-from abc import ABC
 from typing import List
 
 from dfastmi.io.CelerObject import ICelerObject
 from dfastmi.io.IBranch import IBranch
+from dfastmi.io.IReach import IReach
 
-class Reach(ABC):
+
+class AReach(IReach):
     """
     Abstract base class with reach data information. Should never be instantiated.
     """
-    name : str
-    config_key_index : int
+    _name : str
+    _config_key_index : int
+
     normal_width : float
     ucritical : float
     qstagnant : float
     parent_branch : IBranch
 
     def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
-        self.name = reach_name
-        self.config_key_index = reach_config_key_index
+        self._name = reach_name
+        self._config_key_index = reach_config_key_index
+    
+    @property
+    def name(self) -> str:
+        """Name of the reach"""
+        return self._name
+    
+    @property
+    def config_key_index(self) -> int:
+        """Index of the Reach in the branch"""
+        return self._config_key_index
 
-
-class ReachLegacy(Reach):
+class ReachLegacy(AReach):
     """
     Derived class with reach data information used with legacy river configuration files.
     """
@@ -70,7 +81,7 @@ class ReachLegacy(Reach):
     dq : tuple[float,float]
 
 
-class ReachAdvanced(Reach):
+class Reach(AReach):
     """
     Derived class with reach data information used with current (AKA v2) river configuration files.
     """

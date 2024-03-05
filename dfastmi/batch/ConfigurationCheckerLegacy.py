@@ -27,8 +27,9 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
+from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
 import dfastmi.kernel.core
 from dfastmi.io.Reach import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
@@ -36,45 +37,17 @@ from dfastmi.kernel.core import BoolVector, QRuns, Vector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
-
 class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
     """
         Check if a version 1 / legacy analysis configuration is valid.
     """
-    _validators = {}
-    """Contains the configuration validator be used depending on mode"""
+    _validator : ConfigurationCheckerValidator
 
     def __init__(self):
-        self._register_validator(WAQUA_EXPORT, self._check_configuration_cond_waqua)
-        self._register_validator(DFLOWFM_MAP, self._check_configuration_cond_fm)
-
-    def _register_validator(self, mode: str, validator: Callable[[configparser.ConfigParser,  int], bool]):
-        """Register creator function to create a AConfigurationChecker object."""
-        if mode not in self._validators:
-            self._validators[mode] = validator
-        #else:
-            #print(f"Validator {mode} already exists in the dictionary.")
-
-    def _validate(self, mode: str, config: configparser.ConfigParser, i : int ) -> bool:
-        """
-        Call the Validator function to valdite a ConfigurationCheckerLegacy object.
-
-        Arguments
-        ---------
-        mode: str
-            The mode in the configuration to validate for.
-
-        Returns
-        -------
-        bool
-            calls the existing / registered validator and validates the provided configuration.
-        """
-        validate_method = self._validators.get(mode)
-        if validate_method:
-            return validate_method(config, i)
-        else:
-            return False
-
+        _validator = ConfigurationCheckerValidator()
+        _validator.register_validator(WAQUA_EXPORT, self._check_configuration_cond_waqua)
+        _validator.register_validator(DFLOWFM_MAP, self._check_configuration_cond_fm)
+    
     def check_configuration(self, rivers: RiversObject, config: configparser.ConfigParser) -> bool:
         """
         Check if a version 1 analysis configuration is valid.
@@ -92,24 +65,24 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
         try:
-            reach = self._get_reach(rivers, config)
+            reach = self._get_reach(rivers, config, ReachLegacy)
         except LookupError:
             return False
 
         nwidth = reach.normal_width
-        [_, apply_q, _, _, _, _, _, _] = self._get_levels(reach, config, nwidth)
+        [_, apply_q, _, _, _, _, _, _] = self.get_levels(reach, config, nwidth)
 
         mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
         for i in range(3):
             if not apply_q[i]:
                 continue
 
-            if not self._validate(mode_str, config, i) :
+            if not self._validator.validate(mode_str, config, i) :
                 return False
 
         return True
 
-    def _get_levels(
+    def get_levels(
         self,
         reach: ReachLegacy,
         config: configparser.ConfigParser,

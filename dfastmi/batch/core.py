@@ -39,7 +39,7 @@ from packaging import version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
 
-from dfastmi.io.Reach import ReachAdvanced
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -171,7 +171,7 @@ def batch_mode_core(
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
-                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationCheckerLegacy()._get_levels(reach, config, nwidth)
+                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationCheckerLegacy().get_levels(reach, config, nwidth)
                 needs_tide = False
                 n_fields = 1
 
@@ -326,7 +326,7 @@ def batch_mode_core(
     return success
 
 def get_levels_v2(
-    reach : ReachAdvanced, q_threshold: float, nwidth: float
+    reach : Reach, q_threshold: float, nwidth: float
 ) -> (Vector, BoolVector, Vector, float, Vector, Vector, Vector):
     """
     Determine discharges, times, etc. for version 2 analysis

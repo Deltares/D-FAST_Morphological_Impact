@@ -45,9 +45,7 @@ class ConfigurationCheckerFactory:
         """Register creator function to create a AConfigurationChecker object."""
         if configuration_version not in ConfigurationCheckerFactory._creators:
             ConfigurationCheckerFactory._creators[configuration_version] = creator
-        #else:
-            #print(f"Configuration version {configuration_version} already exists in the dictionary.")
-
+        
     @staticmethod
     def generate(configuration_version: Version) -> AConfigurationCheckerBase:
         """

@@ -28,9 +28,12 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 from abc import ABC, abstractmethod
+from typing import Type, TypeVar
+from dfastmi.io.IReach import IReach
 
 from dfastmi.io.RiversObject import RiversObject
 
+T = TypeVar('T', bound=IReach)
 
 class AConfigurationCheckerBase(ABC):
     """
@@ -57,22 +60,28 @@ class AConfigurationCheckerBase(ABC):
 
     def _get_reach(self,
                    rivers : RiversObject,
-                   config : configparser.ConfigParser):
+                   config : configparser.ConfigParser,
+                   reach_type: Type[T]) -> T:
         """
         Get the General branch reach, used in derived classes
         """
-        branch_name = config.get("General","Branch", fallback="")
+        branch_name = config.get("General", "Branch", fallback="")
+        if len(branch_name) <= 0:
+            raise ValueError("Branch name cannot be empty")
+        branch = rivers.get_branch(branch_name)
 
-        if not any(branch.name == branch_name for branch in rivers.branches):
+        if branch is None:
             raise LookupError(f"Branch not in file {branch_name}!")
 
-        ibranch = next((i for i, branch in enumerate(rivers.branches) if branch.name == branch_name), -1)
-
         reach_name = config.get("General","Reach", fallback="")
+        if len(reach_name) <= 0:
+            raise ValueError("Reach name cannot be empty")        
+        reach = branch.get_reach(reach_name)
 
-        if not any(reach.name == reach_name for reach in rivers.branches[ibranch].reaches):
+        if reach is None:
             raise LookupError(f"Reach not in file {reach_name}!")
+        
+        if not isinstance(reach, reach_type) :
+            raise TypeError(f"Created Reach {reach_name} in river configuration is not of type {reach_type}")
 
-        ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
-        reach = rivers.branches[ibranch].reaches[ireach]
         return reach

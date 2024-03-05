@@ -36,6 +36,8 @@ Interfaces:
 
 from abc import ABC, abstractmethod
 
+from dfastmi.io.IReach import IReach
+
 class IBranch(ABC):
     """Interface for branch information"""  
 
@@ -43,3 +45,7 @@ class IBranch(ABC):
     @abstractmethod
     def name(self) -> str:
         """Name of the branch"""        
+    
+    @abstractmethod
+    def get_reach(self, reach_name : str) -> IReach:
+        """Reach in branch by name"""

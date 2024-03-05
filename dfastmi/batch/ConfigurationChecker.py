@@ -40,6 +40,7 @@ import configparser
 from typing import Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.Reach import Reach
 
 class ConfigurationChecker(AConfigurationCheckerBase):
     """
@@ -64,7 +65,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
         try:
-            reach = self._get_reach(rivers, config)
+            reach = self._get_reach(rivers, config, Reach)
         except LookupError:
             return False
 

@@ -34,8 +34,9 @@ Classes:
 
 """
 from dfastmi.io.IBranch import IBranch
+from dfastmi.io.IReach import IReach
 from dfastmi.io.ObservableList import ObservableList
-from dfastmi.io.Reach import Reach
+from dfastmi.io.Reach import AReach
 
 
 class Branch(IBranch):
@@ -57,6 +58,20 @@ class Branch(IBranch):
         self._reaches = ObservableList()
         self._reaches.add_observer(self)
 
+    def get_reach(self, reach_name : str) -> IReach:
+        """
+        Return the branch from the read branches list
+        Arguments
+        ---------
+        branch_name : str
+            The name of the branch in the river configuration 
+        """
+        for reach in self._reaches:
+            if reach.name == reach_name:
+                return reach
+        return None  # Return None if the reach with the given name is not found
+
+
     @property
     def name(self) -> str:
         """Name of the branch"""
@@ -76,6 +91,6 @@ class Branch(IBranch):
         """The reaches in this branch"""
         return self._reaches
 
-    def notify(self, reach:Reach):
+    def notify(self, reach:AReach):
         """When a reach is added to the reaches list we want to set the parent branch in the reach element"""
         reach.parent_branch = self

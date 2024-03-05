@@ -37,7 +37,7 @@ import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
 import dfastmi.batch.core
-from dfastmi.io.Reach import ReachAdvanced
+from dfastmi.io.Reach import Reach
 import dfastmi.kernel.core
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.FileUtils import FileUtils
@@ -341,7 +341,7 @@ def updated_reach(ireach: int) -> None:
     update_qvalues(reach)
 
 
-def update_qvalues(reach:ReachAdvanced) -> None:
+def update_qvalues(reach:Reach) -> None:
     """
     Adjust the GUI for updated characteristic discharges.
 
