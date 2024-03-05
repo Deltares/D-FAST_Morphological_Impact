@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import create_autospec
 from configparser import ConfigParser
 import pytest
 
@@ -15,7 +15,7 @@ class Test_configuration_checker_legacy():
     
     @pytest.fixture
     def rivers(self):
-        mock_reach = MagicMock(spec=ReachLegacy)
+        mock_reach = create_autospec(ReachLegacy)
         mock_reach.name = "myReach"
         mock_reach.normal_width = 340
         mock_reach.qstagnant = 800
@@ -27,12 +27,15 @@ class Test_configuration_checker_legacy():
         mock_reach.dq = (1000.0, 1000.0)
         mock_reach.qmin = 1000
 
-        mock_branch = MagicMock(spec=Branch)
+        mock_branch = create_autospec(spec=Branch)
         mock_branch.name = "myBranch"
         mock_branch.reaches = [mock_reach]
-        
-        rivers = MagicMock(spec=RiversObject)
+        mock_branch.get_reach.return_value = mock_reach
+
+        rivers = create_autospec(spec=RiversObject)
         rivers.branches = [mock_branch]
+        # Set the return value of the 'get_branch' method
+        rivers.get_branch.return_value = mock_branch       
         return rivers
 
     @pytest.fixture
@@ -44,7 +47,7 @@ class Test_configuration_checker_legacy():
     
     def given_general_section_when_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
         self.set_valid_general_section(config)
-
+    
         assert not configuration_checker.check_configuration(rivers, config)
 
     def given_general_section_with_qthreshold_when_check_configuration_then_return_false(self, configuration_checker: ConfigurationCheckerLegacy, rivers : RiversObject, config : ConfigParser):
