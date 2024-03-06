@@ -30,6 +30,7 @@ import sys
 import os
 import dfastmi.cli
 import dfastmi.gui
+import dfastmi.batch.core
 
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.FileUtils import FileUtils
