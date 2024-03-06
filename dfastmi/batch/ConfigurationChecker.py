@@ -37,7 +37,6 @@ import dfastmi.kernel.core
 import dfastmi.kernel.legacy
 import dfastmi.plotting
 import configparser
-from typing import Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.Reach import Reach
@@ -72,59 +71,71 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             return False
 
         hydro_q = reach.hydro_q
+        q_stagnant = reach.qstagnant
+        if config.has_section("General") and config.has_option("General", "Qthreshold") :
+            try:
+                q_threshold = config.getfloat("General", "Qthreshold")
+            except ValueError:
+                q_threshold_str = config.get("General", "Qthreshold", fallback="")
+                print(f"Please this is a configuration has in the General section a option Qthreshold but is not float but : {q_threshold_str}! Using q_stagnant as q_threshold : {q_stagnant}")
+                q_threshold = q_stagnant
+        else:
+            q_threshold = q_stagnant        
         n_cond = len(hydro_q)
+
         
-        found = [False]*n_cond
-        
+        return_value = True
         for i in range(n_cond):
-            success, found[i] = self._check_configuration_cond(config, hydro_q[i])
-            if not success:
-                return False
-        
-        if not all(found):
-            return False
-            
-        return True
+            if hydro_q[i] > q_threshold : 
+                success = self._check_configuration_cond(config, hydro_q[i])
+                if not success and return_value:
+                    return_value = False
+        return return_value
 
     def _check_configuration_cond(self, 
                                  config: configparser.ConfigParser,
-                                 q: float) -> Tuple[bool, bool]:
+                                 discharge: float) -> bool:
         """
-        Check if a version 2 analysis configuration is valid.
+        Check if a version 2 analysis condition configuration is valid for a discharge.
 
         Arguments
         ---------
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis.
+        
+        discharge : float
+            Discharge (q) [m3/s]
 
         Returns
         -------
         success : bool
-            Boolean indicating whether the D-FAST MI analysis configuration is valid.
-        found : bool
-            Flag indicating whether the condition has been found.
-        """
-        qstr = str(q)
-        found = False
+            Boolean indicating whether the D-FAST MI analysis configuration condition is valid for this discharge.
         
-        for cond in config.keys():
-            if cond[0] != "C":
-                # not a condition block
-                continue
-            
-            if "Discharge" not in config[cond]:
-                return False, found
-            
-            qstr_cond = config.get(cond, "Discharge")
-            if qstr != qstr_cond:
+        """
+        return_value = True
+        for cond in [section for section in config.sections() if section[0] == "C"]:
+            if not config.has_option(cond, "Discharge"):
+                print(f"Please this is a condition : {cond}, but 'Discharge' key is not set!")
+                if return_value:
+                    return_value = False
                 continue
 
-            found = True
+            try:
+                discharge_cond = config.getfloat(cond, "Discharge")
+            except ValueError:
+                discharge_cond_str = config.get(cond, "Discharge", fallback="")
+                print(f"Please this is a condition ({cond}), "
+                      f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
+                continue
 
-            if "Reference" not in config[cond]:
-                return False, found
-            
-            if "WithMeasure" not in config[cond]:
-                return False, found
+            if abs(discharge - discharge_cond) > 0.001:
+                continue # this is a condition, but the wrong one
 
-        return True, found
+            # we found the correct condition            
+            if not self._check_key_with_file_value(config, cond, "Reference") and return_value:
+                return_value = False
+
+            if not self._check_key_with_file_value(config, cond, "WithMeasure") and return_value:
+                return_value = False
+
+        return return_value

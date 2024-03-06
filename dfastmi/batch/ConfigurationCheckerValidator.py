@@ -43,7 +43,7 @@ class ConfigurationCheckerValidator:
         if mode not in self._validators:
             self._validators[mode] = validator
 
-    def validate(self, mode: str, config: configparser.ConfigParser, i : int ) -> bool:
+    def is_valid(self, mode: str, config: configparser.ConfigParser, i : int ) -> bool:
         """
         Call the Validator function to valdite a ConfigurationCheckerLegacy object.
 

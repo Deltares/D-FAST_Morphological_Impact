@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
+import pathlib
 from abc import ABC, abstractmethod
 from typing import Type, TypeVar
 from dfastmi.io.IReach import IReach
@@ -85,3 +86,19 @@ class AConfigurationCheckerBase(ABC):
             raise TypeError(f"Created Reach {reach_name} in river configuration is not of type {reach_type}")
 
         return reach
+
+    def _check_key_with_file_value(
+            self,
+            config : configparser.ConfigParser,
+            cond : str,
+            key: str
+            ) -> bool:
+        if not config.has_option(cond, key):
+            print(f"Please this condition {cond} is found, but '{key}' key is not set!")
+            return False
+
+        file = config.get(cond, key)
+        if not pathlib.Path(file).exists():
+            print(f"Please this condition {cond} is found, but '{key}' value (file = {file}) does not exist!")
+            return False
+        return True

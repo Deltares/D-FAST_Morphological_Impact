@@ -75,14 +75,11 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         [_, apply_q, _, _, _, _, _, _] = self.get_levels(reach, config, nwidth)
 
         mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
+        ret_val  = True
         for i in range(3):
-            if not apply_q[i]:
-                continue
-
-            if not self._validator.validate(mode_str, config, i) :
-                return False
-
-        return True
+            if apply_q[i] and not self._validator.is_valid(mode_str, config, i) and ret_val:
+                ret_val = False
+        return ret_val
 
     def get_levels(
         self,
@@ -341,15 +338,21 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         cond = "Q" + str(i+1)
         # condition block to be checked.
         # condition block must be specified since it must contain the Reference and WithMeasure file names
-        if cond not in config.sections():
+        return self._discharge_check(config, cond)
+    
+    def _discharge_check(self, config: configparser.ConfigParser, cond: str) -> bool:
+        if not config.has_section(cond) :
+            print(f"Please this {cond} is not in configuration file!")
+        if not config.has_option(cond, "Discharge"):
+            print(f"Please this {cond} is in the config but has no 'Discharge' key set!")
             return False
-
-        # condition block may not be specified since it doesn't contain any required keys
-        if config.has_section(cond) and cond in config.sections() and "Discharge" in config[cond]:
-            # if discharge is specified, it must be a number
-            discharge_value = config.get(cond, "Discharge", fallback="")
-            if not self._is_float_str(discharge_value):
-                return False
+        try:
+            config.getfloat(cond, "Discharge")
+        except ValueError:
+            discharge_cond_str = config.get(cond, "Discharge", fallback="")
+            print(f"Please this is a condition ({cond}), "
+                    f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
+            return False
         return True
 
     def _check_configuration_cond_fm(
@@ -374,20 +377,12 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         cond = "Q" + str(i+1)
         # condition block to be checked.
         # condition block must be specified since it must contain the Reference and WithMeasure file names
-        if cond not in config.sections():
-            return False
+        return_value = self._discharge_check(config, cond)
 
-        if "Discharge" in config[cond]:
-            # if discharge is specified, it must be a number
-            discharge_value = config.get(cond, "Discharge", fallback="")
-            if not self._is_float_str(discharge_value):
-                return False
+        if not self._check_key_with_file_value(config, cond, "Reference") and return_value:
+            return_value = False
 
-        if "Reference" not in config[cond]:
-            return False
+        if not self._check_key_with_file_value(config, cond, "WithMeasure") and return_value:
+            return_value = False
 
-        if "WithMeasure" not in config[cond]:
-            return False
-
-        return True
-    
+        return return_value

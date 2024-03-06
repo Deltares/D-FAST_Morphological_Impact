@@ -1,4 +1,5 @@
-from unittest.mock import create_autospec
+from unittest.mock import create_autospec, patch
+from pathlib import Path
 from configparser import ConfigParser
 import pytest
 
@@ -57,7 +58,8 @@ class Test_configuration_checker():
     def rivers(self):
         mock_reach = create_autospec(Reach)
         mock_reach.name = "myReach"
-        mock_reach.hydro_q = (80.1, 80.2)        
+        mock_reach.hydro_q = (80.1, 80.2)
+        mock_reach.qstagnant = 80.1
 
         mock_branch = create_autospec(Branch)
         mock_branch.name = "myBranch"
@@ -112,8 +114,9 @@ class Test_configuration_checker():
     def given_correct_c_sections_when_check_configuration_then_return_true(self, configuration_checker: ConfigurationChecker, rivers : RiversObject, config : ConfigParser):
         self.add_c_section(config, "C1", "80.1")
         self.add_c_section(config, "C2", "80.2")
-        
-        assert configuration_checker.check_configuration(rivers, config)
+        with patch.object(Path, 'exists') as mock_exists:
+            mock_exists.return_value = True
+            assert configuration_checker.check_configuration(rivers, config)
 
     def set_valid_general_section(self, config : ConfigParser):
         config.add_section("General")
