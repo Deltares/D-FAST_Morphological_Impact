@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from unittest.mock import patch
 import pytest
 from dfastmi.batch.ConfigurationCheckerLegacy import WAQUA_EXPORT, DFLOWFM_MAP
 import dfastmi.batch.core
@@ -202,8 +204,10 @@ class Test_batch_check_configuration():
             self.add_c_section(config, "C4", "4000.0")
             self.add_c_section(config, "C5", "6000.0")
             self.add_c_section(config, "C6", "8000.0")
-                
-            assert dfastmi.batch.core.check_configuration(rivers, config)
+            
+            with patch.object(Path, 'exists') as mock_exists:
+                mock_exists.return_value = True
+                assert dfastmi.batch.core.check_configuration(rivers, config)
         
         def set_valid_general_section(self, config : ConfigParser):
             config.add_section("General")

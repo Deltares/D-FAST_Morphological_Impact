@@ -83,13 +83,12 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             q_threshold = q_stagnant        
         n_cond = len(hydro_q)
 
-        
-        return_value = True
+        return_value = False
         for i in range(n_cond):
             if hydro_q[i] > q_threshold : 
                 success = self._check_configuration_cond(config, hydro_q[i])
-                if not success and return_value:
-                    return_value = False
+                if success and not return_value:
+                    return_value = True
         return return_value
 
     def _check_configuration_cond(self, 
@@ -113,29 +112,37 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         
         """
         return_value = True
-        for cond in [section for section in config.sections() if section[0] == "C"]:
-            if not config.has_option(cond, "Discharge"):
-                print(f"Please this is a condition : {cond}, but 'Discharge' key is not set!")
+        has_condition_section_for_this_discharge = False
+        condition_sections = [section for section in config.sections() if section[0] == "C"]
+        if len(condition_sections) == 0:
+            print("No condition sections found in conditions configurations file!")
+            return False
+
+        for condition in condition_sections:
+            if not config.has_option(condition, "Discharge"):
+                print(f"Please this is a condition : {condition}, but 'Discharge' key is not set!")
                 if return_value:
                     return_value = False
                 continue
-
+            
             try:
-                discharge_cond = config.getfloat(cond, "Discharge")
+                discharge_cond = config.getfloat(condition, "Discharge")
             except ValueError:
-                discharge_cond_str = config.get(cond, "Discharge", fallback="")
-                print(f"Please this is a condition ({cond}), "
+                discharge_cond_str = config.get(condition, "Discharge", fallback="")
+                print(f"Please this is a condition ({condition}), "
                       f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
                 continue
 
             if abs(discharge - discharge_cond) > 0.001:
                 continue # this is a condition, but the wrong one
 
-            # we found the correct condition            
-            if not self._check_key_with_file_value(config, cond, "Reference") and return_value:
+            has_condition_section_for_this_discharge = True
+
+            # we found the correct condition
+            if not self._check_key_with_file_value(config, condition, "Reference") and return_value:
                 return_value = False
 
-            if not self._check_key_with_file_value(config, cond, "WithMeasure") and return_value:
+            if not self._check_key_with_file_value(config, condition, "WithMeasure") and return_value:
                 return_value = False
 
-        return return_value
+        return return_value and has_condition_section_for_this_discharge
