@@ -48,6 +48,23 @@ class Test_analyse_and_report_dflowfm_mode():
         self.rsigma = [0.1, 0.2, 0.3]
         self.ucrit = 0.3
         
+    def set_file_names(self):
+        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
+        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
+        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        
+    def set_plotting_on(self, tmp_path):
+        self.plotops['plotting'] = True
+        self.plotops['saveplot'] = True
+        self.plotops['saveplot_zoomed'] = True
+        self.plotops['figdir'] = str(tmp_path)
+        self.plotops['plot_ext'] = "plot_ext"
+        
+        random_list: List[Tuple[float, float, float, float]] = [
+            (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
+        
+        self.plotops['xyzoom'] = random_list
+        
     
     @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
         (False, False, False),
@@ -156,9 +173,7 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.plotops['plotting'] = False
         
-        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.set_file_names()
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
@@ -224,9 +239,7 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.plotops['plotting'] = False
         
-        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.set_file_names()
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
@@ -290,20 +303,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.n_fields = 1
         
-        self.plotops['plotting'] = True
-        self.plotops['saveplot'] = True
-        self.plotops['saveplot_zoomed'] = True
-        self.plotops['figdir'] = str(tmp_path)
-        self.plotops['plot_ext'] = "plot_ext"
+        self.set_plotting_on(tmp_path)
         
-        random_list: List[Tuple[float, float, float, float]] = [
-            (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
-        
-        self.plotops['xyzoom'] = random_list
-        
-        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.set_file_names()
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
@@ -367,20 +369,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.n_fields = 1
         
-        self.plotops['plotting'] = True
-        self.plotops['saveplot'] = True
-        self.plotops['saveplot_zoomed'] = True
-        self.plotops['figdir'] = str(tmp_path)
-        self.plotops['plot_ext'] = "plot_ext"
+        self.set_plotting_on(tmp_path)
         
-        random_list: List[Tuple[float, float, float, float]] = [
-            (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
-        
-        self.plotops['xyzoom'] = random_list
-        
-        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.set_file_names()
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
@@ -443,20 +434,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.n_fields = 1
         
-        self.plotops['plotting'] = True
-        self.plotops['saveplot'] = True
-        self.plotops['saveplot_zoomed'] = True
-        self.plotops['figdir'] = str(tmp_path)
-        self.plotops['plot_ext'] = "plot_ext"
+        self.set_plotting_on(tmp_path)
         
-        random_list: List[Tuple[float, float, float, float]] = [
-            (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
-        
-        self.plotops['xyzoom'] = random_list
-        
-        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.set_file_names()
         
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
