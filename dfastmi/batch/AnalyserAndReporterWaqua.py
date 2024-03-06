@@ -30,7 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from typing import TextIO
 from dfastmi.batch.AnalyserWaqua import AnalyserWaqua
 from dfastmi.batch.ReporterWaqua import ReporterWaqua
-from dfastmi.kernel.core import Vector, BoolVector
+from dfastmi.kernel.typehints import Vector, BoolVector
 
 def analyse_and_report_waqua(
     display: bool,

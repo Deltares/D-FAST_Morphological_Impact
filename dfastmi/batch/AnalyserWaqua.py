@@ -35,7 +35,7 @@ import dfastmi.kernel.core
 from dfastmi.batch.OutputDataWaqua import OutputDataWaqua
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
-from dfastmi.kernel.core import Vector
+from dfastmi.kernel.typehints import Vector
 
 class _WaquaLogger():
     def __init__(self, display : bool, report : TextIO):

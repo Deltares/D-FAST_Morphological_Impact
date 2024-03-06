@@ -32,7 +32,7 @@ import sys
 
 from dfastmi.io.Reach import ReachAdvanced
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.core import Vector, BoolVector, QRuns
+from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
