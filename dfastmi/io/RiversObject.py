@@ -276,7 +276,7 @@ class RiversObject():
 
         reach.tide = river_data.read_key(bool, "Tide", reach, False)
         # for Tide = True
-        reach.tide_bc = river_data.read_key(Tuple[float, ...], "TideBC", reach)
+        reach.tide_bc = river_data.read_key(Tuple[str, ...], "TideBC", reach)
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:

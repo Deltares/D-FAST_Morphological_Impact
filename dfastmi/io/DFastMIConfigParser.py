@@ -67,6 +67,7 @@ class DFastMIConfigParser:
         self._processor.register_processor(int, self._process_entry_value, self._parse_int)
         self._processor.register_processor(float, self._process_entry_value, self._parse_float)
         self._processor.register_processor(Tuple[float, ...], self._process_tuple_entry_value, self._parse_float)
+        self._processor.register_processor(Tuple[str, ...], self._process_tuple_entry_value, self._parse_str)
         self._config_processor = ConfigProcessor()
         self._config_processor.register_parser(bool, self._parse_bool)
         self._config_processor.register_parser(int, self._parse_int)
@@ -108,6 +109,9 @@ class DFastMIConfigParser:
 
     def _parse_float(self, entry_value) -> Tuple[float, ...]:
         return tuple(float(x) for x in entry_value.split())
+
+    def _parse_str(self, entry_value) -> Tuple[str, ...]:
+        return tuple(x for x in entry_value.split())
 
     # tuple processor
     def _process_tuple_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[Tuple[T, ...]], expected_number_of_values : Optional[int]) -> Tuple[T, ...]:

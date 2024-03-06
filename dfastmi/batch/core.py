@@ -223,7 +223,7 @@ def batch_mode_core(
             kmfile = data.config_get(str, "General", "RiverKM", "")
             if kmfile != "":
                 xykm = DataTextFileOperations.get_xykm(kmfile)
-                xykline = numpy.array(xykm)
+                xykline = numpy.array(xykm.coords)
                 kline = xykline[:,2]
                 kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
                 if display:

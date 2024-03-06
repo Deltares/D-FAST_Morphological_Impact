@@ -183,6 +183,9 @@ def analyse_and_report_dflowfm(
         dxi = None
         dyi = None
         xykline = None
+        if needs_tide:
+            print("RiverKM needs to be specified for tidal applications.")        
+            return True
         
     else:
         dnmax = 3000.0    
@@ -216,7 +219,7 @@ def analyse_and_report_dflowfm(
         #xfi = face_mean(xni, FNCi)
         #yfi = face_mean(yni, FNCi)
     
-        xykline = numpy.array(xykm)
+        xykline = numpy.array(xykm.coords)
     
         # project all nodes onto the line, obtain the distance along (sni) and normal (dni) the line
         # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
@@ -266,13 +269,13 @@ def analyse_and_report_dflowfm(
                     t = tide_bc[i]
                     key = (q,t)
                 else:
-                    t = 0
+                    t = 'N/A'
                     key = q
                 if rsigma[i] == 1:
                     # no celerity, so ignore field
                     dzq[i] = 0
                 elif key in filenames.keys():
-                    if t > 0:
+                    if t != 'N/A':
                         n_fields_request = n_fields
                     else:
                         n_fields_request = 1
