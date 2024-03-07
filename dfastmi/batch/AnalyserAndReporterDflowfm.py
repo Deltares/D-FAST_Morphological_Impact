@@ -269,6 +269,7 @@ def analyse_and_report_dflowfm(
         dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
             dzq, T, rsigma
         )
+        
         if old_zmin_zmax:
             # get old zmax and zmin
             dzmaxi = dzbi[0]
@@ -285,76 +286,9 @@ def analyse_and_report_dflowfm(
         dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
         GridOperations.copy_ugrid(one_fm_filename, meshname, dst)
         nc_fill = netCDF4.default_fillvals['f8']
-        dzgem = numpy.repeat(nc_fill, FNC.shape[0])
-        dzgem[iface]=dzgemi
-        GridOperations.ugrid_add(
-            dst,
-            "avgdzb",
-            dzgem,
-            meshname,
-            facedim,
-            long_name="year-averaged bed level change without dredging",
-            units="m",
-        )
-        dzmax = numpy.repeat(nc_fill, FNC.shape[0])
-        dzmax[iface]=dzmaxi
-        GridOperations.ugrid_add(
-            dst,
-            "maxdzb",
-            dzmax,
-            meshname,
-            facedim,
-            long_name=zmax_str,
-            units="m",
-        )
-        dzmin = numpy.repeat(nc_fill, FNC.shape[0])
-        dzmin[iface]=dzmini
-        GridOperations.ugrid_add(
-            dst,
-            "mindzb",
-            dzmin,
-            meshname,
-            facedim,
-            long_name=zmin_str,
-            units="m",
-        )
-        for i in range(len(dzbi)):
-            j = (i + 1) % len(dzbi)
-            dzb = numpy.repeat(nc_fill, FNC.shape[0])
-            dzb[iface]=dzbi[j]
-            GridOperations.ugrid_add(
-                dst,
-                "dzb_{}".format(i),
-                dzb,
-                meshname,
-                facedim,
-                long_name="bed level change at end of period {}".format(i+1),
-                units="m",
-            )
-            if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
-                dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
-                dzq_full[iface]=dzq[i]
-                GridOperations.ugrid_add(
-                    dst,
-                    "dzq_{}".format(i),
-                    dzq_full,
-                    meshname,
-                    facedim,
-                    long_name="equilibrium bed level change aimed for during period {}".format(i+1),
-                    units="m",
-                )
-        
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-        GridOperations.ugrid_add(
-            projmesh,
-            "avgdzb",
-            dzgem,
-            meshname,
-            facedim,
-            long_name="year-averaged bed level change without dredging",
-            units="m",
-        )
+        
+        _grid_update(rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh)
         
         if xykm is not None:
             _replace_coordinates_in_destination_file(xn, inode, sni, nni, meshname, nc_fill, projmesh)       
@@ -368,6 +302,78 @@ def analyse_and_report_dflowfm(
             _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill)
         
     return not missing_data
+
+def _grid_update(rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh):
+    dzgem = numpy.repeat(nc_fill, FNC.shape[0])
+    dzgem[iface]=dzgemi
+    GridOperations.ugrid_add(
+            dst,
+            "avgdzb",
+            dzgem,
+            meshname,
+            facedim,
+            long_name="year-averaged bed level change without dredging",
+            units="m",
+        )
+    dzmax = numpy.repeat(nc_fill, FNC.shape[0])
+    dzmax[iface]=dzmaxi
+    GridOperations.ugrid_add(
+            dst,
+            "maxdzb",
+            dzmax,
+            meshname,
+            facedim,
+            long_name=zmax_str,
+            units="m",
+        )
+    dzmin = numpy.repeat(nc_fill, FNC.shape[0])
+    dzmin[iface]=dzmini
+    GridOperations.ugrid_add(
+            dst,
+            "mindzb",
+            dzmin,
+            meshname,
+            facedim,
+            long_name=zmin_str,
+            units="m",
+        )
+    for i in range(len(dzbi)):
+        j = (i + 1) % len(dzbi)
+        dzb = numpy.repeat(nc_fill, FNC.shape[0])
+        dzb[iface]=dzbi[j]
+        GridOperations.ugrid_add(
+                dst,
+                "dzb_{}".format(i),
+                dzb,
+                meshname,
+                facedim,
+                long_name="bed level change at end of period {}".format(i+1),
+                units="m",
+            )
+        if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
+            dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
+            dzq_full[iface]=dzq[i]
+            GridOperations.ugrid_add(
+                    dst,
+                    "dzq_{}".format(i),
+                    dzq_full,
+                    meshname,
+                    facedim,
+                    long_name="equilibrium bed level change aimed for during period {}".format(i+1),
+                    units="m",
+                )
+        
+        
+    GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
+    GridOperations.ugrid_add(
+            projmesh,
+            "avgdzb",
+            dzgem,
+            meshname,
+            facedim,
+            long_name="year-averaged bed level change without dredging",
+            units="m",
+        )
 
 def _replace_coordinates_in_destination_file(xn, inode, sni, nni, meshname, nc_fill, projmesh):
     print("replacing coordinates")
