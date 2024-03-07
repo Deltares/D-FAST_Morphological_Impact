@@ -33,7 +33,7 @@ from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerVali
 import dfastmi.kernel.core
 from dfastmi.io.Reach import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.core import BoolVector, QRuns, Vector
+from dfastmi.kernel.typehints import BoolVector, QRuns, Vector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
