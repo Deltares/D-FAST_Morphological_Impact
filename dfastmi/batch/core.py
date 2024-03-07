@@ -38,6 +38,7 @@ import shapely
 from packaging import version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
