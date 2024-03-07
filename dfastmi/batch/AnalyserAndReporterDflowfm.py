@@ -28,6 +28,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
+from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
+from dfastmi.batch.sedimentationData import sedimentationData
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
@@ -38,364 +40,8 @@ import os
 import math
 import numpy
 import dfastmi.kernel.core
-import dfastmi.plotting
 
 import shapely
-import netCDF4
-
-class ReporterDflowfm():
-    def report(self, display, rsigma, slength, nwidth, xykm, outputdir, plotops, one_fm_filename, xn, FNC, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, xykline, interest_region, sni, nni, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str):
-        if display:
-            ApplicationSettingsHelper.log_text('writing_output')
-        meshname, facedim = GridOperations.get_mesh_and_facedim_names(one_fm_filename)
-        dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
-        GridOperations.copy_ugrid(one_fm_filename, meshname, dst)
-        nc_fill = netCDF4.default_fillvals['f8']
-        projmesh = outputdir + os.sep + 'projected_mesh.nc'
-        
-        self._grid_update(rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh)
-        
-        if xykm is not None:
-            self._replace_coordinates_in_destination_file(xn, inode, sni, nni, meshname, nc_fill, projmesh)       
-
-        self._plot_data(plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi)
-
-        if display:
-            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
-
-        if xykm is not None:
-            self._grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill)
-            
-    def _grid_update(self, rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh):
-        dzgem = numpy.repeat(nc_fill, FNC.shape[0])
-        dzgem[iface]=dzgemi
-        GridOperations.ugrid_add(
-                dst,
-                "avgdzb",
-                dzgem,
-                meshname,
-                facedim,
-                long_name="year-averaged bed level change without dredging",
-                units="m",
-            )
-        dzmax = numpy.repeat(nc_fill, FNC.shape[0])
-        dzmax[iface]=dzmaxi
-        GridOperations.ugrid_add(
-                dst,
-                "maxdzb",
-                dzmax,
-                meshname,
-                facedim,
-                long_name=zmax_str,
-                units="m",
-            )
-        dzmin = numpy.repeat(nc_fill, FNC.shape[0])
-        dzmin[iface]=dzmini
-        GridOperations.ugrid_add(
-                dst,
-                "mindzb",
-                dzmin,
-                meshname,
-                facedim,
-                long_name=zmin_str,
-                units="m",
-            )
-        for i in range(len(dzbi)):
-            j = (i + 1) % len(dzbi)
-            dzb = numpy.repeat(nc_fill, FNC.shape[0])
-            dzb[iface]=dzbi[j]
-            GridOperations.ugrid_add(
-                    dst,
-                    "dzb_{}".format(i),
-                    dzb,
-                    meshname,
-                    facedim,
-                    long_name="bed level change at end of period {}".format(i+1),
-                    units="m",
-                )
-            if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
-                dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
-                dzq_full[iface]=dzq[i]
-                GridOperations.ugrid_add(
-                        dst,
-                        "dzq_{}".format(i),
-                        dzq_full,
-                        meshname,
-                        facedim,
-                        long_name="equilibrium bed level change aimed for during period {}".format(i+1),
-                        units="m",
-                    )
-            
-            
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-        GridOperations.ugrid_add(
-                projmesh,
-                "avgdzb",
-                dzgem,
-                meshname,
-                facedim,
-                long_name="year-averaged bed level change without dredging",
-                units="m",
-            )
-
-    def _replace_coordinates_in_destination_file(self, xn, inode, sni, nni, meshname, nc_fill, projmesh):
-        print("replacing coordinates")
-        sn = numpy.repeat(nc_fill, xn.shape[0])
-        sn[inode]=sni
-        nn = numpy.repeat(nc_fill, xn.shape[0])
-        nn[inode]=nni
-                
-                # open destination file
-        dst = netCDF4.Dataset(projmesh, "a")
-        dst.variables[meshname + '_node_x'][:] = sn[:]
-        dst.variables[meshname + '_node_y'][:] = nn[:]
-        dst.close()
-
-    def _plot_data(self, plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi):
-        if plotops['plotting']:
-            if FNCi.mask.shape == ():
-                    # all faces have the same number of nodes
-                nnodes = numpy.ones(FNCi.data.shape[0], dtype=numpy.int64) * FNCi.data.shape[1]
-            else:
-                    # varying number of nodes
-                nnodes = FNCi.mask.shape[1] - FNCi.mask.sum(axis=1)
-            fig, ax = dfastmi.plotting.plot_overview(
-                    (xmin, ymin, xmax, ymax),
-                    xykline,
-                    FNCi,
-                    nnodes,
-                    xni,
-                    yni,
-                    dzgemi,
-                    "x-coordinate [km]",
-                    "y-coordinate [km]",
-                    "change to year-averaged equilibrium",
-                    "erosion and sedimentation [m]",
-                    plotops['xyzoom'],
-                )
-
-            if plotops['saveplot']:
-                figbase = plotops['figdir'] + os.sep + "overview"
-                if plotops['saveplot_zoomed']:
-                    dfastmi.plotting.zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
-                figfile = figbase + plotops['plot_ext']
-                dfastmi.plotting.savefig(fig, figfile)
-
-    def _grid_update_xykm(self, display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill):
-        
-        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
-
-        if display:
-            if sedvol.shape[1] > 0:
-                print("Estimated sedimentation volume per area using 3 methods")
-                print("                              Max:             Method 1:        Method 2:       ")
-                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                for i in range(sedvol.shape[1]):
-                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedarea[i], sedvol[0,i], sedvol[1,i], sedvol[2,i]))
-                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedvol[0,:].max(), sedvol[1,:].max(), sedvol[2,:].max()))
-                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedarea.sum(), sedvol[0,:].sum(), sedvol[1,:].sum(), sedvol[2,:].sum()))
-
-            if sedvol.shape[1] > 0 and erovol.shape[1] > 0:
-                print("")
-                    
-            if erovol.shape[1] > 0:
-                print("Estimated erosion volume per area using 3 methods")
-                print("                              Max:             Method 1:        Method 2:       ")
-                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                for i in range(erovol.shape[1]):
-                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, eroarea[i], erovol[0,i], erovol[1,i], erovol[2,i]))
-                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
-                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
-
-        projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "interest_region",
-                    interest_region,
-                    meshname,
-                    facedim,
-                    long_name="Region on which the sedimentation analysis was performed",
-                units="1",
-                )
-        sed_area = numpy.repeat(nc_fill, FNC.shape[0])
-            
-        for i in range(len(sed_area_list)):
-            sed_area[iface[sed_area_list[i] == 1]] = i+1
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "sed_area",
-                    sed_area,
-                    meshname,
-                    facedim,
-                    long_name="Sedimentation area",
-                    units="1",
-                )
-        ero_area = numpy.repeat(nc_fill, FNC.shape[0])
-            
-        for i in range(len(ero_area_list)):
-            ero_area[iface[ero_area_list[i] == 1]] = i+1
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "ero_area",
-                    ero_area,
-                    meshname,
-                    facedim,
-                    long_name="Erosion area",
-                    units="1",
-                )
-        wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
-        wght_estimate1[iface] = wght_estimate1i
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "wght_estimate1",
-                    wght_estimate1,
-                    meshname,
-                    facedim,
-                    long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
-                    units="1",
-                )
-        wbin = numpy.repeat(nc_fill, FNC.shape[0])
-        wbin[iface] = wbini
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "wbin",
-                    wbin,
-                    meshname,
-                    facedim,
-                    long_name="Index of width bin",
-                    units="1",
-                )
-        
-def comp_sedimentation_volume(
-        xni: numpy.ndarray,
-        yni: numpy.ndarray,
-        sni: numpy.ndarray,
-        dni: numpy.ndarray,
-        FNCi: numpy.ndarray,
-        dzgemi: numpy.ndarray,
-        slength: float,
-        nwidth: float,
-        xykline: numpy.ndarray,
-        simfile: str,
-        outputdir: str,
-        plotops: Dict,
-    ) -> float:
-        """
-        Compute the yearly dredging volume.
-
-        Arguments
-        ---------
-        dzgem : numpy.ndarray
-            Yearly mean bed level change [m].
-        slength : float
-            The expected yearly impacted sedimentation length [m].
-        nwidth : float
-            Normal river width (from rivers configuration file) [m].
-        xykline : numpy.ndarray
-            Array containing the x,y and chainage data of a line.
-        simfile : str
-            Name of simulation file.
-        outputdir : str
-            Name of output directory.
-
-        Returns
-        -------
-        dvol : float
-            Dredging volume [m3].
-        """
-        dzmin = 0.01
-        nwbins = 10
-        sbin_length = 10.0
-        
-        areai = xynode_2_area(xni, yni, FNCi)
-        
-        print("bin cells in across-stream direction")
-        # determine the mean normal distance dfi per cell
-        dfi = face_mean(dni, FNCi)
-        # distribute the cells over nwbins bins over the channel width
-        wbini, wthresh = width_bins(dfi, nwidth, nwbins)
-
-        print("bin cells in along-stream direction")
-        # determine the minimum and maximum along line distance of each cell
-        min_sfi, max_sfi = min_max_s(sni, FNCi)
-        # determine the weighted mapping of cells to chainage bins
-        siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
-        wbin = wbini[siface]
-
-        print("determine chainage per bin")
-        # determine chainage values of at the midpoints
-        smid = (sthresh[1:] + sthresh[:-1])/2
-        sline = distance_along_line(xykline[:,:2])
-        kmid = distance_to_chainage(sline, xykline[:,2], smid)
-        n_sbin = sbin.max()+1
-        
-        EFCi = facenode_to_edgeface(FNCi)
-        wght_area_tot = numpy.zeros(dzgemi.shape)
-        wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
-        plot_n = 3
-
-        print("-- detecting separate sedimentation areas")
-        xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
-        area_str = "sedimentation area {}"
-        total_str = "total sedimentation volume"
-        sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
-
-        print("-- detecting separate erosion areas")
-        xyzfil = ""
-        area_str = "erosion area {}"
-        total_str = "total erosion volume"
-        eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
-
-        return sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini
-
-
-def _get_first_fm_data_filename(
-    report: TextIO,
-    q_threshold: float,
-    Q: Vector,
-    rsigma: Vector,
-    filenames: Dict[Any, Tuple[str,str]],
-    needs_tide: bool,
-    tide_bc: Tuple[str, ...],
-):
-    key: Union[Tuple[float, int], float]
-    missing_data = False
-    one_fm_filename: Union[None, str] = None
-    # determine the name of the first FM data file that will be used
-    if 0 in filenames.keys(): # the keys are 0,1,2
-        for i in range(3):
-            if not missing_data and not Q[i] is None:
-                one_fm_filename = filenames[i][0]
-                break
-    else: # the keys are the conditions
-        for i in range(len(Q)):
-            if not missing_data and not Q[i] is None:
-                q = Q[i]
-                if needs_tide:
-                    t = tide_bc[i]
-                    key = (q,t)
-                else:
-                    key = q
-                if rsigma[i] == 1 or Q[i] <= q_threshold:
-                    # no celerity or measure not active, so ignore field
-                    pass
-                elif key in filenames.keys():
-                    one_fm_filename = filenames[key][0]
-                    break
-                else:
-                    if needs_tide:
-                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
-                    else:
-                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                    ApplicationSettingsHelper.log_text("end_program", file=report)
-                    missing_data = True
-
-    if one_fm_filename is None:
-        print("The measure is not active for any of the checked conditions.")
-        missing_data = True
-        
-    return one_fm_filename, missing_data
 
 def analyse_and_report_dflowfm(
     display: bool,
@@ -577,12 +223,148 @@ def analyse_and_report_dflowfm(
         else:
             zmax_str = "maximum value of bed level change without dredging"
             zmin_str = "minimum value of bed level change without dredging"
+    
+    sedimentation_data = None
+    if xykm is not None:
+        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth, xykline, one_fm_filename, outputdir, plotops)
+        sedimentation_data = sedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
+    
+    
     if not missing_data:       
         reporter = ReporterDflowfm()
-        reporter.report(display, rsigma, slength, nwidth, xykm, outputdir, plotops, one_fm_filename, xn, FNC, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, xykline, interest_region, sni, nni, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str)
+        reporter.report(display, rsigma, xykm, outputdir, plotops, one_fm_filename, xn, FNC, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, xykline, interest_region, sni, nni, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data)
     
         
     return not missing_data
+
+def comp_sedimentation_volume(
+        xni: numpy.ndarray,
+        yni: numpy.ndarray,
+        sni: numpy.ndarray,
+        dni: numpy.ndarray,
+        FNCi: numpy.ndarray,
+        dzgemi: numpy.ndarray,
+        slength: float,
+        nwidth: float,
+        xykline: numpy.ndarray,
+        simfile: str,
+        outputdir: str,
+        plotops: Dict,
+    ) -> float:
+        """
+        Compute the yearly dredging volume.
+
+        Arguments
+        ---------
+        dzgem : numpy.ndarray
+            Yearly mean bed level change [m].
+        slength : float
+            The expected yearly impacted sedimentation length [m].
+        nwidth : float
+            Normal river width (from rivers configuration file) [m].
+        xykline : numpy.ndarray
+            Array containing the x,y and chainage data of a line.
+        simfile : str
+            Name of simulation file.
+        outputdir : str
+            Name of output directory.
+
+        Returns
+        -------
+        dvol : float
+            Dredging volume [m3].
+        """
+        dzmin = 0.01
+        nwbins = 10
+        sbin_length = 10.0
+        
+        areai = xynode_2_area(xni, yni, FNCi)
+        
+        print("bin cells in across-stream direction")
+        # determine the mean normal distance dfi per cell
+        dfi = face_mean(dni, FNCi)
+        # distribute the cells over nwbins bins over the channel width
+        wbini, wthresh = width_bins(dfi, nwidth, nwbins)
+
+        print("bin cells in along-stream direction")
+        # determine the minimum and maximum along line distance of each cell
+        min_sfi, max_sfi = min_max_s(sni, FNCi)
+        # determine the weighted mapping of cells to chainage bins
+        siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
+        wbin = wbini[siface]
+
+        print("determine chainage per bin")
+        # determine chainage values of at the midpoints
+        smid = (sthresh[1:] + sthresh[:-1])/2
+        sline = distance_along_line(xykline[:,:2])
+        kmid = distance_to_chainage(sline, xykline[:,2], smid)
+        n_sbin = sbin.max()+1
+        
+        EFCi = facenode_to_edgeface(FNCi)
+        wght_area_tot = numpy.zeros(dzgemi.shape)
+        wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
+        plot_n = 3
+
+        print("-- detecting separate sedimentation areas")
+        xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
+        area_str = "sedimentation area {}"
+        total_str = "total sedimentation volume"
+        sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
+
+        print("-- detecting separate erosion areas")
+        xyzfil = ""
+        area_str = "erosion area {}"
+        total_str = "total erosion volume"
+        eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
+
+        return sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini
+
+def _get_first_fm_data_filename(
+    report: TextIO,
+    q_threshold: float,
+    Q: Vector,
+    rsigma: Vector,
+    filenames: Dict[Any, Tuple[str,str]],
+    needs_tide: bool,
+    tide_bc: Tuple[str, ...],
+):
+    key: Union[Tuple[float, int], float]
+    missing_data = False
+    one_fm_filename: Union[None, str] = None
+    # determine the name of the first FM data file that will be used
+    if 0 in filenames.keys(): # the keys are 0,1,2
+        for i in range(3):
+            if not missing_data and not Q[i] is None:
+                one_fm_filename = filenames[i][0]
+                break
+    else: # the keys are the conditions
+        for i in range(len(Q)):
+            if not missing_data and not Q[i] is None:
+                q = Q[i]
+                if needs_tide:
+                    t = tide_bc[i]
+                    key = (q,t)
+                else:
+                    key = q
+                if rsigma[i] == 1 or Q[i] <= q_threshold:
+                    # no celerity or measure not active, so ignore field
+                    pass
+                elif key in filenames.keys():
+                    one_fm_filename = filenames[key][0]
+                    break
+                else:
+                    if needs_tide:
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
+                    else:
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
+                    ApplicationSettingsHelper.log_text("end_program", file=report)
+                    missing_data = True
+
+    if one_fm_filename is None:
+        print("The measure is not active for any of the checked conditions.")
+        missing_data = True
+        
+    return one_fm_filename, missing_data
 
 def _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
     dzq = [None] * len(Q)
