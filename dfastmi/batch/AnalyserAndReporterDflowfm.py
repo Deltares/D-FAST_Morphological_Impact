@@ -43,6 +43,53 @@ import dfastmi.plotting
 import shapely
 import netCDF4
 
+def _get_first_fm_data_filename(
+    report: TextIO,
+    q_threshold: float,
+    Q: Vector,
+    rsigma: Vector,
+    filenames: Dict[Any, Tuple[str,str]],
+    needs_tide: bool,
+    tide_bc: Tuple[str, ...],
+):
+    key: Union[Tuple[float, int], float]
+    missing_data = False
+    one_fm_filename: Union[None, str] = None
+    # determine the name of the first FM data file that will be used
+    if 0 in filenames.keys(): # the keys are 0,1,2
+        for i in range(3):
+            if not missing_data and not Q[i] is None:
+                one_fm_filename = filenames[i][0]
+                break
+    else: # the keys are the conditions
+        for i in range(len(Q)):
+            if not missing_data and not Q[i] is None:
+                q = Q[i]
+                if needs_tide:
+                    t = tide_bc[i]
+                    key = (q,t)
+                else:
+                    key = q
+                if rsigma[i] == 1 or Q[i] <= q_threshold:
+                    # no celerity or measure not active, so ignore field
+                    pass
+                elif key in filenames.keys():
+                    one_fm_filename = filenames[key][0]
+                    break
+                else:
+                    if needs_tide:
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
+                    else:
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
+                    ApplicationSettingsHelper.log_text("end_program", file=report)
+                    missing_data = True
+
+    if one_fm_filename is None:
+        print("The measure is not active for any of the checked conditions.")
+        missing_data = True
+        
+    return one_fm_filename, missing_data
+
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
@@ -117,45 +164,10 @@ def analyse_and_report_dflowfm(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    key: Union[Tuple[float, int], float]
-
-    first_discharge = True
     missing_data = False
-    one_fm_filename: Union[None, str] = None
+        
+    one_fm_filename, missing_data = _get_first_fm_data_filename(report, q_threshold, Q, rsigma, filenames, needs_tide, tide_bc)
     
-    # determine the name of the first FM data file that will be used
-    if 0 in filenames.keys(): # the keys are 0,1,2
-        for i in range(3):
-            if not missing_data and not Q[i] is None:
-                one_fm_filename = filenames[i][0]
-                break
-    else: # the keys are the conditions
-        for i in range(len(Q)):
-            if not missing_data and not Q[i] is None:
-                q = Q[i]
-                if needs_tide:
-                    t = tide_bc[i]
-                    key = (q,t)
-                else:
-                    key = q
-                if rsigma[i] == 1 or Q[i] <= q_threshold:
-                    # no celerity or measure not active, so ignore field
-                    pass
-                elif key in filenames.keys():
-                    one_fm_filename = filenames[key][0]
-                    break
-                else:
-                    if needs_tide:
-                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
-                    else:
-                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                    ApplicationSettingsHelper.log_text("end_program", file=report)
-                    missing_data = True
-
-    if one_fm_filename is None:
-        print("The measure is not active for any of the checked conditions.")
-        missing_data = True
-
     if missing_data:
         return missing_data
     
