@@ -188,8 +188,7 @@ def analyse_and_report_dflowfm(
         xykline = None
         if needs_tide:
             print("RiverKM needs to be specified for tidal applications.")        
-            return True
-        
+            return True 
     else:
         dnmax = 3000.0    
         if display:
@@ -255,43 +254,7 @@ def analyse_and_report_dflowfm(
         if display:
             ApplicationSettingsHelper.log_text('-- done')
     
-    dzq = [None] * len(Q)
-    if 0 in filenames.keys(): # the keys are 0,1,2
-        for i in range(3):
-            if not missing_data and not Q[i] is None:
-                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
-                if dzq[i] is None:
-                    missing_data = True
-            else:
-                dzq[i] = 0
-    else: # the keys are the conditions
-        for i in range(len(Q)):
-            if not missing_data and not Q[i] is None:
-                q = Q[i]
-                if needs_tide:
-                    t = tide_bc[i]
-                    key = (q,t)
-                else:
-                    t = 'N/A'
-                    key = q
-                if rsigma[i] == 1:
-                    # no celerity, so ignore field
-                    dzq[i] = 0
-                elif key in filenames.keys():
-                    if t != 'N/A':
-                        n_fields_request = n_fields
-                    else:
-                        n_fields_request = 1
-                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
-                else:
-                    if t > 0:
-                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
-                    else:
-                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                    ApplicationSettingsHelper.log_text("end_program", file=report)
-                    missing_data = True
-            else:
-                dzq[i] = 0
+    missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi)
 
     if not missing_data:
         if display:
@@ -524,6 +487,46 @@ def analyse_and_report_dflowfm(
             )
         
     return not missing_data
+
+def _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
+    dzq = [None] * len(Q)
+    if 0 in filenames.keys(): # the keys are 0,1,2
+        for i in range(3):
+            if not missing_data and not Q[i] is None:
+                dzq[i] = get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
+                if dzq[i] is None:
+                    missing_data = True
+            else:
+                dzq[i] = 0
+    else: # the keys are the conditions
+        for i in range(len(Q)):
+            if not missing_data and not Q[i] is None:
+                q = Q[i]
+                if needs_tide:
+                    t = tide_bc[i]
+                    key = (q,t)
+                else:
+                    t = 'N/A'
+                    key = q
+                if rsigma[i] == 1:
+                    # no celerity, so ignore field
+                    dzq[i] = 0
+                elif key in filenames.keys():
+                    if t != 'N/A':
+                        n_fields_request = n_fields
+                    else:
+                        n_fields_request = 1
+                    dzq[i] = get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
+                else:
+                    if t > 0:
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
+                    else:
+                        ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
+                    ApplicationSettingsHelper.log_text("end_program", file=report)
+                    missing_data = True
+            else:
+                dzq[i] = 0
+    return missing_data,dzq
 
 def get_values_fm(
     stage: int,
