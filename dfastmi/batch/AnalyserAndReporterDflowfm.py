@@ -357,17 +357,7 @@ def analyse_and_report_dflowfm(
         )
         
         if xykm is not None:
-            print("replacing coordinates")
-            sn = numpy.repeat(nc_fill, xn.shape[0])
-            sn[inode]=sni
-            nn = numpy.repeat(nc_fill, xn.shape[0])
-            nn[inode]=nni
-            
-            # open destination file
-            dst = netCDF4.Dataset(projmesh, "a")
-            dst.variables[meshname + '_node_x'][:] = sn[:]
-            dst.variables[meshname + '_node_y'][:] = nn[:]
-            dst.close()       
+            _replace_coordinates_in_destination_file(xn, inode, sni, nni, meshname, nc_fill, projmesh)       
 
         _plot_data(plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi)
 
@@ -378,6 +368,19 @@ def analyse_and_report_dflowfm(
             _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill)
         
     return not missing_data
+
+def _replace_coordinates_in_destination_file(xn, inode, sni, nni, meshname, nc_fill, projmesh):
+    print("replacing coordinates")
+    sn = numpy.repeat(nc_fill, xn.shape[0])
+    sn[inode]=sni
+    nn = numpy.repeat(nc_fill, xn.shape[0])
+    nn[inode]=nni
+            
+            # open destination file
+    dst = netCDF4.Dataset(projmesh, "a")
+    dst.variables[meshname + '_node_x'][:] = sn[:]
+    dst.variables[meshname + '_node_y'][:] = nn[:]
+    dst.close()
 
 def _plot_data(plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi):
     if plotops['plotting']:
