@@ -402,33 +402,38 @@ def analyse_and_report_dflowfm(
             ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
 
         if xykm is not None:
-            sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
+            _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill)
+        
+    return not missing_data
 
-            if display:
-                if sedvol.shape[1] > 0:
-                    print("Estimated sedimentation volume per area using 3 methods")
-                    print("                              Max:             Method 1:        Method 2:       ")
-                    print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                    for i in range(sedvol.shape[1]):
-                        print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedarea[i], sedvol[0,i], sedvol[1,i], sedvol[2,i]))
-                    print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedvol[0,:].max(), sedvol[1,:].max(), sedvol[2,:].max()))
-                    print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedarea.sum(), sedvol[0,:].sum(), sedvol[1,:].sum(), sedvol[2,:].sum()))
+def _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill):
+    sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
 
-                if sedvol.shape[1] > 0 and erovol.shape[1] > 0:
-                    print("")
+    if display:
+        if sedvol.shape[1] > 0:
+            print("Estimated sedimentation volume per area using 3 methods")
+            print("                              Max:             Method 1:        Method 2:       ")
+            print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+            for i in range(sedvol.shape[1]):
+                print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedarea[i], sedvol[0,i], sedvol[1,i], sedvol[2,i]))
+            print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedvol[0,:].max(), sedvol[1,:].max(), sedvol[2,:].max()))
+            print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedarea.sum(), sedvol[0,:].sum(), sedvol[1,:].sum(), sedvol[2,:].sum()))
+
+        if sedvol.shape[1] > 0 and erovol.shape[1] > 0:
+            print("")
                 
-                if erovol.shape[1] > 0:
-                    print("Estimated erosion volume per area using 3 methods")
-                    print("                              Max:             Method 1:        Method 2:       ")
-                    print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                    for i in range(erovol.shape[1]):
-                        print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, eroarea[i], erovol[0,i], erovol[1,i], erovol[2,i]))
-                    print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
-                    print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
+        if erovol.shape[1] > 0:
+            print("Estimated erosion volume per area using 3 methods")
+            print("                              Max:             Method 1:        Method 2:       ")
+            print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+            for i in range(erovol.shape[1]):
+                print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, eroarea[i], erovol[0,i], erovol[1,i], erovol[2,i]))
+            print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
+            print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
-            projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
-            GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-            GridOperations.ugrid_add(
+    projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
+    GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
+    GridOperations.ugrid_add(
                 projmesh,
                 "interest_region",
                 interest_region,
@@ -437,11 +442,11 @@ def analyse_and_report_dflowfm(
                 long_name="Region on which the sedimentation analysis was performed",
                units="1",
             )
-            sed_area = numpy.repeat(nc_fill, FNC.shape[0])
+    sed_area = numpy.repeat(nc_fill, FNC.shape[0])
         
-            for i in range(len(sed_area_list)):
-                sed_area[iface[sed_area_list[i] == 1]] = i+1
-            GridOperations.ugrid_add(
+    for i in range(len(sed_area_list)):
+        sed_area[iface[sed_area_list[i] == 1]] = i+1
+    GridOperations.ugrid_add(
                 projmesh,
                 "sed_area",
                 sed_area,
@@ -450,11 +455,11 @@ def analyse_and_report_dflowfm(
                 long_name="Sedimentation area",
                 units="1",
             )
-            ero_area = numpy.repeat(nc_fill, FNC.shape[0])
+    ero_area = numpy.repeat(nc_fill, FNC.shape[0])
         
-            for i in range(len(ero_area_list)):
-                ero_area[iface[ero_area_list[i] == 1]] = i+1
-            GridOperations.ugrid_add(
+    for i in range(len(ero_area_list)):
+        ero_area[iface[ero_area_list[i] == 1]] = i+1
+    GridOperations.ugrid_add(
                 projmesh,
                 "ero_area",
                 ero_area,
@@ -463,9 +468,9 @@ def analyse_and_report_dflowfm(
                 long_name="Erosion area",
                 units="1",
             )
-            wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
-            wght_estimate1[iface] = wght_estimate1i
-            GridOperations.ugrid_add(
+    wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
+    wght_estimate1[iface] = wght_estimate1i
+    GridOperations.ugrid_add(
                 projmesh,
                 "wght_estimate1",
                 wght_estimate1,
@@ -474,9 +479,9 @@ def analyse_and_report_dflowfm(
                 long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
                 units="1",
             )
-            wbin = numpy.repeat(nc_fill, FNC.shape[0])
-            wbin[iface] = wbini
-            GridOperations.ugrid_add(
+    wbin = numpy.repeat(nc_fill, FNC.shape[0])
+    wbin[iface] = wbini
+    GridOperations.ugrid_add(
                 projmesh,
                 "wbin",
                 wbin,
@@ -485,8 +490,6 @@ def analyse_and_report_dflowfm(
                 long_name="Index of width bin",
                 units="1",
             )
-        
-    return not missing_data
 
 def _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
     dzq = [None] * len(Q)
