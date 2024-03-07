@@ -114,30 +114,37 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             return False
 
         for condition in condition_sections:
-            if not config.has_option(condition, "Discharge"):
+            if config.has_option(condition, "Discharge"):
+                try:
+                    discharge_cond = config.getfloat(condition, "Discharge")
+                except ValueError:
+                    discharge_cond_str = config.get(condition, "Discharge", fallback="")
+                    ApplicationSettingsHelper.log_text(f"Please this is a condition ({condition}), "
+                        f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
+                    continue
+
+                if abs(discharge - discharge_cond) <= 0.001:
+                    has_condition_section_for_this_discharge = True
+                    
+                    # we found the correct condition
+                    return_value = self._check_key_with_file_value_and_set_return_value_if_needed(config, return_value, condition, "Reference")
+                    return_value = self._check_key_with_file_value_and_set_return_value_if_needed(config, return_value, condition, "WithMeasure")
+            else:
                 ApplicationSettingsHelper.log_text(f"Please this is a condition : {condition}, but 'Discharge' key is not set!")
                 if return_value:
                     return_value = False
-                continue
-            
-            try:
-                discharge_cond = config.getfloat(condition, "Discharge")
-            except ValueError:
-                discharge_cond_str = config.get(condition, "Discharge", fallback="")
-                ApplicationSettingsHelper.log_text(f"Please this is a condition ({condition}), "
-                      f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
-                continue
-
-            if abs(discharge - discharge_cond) > 0.001:
-                continue # this is a condition, but the wrong one
-
-            has_condition_section_for_this_discharge = True
-
-            # we found the correct condition
-            if not self._check_key_with_file_value(config, condition, "Reference") and return_value:
-                return_value = False
-
-            if not self._check_key_with_file_value(config, condition, "WithMeasure") and return_value:
-                return_value = False
 
         return return_value and has_condition_section_for_this_discharge
+
+    def _check_key_with_file_value_and_set_return_value_if_needed(self,
+               config : configparser.ConfigParser,
+               return_value : bool,
+               condition : str,
+               key : str) -> bool:
+        """
+        Check if key exist as option in the section of this condition.
+        If exist check if file which is the key value is representing exist.        
+        """
+        if not self._check_key_with_file_value(config, condition, key) and return_value:
+            return_value = False
+        return return_value
