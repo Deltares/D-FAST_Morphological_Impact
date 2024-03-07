@@ -77,7 +77,9 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                 q_threshold = config.getfloat("General", "Qthreshold")
             except ValueError:
                 q_threshold_str = config.get("General", "Qthreshold", fallback="")
-                ApplicationSettingsHelper.log_text(f"Please this is a configuration has in the General section a option Qthreshold but is not float but : {q_threshold_str}! Using q_stagnant as q_threshold : {q_stagnant}")
+                ApplicationSettingsHelper.log_text(f"Please this configuration has in the General section an option for Qthreshold"
+                                                   f"but is not float but : {q_threshold_str}!" 
+                                                   f"Using q_stagnant as q_threshold : {q_stagnant}")
                 q_threshold = q_stagnant
         else:
             q_threshold = q_stagnant        
