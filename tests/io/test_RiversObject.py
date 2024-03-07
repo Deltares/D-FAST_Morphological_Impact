@@ -4,7 +4,8 @@ from contextlib import contextmanager
 from io import StringIO
 import pytest
 from dfastmi.io.CelerObject import CelerDischarge
-from dfastmi.io.Reach import Reach, ReachLegacy
+from dfastmi.io.Reach import Reach
+from dfastmi.io.ReachLegacy import ReachLegacy
 
 from dfastmi.io.RiversObject import RiversObject
 

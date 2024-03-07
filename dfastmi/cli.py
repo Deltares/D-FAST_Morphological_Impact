@@ -30,7 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Branch import Branch
-from dfastmi.io.Reach import ReachLegacy
+from dfastmi.io.ReachLegacy import ReachLegacy
 import dfastmi.kernel.core
 import dfastmi.kernel.legacy
 import dfastmi.batch.core

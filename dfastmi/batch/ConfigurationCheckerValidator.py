@@ -51,6 +51,8 @@ class ConfigurationCheckerValidator:
         ---------
         mode: str
             The mode in the configuration to validate for.
+        i : int
+            Flow condition to be checked.            
 
         Returns
         -------

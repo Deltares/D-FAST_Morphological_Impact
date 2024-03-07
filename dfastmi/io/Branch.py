@@ -36,7 +36,7 @@ Classes:
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ObservableList import ObservableList, Observer
-from dfastmi.io.Reach import AReach
+from dfastmi.io.AReach import AReach
 
 
 class Branch(IBranch, Observer[AReach]):

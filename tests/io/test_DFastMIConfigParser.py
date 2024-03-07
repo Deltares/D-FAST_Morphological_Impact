@@ -9,7 +9,7 @@ from typing import Tuple
 import pytest
 import configparser
 from dfastmi.io.IReach import IReach
-from dfastmi.io.Reach import AReach
+from dfastmi.io.AReach import AReach
 from dfastmi.io.IBranch import IBranch
 
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser

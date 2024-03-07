@@ -31,7 +31,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import configparser
 from typing import Callable, Tuple, Type, TypeVar, Optional
 from dfastmi.io.ConfigProcessor import ConfigProcessor
-from dfastmi.io.Reach import AReach
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiverConfigElementProcessor import RiverConfigElementProcessor
 
 

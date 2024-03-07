@@ -30,25 +30,21 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 Module for Reach implementation
 
 Classes:
-    Reach
+    ReachLegacy
 """
-from typing import List
 from dfastmi.io.AReach import AReach
 
-from dfastmi.io.CelerObject import ICelerObject
+from typing import List
 
 
-class Reach(AReach):
+class ReachLegacy(AReach):
     """
-    Derived class with reach data information used with current (AKA v2) river configuration files.
+    Derived class with reach data information used with legacy river configuration files.
     """
-    hydro_q : List[float]
-    hydro_t : List[float]
-    auto_time : bool
+    proprate_high : float
+    proprate_low : float
+    qbankfull : float
+    qmin : float
     qfit : tuple[float,float]
-
-    use_tide : bool
-    tide_boundary_condition : List[float]
-
-    celer_form : int
-    celer_object : ICelerObject = None
+    qlevels : List[float]
+    dq : tuple[float,float]

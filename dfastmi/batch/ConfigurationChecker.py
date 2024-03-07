@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, Tuple
-from dfastmi.io.Reach import ReachLegacy
+from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper

@@ -30,25 +30,35 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 Module for Reach implementation
 
 Classes:
-    Reach
+    AReach   
+
 """
-from typing import List
-from dfastmi.io.AReach import AReach
-
-from dfastmi.io.CelerObject import ICelerObject
+from dfastmi.io.IBranch import IBranch
+from dfastmi.io.IReach import IReach
 
 
-class Reach(AReach):
+class AReach(IReach):
     """
-    Derived class with reach data information used with current (AKA v2) river configuration files.
+    Abstract base class with reach data information. Should never be instantiated.
     """
-    hydro_q : List[float]
-    hydro_t : List[float]
-    auto_time : bool
-    qfit : tuple[float,float]
+    _name : str
+    _config_key_index : int
 
-    use_tide : bool
-    tide_boundary_condition : List[float]
+    normal_width : float
+    ucritical : float
+    qstagnant : float
+    parent_branch : IBranch
 
-    celer_form : int
-    celer_object : ICelerObject = None
+    def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
+        self._name = reach_name
+        self._config_key_index = reach_config_key_index
+
+    @property
+    def name(self) -> str:
+        """Name of the reach"""
+        return self._name
+
+    @property
+    def config_key_index(self) -> int:
+        """Index of the Reach in the branch"""
+        return self._config_key_index

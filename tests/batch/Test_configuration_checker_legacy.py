@@ -4,7 +4,7 @@ import pytest
 
 from dfastmi.batch.ConfigurationCheckerLegacy import DFLOWFM_MAP, WAQUA_EXPORT, ConfigurationCheckerLegacy
 from dfastmi.io.Branch import Branch
-from dfastmi.io.Reach import ReachLegacy
+from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 
 

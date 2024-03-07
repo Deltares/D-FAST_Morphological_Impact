@@ -35,9 +35,10 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
 from dfastmi.io.IBranch import IBranch
-from dfastmi.io.Reach import Reach, ReachLegacy
+from dfastmi.io.Reach import Reach
 
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
+from dfastmi.io.ReachLegacy import ReachLegacy
 
 class RiversObject():
     branches: List[IBranch]

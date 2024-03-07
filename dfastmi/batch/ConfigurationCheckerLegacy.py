@@ -32,7 +32,7 @@ from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 import dfastmi.kernel.core
-from dfastmi.io.Reach import ReachLegacy
+from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.legacy import char_discharges, char_times
 from dfastmi.kernel.typehints import BoolVector, QRuns, Vector
@@ -345,6 +345,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
     def _discharge_check(self, config: configparser.ConfigParser, cond: str) -> bool:
         if not config.has_section(cond) :
             ApplicationSettingsHelper.log_text(f"Please this {cond} is not in configuration file!")
+            return False
         if not config.has_option(cond, "Discharge"):
             ApplicationSettingsHelper.log_text(f"Please this {cond} is in the config but has no 'Discharge' key set!")
             return False
