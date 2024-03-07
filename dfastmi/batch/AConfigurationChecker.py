@@ -34,6 +34,8 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.IReach import IReach
 from dfastmi.io.RiversObject import RiversObject
 
+T = TypeVar('T', bound=IReach)
+
 class AConfigurationCheckerBase(ABC):
     """
     Abstract base class ConfigurationChecker.
