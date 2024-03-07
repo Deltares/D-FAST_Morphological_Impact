@@ -30,6 +30,7 @@ import configparser
 from typing import List, Optional, Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 import dfastmi.kernel.core
 from dfastmi.io.Reach import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
@@ -343,15 +344,15 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
     
     def _discharge_check(self, config: configparser.ConfigParser, cond: str) -> bool:
         if not config.has_section(cond) :
-            print(f"Please this {cond} is not in configuration file!")
+            ApplicationSettingsHelper.log_text(f"Please this {cond} is not in configuration file!")
         if not config.has_option(cond, "Discharge"):
-            print(f"Please this {cond} is in the config but has no 'Discharge' key set!")
+            ApplicationSettingsHelper.log_text(f"Please this {cond} is in the config but has no 'Discharge' key set!")
             return False
         try:
             config.getfloat(cond, "Discharge")
         except ValueError:
             discharge_cond_str = config.get(cond, "Discharge", fallback="")
-            print(f"Please this is a condition ({cond}), "
+            ApplicationSettingsHelper.log_text(f"Please this is a condition ({cond}), "
                     f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
             return False
         return True

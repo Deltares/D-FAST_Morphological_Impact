@@ -77,7 +77,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                 q_threshold = config.getfloat("General", "Qthreshold")
             except ValueError:
                 q_threshold_str = config.get("General", "Qthreshold", fallback="")
-                print(f"Please this is a configuration has in the General section a option Qthreshold but is not float but : {q_threshold_str}! Using q_stagnant as q_threshold : {q_stagnant}")
+                ApplicationSettingsHelper.log_text(f"Please this is a configuration has in the General section a option Qthreshold but is not float but : {q_threshold_str}! Using q_stagnant as q_threshold : {q_stagnant}")
                 q_threshold = q_stagnant
         else:
             q_threshold = q_stagnant        
@@ -115,12 +115,12 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         has_condition_section_for_this_discharge = False
         condition_sections = [section for section in config.sections() if section[0] == "C"]
         if len(condition_sections) == 0:
-            print("No condition sections found in conditions configurations file!")
+            ApplicationSettingsHelper.log_text("No condition sections found in conditions configurations file!")
             return False
 
         for condition in condition_sections:
             if not config.has_option(condition, "Discharge"):
-                print(f"Please this is a condition : {condition}, but 'Discharge' key is not set!")
+                ApplicationSettingsHelper.log_text(f"Please this is a condition : {condition}, but 'Discharge' key is not set!")
                 if return_value:
                     return_value = False
                 continue
@@ -129,7 +129,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                 discharge_cond = config.getfloat(condition, "Discharge")
             except ValueError:
                 discharge_cond_str = config.get(condition, "Discharge", fallback="")
-                print(f"Please this is a condition ({condition}), "
+                ApplicationSettingsHelper.log_text(f"Please this is a condition ({condition}), "
                       f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
                 continue
 

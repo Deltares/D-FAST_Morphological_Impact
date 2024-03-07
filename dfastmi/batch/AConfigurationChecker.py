@@ -30,6 +30,7 @@ import configparser
 import pathlib
 from abc import ABC, abstractmethod
 from typing import Type, TypeVar
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.IReach import IReach
 
 from dfastmi.io.RiversObject import RiversObject
@@ -94,11 +95,11 @@ class AConfigurationCheckerBase(ABC):
             key: str
             ) -> bool:
         if not config.has_option(cond, key):
-            print(f"Please this condition {cond} is found, but '{key}' key is not set!")
+            ApplicationSettingsHelper.log_text(f"Please this condition {cond} is found, but '{key}' key is not set!")
             return False
 
         file = config.get(cond, key)
         if not pathlib.Path(file).exists():
-            print(f"Please this condition {cond} is found, but '{key}' value (file = {file}) does not exist!")
+            ApplicationSettingsHelper.log_text(f"Please this condition {cond} is found, but '{key}' value (file = {file}) does not exist!")
             return False
         return True
