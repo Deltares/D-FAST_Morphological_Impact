@@ -178,11 +178,9 @@ class Test_analyse_and_report_dflowfm_mode():
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
-            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
             
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -244,11 +242,9 @@ class Test_analyse_and_report_dflowfm_mode():
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
-            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
             
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -310,11 +306,9 @@ class Test_analyse_and_report_dflowfm_mode():
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
-            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
             
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -376,11 +370,9 @@ class Test_analyse_and_report_dflowfm_mode():
         with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
-            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(2555), numpy.zeros(2555))
             
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
@@ -442,7 +434,7 @@ class Test_analyse_and_report_dflowfm_mode():
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+             patch('dfastmi.batch.AnalyserAndReporterDflowfm.ReporterDflowfm.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(0), numpy.zeros(0))
