@@ -26,19 +26,12 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import configparser
 
-from typing import Optional, Tuple
-from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
-import dfastmi.kernel.core
-import dfastmi.kernel.legacy
-import dfastmi.plotting
-import configparser
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
-from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.Reach import Reach
 
 class ConfigurationChecker(AConfigurationCheckerBase):
