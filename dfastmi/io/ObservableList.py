@@ -29,21 +29,25 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 Module for concrete ObservableList implementation. 
 
+Interfaces:
+
+
 Classes:
     ObservableList
 
 """
-from typing import Iterator, List, Protocol, TypeVar, Generic
+from abc import abstractmethod
+from typing import Iterator, List, TypeVar, Generic
 
 
 T = TypeVar('T')
 
 # Define an observer interface
-class Observer(Generic[T]):
+class IObserver(Generic[T]):
     """
     An interface for observing changes in an ObservableList.
     """
-
+    @abstractmethod
     def notify(self, element: T) -> None:
         """
         Method called when an element is added to the ObservableList.
@@ -56,7 +60,7 @@ class ObservableList(Generic[T]):
     """
     def __init__(self):
         self._list: List[T] = []
-        self._observers : List[Observer[T]] = []
+        self._observers : List[IObserver[T]] = []
 
     def __getitem__(self, index):
         return self._list[index]
@@ -72,7 +76,7 @@ class ObservableList(Generic[T]):
         self._list.append(element)
         self._notify_observers(element)
 
-    def add_observer(self, observer: 'Observer[T]') -> None:
+    def add_observer(self, observer: 'IObserver[T]') -> None:
         """
         Add an objects which will observer the list (currently on appending an element)
         """

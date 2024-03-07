@@ -35,11 +35,11 @@ Classes:
 """
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
-from dfastmi.io.ObservableList import ObservableList, Observer
+from dfastmi.io.ObservableList import ObservableList, IObserver
 from dfastmi.io.AReach import AReach
 
 
-class Branch(IBranch, Observer[AReach]):
+class Branch(IBranch, IObserver[AReach]):
     """Class for storing branch information"""
     _name : str
     _qlocation : str
@@ -62,7 +62,7 @@ class Branch(IBranch, Observer[AReach]):
     def get_reach(self, reach_name : str) -> IReach:
         """
         Return the reach from the read reaches list
-        
+
         Arguments
         ---------
         reach_name : str
