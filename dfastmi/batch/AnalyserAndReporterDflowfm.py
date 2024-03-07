@@ -369,14 +369,25 @@ def analyse_and_report_dflowfm(
             dst.variables[meshname + '_node_y'][:] = nn[:]
             dst.close()       
 
-        if plotops['plotting']:
-            if FNCi.mask.shape == ():
+        _plot_data(plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi)
+
+        if display:
+            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
+
+        if xykm is not None:
+            _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill)
+        
+    return not missing_data
+
+def _plot_data(plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi):
+    if plotops['plotting']:
+        if FNCi.mask.shape == ():
                 # all faces have the same number of nodes
-                nnodes = numpy.ones(FNCi.data.shape[0], dtype=numpy.int64) * FNCi.data.shape[1]
-            else:
+            nnodes = numpy.ones(FNCi.data.shape[0], dtype=numpy.int64) * FNCi.data.shape[1]
+        else:
                 # varying number of nodes
-                nnodes = FNCi.mask.shape[1] - FNCi.mask.sum(axis=1)
-            fig, ax = dfastmi.plotting.plot_overview(
+            nnodes = FNCi.mask.shape[1] - FNCi.mask.sum(axis=1)
+        fig, ax = dfastmi.plotting.plot_overview(
                 (xmin, ymin, xmax, ymax),
                 xykline,
                 FNCi,
@@ -391,20 +402,12 @@ def analyse_and_report_dflowfm(
                 plotops['xyzoom'],
             )
 
-            if plotops['saveplot']:
-                figbase = plotops['figdir'] + os.sep + "overview"
-                if plotops['saveplot_zoomed']:
-                    dfastmi.plotting.zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
-                figfile = figbase + plotops['plot_ext']
-                dfastmi.plotting.savefig(fig, figfile)
-
-        if display:
-            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
-
-        if xykm is not None:
-            _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill)
-        
-    return not missing_data
+        if plotops['saveplot']:
+            figbase = plotops['figdir'] + os.sep + "overview"
+            if plotops['saveplot_zoomed']:
+                dfastmi.plotting.zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
+            figfile = figbase + plotops['plot_ext']
+            dfastmi.plotting.savefig(fig, figfile)
 
 def _grid_update_xykm(display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill):
     sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
