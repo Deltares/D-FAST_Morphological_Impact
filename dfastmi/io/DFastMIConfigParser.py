@@ -31,7 +31,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import configparser
 from typing import Callable, Tuple, Type, TypeVar, Optional
 from dfastmi.io.ConfigProcessor import ConfigProcessor
-from dfastmi.io.Reach import Reach
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiverConfigElementProcessor import RiverConfigElementProcessor
 
 
@@ -84,7 +84,7 @@ class DFastMIConfigParser:
         return val
 
     # default processor
-    def _process_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[T], expected_number_of_values : Optional[int]) -> T:
+    def _process_entry_value(self, key, entry_value: str, reach : AReach, parse: Callable[[str], Tuple[T, ...]], default: Optional[T], expected_number_of_values : Optional[int]) -> T:
         if entry_value == "" and default is not None:
             value_from_config = default
         else:
@@ -114,7 +114,7 @@ class DFastMIConfigParser:
         return tuple(x for x in entry_value.split())
 
     # tuple processor
-    def _process_tuple_entry_value(self, key, entry_value: str, reach : Reach, parse: Callable[[str], Tuple[T, ...]], default: Optional[Tuple[T, ...]], expected_number_of_values : Optional[int]) -> Tuple[T, ...]:
+    def _process_tuple_entry_value(self, key, entry_value: str, reach : AReach, parse: Callable[[str], Tuple[T, ...]], default: Optional[Tuple[T, ...]], expected_number_of_values : Optional[int]) -> Tuple[T, ...]:
         vals: Tuple[T, ...]
         if entry_value == "" and default is not None:
             vals = default
@@ -133,7 +133,7 @@ class DFastMIConfigParser:
             self,
             value_type: Type[T],
             key: str,
-            reach: Reach,
+            reach: AReach,
             default: Optional[T] = None,
             expected_number_of_values: Optional[int] = None
         ) -> T:

@@ -1,5 +1,8 @@
 import os
+from pathlib import Path
+from unittest.mock import patch
 import pytest
+from dfastmi.batch.ConfigurationCheckerLegacy import WAQUA_EXPORT, DFLOWFM_MAP
 import dfastmi.batch.core
 
 from dfastmi.io.RiversObject import RiversObject
@@ -61,7 +64,7 @@ class Test_batch_check_configuration():
         
         assert not dfastmi.batch.core.check_configuration(rivers, config)
     
-    class Test_check_configuration_v1():
+    class Test_check_configuration_legacy():
         @pytest.fixture
         def rivers(self):
             return  RiversObject("dfastmi/Dutch_rivers_v1.ini")
@@ -91,14 +94,28 @@ class Test_batch_check_configuration():
             
         def given_q_sections_with_discharge_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):           
             self.set_valid_general_section_with_q_values(config)
-            self.add_q_section(config)
+            self.add_q_section_waqua(config)
             
             assert not dfastmi.batch.core.check_configuration(rivers, config)
             
-        def given_mode_specific_test_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
+        def given_mode_specific_test_with_discharge_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config)
-            self.add_q_section(config)
+            self.add_q_section_fm(config)
             config.set("General", "mode", "test")
+            
+            assert not dfastmi.batch.core.check_configuration(rivers, config)
+        
+        def given_mode_WAQUA_EXPORT_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section_with_q_values(config)
+            self.add_q_section_waqua(config)
+            config.set("General", "mode", WAQUA_EXPORT)
+            
+            assert dfastmi.batch.core.check_configuration(rivers, config)
+            
+        def given_mode_DFLOWFM_MAP_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
+            self.set_valid_general_section_with_q_values(config)
+            self.add_q_section_fm(config)
+            config.set("General", "mode", DFLOWFM_MAP)
             
             assert dfastmi.batch.core.check_configuration(rivers, config)
             
@@ -113,13 +130,27 @@ class Test_batch_check_configuration():
             config.set("General", "Qthreshold", "100")
             config.set("General", "Qbankfull", "100")
             
-        def add_q_section(self, config : ConfigParser):
+        def add_q_section_waqua(self, config : ConfigParser):
             config.add_section("Q1")
             config.set("Q1", "Discharge", "1300.0")
             config.add_section("Q2")
             config.set("Q2", "Discharge", "1300.0")
             config.add_section("Q3")
             config.set("Q3", "Discharge", "1300.0")
+        
+        def add_q_section_fm(self, config : ConfigParser):
+            config.add_section("Q1")
+            config.set("Q1", "Discharge", "1300.0")
+            config.set("Q1", "Reference", "")
+            config.set("Q1", "WithMeasure", "")
+            config.add_section("Q2")
+            config.set("Q2", "Discharge", "1300.0")
+            config.set("Q2", "Reference", "")
+            config.set("Q2", "WithMeasure", "")
+            config.add_section("Q3")
+            config.set("Q3", "Discharge", "1300.0")
+            config.set("Q3", "Reference", "")
+            config.set("Q3", "WithMeasure", "")
     
     class Test_check_configuration_v2():
         @pytest.fixture
@@ -173,8 +204,10 @@ class Test_batch_check_configuration():
             self.add_c_section(config, "C4", "4000.0")
             self.add_c_section(config, "C5", "6000.0")
             self.add_c_section(config, "C6", "8000.0")
-                
-            assert dfastmi.batch.core.check_configuration(rivers, config)
+            
+            with patch.object(Path, 'exists') as mock_exists:
+                mock_exists.return_value = True
+                assert dfastmi.batch.core.check_configuration(rivers, config)
         
         def set_valid_general_section(self, config : ConfigParser):
             config.add_section("General")

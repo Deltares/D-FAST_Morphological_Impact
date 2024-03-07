@@ -4,7 +4,8 @@ from contextlib import contextmanager
 from io import StringIO
 import pytest
 from dfastmi.io.CelerObject import CelerDischarge
-from dfastmi.io.Reach import ReachAdvanced, ReachLegacy
+from dfastmi.io.Reach import Reach
+from dfastmi.io.ReachLegacy import ReachLegacy
 
 from dfastmi.io.RiversObject import RiversObject
 
@@ -122,7 +123,7 @@ class Test_read_rivers():
         assert branch1.qlocation == 'L1'
         
         reach1 = branch1.reaches[0]
-        assert isinstance(reach1, ReachAdvanced)
+        assert isinstance(reach1, Reach)
         assert reach1.name == 'Branch1 R1'
         assert reach1.normal_width == 250.0
         assert reach1.ucritical == 0.3
@@ -144,7 +145,7 @@ class Test_read_rivers():
         assert branch2.qlocation == 'L2'
         
         reach2 = branch2.reaches[0]
-        assert isinstance(reach2, ReachAdvanced)
+        assert isinstance(reach2, Reach)
         assert reach2.name == 'Branch2 R1'
         assert reach2.normal_width == 250.0
         assert reach2.ucritical == 0.3
@@ -161,7 +162,7 @@ class Test_read_rivers():
         assert reach2.tide_bc == ()
 
         reach3 = branch2.reaches[1]
-        assert isinstance(reach3, ReachAdvanced)
+        assert isinstance(reach3, Reach)
         assert reach3.name == 'Branch2 R2'
         assert reach3.normal_width == 100.0
         assert reach3.ucritical == 0.3

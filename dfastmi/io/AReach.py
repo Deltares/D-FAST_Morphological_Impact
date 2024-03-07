@@ -27,25 +27,38 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 """
-Module for IBranch interface
+Module for Reach implementation
 
-Interfaces:
-    IBranch
+Classes:
+    AReach   
 
 """
-
-from abc import ABC, abstractmethod
-
+from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
 
-class IBranch(ABC):
-    """Interface for branch information"""  
+
+class AReach(IReach):
+    """
+    Abstract base class with reach data information. Should never be instantiated.
+    """
+    _name : str
+    _config_key_index : int
+
+    normal_width : float
+    ucritical : float
+    qstagnant : float
+    parent_branch : IBranch
+
+    def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
+        self._name = reach_name
+        self._config_key_index = reach_config_key_index
 
     @property
-    @abstractmethod
     def name(self) -> str:
-        """Name of the branch"""        
-    
-    @abstractmethod
-    def get_reach(self, reach_name : str) -> IReach:
-        """Reach in branch by name"""
+        """Name of the reach"""
+        return self._name
+
+    @property
+    def config_key_index(self) -> int:
+        """Index of the Reach in the branch"""
+        return self._config_key_index

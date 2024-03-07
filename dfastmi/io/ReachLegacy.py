@@ -27,25 +27,24 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 """
-Module for IBranch interface
+Module for Reach implementation
 
-Interfaces:
-    IBranch
-
+Classes:
+    ReachLegacy
 """
+from dfastmi.io.AReach import AReach
 
-from abc import ABC, abstractmethod
+from typing import List
 
-from dfastmi.io.IReach import IReach
 
-class IBranch(ABC):
-    """Interface for branch information"""  
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Name of the branch"""        
-    
-    @abstractmethod
-    def get_reach(self, reach_name : str) -> IReach:
-        """Reach in branch by name"""
+class ReachLegacy(AReach):
+    """
+    Derived class with reach data information used with legacy river configuration files.
+    """
+    proprate_high : float
+    proprate_low : float
+    qbankfull : float
+    qmin : float
+    qfit : tuple[float,float]
+    qlevels : List[float]
+    dq : tuple[float,float]

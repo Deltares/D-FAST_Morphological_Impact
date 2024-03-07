@@ -28,8 +28,9 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
+from dfastmi.io.IReach import IReach
 from dfastmi.io.Branch import Branch
-from dfastmi.io.Reach import Reach, ReachLegacy
+from dfastmi.io.ReachLegacy import ReachLegacy
 import dfastmi.kernel.core
 import dfastmi.kernel.legacy
 import dfastmi.batch.core
@@ -51,7 +52,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     src : TextIO
         Source to read from (typically sys.stdin)
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
@@ -254,7 +255,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
 
 def interactive_get_location(
     src: TextIO, rivers: RiversObject,
-) -> Tuple[Optional[Branch], Optional[Reach]]:
+) -> Tuple[Optional[Branch], Optional[IReach]]:
     """
     Ask the user interactively for the branch and reach.
 
@@ -263,7 +264,7 @@ def interactive_get_location(
     src : TextIO
         Source to read from (typically sys.stdin)
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
 
     Returns
     -------
@@ -321,7 +322,7 @@ def interactive_get_discharges(
     src : TextIO
         Source to read from (typically sys.stdin)
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     ibranch : int
         Number of selected branch.
     ireach : int

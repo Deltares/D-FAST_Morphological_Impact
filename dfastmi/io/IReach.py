@@ -27,25 +27,28 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 """
-Module for IBranch interface
+Module for Reach
 
-Interfaces:
-    IBranch
+Interface:
+    IReach
 
 """
-
 from abc import ABC, abstractmethod
 
-from dfastmi.io.IReach import IReach
 
-class IBranch(ABC):
-    """Interface for branch information"""  
+class IReach(ABC):
+    normal_width : float
+    ucritical : float
+    qstagnant : float
+
+    """Interface for Reach information"""
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Name of the branch"""        
-    
+        """Name of the Reach"""
+
+    @property
     @abstractmethod
-    def get_reach(self, reach_name : str) -> IReach:
-        """Reach in branch by name"""
+    def config_key_index(self) -> int:
+        """Index number of the Reach in the branch"""
