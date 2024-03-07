@@ -33,6 +33,7 @@ from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerVali
 import dfastmi.kernel.core
 from dfastmi.io.Reach import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.legacy import char_discharges, char_times
 from dfastmi.kernel.typehints import BoolVector, QRuns, Vector
 
 WAQUA_EXPORT = "WAQUA export"
@@ -196,9 +197,9 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         q_threshold = self._get_q_threshold_from_config(config)
         q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, q_levels)
 
-        three_characteristic_discharges, apply_q = dfastmi.kernel.core.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+        three_characteristic_discharges, apply_q = char_discharges(q_levels, dq, q_threshold, q_bankfull)
 
-        tstag, fractions_of_the_year, rsigma = dfastmi.kernel.core.char_times(
+        tstag, fractions_of_the_year, rsigma = char_times(
             q_fit, q_stagnant, three_characteristic_discharges, celerity_hg, celerity_lw, nwidth
         )
 
