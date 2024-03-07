@@ -183,7 +183,7 @@ class ReporterDflowfm():
 
     def _grid_update_xykm(self, display, slength, nwidth, outputdir, plotops, one_fm_filename, FNC, xni, yni, FNCi, iface, xykline, interest_region, sni, nni, dzgemi, meshname, facedim, nc_fill):
         
-        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = self.comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
+        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth,xykline,one_fm_filename, outputdir, plotops)
 
         if display:
             if sedvol.shape[1] > 0:
@@ -267,8 +267,7 @@ class ReporterDflowfm():
                     units="1",
                 )
         
-    def comp_sedimentation_volume(
-        self,
+def comp_sedimentation_volume(
         xni: numpy.ndarray,
         yni: numpy.ndarray,
         sni: numpy.ndarray,
@@ -528,22 +527,11 @@ def analyse_and_report_dflowfm(
         interest_region = numpy.zeros(FNC.shape[0], dtype=numpy.int64)
         interest_region[iface] = 1
     
-        #if display:
-        #    ApplicationSettingsHelper.log_text('-- get centres') # note that this should be the circumference point
-        #xfi = face_mean(xni, FNCi)
-        #yfi = face_mean(yni, FNCi)
-    
         xykline = numpy.array(xykm.coords)
     
         # project all nodes onto the line, obtain the distance along (sni) and normal (dni) the line
         # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
         xyline = xykline[:,:2]
-        kline = xykline[:,2]
-        sline = distance_along_line(xyline)
-        # convert chainage bounds to distance along line bounds
-        ikeep = numpy.logical_and(kline >= kmbounds[0], kline <= kmbounds[1])
-        sline_r = sline[ikeep]
-        sbounds = (min(sline_r), max(sline_r))
     
         # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
         # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
@@ -551,12 +539,10 @@ def analyse_and_report_dflowfm(
             ApplicationSettingsHelper.log_text('-- project')
         sni, nni = proj_xy_line(xni, yni, xyline)
         sfi = face_mean(sni, FNCi)
-        #nfi = face_mean(nni, FNCi)
     
         # determine chainage values of each cell
         if display:
             ApplicationSettingsHelper.log_text('-- chainage')
-        kfi = distance_to_chainage(sline, xykline[:,2], sfi)
     
         # determine line direction for each cell
         if display:
