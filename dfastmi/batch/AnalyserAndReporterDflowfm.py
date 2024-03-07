@@ -602,13 +602,13 @@ def _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc,
                     t = tide_bc[i]
                     key = (q,t)
                 else:
-                    t = 'N/A'
+                    t = None
                     key = q
                 if rsigma[i] == 1:
                     # no celerity, so ignore field
                     dzq[i] = 0
                 elif key in filenames.keys():
-                    if t != 'N/A':
+                    if t:
                         n_fields_request = n_fields
                     else:
                         n_fields_request = 1
