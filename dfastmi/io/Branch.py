@@ -61,11 +61,12 @@ class Branch(IBranch, Observer[AReach]):
 
     def get_reach(self, reach_name : str) -> IReach:
         """
-        Return the branch from the read branches list
+        Return the reach from the read reaches list
+        
         Arguments
         ---------
-        branch_name : str
-            The name of the branch in the river configuration 
+        reach_name : str
+            The name of the reach in the branch of the river configuration 
         """
         for reach in self._reaches:
             if reach.name == reach_name:
