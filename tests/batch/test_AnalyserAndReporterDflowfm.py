@@ -17,8 +17,8 @@ class Test_analyse_and_report_dflowfm_mode():
     report: TextIO
     q_threshold: float
     tstag: float
-    Q: Vector
-    T: Vector
+    discharges: Vector
+    fraction_of_year: Vector
     rsigma: Vector
     slength: float
     nwidth: float
@@ -43,8 +43,8 @@ class Test_analyse_and_report_dflowfm_mode():
         self.kmbounds : Tuple[float, float] = (1.0, 2.0)
         self.plotops = {}
         self.tstag = 1.0
-        self.Q = [1.0, 2.0, 3.0]
-        self.T = [1.0, 2.0, 3.0]
+        self.discharges = [1.0, 2.0, 3.0]
+        self.fraction_of_year = [1.0, 2.0, 3.0]
         self.rsigma = [0.1, 0.2, 0.3]
         self.ucrit = 0.3
         
@@ -89,8 +89,8 @@ class Test_analyse_and_report_dflowfm_mode():
                 self.report,
                 self.q_threshold,
                 self.tstag,
-                self.Q,
-                self.T,
+                self.discharges,
+                self.fraction_of_year,
                 self.rsigma,
                 self.slength,
                 self.nwidth,
@@ -134,8 +134,8 @@ class Test_analyse_and_report_dflowfm_mode():
                 self.report,
                 self.q_threshold,
                 self.tstag,
-                self.Q,
-                self.T,
+                self.discharges,
+                self.fraction_of_year,
                 self.rsigma,
                 self.slength,
                 self.nwidth,
@@ -193,8 +193,8 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.report,
                     self.q_threshold,
                     self.tstag,
-                    self.Q,
-                    self.T,
+                    self.discharges,
+                    self.fraction_of_year,
                     self.rsigma,
                     self.slength,
                     self.nwidth,
@@ -257,8 +257,8 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.report,
                     self.q_threshold,
                     self.tstag,
-                    self.Q,
-                    self.T,
+                    self.discharges,
+                    self.fraction_of_year,
                     self.rsigma,
                     self.slength,
                     self.nwidth,
@@ -321,8 +321,8 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.report,
                     self.q_threshold,
                     self.tstag,
-                    self.Q,
-                    self.T,
+                    self.discharges,
+                    self.fraction_of_year,
                     self.rsigma,
                     self.slength,
                     self.nwidth,
@@ -385,8 +385,8 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.report,
                     self.q_threshold,
                     self.tstag,
-                    self.Q,
-                    self.T,
+                    self.discharges,
+                    self.fraction_of_year,
                     self.rsigma,
                     self.slength,
                     self.nwidth,
@@ -455,8 +455,8 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.report,
                     self.q_threshold,
                     self.tstag,
-                    self.Q,
-                    self.T,
+                    self.discharges,
+                    self.fraction_of_year,
                     self.rsigma,
                     self.slength,
                     self.nwidth,
