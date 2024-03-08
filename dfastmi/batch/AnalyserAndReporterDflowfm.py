@@ -129,6 +129,51 @@ def analyse_and_report_dflowfm(
         ApplicationSettingsHelper.log_text('-- load mesh')
     xn, yn, FNC = get_xynode_connect(one_fm_filename)
     
+    xykm_data = _get_xykm_data(xykm, xn, yn, FNC, display)
+    
+    if xykm is None:
+        if needs_tide:
+            print("RiverKM needs to be specified for tidal applications.")
+            return True
+    
+    missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+
+    if not missing_data:
+        if display:
+            ApplicationSettingsHelper.log_text("char_bed_changes")
+            
+        if tstag > 0:
+            dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
+            T = (T[0], tstag, T[1], T[2])
+            rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
+            
+        # main_computation now returns new pointwise zmin and zmax
+        dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
+            dzq, T, rsigma
+        )
+        
+        if old_zmin_zmax:
+            # get old zmax and zmin
+            dzmaxi = dzbi[0]
+            zmax_str = "maximum bed level change after flood without dredging"
+            dzmini = dzbi[1]
+            zmin_str = "minimum bed level change after low flow without dredging"
+        else:
+            zmax_str = "maximum value of bed level change without dredging"
+            zmin_str = "minimum value of bed level change without dredging"
+    
+    sedimentation_data = None
+    if xykm is not None:
+        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, one_fm_filename, outputdir, plotops)
+        sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
+    
+    if not missing_data:       
+        reporter = ReporterDflowfm()
+        reporter.report(display, rsigma, outputdir, plotops, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data, xykm_data)
+
+    return not missing_data
+
+def _get_xykm_data(xykm, xn, yn, FNC, display):
     if xykm is None:
         # keep all nodes and faces
         keep = numpy.full(xn.shape, True)
@@ -144,9 +189,6 @@ def analyse_and_report_dflowfm(
         interest_region = None
         sni = None
         nni = None
-        if needs_tide:
-            print("RiverKM needs to be specified for tidal applications.")        
-            return True 
     else:
         dnmax = 3000.0    
         if display:
@@ -199,46 +241,7 @@ def analyse_and_report_dflowfm(
         if display:
             ApplicationSettingsHelper.log_text('-- done')
     
-    xykm_data = XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
-    
-    missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi)
-
-    if not missing_data:
-        if display:
-            ApplicationSettingsHelper.log_text("char_bed_changes")
-            
-        if tstag > 0:
-            dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
-            T = (T[0], tstag, T[1], T[2])
-            rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
-            
-        # main_computation now returns new pointwise zmin and zmax
-        dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
-            dzq, T, rsigma
-        )
-        
-        if old_zmin_zmax:
-            # get old zmax and zmin
-            dzmaxi = dzbi[0]
-            zmax_str = "maximum bed level change after flood without dredging"
-            dzmini = dzbi[1]
-            zmin_str = "minimum bed level change after low flow without dredging"
-        else:
-            zmax_str = "maximum value of bed level change without dredging"
-            zmin_str = "minimum value of bed level change without dredging"
-    
-    sedimentation_data = None
-    if xykm is not None:
-        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth, xykline, one_fm_filename, outputdir, plotops)
-        sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
-    
-    
-    if not missing_data:       
-        reporter = ReporterDflowfm()
-        reporter.report(display, rsigma, outputdir, plotops, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data, xykm_data)
-    
-        
-    return not missing_data
+    return XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
 
 def comp_sedimentation_volume(
         xni: numpy.ndarray,
