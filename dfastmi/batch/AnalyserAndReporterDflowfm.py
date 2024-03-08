@@ -131,10 +131,9 @@ def analyse_and_report_dflowfm(
     
     xykm_data = _get_xykm_data(xykm, xn, yn, FNC, display)
     
-    if xykm is None:
-        if needs_tide:
-            print("RiverKM needs to be specified for tidal applications.")
-            return True
+    if xykm is None and needs_tide:
+        print("RiverKM needs to be specified for tidal applications.")
+        return True
     
     missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
