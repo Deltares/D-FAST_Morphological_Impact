@@ -39,7 +39,7 @@ def analyse_and_report_dflowfm(
     report: TextIO,
     q_threshold: float,
     tstag: float,
-    Q: Vector,
+    discharges: Vector,
     T: Vector,
     rsigma: Vector,
     slength: float,
@@ -71,8 +71,8 @@ def analyse_and_report_dflowfm(
         Threshold discharge above which the measure is active.
     tstag : float
         Fraction of year that the river is stagnant.
-    Q : Vector
-        Array of discharges; one for each forcing condition.
+    discharges : Vector
+        Array of discharges; one for each forcing condition. (Q list of discharges)
     T : Vector
         Fraction of year represented by each forcing condition.
     rsigma : Vector
@@ -109,7 +109,7 @@ def analyse_and_report_dflowfm(
         Flag indicating whether analysis could be carried out.
     """
     analyser = AnalyserDflowfm()
-    missing_data, report_data = analyser.analyse(display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops)
+    missing_data, report_data = analyser.analyse(display, report, q_threshold, tstag, discharges, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops)
     
     if missing_data:
         return missing_data

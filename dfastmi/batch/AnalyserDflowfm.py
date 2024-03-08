@@ -16,10 +16,10 @@ import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
 class AnalyserDflowfm():
-    def analyse(self, display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
+    def analyse(self, display, report, q_threshold, tstag, discharges, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
         missing_data = False
 
-        one_fm_filename, missing_data = self._get_first_fm_data_filename(report, q_threshold, Q, rsigma, filenames, needs_tide, tide_bc)
+        one_fm_filename, missing_data = self._get_first_fm_data_filename(report, q_threshold, discharges, rsigma, filenames, needs_tide, tide_bc)
 
         if missing_data:
             return missing_data, None
@@ -34,7 +34,7 @@ class AnalyserDflowfm():
             print("RiverKM needs to be specified for tidal applications.")
             return True, None
 
-        missing_data, dzq = self._get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+        missing_data, dzq = self._get_dzq(report, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
         if not missing_data:
             if display:
@@ -70,7 +70,7 @@ class AnalyserDflowfm():
     def _get_first_fm_data_filename(self,
         report: TextIO,
         q_threshold: float,
-        Q: Vector,
+        discharges: Vector,
         rsigma: Vector,
         filenames: Dict[Any, Tuple[str,str]],
         needs_tide: bool,
@@ -82,19 +82,19 @@ class AnalyserDflowfm():
         # determine the name of the first FM data file that will be used
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
-                if not missing_data and not Q[i] is None:
+                if not missing_data and not discharges[i] is None:
                     one_fm_filename = filenames[i][0]
                     break
         else: # the keys are the conditions
-            for i in range(len(Q)):
-                if not missing_data and not Q[i] is None:
-                    q = Q[i]
+            for i in range(len(discharges)):
+                if not missing_data and not discharges[i] is None:
+                    q = discharges[i]
                     if needs_tide:
                         t = tide_bc[i]
                         key = (q,t)
                     else:
                         key = q
-                    if rsigma[i] == 1 or Q[i] <= q_threshold:
+                    if rsigma[i] == 1 or discharges[i] <= q_threshold:
                         # no celerity or measure not active, so ignore field
                         pass
                     elif key in filenames.keys():
@@ -184,20 +184,20 @@ class AnalyserDflowfm():
 
         return XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
 
-    def _get_dzq(self, report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
-        dzq = [None] * len(Q)
+    def _get_dzq(self, report, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
+        dzq = [None] * len(discharges)
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
-                if not missing_data and not Q[i] is None:
-                    dzq[i] = self._get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
+                if not missing_data and not discharges[i] is None:
+                    dzq[i] = self._get_values_fm(i+1, discharges[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
                         missing_data = True
                 else:
                     dzq[i] = 0
         else: # the keys are the conditions
-            for i in range(len(Q)):
-                if not missing_data and not Q[i] is None:
-                    q = Q[i]
+            for i in range(len(discharges)):
+                if not missing_data and not discharges[i] is None:
+                    q = discharges[i]
                     if needs_tide:
                         t = tide_bc[i]
                         key = (q,t)
