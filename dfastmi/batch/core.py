@@ -35,7 +35,6 @@ import math
 import configparser
 import numpy
 import matplotlib
-import shapely
 from packaging import version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
@@ -44,7 +43,7 @@ from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
 
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
+from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations

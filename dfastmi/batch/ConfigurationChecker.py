@@ -173,8 +173,8 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             cdisch = reach.celer_object.cdisch
             celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in discharges)
          
-         # set the celerity equal to 0 for discharges less or equal to q_stagnant
-        celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.q_stagnant] for i in range(len(discharges)))
+         # set the celerity equal to 0 for discharges less or equal to qstagnant
+        celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.qstagnant] for i in range(len(discharges)))
         
         # check if all celerities are equal to 0. If so, the impact would be 0.
         all_zero = True
@@ -190,7 +190,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
 
     def _get_fraction_times(self, reach:Reach, q_threshold, discharges):
         if reach.autotime:            
-            T, time_mi = self._get_times(discharges, reach.q_fit, reach.q_stagnant, q_threshold)
+            T, time_mi = self._get_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
         else:
             T = reach.hydro_t
             sumT = sum(T)
