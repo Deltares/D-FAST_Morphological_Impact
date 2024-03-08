@@ -175,10 +175,10 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
+        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
@@ -239,10 +239,10 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
+        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
@@ -303,10 +303,10 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
+        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
@@ -367,10 +367,10 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
+        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
@@ -430,11 +430,11 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserAndReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
-             patch('dfastmi.batch.AnalyserAndReporterDflowfm.dfastmi.batch.SedimentationVolume.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
+        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.plot_overview') as mocked_plotting_plot_overview, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.plotting.savefig') as mocked_plotting_savefig, \
+             patch('dfastmi.batch.AnalyserDflowfm.dfastmi.batch.SedimentationVolume.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(0), numpy.zeros(0))
