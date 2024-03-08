@@ -65,7 +65,7 @@ class AConfigurationCheckerBase(ABC):
         reach: IReach,
         config: configparser.ConfigParser,
         nwidth: float
-    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, bool, int, Tuple[str, ...]]:
+    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, int, Tuple[str, ...]]:
         """
         Determine discharges, times, etc. for analysis
 

@@ -98,7 +98,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         reach: Reach,
         config: configparser.ConfigParser,
         nwidth: float
-    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, bool, int, Tuple[str, ...]]:
+    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, int, Tuple[str, ...]]:
         """
         Determine discharges, times, etc. for version 2 analysis
 
@@ -129,8 +129,6 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
         celerity : Vector
             A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
-        needs_tide : bool
-            A bool stating if the calculation needs to make use of tide
         n_fields : int
             An int stating the number of fields
         """
@@ -149,7 +147,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         tstag = 0
         
         n_fields = self._get_tide(reach, config)
-        return (discharges, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, reach.use_tide, n_fields, reach.tide_bc if reach.use_tide else ())
+        return (discharges, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, n_fields, reach.tide_bc if reach.use_tide else ())
 
     def _get_tide(self, reach: Reach, config: configparser.ConfigParser):
         if reach.use_tide:

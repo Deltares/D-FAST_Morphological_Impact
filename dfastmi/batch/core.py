@@ -41,6 +41,7 @@ from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
+from dfastmi.io.Reach import Reach
 
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector, BoolVector
@@ -113,9 +114,6 @@ def batch_mode_core(
     success : bool
         Flag indicating whether the analysis could be completed successfully.
     """
-    discharges : Vector
-    apply_q : BoolVector
-
     display = False
     data = DFastMIConfigParser(config)
     
@@ -142,7 +140,7 @@ def batch_mode_core(
             )
             success = False
         else:
-            success, slength, plotops = analyse_and_report(
+            success = analyse_and_report(
                 config,
                 data,
                 cfg_version,
@@ -152,38 +150,24 @@ def batch_mode_core(
                 report,
                 reduced_output,
                 rootdir,
-                outputdir
-            )
-
-            if slength > 1:
-                nlength = f"{int(slength)}"
-            else:
-                nlength = f"{slength}"
-            ApplicationSettingsHelper.log_text(
-                "length_estimate", dict={"nlength": nlength}, file=report
-            )
-
-            if plotops['plotting']:
-                if plotops['closeplot']:
-                    matplotlib.pyplot.close("all")
-                else:
-                    matplotlib.pyplot.show(block=not gui)
+                outputdir,
+                gui
+            )           
 
     ApplicationSettingsHelper.log_text("end", file=report)
     report.close()
 
     return success
 
-def _initialize_core_run(config:configparser.ConfigParser, rootdir:str, display:bool, data:DFastMIConfigParser, report:TextIO, cfg_version:version.Version, branch:IBranch, reach:IReach):
-    nwidth = reach.normal_width
-    q_location = branch.qlocation
+def _initialize_core_run(config:configparser.ConfigParser, rootdir:str, display:bool, data:DFastMIConfigParser, report:TextIO, cfg_version:version.Version, reach:IReach):
     tide_bc: Tuple[str, ...] = ()
     config_checker = ConfigurationCheckerFactory.generate(cfg_version)
-    [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, needs_tide, n_fields, tide_bc] = config_checker.get_levels(reach, config, nwidth)
+    [discharges, apply_q, q_threshold, time_mi, tstag, fraction_of_times_per_condition, rsigma, celerity, n_fields, tide_bc] = config_checker.get_levels(reach, config, reach.normal_width)
     slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
             
     ucrit = _get_ucrit(config, reach)
     imode = _log_report_usage(config, report)
+    needs_tide = reach.use_tide if isinstance(reach, Reach) else False
     filenames = get_filenames(imode, needs_tide, config)
     
     xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
@@ -192,7 +176,7 @@ def _initialize_core_run(config:configparser.ConfigParser, rootdir:str, display:
     plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
             
     old_zmin_zmax = False
-    return Q,apply_q,nwidth,q_location,tide_bc,q_threshold,tstag,T,rsigma,needs_tide,n_fields,slength,ucrit,imode,filenames,xykm,kmbounds,plotops,old_zmin_zmax
+    return discharges,apply_q,tide_bc,q_threshold,tstag,fraction_of_times_per_condition,rsigma,n_fields,slength,ucrit,imode,filenames,xykm,kmbounds,plotops,old_zmin_zmax
 
 def _get_riverkm_options(display : bool, data: DFastMIConfigParser):
     xykline = numpy.ndarray(shape=(3,0))
@@ -405,8 +389,9 @@ def analyse_and_report(
     report: TextIO,
     reduced_output: bool,
     rootdir: str,
-    outputdir: str
-) -> Tuple[bool, str, dict[str, Any]]:
+    outputdir: str,
+    gui : bool
+) -> bool:
     """
     Perform analysis for any model.
 
@@ -471,15 +456,12 @@ def analyse_and_report(
         Flag indicating whether analysis could be carried out.
     """
     [discharges,
-     apply_q,
-     nwidth,
-     q_location,
+     apply_q,     
      tide_bc,
      q_threshold,
      tstag,
      T,
-     rsigma,
-     needs_tide,
+     rsigma,     
      n_fields,
      slength,
      ucrit,
@@ -488,9 +470,10 @@ def analyse_and_report(
      xykm,
      kmbounds,
      plotops,
-     old_zmin_zmax] = _initialize_core_run(config, rootdir, display, data, report, cfg_version, branch, reach)
+     old_zmin_zmax] = _initialize_core_run(config, rootdir, display, data, report, cfg_version, reach)
+    success = False
     if imode == 0:
-        return AnalyserAndReporterWaqua.analyse_and_report_waqua(
+        success = AnalyserAndReporterWaqua.analyse_and_report_waqua(
             display,
             report,
             reduced_output,
@@ -502,13 +485,13 @@ def analyse_and_report(
             ucrit,
             old_zmin_zmax,
             outputdir,
-        ), slength, plotops
+        )
     else:
-        return AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
+        success = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
             reach,
-            q_location,
+            branch.qlocation,
             q_threshold,
             tstag,
             discharges,
@@ -516,18 +499,40 @@ def analyse_and_report(
             T,
             rsigma,
             slength,
-            nwidth,
+            reach.normal_width,
             ucrit,
             filenames,
             xykm,
-            needs_tide,
+            reach.use_tide if isinstance(reach, Reach) else False,
             n_fields,
             tide_bc,
             old_zmin_zmax,
             kmbounds,
             outputdir,
             plotops,
-        ), slength, plotops
+        )
+
+    _log_length_estimate(report, slength)
+
+    _finalize_plotting(plotops, gui)
+
+    return success
+
+def _finalize_plotting(plotops: dict[str,any], gui: bool):
+    if plotops['plotting']:
+        if plotops['closeplot']:
+            matplotlib.pyplot.close("all")
+        else:
+            matplotlib.pyplot.show(block=not gui)
+
+def _log_length_estimate(report, slength):
+    if slength > 1:
+        nlength = f"{int(slength)}"
+    else:
+        nlength = f"{slength}"
+    ApplicationSettingsHelper.log_text(
+        "length_estimate", dict={"nlength": nlength}, file=report
+    )
 
 def write_report(
     report: TextIO,

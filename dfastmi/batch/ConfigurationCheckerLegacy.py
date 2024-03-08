@@ -74,7 +74,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             return False
 
         nwidth = reach.normal_width
-        [_, apply_q, _, _, _, _, _, _, _, _, _] = self.get_levels(reach, config, nwidth)
+        [_, apply_q, _, _, _, _, _, _, _, _] = self.get_levels(reach, config, nwidth)
 
         mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
         ret_val  = True
@@ -88,7 +88,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         reach: ReachLegacy,
         config: configparser.ConfigParser,
         nwidth: float
-    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, bool, int, Tuple[str, ...]]:
+    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, int, Tuple[str, ...]]:
         """
         Determine discharges, times, etc. for version 1 analysis
 
@@ -124,36 +124,34 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         n_fields : int
             An int stating the number of fields
         """
-        q_stagnant = reach.qstagnant
+        
         celerity_hg = reach.proprate_high
         celerity_lw = reach.proprate_low
-
+        q_threshold = self._get_q_threshold_from_config(config)
+        
         (
-            q_threshold,
-            Q1,
-            apply_q1,
+            discharges,
+            apply_q,
             tstag,
             fractions_of_the_year,
             rsigma,
-        ) = self._batch_get_discharges(
-            reach, config, q_stagnant, celerity_hg, celerity_lw, nwidth
-        )
-        discharges = Q1
-        apply_q = apply_q1
-        time_mi = tuple(0 if discharges[i] is None or discharges[i]<=q_stagnant else fractions_of_the_year[i] for i in range(len(fractions_of_the_year)))
+        ) = self._get_discharges(
+            reach, config, reach.qstagnant, q_threshold, celerity_hg, celerity_lw, nwidth
+        )        
+        time_mi = tuple(0 if discharges[i] is None or discharges[i]<= reach.qstagnant else fractions_of_the_year[i] for i in range(len(fractions_of_the_year)))
         celerity = (celerity_lw, celerity_hg, celerity_hg)
 
-        needs_tide = False
         n_fields = 1
         tide_bc: Tuple[str, ...] = ()
 
-        return (discharges, apply_q, q_threshold, time_mi, tstag, fractions_of_the_year, rsigma, celerity, needs_tide, n_fields, tide_bc)
+        return (discharges, apply_q, q_threshold, time_mi, tstag, fractions_of_the_year, rsigma, celerity, n_fields, tide_bc)
 
-    def _batch_get_discharges(
+    def _get_discharges(
         self,
         reach : ReachLegacy,
         config: configparser.ConfigParser,
         q_stagnant: float,
+        q_threshold: float,
         celerity_hg: float,
         celerity_lw: float,
         nwidth: float,
@@ -181,12 +179,12 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         celerity_lw : float
             Bed celerity during low flow period (from rivers configuration file) [m/s].
         nwidth : float
-            Normal river width (from rivers configuration file) [m].
-
-        Results
-        -------
+            Normal river width (from rivers configuration file) [m].        
         q_threshold : Optional[float]
             River discharge at which the measure becomes active [m3/s].
+        
+        Results
+        -------
         three_characteristic_discharges : QRuns
             Tuple of (at most) three characteristic discharges [m3/s].
         apply_q : Tuple[bool, bool, bool]
@@ -199,24 +197,18 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         rsigma : Vector
             A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
         """
-        q_fit = reach.qfit
-        q_levels = reach.qlevels
-        dq = reach.dq
+        q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, reach.qlevels)
 
-        q_threshold = self._get_q_threshold_from_config(config)
-        q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, q_levels)
-
-        three_characteristic_discharges, apply_q = char_discharges(q_levels, dq, q_threshold, q_bankfull)
+        three_characteristic_discharges, apply_q = char_discharges(reach.qlevels, reach.dq, q_threshold, q_bankfull)
 
         tstag, fractions_of_the_year, rsigma = char_times(
-            q_fit, q_stagnant, three_characteristic_discharges, celerity_hg, celerity_lw, nwidth
+            reach.qfit, q_stagnant, three_characteristic_discharges, celerity_hg, celerity_lw, nwidth
         )
 
         q_list = self._discharge_from_config(config, three_characteristic_discharges, apply_q)
         three_characteristic_discharges = (q_list[0], q_list[1], q_list[2])
 
         return (
-            q_threshold,
             three_characteristic_discharges,
             apply_q,
             tstag,

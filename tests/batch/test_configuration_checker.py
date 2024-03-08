@@ -142,7 +142,7 @@ class Test_configuration_checker():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _, _ = configuration_checker.get_levels(reach, config, nwidth)
+            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _ = configuration_checker.get_levels(reach, config, nwidth)
 
             assert Q == (6.7, 8.9, 10.1)
             assert apply_q == (True, True, True)
@@ -157,7 +157,7 @@ class Test_configuration_checker():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _, _ = configuration_checker.get_levels(reach, config, nwidth)
+            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _ = configuration_checker.get_levels(reach, config, nwidth)
 
             assert len(Q) == len(reach.hydro_q)
             assert len(apply_q) == len(reach.hydro_q)
@@ -172,7 +172,7 @@ class Test_configuration_checker():
             q_threshold = 7.3
             nwidth = 3.4
 
-            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _, _ = configuration_checker.get_levels(reach, config, nwidth)
+            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _ = configuration_checker.get_levels(reach, config, nwidth)
 
             assert Q == (6.7, 8.9, 10.1)
             assert apply_q == (True, True, True)
@@ -187,7 +187,7 @@ class Test_configuration_checker():
             q_threshold = 7.3
             nwidth = 3.4
 
-            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _, _ = configuration_checker.get_levels(reach, config, nwidth)
+            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _ = configuration_checker.get_levels(reach, config, nwidth)
 
             assert Q == (6.7, 8.9, 10.1)
             assert apply_q == (True, True, True)
@@ -204,7 +204,7 @@ class Test_configuration_checker():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _, _ = configuration_checker.get_levels(reach, config, nwidth)
+            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _ = configuration_checker.get_levels(reach, config, nwidth)
 
             assert Q == (6.7, 8.9, 10.1)
             assert apply_q == (True, True, True)
@@ -224,7 +224,7 @@ class Test_configuration_checker():
             q_threshold = 1.2
             nwidth = 3.4
 
-            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _, _ = configuration_checker.get_levels(reach, config, nwidth)
+            Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, _, _ = configuration_checker.get_levels(reach, config, nwidth)
 
             assert Q == (6.7, 8.9, 10.1)
             assert apply_q == (True, True, True)
