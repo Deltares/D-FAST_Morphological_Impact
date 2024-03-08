@@ -31,12 +31,11 @@ from typing import List, Tuple
 import math
 import numpy
 
+from packaging import version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.io.RiversObject import RiversObject
-from packaging import version
 
-
-def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> List[Tuple[float, float]]:
+def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> Tuple[List[Tuple[float, float]],List[Tuple[float, float, float, float]]]:
     """
     Zoom .
 
@@ -60,7 +59,7 @@ def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline:
     """
 
     zoom_km_bin = (km_min, km_max, zoom_km_step)
-    zoom_km_bnd = get_km_bins(zoom_km_bin, type=0, adjust=True)
+    zoom_km_bnd = _get_km_bins(zoom_km_bin, type_characteristic_chainage=0, adjust=True)
     eps = 0.1 * zoom_km_step
 
     kmzoom: List[Tuple[float, float]] = []
@@ -74,20 +73,20 @@ def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline:
         # interest)
         irange = (xykline[:,2] >= km_min) & (xykline[:,2] <= km_max)
         if any(irange):
-           kmzoom.append((km_min, km_max))
+            kmzoom.append((km_min, km_max))
 
-           range_crds = xykline[irange, :]
-           x = range_crds[:, 0]
-           y = range_crds[:, 1]
-           xmin = min(x)
-           xmax = max(x)
-           ymin = min(y)
-           ymax = max(y)
-           xyzoom.append((xmin, xmax, ymin, ymax))
+            range_crds = xykline[irange, :]
+            x = range_crds[:, 0]
+            y = range_crds[:, 1]
+            xmin = min(x)
+            xmax = max(x)
+            ymin = min(y)
+            ymax = max(y)
+            xyzoom.append((xmin, xmax, ymin, ymax))
 
     return kmzoom, xyzoom
 
-def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool = False) -> numpy.ndarray:
+def _get_km_bins(km_bin: Tuple[float, float, float], type_characteristic_chainage: int = 2, adjust: bool = False) -> numpy.ndarray:
     """
     [identical to dfastbe.kernel.get_km_bins]
     Get an array of representative chainage values.
@@ -96,7 +95,7 @@ def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool 
     ---------
     km_bin : Tuple[float, float, float]
         Tuple containing (start, end, step) for the chainage bins
-    type : int
+    type_characteristic_chainage : int
         Type of characteristic chainage values returned
             0: all bounds (N+1 values)
             1: lower bounds (N values)
@@ -120,16 +119,16 @@ def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool 
     if adjust:
         km_step = (km_bin[1] - km_bin[0]) / nbins
 
-    if type == 0:
+    if type_characteristic_chainage == 0:
         # all bounds
         pass
-    elif type == 1:
+    elif type_characteristic_chainage == 1:
         # lower bounds
         ub = ub - 1
-    elif type == 2:
+    elif type_characteristic_chainage == 2:
         # upper bounds
         lb = lb + 1
-    elif type == 3:
+    elif type_characteristic_chainage == 3:
         # midpoint values
         ub = ub - 1
         dx = km_bin[2] / 2

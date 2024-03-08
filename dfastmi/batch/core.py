@@ -38,11 +38,11 @@ import matplotlib
 import shapely
 from packaging import version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
-from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
 from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+from dfastmi.io.IBranch import IBranch
+from dfastmi.io.IReach import IReach
 
-from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -116,7 +116,7 @@ def batch_mode_core(
     """
     Q1 : QRuns
     apply_q1 : Tuple[bool, bool, bool]
-    Q : Vector
+    discharges : Vector
     apply_q : BoolVector
 
     display = False
@@ -145,35 +145,6 @@ def batch_mode_core(
             )
             success = False
         else:
-            nwidth = reach.normal_width
-            q_location = branch.qlocation
-            tide_bc: Tuple[str, ...] = ()
-            config_checker = ConfigurationCheckerFactory.generate(cfg_version)
-            [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, needs_tide, n_fields, tide_bc] = config_checker.get_levels(reach, config, nwidth)
-            slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
-            
-            ucrit = _get_ucrit(config, reach)
-            imode = _log_report_usage(config, report)
-            filenames = get_filenames(imode, needs_tide, config)
-
-            xykline = numpy.ndarray(shape=(3,0))
-            kmfile = data.config_get(str, "General", "RiverKM", "")
-            if kmfile != "":
-                xykm = DataTextFileOperations.get_xykm(kmfile)
-                xykline = numpy.array(xykm.coords)
-                kline = xykline[:,2]
-                kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
-                if display:
-                    ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
-            else:
-                kmbounds = (-math.inf, math.inf)
-                xykm = None
-
-            # set plotting flags
-            
-            plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
-            
-            old_zmin_zmax = False
             success = analyse_and_report(
                 imode,
                 display,
@@ -183,7 +154,7 @@ def batch_mode_core(
                 q_location,
                 q_threshold,
                 tstag,
-                Q,
+                discharges,
                 apply_q,
                 T,
                 rsigma,
@@ -202,9 +173,9 @@ def batch_mode_core(
             )
 
             if slength > 1:
-                nlength = "{}".format(int(slength))
+                nlength = f"{int(slength)}"
             else:
-                nlength = "{}".format(slength)
+                nlength = f"{slength}"
             ApplicationSettingsHelper.log_text(
                 "length_estimate", dict={"nlength": nlength}, file=report
             )
@@ -220,7 +191,46 @@ def batch_mode_core(
 
     return success
 
-def _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds):
+def _initialize_core_run(config:configparser.ConfigParser, rootdir:str, display:bool, data:DFastMIConfigParser, report:TextIO, cfg_version:version.Version, branch:IBranch, reach:IReach):
+    nwidth = reach.normal_width
+    q_location = branch.qlocation
+    tide_bc: Tuple[str, ...] = ()
+    config_checker = ConfigurationCheckerFactory.generate(cfg_version)
+    [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, needs_tide, n_fields, tide_bc] = config_checker.get_levels(reach, config, nwidth)
+    slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
+            
+    ucrit = _get_ucrit(config, reach)
+    imode = _log_report_usage(config, report)
+    filenames = get_filenames(imode, needs_tide, config)
+
+    xykline = numpy.ndarray(shape=(3,0))
+    kmfile = data.config_get(str, "General", "RiverKM", "")
+    if kmfile != "":
+        xykm = DataTextFileOperations.get_xykm(kmfile)
+        xykline = numpy.array(xykm.coords)
+        kline = xykline[:,2]
+        kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
+        if display:
+            ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
+    else:
+        kmbounds = (-math.inf, math.inf)
+        xykm = None
+
+            # set plotting flags
+            
+    plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
+            
+    old_zmin_zmax = False
+    return Q,apply_q,nwidth,q_location,tide_bc,q_threshold,tstag,T,rsigma,needs_tide,n_fields,slength,ucrit,imode,filenames,xykm,kmbounds,plotops,old_zmin_zmax
+
+def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmfile:str, xykline:numpy.ndarray, kmbounds:Tuple[float,float]):
+    saveplot = False
+    saveplot_zoomed = False
+    zoom_km_step = 1.0
+    kmzoom = []
+    xyzoom = []
+    closeplot = False
+    
     plotting = data.config_get(bool, "General", "Plotting", False)
     if plotting:
         saveplot = data.config_get(bool, "General", "SavePlots", True)
@@ -228,43 +238,43 @@ def _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds):
             saveplot_zoomed = data.config_get(bool, "General", "SaveZoomPlots", False)
             zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
             zoom_km_step = data.config_get(float, "General", "ZoomStepKM", zoom_km_step)
-        else:
-            saveplot_zoomed = False
-            zoom_km_step = 1.0
+            
         if zoom_km_step < 0.01:
             saveplot_zoomed = False
+        
         if saveplot_zoomed:
             kmzoom, xyzoom = get_zoom_extends(kmbounds[0], kmbounds[1], zoom_km_step, xykline)
-        else:
-            kmzoom = []
-            xyzoom = []
+        
         closeplot = data.config_get(bool, "General", "ClosePlots", False)
-    else:
-        saveplot = False
-        saveplot_zoomed = False
-        kmzoom = []
-        xyzoom = []
-        closeplot = False
     
-            # as appropriate check output dir for figures and file format
-    if saveplot:
-        figdir = data.config_get(str,
-                    "General", "FigureDir", rootdir + os.sep + "figure"
-                )
-        if display:
-            ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": figdir})
-        if os.path.exists(figdir):
-            if display:
-                ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": figdir})
-        else:
-            os.makedirs(figdir)
-        plot_ext = data.config_get(str, "General", "FigureExt", ".png")
-    else:
-        figdir = ''
-        plot_ext = ''
+    # as appropriate check output dir for figures and file format
+    figdir = _set_output_figure_dir(rootdir, display, data, saveplot)
+    plot_ext = _get_figure_ext(data, saveplot)
             
     plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
     return plotops
+
+def _set_output_figure_dir(rootdir, display, data, saveplot):
+    if saveplot:
+        figdir = Path(data.config_get(str,
+                    "General", "FigureDir", Path(rootdir).joinpath("figure")))
+        if display:
+            ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": str(figdir)})
+        if figdir.exists():
+            if display:
+                ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": str(figdir)})
+        else:
+            figdir.mkdir()
+    else:
+        figdir = '' 
+    return str(figdir)
+
+def _get_figure_ext(data, saveplot):
+    if saveplot:        
+        plot_ext = data.config_get(str, "General", "FigureExt", ".png")
+    else:
+        plot_ext = ''
+    return plot_ext
 
 def _get_ucrit(config, reach):
     try:
@@ -399,30 +409,16 @@ def get_filenames(
     return file_name_retriever.get_file_names(config)
 
 def analyse_and_report(
-    imode: int,
+    config : configparser.ConfigParser,
+    data : DFastMIConfigParser,
+    cfg_version : version.Version,
+    branch : IBranch,
+    reach: IReach,
     display: bool,
     report: TextIO,
     reduced_output: bool,
-    reach: str,
-    q_location: str,
-    q_threshold: float,
-    tstag: float,
-    Q: Vector,
-    apply_q: BoolVector,
-    T: Vector,
-    rsigma: Vector,
-    slength: float,
-    nwidth: float,
-    ucrit: float,
-    filenames: Dict[Any, Tuple[str,str]],
-    xykm: shapely.geometry.linestring.LineString,
-    needs_tide: bool,
-    n_fields: int,
-    tide_bc: Tuple[str, ...],
-    old_zmin_zmax: bool,
-    kmbounds: Tuple[float,float],
-    outputdir: str,
-    plotops: Dict,
+    rootdir: str,    
+    outputdir: str
 ) -> bool:
     """
     Perform analysis for any model.
@@ -487,13 +483,32 @@ def analyse_and_report(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
+    [discharges,
+     apply_q,
+     nwidth,
+     q_location,
+     tide_bc,
+     q_threshold,
+     tstag,
+     T,
+     rsigma,
+     needs_tide,
+     n_fields,
+     slength,
+     ucrit,
+     imode,
+     filenames,
+     xykm,
+     kmbounds,
+     plotops,
+     old_zmin_zmax] = _initialize_core_run(config, rootdir, display, data, report, cfg_version, branch, reach)
     if imode == 0:
         return AnalyserAndReporterWaqua.analyse_and_report_waqua(
             display,
             report,
             reduced_output,
             tstag,
-            Q,
+            discharges,
             apply_q,
             T,
             rsigma,
@@ -509,7 +524,7 @@ def analyse_and_report(
             q_location,
             q_threshold,
             tstag,
-            Q,
+            discharges,
             apply_q,
             T,
             rsigma,
