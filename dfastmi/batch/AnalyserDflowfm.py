@@ -13,7 +13,7 @@ import numpy
 import shapely
 import math
 import os
-from typing import Any, Dict, TextIO, Tuple
+from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
 class AnalyserDflowfm():
     def analyse(self, display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
@@ -26,7 +26,7 @@ class AnalyserDflowfm():
 
         if display:
             ApplicationSettingsHelper.log_text('-- load mesh')
-        xn, yn, FNC = self.get_xynode_connect(one_fm_filename)
+        xn, yn, FNC = self._get_xynode_connect(one_fm_filename)
 
         xykm_data = self._get_xykm_data(xykm, xn, yn, FNC, display)
 
@@ -167,7 +167,7 @@ class AnalyserDflowfm():
             # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
             if display:
                 ApplicationSettingsHelper.log_text('-- project')
-            sni, nni = self.proj_xy_line(xni, yni, xyline)
+            sni, nni = self._proj_xy_line(xni, yni, xyline)
             sfi = dfastmi.batch.Face.face_mean(sni, FNCi)
 
             # determine chainage values of each cell
@@ -177,7 +177,7 @@ class AnalyserDflowfm():
             # determine line direction for each cell
             if display:
                 ApplicationSettingsHelper.log_text('-- direction')
-            dxi, dyi = self.get_direction(xyline, sfi)
+            dxi, dyi = self._get_direction(xyline, sfi)
 
             if display:
                 ApplicationSettingsHelper.log_text('-- done')
@@ -189,7 +189,7 @@ class AnalyserDflowfm():
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
                 if not missing_data and not Q[i] is None:
-                    dzq[i] = self.get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
+                    dzq[i] = self._get_values_fm(i+1, Q[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
                         missing_data = True
                 else:
@@ -212,7 +212,7 @@ class AnalyserDflowfm():
                             n_fields_request = n_fields
                         else:
                             n_fields_request = 1
-                        dzq[i] = self.get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
+                        dzq[i] = self._get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
                     else:
                         if t > 0:
                             ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
@@ -224,7 +224,7 @@ class AnalyserDflowfm():
                     dzq[i] = 0
         return missing_data,dzq
 
-    def get_values_fm(
+    def _get_values_fm(
         self,
         stage: int,
         q: float,
@@ -346,7 +346,7 @@ class AnalyserDflowfm():
 
         return dzq
 
-    def get_xynode_connect(self, filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    def _get_xynode_connect(self, filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
         xn = GridOperations.read_fm_map(filename, "x", location="node")
         yn = GridOperations.read_fm_map(filename, "y", location="node")
         FNC = GridOperations.read_fm_map(filename, "face_node_connectivity")
@@ -359,7 +359,7 @@ class AnalyserDflowfm():
 
         return xn, yn, FNC
 
-    def get_direction(self, xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def _get_direction(self, xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
         Determine the orientation of a line at a given set of points.
 
@@ -411,7 +411,7 @@ class AnalyserDflowfm():
 
         return dxpnt[unsort], dypnt[unsort]
 
-    def proj_xy_line(self, xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def _proj_xy_line(self, xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
         Project points onto a line.
 
