@@ -36,6 +36,7 @@ import configparser
 import numpy
 import matplotlib
 from packaging import version
+from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
@@ -159,24 +160,10 @@ def batch_mode_core(
 
     return success
 
-def _initialize_core_run(config:configparser.ConfigParser, rootdir:str, display:bool, data:DFastMIConfigParser, report:TextIO, cfg_version:version.Version, reach:IReach):
-    tide_bc: Tuple[str, ...] = ()
-    config_checker = ConfigurationCheckerFactory.generate(cfg_version)
+def _initialize_core_run(config:configparser.ConfigParser, config_checker : AConfigurationCheckerBase, reach:IReach):
     [discharges, apply_q, q_threshold, time_mi, tstag, fraction_of_times_per_condition, rsigma, celerity, n_fields, tide_bc] = config_checker.get_levels(reach, config, reach.normal_width)
     slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
-            
-    ucrit = _get_ucrit(config, reach)
-    imode = _log_report_usage(config, report)
-    needs_tide = reach.use_tide if isinstance(reach, Reach) else False
-    filenames = get_filenames(imode, needs_tide, config)
-    
-    xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
-
-    # set plotting flags            
-    plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
-            
-    old_zmin_zmax = False
-    return discharges,apply_q,tide_bc,q_threshold,tstag,fraction_of_times_per_condition,rsigma,n_fields,slength,ucrit,imode,filenames,xykm,kmbounds,plotops,old_zmin_zmax
+    return discharges,apply_q,tide_bc,q_threshold,tstag,fraction_of_times_per_condition,rsigma,n_fields,slength
 
 def _get_riverkm_options(display : bool, data: DFastMIConfigParser):
     xykline = numpy.ndarray(shape=(3,0))
@@ -456,21 +443,26 @@ def analyse_and_report(
         Flag indicating whether analysis could be carried out.
     """
     [discharges,
-     apply_q,     
+     apply_q,
      tide_bc,
      q_threshold,
      tstag,
      T,
-     rsigma,     
+     rsigma,
      n_fields,
-     slength,
-     ucrit,
-     imode,
-     filenames,
-     xykm,
-     kmbounds,
-     plotops,
-     old_zmin_zmax] = _initialize_core_run(config, rootdir, display, data, report, cfg_version, reach)
+     slength] = _initialize_core_run(config, ConfigurationCheckerFactory.generate(cfg_version), reach)
+    
+    ucrit = _get_ucrit(config, reach)
+    needs_tide = reach.use_tide if isinstance(reach, Reach) else False
+    
+    xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
+    old_zmin_zmax = False
+    
+    # set plotting flags            
+    plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
+    
+    imode = _log_report_usage(config, report)
+    filenames = get_filenames(imode, needs_tide, config)
     success = False
     if imode == 0:
         success = AnalyserAndReporterWaqua.analyse_and_report_waqua(
