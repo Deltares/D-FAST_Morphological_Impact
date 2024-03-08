@@ -190,13 +190,13 @@ class ConfigurationChecker(AConfigurationCheckerBase):
 
     def _get_fraction_times(self, reach:Reach, q_threshold, discharges):
         if reach.autotime:            
-            T, time_mi = self._get_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
+            time_fractions_of_the_year, time_mi = self._get_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
         else:
-            T = reach.hydro_t
-            sumT = sum(T)
-            T = tuple(t / sumT for t in T)
-            time_mi = tuple(0 if discharges[i]<q_threshold else T[i] for i in range(len(T)))
-        return T,time_mi
+            time_fractions_of_the_year = reach.hydro_t
+            sum_of_time_fractions_of_the_year = sum(time_fractions_of_the_year)
+            time_fractions_of_the_year = tuple(t / sum_of_time_fractions_of_the_year for t in time_fractions_of_the_year)
+            time_mi = tuple(0 if discharges[i]<q_threshold else time_fractions_of_the_year[i] for i in range(len(time_fractions_of_the_year)))
+        return time_fractions_of_the_year,time_mi
 
     def _get_q_threshold(self, config, q_stagnant):
         if "Qthreshold" in config["General"]:
@@ -208,14 +208,14 @@ class ConfigurationChecker(AConfigurationCheckerBase):
             q_threshold = q_stagnant
         return q_threshold
 
-    def _get_times(self, Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Tuple[Vector, Vector]:
+    def _get_times(self, discharges: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Tuple[Vector, Vector]:
         """
         Get the representative time span for each discharge.
 
         Arguments
         ---------
-        Q : Vector
-            a vector of discharges included in hydrograph [m3/s].
+        discharges : Vector
+            a vector of discharges (Q) included in hydrograph [m3/s].
         q_fit : float
             A discharge and dicharge change determining the discharge exceedance curve [m3/s].
         q_stagnant : float
@@ -232,7 +232,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         """
         
         # make sure that the discharges are sorted low to high
-        qvec = numpy.array(Q)
+        qvec = numpy.array(discharges)
         sorted_qvec = numpy.argsort(qvec)
         q = qvec[sorted_qvec]
         
