@@ -1,4 +1,4 @@
-class sedimentationData():
+class SedimentationData():
     def __init__(self,
                  sedarea,
                  sedvol,

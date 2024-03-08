@@ -1,5 +1,5 @@
 import dfastmi.plotting
-from dfastmi.batch.sedimentationData import sedimentationData
+from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
 
@@ -8,7 +8,7 @@ import numpy
 import os
 
 class ReporterDflowfm():
-    def report(self, display, rsigma, xykm, outputdir, plotops, one_fm_filename, xn, FNC, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, xykline, interest_region, sni, nni, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data):
+    def report(self, display, rsigma, outputdir, plotops, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data, xykm_data):
         if display:
             ApplicationSettingsHelper.log_text('writing_output')
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(one_fm_filename)
@@ -17,18 +17,18 @@ class ReporterDflowfm():
         nc_fill = netCDF4.default_fillvals['f8']
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
 
-        self._grid_update(rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh)
+        self._grid_update(rsigma, one_fm_filename, FNC, xykm_data.iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh)
 
-        if xykm is not None:
-            self._replace_coordinates_in_destination_file(xn, inode, sni, nni, meshname, nc_fill, projmesh)
+        if xykm_data.xykm is not None:
+            self._replace_coordinates_in_destination_file(xn, xykm_data.inode, xykm_data.sni, xykm_data.nni, meshname, nc_fill, projmesh)
 
-        self._plot_data(plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi)
+        self._plot_data(plotops, xykm_data.xni, xykm_data.yni, xykm_data.FNCi, xykm_data.xmin, xykm_data.xmax, xykm_data.ymin, xykm_data.ymax, xykm_data.xykline, dzgemi)
 
         if display:
             ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
 
-        if xykm is not None:
-            self._grid_update_xykm(display, outputdir, one_fm_filename, FNC, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data)
+        if xykm_data.xykm is not None:
+            self._grid_update_xykm(display, outputdir, one_fm_filename, FNC, xykm_data.iface, xykm_data.interest_region, meshname, facedim, nc_fill, sedimentation_data)
 
     def _grid_update(self, rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh):
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
@@ -145,7 +145,7 @@ class ReporterDflowfm():
                 figfile = figbase + plotops['plot_ext']
                 dfastmi.plotting.savefig(fig, figfile)
 
-    def _grid_update_xykm(self, display, outputdir, one_fm_filename, FNC, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : sedimentationData):
+    def _grid_update_xykm(self, display, outputdir, one_fm_filename, FNC, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : SedimentationData):
         if display:
             if sedimentation_data.sedvol.shape[1] > 0:
                 print("Estimated sedimentation volume per area using 3 methods")

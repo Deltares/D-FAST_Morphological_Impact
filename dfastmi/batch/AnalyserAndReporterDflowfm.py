@@ -29,7 +29,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
-from dfastmi.batch.sedimentationData import sedimentationData
+from dfastmi.batch.SedimentationData import SedimentationData
+from dfastmi.batch.XykmData import XykmData
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
@@ -198,6 +199,8 @@ def analyse_and_report_dflowfm(
         if display:
             ApplicationSettingsHelper.log_text('-- done')
     
+    xykm_data = XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
+    
     missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi)
 
     if not missing_data:
@@ -227,12 +230,12 @@ def analyse_and_report_dflowfm(
     sedimentation_data = None
     if xykm is not None:
         sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xni, yni, sni, nni, FNCi, dzgemi, slength, nwidth, xykline, one_fm_filename, outputdir, plotops)
-        sedimentation_data = sedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
+        sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
     
     
     if not missing_data:       
         reporter = ReporterDflowfm()
-        reporter.report(display, rsigma, xykm, outputdir, plotops, one_fm_filename, xn, FNC, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, xykline, interest_region, sni, nni, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data)
+        reporter.report(display, rsigma, outputdir, plotops, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data, xykm_data)
     
         
     return not missing_data
