@@ -114,8 +114,6 @@ def batch_mode_core(
     success : bool
         Flag indicating whether the analysis could be completed successfully.
     """
-    Q1 : QRuns
-    apply_q1 : Tuple[bool, bool, bool]
     discharges : Vector
     apply_q : BoolVector
 
@@ -145,31 +143,17 @@ def batch_mode_core(
             )
             success = False
         else:
-            success = analyse_and_report(
-                imode,
+            success, slength, plotops = analyse_and_report(
+                config,
+                data,
+                cfg_version,
+                branch,
+                reach,
                 display,
                 report,
                 reduced_output,
-                reach,
-                q_location,
-                q_threshold,
-                tstag,
-                discharges,
-                apply_q,
-                T,
-                rsigma,
-                slength,
-                nwidth,
-                ucrit,
-                filenames,
-                xykm,
-                needs_tide,
-                n_fields,
-                tide_bc,
-                old_zmin_zmax,
-                kmbounds,
-                outputdir,
-                plotops,
+                rootdir,
+                outputdir
             )
 
             if slength > 1:
@@ -202,26 +186,30 @@ def _initialize_core_run(config:configparser.ConfigParser, rootdir:str, display:
     ucrit = _get_ucrit(config, reach)
     imode = _log_report_usage(config, report)
     filenames = get_filenames(imode, needs_tide, config)
+    
+    xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
 
+    # set plotting flags            
+    plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
+            
+    old_zmin_zmax = False
+    return Q,apply_q,nwidth,q_location,tide_bc,q_threshold,tstag,T,rsigma,needs_tide,n_fields,slength,ucrit,imode,filenames,xykm,kmbounds,plotops,old_zmin_zmax
+
+def _get_riverkm_options(display : bool, data: DFastMIConfigParser):
     xykline = numpy.ndarray(shape=(3,0))
+    kmbounds = (-math.inf, math.inf)
+    xykm = None
     kmfile = data.config_get(str, "General", "RiverKM", "")
-    if kmfile != "":
+    if len(kmfile)>0:
         xykm = DataTextFileOperations.get_xykm(kmfile)
         xykline = numpy.array(xykm.coords)
         kline = xykline[:,2]
         kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
         if display:
             ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
-    else:
-        kmbounds = (-math.inf, math.inf)
-        xykm = None
-
-            # set plotting flags
-            
-    plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
-            
-    old_zmin_zmax = False
-    return Q,apply_q,nwidth,q_location,tide_bc,q_threshold,tstag,T,rsigma,needs_tide,n_fields,slength,ucrit,imode,filenames,xykm,kmbounds,plotops,old_zmin_zmax
+    
+        
+    return xykline,kmfile,xykm,kmbounds
 
 def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmfile:str, xykline:numpy.ndarray, kmbounds:Tuple[float,float]):
     saveplot = False
@@ -417,9 +405,9 @@ def analyse_and_report(
     display: bool,
     report: TextIO,
     reduced_output: bool,
-    rootdir: str,    
+    rootdir: str,
     outputdir: str
-) -> bool:
+) -> Tuple[bool, str, dict[str, Any]]:
     """
     Perform analysis for any model.
 
@@ -515,7 +503,7 @@ def analyse_and_report(
             ucrit,
             old_zmin_zmax,
             outputdir,
-        )
+        ), slength, plotops
     else:
         return AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
@@ -540,7 +528,7 @@ def analyse_and_report(
             kmbounds,
             outputdir,
             plotops,
-        )
+        ), slength, plotops
 
 def write_report(
     report: TextIO,
@@ -648,5 +636,3 @@ def write_report(
         nlength = slength
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     ApplicationSettingsHelper.log_text("prepare_input", file=report)
-
-
