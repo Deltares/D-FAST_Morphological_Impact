@@ -18,7 +18,7 @@ class ReporterDflowfm():
         nc_fill = netCDF4.default_fillvals['f8']
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
 
-        self._grid_update(report_data.rsigma, report_data.one_fm_filename, report_data.FNC, report_data.xykm_data.iface, report_data.dzq, report_data.dzgemi, report_data.dzmaxi, report_data.dzmini, report_data.dzbi, report_data.zmax_str, report_data.zmin_str, meshname, facedim, dst, nc_fill, projmesh)
+        self._grid_update(report_data.rsigma, report_data.one_fm_filename, report_data.face_node_connectivity, report_data.xykm_data.iface, report_data.dzq, report_data.dzgemi, report_data.dzmaxi, report_data.dzmini, report_data.dzbi, report_data.zmax_str, report_data.zmin_str, meshname, facedim, dst, nc_fill, projmesh)
 
         if report_data.xykm_data.xykm is not None:
             self._replace_coordinates_in_destination_file(report_data.xn, report_data.xykm_data.inode, report_data.xykm_data.sni, report_data.xykm_data.nni, meshname, nc_fill, projmesh)
@@ -29,7 +29,7 @@ class ReporterDflowfm():
             ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
 
         if report_data.xykm_data.xykm is not None:
-            self._grid_update_xykm(display, outputdir, report_data.one_fm_filename, report_data.FNC, report_data.xykm_data.iface, report_data.xykm_data.interest_region, meshname, facedim, nc_fill, report_data.sedimentation_data)
+            self._grid_update_xykm(display, outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, report_data.xykm_data.iface, report_data.xykm_data.interest_region, meshname, facedim, nc_fill, report_data.sedimentation_data)
 
     def _grid_update(self, rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh):
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])

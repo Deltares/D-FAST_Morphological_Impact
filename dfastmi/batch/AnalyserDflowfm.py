@@ -26,9 +26,9 @@ class AnalyserDflowfm():
 
         if display:
             ApplicationSettingsHelper.log_text('-- load mesh')
-        xn, yn, FNC = self._get_xynode_connect(one_fm_filename)
+        xn, yn, face_node_connectivity = self._get_xynode_connect(one_fm_filename)
 
-        xykm_data = self._get_xykm_data(xykm, xn, yn, FNC, display)
+        xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity, display)
 
         if xykm is None and needs_tide:
             print("RiverKM needs to be specified for tidal applications.")
@@ -65,7 +65,7 @@ class AnalyserDflowfm():
             sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, outputdir, plotops)
             sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
 
-        return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
+        return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
     def _get_first_fm_data_filename(self,
         report: TextIO,
@@ -114,11 +114,11 @@ class AnalyserDflowfm():
 
         return one_fm_filename, missing_data
 
-    def _get_xykm_data(self, xykm, xn, yn, FNC, display):
+    def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity, display):
         if xykm is None:
             # keep all nodes and faces
             keep = numpy.full(xn.shape, True)
-            xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, FNC, keep)
+            xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
             xmin = xn.min()
             xmax = xn.max()
             ymin = yn.min()
@@ -153,8 +153,8 @@ class AnalyserDflowfm():
                     keep[i] = False
 
             print("apply filter")
-            xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, FNC, keep)
-            interest_region = numpy.zeros(FNC.shape[0], dtype=numpy.int64)
+            xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
+            interest_region = numpy.zeros(face_node_connectivity.shape[0], dtype=numpy.int64)
             interest_region[iface] = 1
 
             xykline = numpy.array(xykm.coords)
@@ -342,15 +342,15 @@ class AnalyserDflowfm():
     def _get_xynode_connect(self, filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
         xn = GridOperations.read_fm_map(filename, "x", location="node")
         yn = GridOperations.read_fm_map(filename, "y", location="node")
-        FNC = GridOperations.read_fm_map(filename, "face_node_connectivity")
-        if FNC.mask.shape == ():
+        face_node_connectivity = GridOperations.read_fm_map(filename, "face_node_connectivity")
+        if face_node_connectivity.mask.shape == ():
             # all faces have the same number of nodes; empty mask
-            FNC.mask = FNC<0
+            face_node_connectivity.mask = face_node_connectivity<0
         else:
             # varying number of nodes
-            FNC.mask = numpy.logical_or(FNC.mask,FNC<0)
+            face_node_connectivity.mask = numpy.logical_or(face_node_connectivity.mask,face_node_connectivity<0)
 
-        return xn, yn, FNC
+        return xn, yn, face_node_connectivity
 
     def _get_direction(self, xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """

@@ -1,9 +1,9 @@
 class OutputDataDflowfm():
-    def __init__(self, rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data):
+    def __init__(self, rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data):
         self.rsigma = rsigma
         self.one_fm_filename = one_fm_filename
         self.xn = xn
-        self.FNC = FNC
+        self.face_node_connectivity = face_node_connectivity
         self.dzq = dzq
         self.dzgemi = dzgemi
         self.dzmaxi = dzmaxi
