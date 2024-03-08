@@ -460,86 +460,79 @@ def get_values_fm(
     return dzq
 
 def comp_sedimentation_volume(
-        xni: numpy.ndarray,
-        yni: numpy.ndarray,
-        sni: numpy.ndarray,
-        dni: numpy.ndarray,
-        FNCi: numpy.ndarray,
-        dzgemi: numpy.ndarray,
-        slength: float,
-        nwidth: float,
-        xykline: numpy.ndarray,
-        simfile: str,
-        outputdir: str,
-        plotops: Dict,
-    ) -> float:
-        """
-        Compute the yearly dredging volume.
-
-        Arguments
-        ---------
-        dzgem : numpy.ndarray
-            Yearly mean bed level change [m].
-        slength : float
-            The expected yearly impacted sedimentation length [m].
-        nwidth : float
-            Normal river width (from rivers configuration file) [m].
-        xykline : numpy.ndarray
-            Array containing the x,y and chainage data of a line.
-        simfile : str
-            Name of simulation file.
-        outputdir : str
-            Name of output directory.
-
-        Returns
-        -------
-        dvol : float
-            Dredging volume [m3].
-        """
-        dzmin = 0.01
-        nwbins = 10
-        sbin_length = 10.0
-        
-        areai = xynode_2_area(xni, yni, FNCi)
-        
-        print("bin cells in across-stream direction")
-        # determine the mean normal distance dfi per cell
-        dfi = face_mean(dni, FNCi)
-        # distribute the cells over nwbins bins over the channel width
-        wbini, wthresh = width_bins(dfi, nwidth, nwbins)
-
-        print("bin cells in along-stream direction")
-        # determine the minimum and maximum along line distance of each cell
-        min_sfi, max_sfi = min_max_s(sni, FNCi)
-        # determine the weighted mapping of cells to chainage bins
-        siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
-        wbin = wbini[siface]
-
-        print("determine chainage per bin")
-        # determine chainage values of at the midpoints
-        smid = (sthresh[1:] + sthresh[:-1])/2
-        sline = distance_along_line(xykline[:,:2])
-        kmid = distance_to_chainage(sline, xykline[:,2], smid)
-        n_sbin = sbin.max()+1
-        
-        EFCi = facenode_to_edgeface(FNCi)
-        wght_area_tot = numpy.zeros(dzgemi.shape)
-        wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
-        plot_n = 3
-
-        print("-- detecting separate sedimentation areas")
-        xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
-        area_str = "sedimentation area {}"
-        total_str = "total sedimentation volume"
-        sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
-
-        print("-- detecting separate erosion areas")
-        xyzfil = ""
-        area_str = "erosion area {}"
-        total_str = "total erosion volume"
-        eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
-
-        return sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini
+    xni: numpy.ndarray,
+    yni: numpy.ndarray,
+    sni: numpy.ndarray,
+    dni: numpy.ndarray,
+    FNCi: numpy.ndarray,
+    dzgemi: numpy.ndarray,
+    slength: float,
+    nwidth: float,
+    xykline: numpy.ndarray,
+    simfile: str,
+    outputdir: str,
+    plotops: Dict,
+) -> float:
+    """
+    Compute the yearly dredging volume.
+    Arguments
+    ---------
+    dzgem : numpy.ndarray
+        Yearly mean bed level change [m].
+    slength : float
+        The expected yearly impacted sedimentation length [m].
+    nwidth : float
+        Normal river width (from rivers configuration file) [m].
+    xykline : numpy.ndarray
+        Array containing the x,y and chainage data of a line.
+    simfile : str
+        Name of simulation file.
+    outputdir : str
+        Name of output directory.
+    Returns
+    -------
+    dvol : float
+        Dredging volume [m3].
+    """
+    dzmin = 0.01
+    nwbins = 10
+    sbin_length = 10.0
+    
+    areai = xynode_2_area(xni, yni, FNCi)
+    
+    print("bin cells in across-stream direction")
+    # determine the mean normal distance dfi per cell
+    dfi = face_mean(dni, FNCi)
+    # distribute the cells over nwbins bins over the channel width
+    wbini, wthresh = width_bins(dfi, nwidth, nwbins)
+    print("bin cells in along-stream direction")
+    # determine the minimum and maximum along line distance of each cell
+    min_sfi, max_sfi = min_max_s(sni, FNCi)
+    # determine the weighted mapping of cells to chainage bins
+    siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
+    wbin = wbini[siface]
+    print("determine chainage per bin")
+    # determine chainage values of at the midpoints
+    smid = (sthresh[1:] + sthresh[:-1])/2
+    sline = distance_along_line(xykline[:,:2])
+    kmid = distance_to_chainage(sline, xykline[:,2], smid)
+    n_sbin = sbin.max()+1
+    
+    EFCi = facenode_to_edgeface(FNCi)
+    wght_area_tot = numpy.zeros(dzgemi.shape)
+    wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
+    plot_n = 3
+    print("-- detecting separate sedimentation areas")
+    xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
+    area_str = "sedimentation area {}"
+    total_str = "total sedimentation volume"
+    sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
+    print("-- detecting separate erosion areas")
+    xyzfil = ""
+    area_str = "erosion area {}"
+    total_str = "total erosion volume"
+    eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
+    return sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini
 
 def stream_bins(min_s, max_s, ds):
     """
