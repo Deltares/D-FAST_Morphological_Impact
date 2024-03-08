@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2020 Stichting Deltares.
+Copyright (C) 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import Optional, Dict, Any, Tuple, TextIO
 import sys
 import os
@@ -38,6 +39,7 @@ import shapely
 from packaging import version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
+from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
 from dfastmi.io.Reach import Reach
@@ -49,7 +51,6 @@ from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch import AnalyserAndReporterWaqua
-from dfastmi.batch import ConfigurationChecker
 
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
 from dfastmi.batch.FileNameRetriever import FileNameRetriever
@@ -122,109 +123,40 @@ def batch_mode_core(
     data = DFastMIConfigParser(config)
     
     # check outputdir
-    if rootdir == "":
-        rootdir = os.getcwd()
-    outputdir = data.config_get(str, "General", "OutputDir", rootdir + os.sep + "output")
-    if os.path.exists(outputdir):
-        if display:
-            ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": outputdir})
-    else:
-        os.makedirs(outputdir)
-    report = open(outputdir + os.sep + ApplicationSettingsHelper.get_filename("report.out"), "w")
+    rootdir = _get_root_dir(rootdir)
+    outputdir = _get_output_dir(rootdir, display, data)
+    report = outputdir.joinpath(ApplicationSettingsHelper.get_filename("report.out")).open(mode="w", encoding="utf-8")
 
-    prog_version = dfastmi.__version__
-    ApplicationSettingsHelper.log_text("header", dict={"version": prog_version}, file=report)
-    ApplicationSettingsHelper.log_text("limits", file=report)
-    ApplicationSettingsHelper.log_text("===", file=report)
+    _core_initialize(report)
 
-    cfg_version = config.get("General", "Version", fallback="")
-    
-    if version.parse(cfg_version) != rivers.version:
-        raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
-    
+    cfg_version = _get_verion(rivers, config)
+
     branch_name = config.get("General", "Branch", fallback="")
-    ibranch = next((i for i, branch in enumerate(rivers.branches) if branch.name == branch_name), -1)
-    if ibranch < 0:
+    branch = rivers.get_branch(branch_name)
+    if not branch:
         ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch_name}, file=report)
         success = False
     else:
         reach_name = config.get("General", "Reach", fallback="")
-        ireach = next((i for i, reach in enumerate(rivers.branches[ibranch].reaches) if reach.name == reach_name), -1)
-        if ireach < 0 :
-            ApplicationSettingsHelper.log_text(
-                "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
-            )
-            success = False
-        try:
-            reach = rivers.branches[ibranch].reaches[ireach]
-        except IndexError:
+        reach = branch.get_reach(reach_name)
+        if not reach:
             ApplicationSettingsHelper.log_text(
                 "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
             )
             success = False
         else:
             nwidth = reach.normal_width
-            q_location = rivers.branches[ibranch].qlocation
+            q_location = branch.qlocation
             tide_bc: Tuple[str, ...] = ()
-            
-            if version.parse(cfg_version) == version.parse("1"):
-                # version 1
-                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationCheckerLegacy().get_levels(reach, config, nwidth)
-                needs_tide = False
-                n_fields = 1
-
-            else:
-                # version 2
-                q_stagnant = reach.qstagnant
-                if "Qthreshold" in config["General"]:
-                    try:
-                        q_threshold = float(config.get("General", "Qthreshold", fallback=""))
-                    except ValueError:
-                        q_threshold = q_stagnant # Or should I raise ValueError exception?
-                else:
-                    q_threshold = q_stagnant
-                [Q, apply_q, time_mi, tstag, T, rsigma, celerity] = get_levels_v2(reach, q_threshold, nwidth)
-                needs_tide = reach.tide
-                if needs_tide:
-                    tide_bc = reach.tide_bc
-                    try:
-                        n_fields = int(config.get("General", "NFields", fallback=""))
-                    except ValueError:
-                        n_fields = 1 # Or should I raise ValueError exception?
-                    if n_fields == 1:
-                        raise ValueError("Unexpected combination of tides and NFields = 1!")
-                else:
-                    n_fields = 1
-
+            config_checker = ConfigurationCheckerFactory.generate(cfg_version)
+            [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, needs_tide, n_fields, tide_bc] = config_checker.get_levels(reach, config, nwidth)
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
             
-            try:
-                ucrit = float(config.get("General", "Ucrit", fallback=""))
-            except ValueError:
-                ucrit = reach.ucritical
-            ucrit_min = 0.01
-            ucrit = max(ucrit_min, ucrit)
-            mode_str = config["General"].get("Mode",DFLOWFM_MAP)
-            if mode_str == WAQUA_EXPORT:
-                mode = 0
-                ApplicationSettingsHelper.log_text(
-                    "results_with_input_waqua",
-                    file=report,
-                    dict={
-                        "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
-                        "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
-                        "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
-                    },
-                )
-            else:
-                mode = 1
-                ApplicationSettingsHelper.log_text(
-                    "results_with_input_dflowfm",
-                    file=report,
-                    dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
-                )
-            filenames = get_filenames(mode, needs_tide, config)
-            old_zmin_zmax = False
+            ucrit = _get_ucrit(config, reach)
+            imode = _log_report_usage(config, report)
+            filenames = get_filenames(imode, needs_tide, config)
+
+            xykline = numpy.ndarray(shape=(3,0))
             kmfile = data.config_get(str, "General", "RiverKM", "")
             if kmfile != "":
                 xykm = DataTextFileOperations.get_xykm(kmfile)
@@ -239,52 +171,11 @@ def batch_mode_core(
 
             # set plotting flags
             
-            plotting = data.config_get(bool, "General", "Plotting", False)
-            if plotting:
-                saveplot = data.config_get(bool, "General", "SavePlots", True)
-                if kmfile != "":
-                    saveplot_zoomed = data.config_get(bool, "General", "SaveZoomPlots", False)
-                    zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
-                    zoom_km_step = data.config_get(float, "General", "ZoomStepKM", zoom_km_step)
-                else:
-                    saveplot_zoomed = False
-                    zoom_km_step = 1.0
-                if zoom_km_step < 0.01:
-                    saveplot_zoomed = False
-                if saveplot_zoomed:
-                    kmzoom, xyzoom = get_zoom_extends(kmbounds[0], kmbounds[1], zoom_km_step, xykline)
-                else:
-                    kmzoom = []
-                    xyzoom = []
-                closeplot = data.config_get(bool, "General", "ClosePlots", False)
-            else:
-                saveplot = False
-                saveplot_zoomed = False
-                kmzoom = []
-                xyzoom = []
-                closeplot = False
-    
-            # as appropriate check output dir for figures and file format
-            if saveplot:
-                figdir = data.config_get(str,
-                    "General", "FigureDir", rootdir + os.sep + "figure"
-                )
-                if display:
-                    ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": figdir})
-                if os.path.exists(figdir):
-                    if display:
-                        ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": figdir})
-                else:
-                    os.makedirs(figdir)
-                plot_ext = data.config_get(str, "General", "FigureExt", ".png")
-            else:
-                figdir = ''
-                plot_ext = ''
+            plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
             
-            plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
-
+            old_zmin_zmax = False
             success = analyse_and_report(
-                mode,
+                imode,
                 display,
                 report,
                 reduced_output,
@@ -329,81 +220,118 @@ def batch_mode_core(
 
     return success
 
-def get_levels_v2(
-    reach : Reach, q_threshold: float, nwidth: float
-) -> (Vector, BoolVector, Vector, float, Vector, Vector, Vector):
-    """
-    Determine discharges, times, etc. for version 2 analysis
+def _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds):
+    plotting = data.config_get(bool, "General", "Plotting", False)
+    if plotting:
+        saveplot = data.config_get(bool, "General", "SavePlots", True)
+        if kmfile != "":
+            saveplot_zoomed = data.config_get(bool, "General", "SaveZoomPlots", False)
+            zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
+            zoom_km_step = data.config_get(float, "General", "ZoomStepKM", zoom_km_step)
+        else:
+            saveplot_zoomed = False
+            zoom_km_step = 1.0
+        if zoom_km_step < 0.01:
+            saveplot_zoomed = False
+        if saveplot_zoomed:
+            kmzoom, xyzoom = get_zoom_extends(kmbounds[0], kmbounds[1], zoom_km_step, xykline)
+        else:
+            kmzoom = []
+            xyzoom = []
+        closeplot = data.config_get(bool, "General", "ClosePlots", False)
+    else:
+        saveplot = False
+        saveplot_zoomed = False
+        kmzoom = []
+        xyzoom = []
+        closeplot = False
+    
+            # as appropriate check output dir for figures and file format
+    if saveplot:
+        figdir = data.config_get(str,
+                    "General", "FigureDir", rootdir + os.sep + "figure"
+                )
+        if display:
+            ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": figdir})
+        if os.path.exists(figdir):
+            if display:
+                ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": figdir})
+        else:
+            os.makedirs(figdir)
+        plot_ext = data.config_get(str, "General", "FigureExt", ".png")
+    else:
+        figdir = ''
+        plot_ext = ''
+            
+    plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
+    return plotops
 
-    Arguments
-    ---------
-    rivers : RiversObject
-        An object containing the river data.
-    ibranch : int
-        Number of selected branch.
-    ireach : int
-        Number of selected reach.
-    q_threshold : float
-        River discharge at which the measure becomes active [m3/s].
-    nwidth : float
-        Normal river width (from rivers configuration file) [m].
+def _get_ucrit(config, reach):
+    try:
+        ucrit = float(config.get("General", "Ucrit", fallback=""))
+    except ValueError:
+        ucrit = reach.ucritical
+    ucrit_min = 0.01
+    ucrit = max(ucrit_min, ucrit)
+    return ucrit
+
+def _log_report_usage(config, report) -> int:
+    """
 
     Return
     ------
-    Q : Vector
-        Array of discharges; one for each forcing condition [m3/s].
-    apply_q : BoolVector
-        A list of flags indicating whether the corresponding entry in Q should be used.
-    time_mi : Vector
-        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
-    tstag : float
-        Fraction of year during which flow velocity is considered negligible [-].
-    T : Vector
-        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
-    rsigma : Vector
-        A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
-    celerity : Vector
-        A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
-    """
-    q_stagnant = reach.qstagnant
-    Q = reach.hydro_q
-    apply_q = (True,) * len(Q)
-    if reach.autotime:
-        q_fit = reach.qfit
-        T, time_mi = batch_get_times(Q, q_fit, q_stagnant, q_threshold)
-    else:
-        T = reach.hydro_t
-        sumT = sum(T)
-        T = tuple(t / sumT for t in T)
-        time_mi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
-    
-    # determine the bed celerity based on the input settings
-    cform = reach.celer_form
-    if cform == 1:
-        prop_q = reach.celer_object.prop_q
-        prop_c = reach.celer_object.prop_c
-        celerity = tuple(dfastmi.kernel.core.get_celerity(q, prop_q, prop_c) for q in Q)
-    elif cform == 2:
-        cdisch = reach.celer_object.cdisch
-        celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
-    
-    # set the celerity equal to 0 for discharges less or equal to q_stagnant
-    celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
-    
-    # check if all celerities are equal to 0. If so, the impact would be 0.
-    all_zero = True
-    for i in range(len(Q)):
-        if celerity[i] < 0.0:
-            raise Exception("Invalid negative celerity {} m/s encountered for discharge {} m3/s!".format(celerity[i],Q[i]))
-        elif celerity[i] > 0.0:
-            all_zero = False
-    if all_zero:
-        raise Exception("The celerities can't all be equal to zero for a measure to have any impact!")
-    
-    rsigma = dfastmi.kernel.core.relax_factors(Q, T, q_stagnant, celerity, nwidth)
-    tstag = 0
+    imode : int
+        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
 
-    return (Q, apply_q, time_mi, tstag, T, rsigma, celerity)
+    """
+    mode_str = config["General"].get("Mode",DFLOWFM_MAP)
+    if mode_str == WAQUA_EXPORT:
+        mode = 0
+        ApplicationSettingsHelper.log_text(
+                    "results_with_input_waqua",
+                    file=report,
+                    dict={
+                        "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
+                        "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
+                        "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
+                    },
+                )
+    else:
+        mode = 1
+        ApplicationSettingsHelper.log_text(
+                    "results_with_input_dflowfm",
+                    file=report,
+                    dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
+                )
+        
+    return mode
+
+def _get_verion(rivers, config):
+    cfg_version = config.get("General", "Version", fallback="")    
+    if version.parse(cfg_version) != rivers.version:
+        raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
+    cfg_version = version.parse(cfg_version)
+    return cfg_version
+
+def _core_initialize(report):
+    prog_version = dfastmi.__version__
+    ApplicationSettingsHelper.log_text("header", dict={"version": prog_version}, file=report)
+    ApplicationSettingsHelper.log_text("limits", file=report)
+    ApplicationSettingsHelper.log_text("===", file=report)
+
+def _get_output_dir(rootdir, display, data):
+    outputdir = Path(data.config_get(str, "General", "OutputDir", Path(rootdir).joinpath("output")))
+    if outputdir.exists():
+        if display:
+            ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": outputdir})
+    else:
+        outputdir.mkdir()
+    return outputdir
+
+def _get_root_dir(rootdir):
+    if rootdir == "":
+        rootdir = os.getcwd()
+    return rootdir
 
 def countQ(Q: Vector) -> int:
     """
@@ -421,78 +349,6 @@ def countQ(Q: Vector) -> int:
     """
     return sum([not q is None for q in Q])
 
-def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Vector:
-    """
-    Get the representative time span for each discharge.
-
-    Arguments
-    ---------
-    Q : Vector
-        a vector of discharges included in hydrograph [m3/s].
-    q_fit : float
-        A discharge and dicharge change determining the discharge exceedance curve [m3/s].
-    q_stagnant : float
-        Discharge below which flow conditions are stagnant [m3/s].
-    q_threshold : float
-        Discharge below which the measure has no effect (due to measure design) [m3/s].
-
-    Results
-    -------
-    T : Vector
-        A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
-    time_mi : Vector
-        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
-    """
-    
-    # make sure that the discharges are sorted low to high
-    qvec = numpy.array(Q)
-    sorted = numpy.argsort(qvec)
-    q = qvec[sorted]
-    
-    t = numpy.zeros(q.shape)
-    tmi = numpy.zeros(q.shape)
-    p_do = 1.0
-    p_th = math.exp(min(0.0, q_fit[0] - max(q_stagnant, q_threshold))/q_fit[1])
-    for i in range(len(q)):
-        if q[i] <= q_stagnant:
-            # if the current discharge is in the stagnant regime
-            if i < len(q)-1 and q[i+1] > q_stagnant:
-                # if the next discharge is not in the stagnant regime, then the stagnant discharge is the boundary between the two regimes
-                # this will associate the whole stagnant period with this discharge since p_do = 1
-                q_up = q_stagnant
-                p_up = math.exp(min(0.0, q_fit[0] - q_up)/q_fit[1])
-            else:
-                # if the next discharge is also in the stagnant regime, keep p_up = p_do = 1
-                # this will associate zero time with this discharge
-                p_up = 1.0
-        elif i < len(q)-1:
-            # if the current discharge is above the stagnant regime and more (higher) discharges follow, select the geometric midpoint as transition
-            q_up = math.sqrt(q[i] * q[i+1])
-            p_up = math.exp(min(0.0, q_fit[0] - q_up)/q_fit[1])
-        else:
-            # if there are no higher discharges, associate this discharge with the whole remaining range until "infinite discharge"
-            # q_up = inf
-            p_up = 0.0
-        t[i] = p_do - p_up
-        
-        if q[i] <= q_threshold:
-            # if the measure is inactive for the current discharge, this discharge range may still be associated with impact at the high discharge end
-            tmi[i] = max(0.0, p_th - p_up)
-        else:
-            # if the measure is active for the current discharge, the impact of this discharge range may be reduced at the low discharge end
-            tmi[i] = min(p_th, p_do) - p_up
-        p_do = p_up
-    
-    # correct in case the sorting of the discharges changed the order
-    tvec = numpy.zeros(q.shape)
-    tvec[sorted] = t
-    T = tuple(ti for ti in tvec)
-
-    tvec_mi = numpy.zeros(q.shape)
-    tvec_mi[sorted] = tmi
-    time_mi = tuple(ti for ti in tvec_mi)
-
-    return T, time_mi
 
 def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
     factory = FileNameRetrieverFactory()
@@ -778,30 +634,4 @@ def write_report(
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength}, file=report)
     ApplicationSettingsHelper.log_text("prepare_input", file=report)
 
-def check_configuration(rivers: RiversObject, config: configparser.ConfigParser) -> bool:
-    """
-    Check if an analysis configuration is valid.
-
-    Arguments
-    ---------
-    rivers: RiversObject
-        An object containing the river data.
-    config : configparser.ConfigParser
-        Configuration for the D-FAST Morphological Impact analysis.
-
-    Returns
-    -------
-    success : bool
-        Boolean indicating whether the D-FAST MI analysis configuration is valid.
-    """
-    cfg_version = config.get("General", "Version", fallback=None)
-        
-    try:        
-        configuration_version = version.parse(cfg_version)
-        configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
-        return configuration_checker.check_configuration(rivers, config)
-    except SystemExit as e:
-        raise e
-    except:
-        return False
 

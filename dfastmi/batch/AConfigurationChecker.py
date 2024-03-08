@@ -29,10 +29,11 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import configparser
 import pathlib
 from abc import ABC, abstractmethod
-from typing import Type, TypeVar
+from typing import Tuple, Type, TypeVar
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.IReach import IReach
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import BoolVector, Vector
 
 T = TypeVar('T', bound=IReach)
 
@@ -57,6 +58,48 @@ class AConfigurationCheckerBase(ABC):
         -------
         success : bool
             Boolean indicating whether the D-FAST MI analysis configuration is valid.        
+        """
+    @abstractmethod
+    def get_levels(
+        self,
+        reach: IReach,
+        config: configparser.ConfigParser,
+        nwidth: float
+    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, bool, int, Tuple[str, ...]]:
+        """
+        Determine discharges, times, etc. for analysis
+
+        Arguments
+        ---------
+        reach : ReachLegacy
+            The reach we want to get the levels from.
+        config : configparser.ConfigParser
+            Configuration of the analysis to be run.
+        nwidth : float
+            Normal river width (from rivers configuration file) [m].
+
+        Return
+        ------
+        discharges : Vector
+            Array of discharges (Q); one for each forcing condition [m3/s].
+        apply_q : BoolVector
+            A list of flags indicating whether the corresponding entry in Q should be used.
+        q_threshold : float
+            River discharge at which the measure becomes active [m3/s].
+        time_mi : Vector
+            A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+        tstag : float
+            Fraction of year during which flow velocity is considered negligible [-].
+        fractions_of_the_year : Vector
+            A vector of values each representing the fraction of the year (T) during which the discharge is given by the corresponding entry in Q [-].
+        rsigma : Vector
+            A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+        celerity : Vector
+            A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+        needs_tide : bool
+            A bool stating if the calculation needs to make use of tide
+        n_fields : int
+            An int stating the number of fields
         """
 
     def _get_reach(self,

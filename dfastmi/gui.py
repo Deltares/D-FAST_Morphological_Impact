@@ -36,6 +36,7 @@ from functools import partial
 import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
+from dfastmi.batch.DFastUtils import check_configuration
 import dfastmi.batch.core
 from dfastmi.io.Reach import Reach
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
@@ -583,7 +584,7 @@ def run_analysis() -> None:
     None
     """
     config = get_configuration()
-    if dfastmi.batch.core.check_configuration(rivers, config):
+    if check_configuration(rivers, config):
         try:
             success = dfastmi.batch.core.batch_mode_core(rivers, False, config)
         except:

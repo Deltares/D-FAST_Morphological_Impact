@@ -44,10 +44,10 @@ class Reach(AReach):
     """
     hydro_q : List[float]
     hydro_t : List[float]
-    auto_time : bool
+    auto_time : bool = False
     qfit : tuple[float,float]
 
-    use_tide : bool
+    use_tide : bool = False
     tide_boundary_condition : List[float]
 
     celer_form : int

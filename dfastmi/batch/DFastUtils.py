@@ -26,9 +26,14 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+from configparser import ConfigParser
 from typing import List, Tuple
 import math
 import numpy
+
+from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+from dfastmi.io.RiversObject import RiversObject
+from packaging import version
 
 
 def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> List[Tuple[float, float]]:
@@ -132,3 +137,31 @@ def get_km_bins(km_bin: Tuple[float, float, float], type: int = 2, adjust: bool 
     km = km_bin[0] + dx + numpy.arange(lb, ub) * km_step
 
     return km
+
+
+def check_configuration(rivers: RiversObject, config: ConfigParser) -> bool:
+    """
+    Check if an analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        An object containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    cfg_version = config.get("General", "Version", fallback=None)
+
+    try:
+        configuration_version = version.parse(cfg_version)
+        configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
+        return configuration_checker.check_configuration(rivers, config)
+    except SystemExit as e:
+        raise e
+    except:
+        return False

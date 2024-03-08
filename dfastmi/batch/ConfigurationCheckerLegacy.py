@@ -31,7 +31,7 @@ from typing import List, Optional, Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-import dfastmi.kernel.core
+
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.legacy import char_discharges, char_times
@@ -88,7 +88,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         reach: ReachLegacy,
         config: configparser.ConfigParser,
         nwidth: float
-    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector]:
+    ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector, bool, int, Tuple[str, ...]]:
         """
         Determine discharges, times, etc. for version 1 analysis
 
@@ -119,6 +119,10 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
         celerity : Vector
             A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+        needs_tide : bool
+            A bool stating if the calculation needs to make use of tide
+        n_fields : int
+            An int stating the number of fields
         """
         q_stagnant = reach.qstagnant
         celerity_hg = reach.proprate_high
@@ -139,7 +143,11 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         time_mi = tuple(0 if discharges[i] is None or discharges[i]<=q_stagnant else fractions_of_the_year[i] for i in range(len(fractions_of_the_year)))
         celerity = (celerity_lw, celerity_hg, celerity_hg)
 
-        return (discharges, apply_q, q_threshold, time_mi, tstag, fractions_of_the_year, rsigma, celerity)
+        needs_tide = False
+        n_fields = 1
+        tide_bc: Tuple[str, ...] = ()
+
+        return (discharges, apply_q, q_threshold, time_mi, tstag, fractions_of_the_year, rsigma, celerity, needs_tide, n_fields, tide_bc)
 
     def _batch_get_discharges(
         self,
