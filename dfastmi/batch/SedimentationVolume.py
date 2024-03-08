@@ -6,6 +6,8 @@ import numpy
 import os
 from typing import Dict, Tuple
 
+from dfastmi.batch.SedimentationData import SedimentationData
+
 def stream_bins(min_s, max_s, ds):
     """
     Construct the weighted mapping of cells to chainage bins.
@@ -235,4 +237,4 @@ def comp_sedimentation_volume(
     area_str = "erosion area {}"
     total_str = "total erosion volume"
     eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
-    return sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini
+    return SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini)

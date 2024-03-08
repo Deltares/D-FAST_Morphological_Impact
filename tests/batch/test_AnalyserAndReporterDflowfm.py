@@ -8,6 +8,7 @@ import numpy
 import pytest
 import shapely
 from dfastmi.batch import AnalyserAndReporterDflowfm
+from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.kernel.typehints import Vector
@@ -437,7 +438,7 @@ class Test_analyse_and_report_dflowfm_mode():
              patch('dfastmi.batch.AnalyserDflowfm.dfastmi.batch.SedimentationVolume.comp_sedimentation_volume') as mocked_comp_sedimentation_volume:
 
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
-            mocked_comp_sedimentation_volume.return_value = (None, None, [], None, None, [], numpy.zeros(0), numpy.zeros(0))
+            mocked_comp_sedimentation_volume.return_value = SedimentationData(None, None, [], None, None, [], numpy.zeros(0), numpy.zeros(0))
 
             ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 
