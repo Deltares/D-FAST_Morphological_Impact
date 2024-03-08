@@ -97,11 +97,11 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             break
 
         tmi = []
-        for i in range(len(applyQ)):
-            if applyQ[i]:
-               tmi.append(T[i])
+        for i, value in enumerate(applyQ):
+            if value:
+                tmi.append(T[i])
             else:
-               tmi.append(0.0)
+                tmi.append(0.0)
         celerity = [celerity_lw, celerity_hg, celerity_hg]
         slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
 
@@ -123,19 +123,11 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                     ucrit = ucritMin
 
             ApplicationSettingsHelper.log_text("", repeat=19)
-            filenames = dfastmi.batch.core.get_filenames(0, False)
-            imode = 0
             display = True
             old_zmin_zmax = True
-            needs_tide = False
-            n_fields = 0
-            tide_bc = []
-            xykm = None
-            kmbounds = [0,1]
             outputdir = Path(".")
-            plotops = {}
-
-            Success = analyse_and_report_waqua(
+            
+            success = analyse_and_report_waqua(
             display,
             report,
             reduced_output,
@@ -149,7 +141,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             outputdir,
             )
             
-            if Success:
+            if success:
                 if slength > 1:
                     nlength = int(slength)
                 else:
