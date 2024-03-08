@@ -172,10 +172,9 @@ def comp_sedimentation_volume(
     slength: float,
     nwidth: float,
     xykline: numpy.ndarray,
-    simfile: str,
     outputdir: str,
     plotops: Dict,
-) -> float:
+):
     """
     Compute the yearly dredging volume.
     Arguments
@@ -219,7 +218,6 @@ def comp_sedimentation_volume(
     smid = (sthresh[1:] + sthresh[:-1])/2
     sline = dfastmi.batch.Distance.distance_along_line(xykline[:,:2])
     kmid = dfastmi.batch.Distance.distance_to_chainage(sline, xykline[:,2], smid)
-    n_sbin = sbin.max()+1
 
     EFCi = dfastmi.batch.Face.facenode_to_edgeface(FNCi)
     wght_area_tot = numpy.zeros(dzgemi.shape)

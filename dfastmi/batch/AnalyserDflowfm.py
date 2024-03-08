@@ -62,7 +62,7 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, one_fm_filename, outputdir, plotops)
+            sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, outputdir, plotops)
             sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
 
         return missing_data, ReportData(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
@@ -265,8 +265,6 @@ class AnalyserDflowfm():
         dzq : numpy.ndarray
             Array containing equilibrium bed level change.
         """
-        cblok = str(stage)
-
         # reference file
         if filenames[0] == "":
             ApplicationSettingsHelper.log_text("no_file_specified", dict={"q": q}, file=report)
@@ -288,7 +286,6 @@ class AnalyserDflowfm():
             pass
 
         dzq = 0.
-        tot = 0.
         ifld: Optional[int]
         if n_fields > 1:
             ustream_pos = numpy.zeros(dx.shape)
@@ -297,10 +294,6 @@ class AnalyserDflowfm():
             dzq_neg = numpy.zeros(dx.shape)
             t_pos = numpy.zeros(dx.shape)
             t_neg = numpy.zeros(dx.shape)
-            wght_pos = numpy.zeros(dx.shape)
-            wght_neg = numpy.zeros(dx.shape)
-
-        ref = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=0)
 
         for ifld in range(n_fields):
             # if last time step is needed, pass None to allow for files without time specification

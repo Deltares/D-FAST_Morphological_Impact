@@ -154,13 +154,6 @@ def facenode_to_edgeface(FNC: numpy.ndarray) -> numpy.ndarray:
     edges, iedge = numpy.unique(edges, axis=0, return_inverse=True)
     nedges = edges.shape[0]
 
-    #FEC = FNC.copy()
-    #ie = 0
-    #for i in range(nfaces):
-    #    nni = nnodes[i]
-    #    FEC[i][0:nni] = iedge[ie + numpy.arange(nni)]
-    #    ie = ie + nni
-
     EFC = -numpy.ones((nedges, 2), dtype=numpy.int64)
     ie = 0
     for i in range(nfaces):
