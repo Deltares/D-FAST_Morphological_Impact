@@ -45,6 +45,58 @@ import dfastmi.kernel.core
 
 import shapely
 
+class AnalyserDflowfm():
+    def analyse(self, display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
+        missing_data = False
+            
+        one_fm_filename, missing_data = _get_first_fm_data_filename(report, q_threshold, Q, rsigma, filenames, needs_tide, tide_bc)
+        
+        if missing_data:
+            return missing_data, None
+        
+        if display:
+            ApplicationSettingsHelper.log_text('-- load mesh')
+        xn, yn, FNC = get_xynode_connect(one_fm_filename)
+        
+        xykm_data = _get_xykm_data(xykm, xn, yn, FNC, display)
+        
+        if xykm is None and needs_tide:
+            print("RiverKM needs to be specified for tidal applications.")
+            return True, None
+        
+        missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+
+        if not missing_data:
+            if display:
+                ApplicationSettingsHelper.log_text("char_bed_changes")
+                
+            if tstag > 0:
+                dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
+                T = (T[0], tstag, T[1], T[2])
+                rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
+                
+            # main_computation now returns new pointwise zmin and zmax
+            dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
+                dzq, T, rsigma
+            )
+            
+            if old_zmin_zmax:
+                # get old zmax and zmin
+                dzmaxi = dzbi[0]
+                zmax_str = "maximum bed level change after flood without dredging"
+                dzmini = dzbi[1]
+                zmin_str = "minimum bed level change after low flow without dredging"
+            else:
+                zmax_str = "maximum value of bed level change without dredging"
+                zmin_str = "minimum value of bed level change without dredging"
+        
+        sedimentation_data = None
+        if xykm is not None:
+            sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, one_fm_filename, outputdir, plotops)
+            sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
+        
+        return missing_data, ReportData(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)    
+
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
@@ -119,7 +171,8 @@ def analyse_and_report_dflowfm(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    missing_data, report_data = _analyse(display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops)
+    analyser = AnalyserDflowfm()
+    missing_data, report_data = analyser.analyse(display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops)
     
     if missing_data:
         return missing_data
@@ -129,57 +182,6 @@ def analyse_and_report_dflowfm(
         reporter.report(display, outputdir, plotops, report_data)
 
     return not missing_data
-
-def _analyse(display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
-    missing_data = False
-        
-    one_fm_filename, missing_data = _get_first_fm_data_filename(report, q_threshold, Q, rsigma, filenames, needs_tide, tide_bc)
-    
-    if missing_data:
-        return missing_data, None
-    
-    if display:
-        ApplicationSettingsHelper.log_text('-- load mesh')
-    xn, yn, FNC = get_xynode_connect(one_fm_filename)
-    
-    xykm_data = _get_xykm_data(xykm, xn, yn, FNC, display)
-    
-    if xykm is None and needs_tide:
-        print("RiverKM needs to be specified for tidal applications.")
-        return True, None
-    
-    missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
-
-    if not missing_data:
-        if display:
-            ApplicationSettingsHelper.log_text("char_bed_changes")
-            
-        if tstag > 0:
-            dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
-            T = (T[0], tstag, T[1], T[2])
-            rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
-            
-        # main_computation now returns new pointwise zmin and zmax
-        dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
-            dzq, T, rsigma
-        )
-        
-        if old_zmin_zmax:
-            # get old zmax and zmin
-            dzmaxi = dzbi[0]
-            zmax_str = "maximum bed level change after flood without dredging"
-            dzmini = dzbi[1]
-            zmin_str = "minimum bed level change after low flow without dredging"
-        else:
-            zmax_str = "maximum value of bed level change without dredging"
-            zmin_str = "minimum value of bed level change without dredging"
-    
-    sedimentation_data = None
-    if xykm is not None:
-        sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, one_fm_filename, outputdir, plotops)
-        sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
-    
-    return missing_data, ReportData(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
 def _get_xykm_data(xykm, xn, yn, FNC, display):
     if xykm is None:
