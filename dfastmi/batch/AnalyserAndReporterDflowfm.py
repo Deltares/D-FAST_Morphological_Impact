@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
+from dfastmi.batch.ReportData import ReportData
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
@@ -43,23 +44,6 @@ import numpy
 import dfastmi.kernel.core
 
 import shapely
-
-class ReportData():
-    def __init__(self, rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data):
-        self.rsigma = rsigma
-        self.one_fm_filename = one_fm_filename
-        self.xn = xn
-        self.FNC = FNC
-        self.dzq = dzq
-        self.dzgemi = dzgemi
-        self.dzmaxi = dzmaxi
-        self.dzmini = dzmini
-        self.dzbi = dzbi
-        self.zmax_str = zmax_str
-        self.zmin_str = zmin_str
-        self.xykm_data = xykm_data
-        self.sedimentation_data  = sedimentation_data 
-        
 
 def analyse_and_report_dflowfm(
     display: bool,
@@ -142,7 +126,7 @@ def analyse_and_report_dflowfm(
     
     if not missing_data:       
         reporter = ReporterDflowfm()
-        reporter.report(display, report_data.rsigma, outputdir, plotops, report_data.one_fm_filename, report_data.xn, report_data.FNC, report_data.dzq, report_data.dzgemi, report_data.dzmaxi, report_data.dzmini, report_data.dzbi, report_data.zmax_str, report_data.zmin_str, report_data.sedimentation_data, report_data.xykm_data)
+        reporter.report(display, outputdir, plotops, report_data)
 
     return not missing_data
 
