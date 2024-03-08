@@ -2,14 +2,14 @@ import dfastmi.plotting
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
-from dfastmi.batch.ReportData import ReportData
+from dfastmi.batch.ReportData import OutputDataDflowfm
 
 import netCDF4
 import numpy
 import os
 
 class ReporterDflowfm():
-    def report(self, display, outputdir, plotops, report_data : ReportData):
+    def report(self, display, outputdir, plotops, report_data : OutputDataDflowfm):
         if display:
             ApplicationSettingsHelper.log_text('writing_output')
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(report_data.one_fm_filename)

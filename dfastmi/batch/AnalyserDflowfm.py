@@ -2,7 +2,7 @@ import dfastmi.batch.Distance
 import dfastmi.batch.Face
 import dfastmi.batch.SedimentationVolume
 import dfastmi.kernel.core
-from dfastmi.batch.ReportData import ReportData
+from dfastmi.batch.ReportData import OutputDataDflowfm
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -65,7 +65,7 @@ class AnalyserDflowfm():
             sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, outputdir, plotops)
             sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
 
-        return missing_data, ReportData(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
+        return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
     def _get_first_fm_data_filename(self,
         report: TextIO,
