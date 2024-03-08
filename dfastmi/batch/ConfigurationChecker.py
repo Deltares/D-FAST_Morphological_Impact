@@ -134,57 +134,25 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         n_fields : int
             An int stating the number of fields
         """
+        
         q_stagnant = reach.qstagnant
-        if "Qthreshold" in config["General"]:
-            try:
-                q_threshold = float(config.get("General", "Qthreshold", fallback=""))
-            except ValueError:
-                q_threshold = q_stagnant # Or should I raise ValueError exception?
-        else:
-            q_threshold = q_stagnant
+        q_threshold = self._get_q_threshold(config, q_stagnant)
 
-        q_stagnant = reach.qstagnant
-        Q = reach.hydro_q
-        apply_q = (True,) * len(Q)
-        if reach.autotime:
-            q_fit = reach.qfit
-            T, time_mi = self._get_times(Q, q_fit, q_stagnant, q_threshold)
-        else:
-            T = reach.hydro_t
-            sumT = sum(T)
-            T = tuple(t / sumT for t in T)
-            time_mi = tuple(0 if Q[i]<q_threshold else T[i] for i in range(len(T)))
+        discharges = reach.hydro_q
+        apply_q = (True,) * len(discharges)
+        T, time_mi = self._get_fraction_times(reach, q_threshold, discharges)
         
         # determine the bed celerity based on the input settings
-        cform = reach.celer_form
-        if cform == 1:
-            prop_q = reach.celer_object.prop_q
-            prop_c = reach.celer_object.prop_c
-            celerity = tuple(get_celerity(q, prop_q, prop_c) for q in Q)
-        elif cform == 2:
-            cdisch = reach.celer_object.cdisch
-            celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in Q)
-        
-        # set the celerity equal to 0 for discharges less or equal to q_stagnant
-        celerity = tuple({False:0.0, True:celerity[i]}[Q[i]>q_stagnant] for i in range(len(Q)))
-        
-        # check if all celerities are equal to 0. If so, the impact would be 0.
-        all_zero = True
-        for i, discharge in enumerate(Q):
-            if celerity[i] < 0.0:
-                raise ValueError(f"Invalid negative celerity {celerity[i]} m/s encountered for discharge {discharge} m3/s!")
-            if celerity[i] > 0.0:
-                all_zero = False
-        if all_zero:
-            raise ValueError("The celerities can't all be equal to zero for a measure to have any impact!")
-        
-        rsigma = relax_factors(Q, T, q_stagnant, celerity, nwidth)
-        tstag = 0
+        celerity = self._get_bed_celerity(reach, discharges)
 
-        needs_tide = reach.use_tide
-        tide_bc: Tuple[str, ...] = ()
-        if needs_tide:
-            tide_bc = reach.tide_bc
+        rsigma = relax_factors(discharges, T, q_stagnant, celerity, nwidth)
+        tstag = 0
+        
+        n_fields = self._get_tide(reach, config)
+        return (discharges, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, reach.use_tide, n_fields, reach.tide_bc if reach.use_tide else ())
+
+    def _get_tide(self, reach: Reach, config: configparser.ConfigParser):
+        if reach.use_tide:
             try:
                 n_fields = int(config.get("General", "NFields", fallback=""))
             except ValueError:
@@ -193,7 +161,52 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                 raise ValueError("Unexpected combination of tides and NFields = 1!")
         else:
             n_fields = 1
-        return (Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity, needs_tide, n_fields, tide_bc)
+        return n_fields
+
+    def _get_bed_celerity(self, reach, discharges):
+        cform = reach.celer_form
+        if cform == 1:
+            prop_q = reach.celer_object.prop_q
+            prop_c = reach.celer_object.prop_c
+            celerity = tuple(get_celerity(q, prop_q, prop_c) for q in discharges)
+        elif cform == 2:
+            cdisch = reach.celer_object.cdisch
+            celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in discharges)
+         
+         # set the celerity equal to 0 for discharges less or equal to q_stagnant
+        celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.q_stagnant] for i in range(len(discharges)))
+        
+        # check if all celerities are equal to 0. If so, the impact would be 0.
+        all_zero = True
+        for i, discharge in enumerate(discharges):
+            if celerity[i] < 0.0:
+                raise ValueError(f"Invalid negative celerity {celerity[i]} m/s encountered for discharge {discharge} m3/s!")
+            if celerity[i] > 0.0:
+                all_zero = False
+        if all_zero:
+            raise ValueError("The celerities can't all be equal to zero for a measure to have any impact!")
+
+        return celerity
+
+    def _get_fraction_times(self, reach:Reach, q_threshold, discharges):
+        if reach.autotime:            
+            T, time_mi = self._get_times(discharges, reach.q_fit, reach.q_stagnant, q_threshold)
+        else:
+            T = reach.hydro_t
+            sumT = sum(T)
+            T = tuple(t / sumT for t in T)
+            time_mi = tuple(0 if discharges[i]<q_threshold else T[i] for i in range(len(T)))
+        return T,time_mi
+
+    def _get_q_threshold(self, config, q_stagnant):
+        if "Qthreshold" in config["General"]:
+            try:
+                q_threshold = float(config.get("General", "Qthreshold", fallback=""))
+            except ValueError:
+                q_threshold = q_stagnant # Or should I raise ValueError exception?
+        else:
+            q_threshold = q_stagnant
+        return q_threshold
 
     def _get_times(self, Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Tuple[Vector, Vector]:
         """
