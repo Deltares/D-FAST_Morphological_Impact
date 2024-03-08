@@ -2,7 +2,7 @@ import dfastmi.batch.Distance
 import dfastmi.batch.Face
 import dfastmi.batch.SedimentationVolume
 import dfastmi.kernel.core
-from dfastmi.batch.ReportData import OutputDataDflowfm
+from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -16,7 +16,7 @@ import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
 class AnalyserDflowfm():
-    def analyse(self, display, report, q_threshold, tstag, discharges, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
+    def analyse(self, display, report, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
         missing_data = False
 
         one_fm_filename, missing_data = self._get_first_fm_data_filename(report, q_threshold, discharges, rsigma, filenames, needs_tide, tide_bc)
@@ -42,12 +42,12 @@ class AnalyserDflowfm():
 
             if tstag > 0:
                 dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
-                T = (T[0], tstag, T[1], T[2])
+                fraction_of_year = (fraction_of_year[0], tstag, fraction_of_year[1], fraction_of_year[2])
                 rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
 
             # main_computation now returns new pointwise zmin and zmax
             dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
-                dzq, T, rsigma
+                dzq, fraction_of_year, rsigma
             )
 
             if old_zmin_zmax:

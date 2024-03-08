@@ -2,7 +2,7 @@ import dfastmi.plotting
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
-from dfastmi.batch.ReportData import OutputDataDflowfm
+from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 
 import netCDF4
 import numpy
