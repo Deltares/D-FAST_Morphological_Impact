@@ -44,6 +44,23 @@ import dfastmi.kernel.core
 
 import shapely
 
+class ReportData():
+    def __init__(self, rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data):
+        self.rsigma = rsigma
+        self.one_fm_filename = one_fm_filename
+        self.xn = xn
+        self.FNC = FNC
+        self.dzq = dzq
+        self.dzgemi = dzgemi
+        self.dzmaxi = dzmaxi
+        self.dzmini = dzmini
+        self.dzbi = dzbi
+        self.zmax_str = zmax_str
+        self.zmin_str = zmin_str
+        self.xykm_data = xykm_data
+        self.sedimentation_data  = sedimentation_data 
+        
+
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
@@ -118,12 +135,24 @@ def analyse_and_report_dflowfm(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
+    missing_data, report_data = _analyse(display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops)
+    
+    if missing_data:
+        return missing_data
+    
+    if not missing_data:       
+        reporter = ReporterDflowfm()
+        reporter.report(display, report_data.rsigma, outputdir, plotops, report_data.one_fm_filename, report_data.xn, report_data.FNC, report_data.dzq, report_data.dzgemi, report_data.dzmaxi, report_data.dzmini, report_data.dzbi, report_data.zmax_str, report_data.zmin_str, report_data.sedimentation_data, report_data.xykm_data)
+
+    return not missing_data
+
+def _analyse(display, report, q_threshold, tstag, Q, T, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
     missing_data = False
         
     one_fm_filename, missing_data = _get_first_fm_data_filename(report, q_threshold, Q, rsigma, filenames, needs_tide, tide_bc)
     
     if missing_data:
-        return missing_data
+        return missing_data, None
     
     if display:
         ApplicationSettingsHelper.log_text('-- load mesh')
@@ -133,7 +162,7 @@ def analyse_and_report_dflowfm(
     
     if xykm is None and needs_tide:
         print("RiverKM needs to be specified for tidal applications.")
-        return True
+        return True, None
     
     missing_data, dzq = _get_dzq(report, Q, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
@@ -166,11 +195,7 @@ def analyse_and_report_dflowfm(
         sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, one_fm_filename, outputdir, plotops)
         sedimentation_data = SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_estimate1i, wbini)
     
-    if not missing_data:       
-        reporter = ReporterDflowfm()
-        reporter.report(display, rsigma, outputdir, plotops, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, sedimentation_data, xykm_data)
-
-    return not missing_data
+    return missing_data, ReportData(rsigma, one_fm_filename, xn, FNC, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
 def _get_xykm_data(xykm, xn, yn, FNC, display):
     if xykm is None:
