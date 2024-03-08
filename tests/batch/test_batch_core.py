@@ -81,7 +81,7 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        compare_text_files(outdir, refdir, "verslag.run", prefixes=('Dit is versie'))
+        compare_text_files(outdir, refdir, "verslag.run", "ref_verslag.run", prefixes=('Dit is versie'))
         #
         compare_text_files(outdir, refdir, "jaargem.out", "ref_jaargem.out")
         compare_text_files(outdir, refdir, "maxmorf.out", "ref_maxmorf.out")
@@ -110,7 +110,7 @@ class Test_batch_mode():
         self.maxDiff = None
         assert outstr == []
         #
-        compare_text_files(outdir, refdir, "report.txt", prefixes=('This is version'))
+        compare_text_files(outdir, refdir, "report.txt", "ref_report.txt", prefixes=('This is version'))
         #
         compare_text_files(outdir, refdir, "yearavg_dzb.out", "ref_jaargem.out")
         compare_text_files(outdir, refdir, "max_dzb.out", "ref_maxmorf.out")

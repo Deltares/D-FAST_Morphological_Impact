@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple, TextIO
+from dfastmi.batch.AnalyserAndReporterWaqua import analyse_and_report_waqua
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ReachLegacy import ReachLegacy
@@ -133,32 +134,21 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             kmbounds = [0,1]
             outputdir = Path(".")
             plotops = {}
-            Success = dfastmi.batch.core.analyse_and_report(
-                imode,
-                display,
-                report,
-                reduced_output,
-                reach,
-                q_location,
-                q_threshold,
-                tstag,
-                Q,
-                applyQ,
-                T,
-                rsigma,
-                slength,
-                nwidth,
-                ucrit,
-                filenames,
-                xykm,
-                needs_tide,
-                n_fields,
-                tide_bc,
-                old_zmin_zmax,
-                kmbounds,
-                outputdir,
-                plotops,
+
+            Success = analyse_and_report_waqua(
+            display,
+            report,
+            reduced_output,
+            tstag,
+            Q,
+            applyQ,
+            T,
+            rsigma,
+            ucrit,
+            old_zmin_zmax,
+            outputdir,
             )
+            
             if Success:
                 if slength > 1:
                     nlength = int(slength)
@@ -350,7 +340,7 @@ def interactive_get_discharges(
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
-        Discharge below which the river flow is negligible.
+        ischarge below which the river flow is negligible.
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
     applyQ : Tuple[bool, bool, bool]
