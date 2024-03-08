@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Branch import Branch
@@ -130,7 +131,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             tide_bc = []
             xykm = None
             kmbounds = [0,1]
-            outputdir = "."
+            outputdir = Path(".")
             plotops = {}
             Success = dfastmi.batch.core.analyse_and_report(
                 imode,

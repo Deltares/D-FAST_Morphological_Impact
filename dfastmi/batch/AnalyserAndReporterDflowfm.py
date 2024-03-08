@@ -316,7 +316,7 @@ def analyse_and_report_dflowfm(
         if display:
             ApplicationSettingsHelper.log_text('writing_output')
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(one_fm_filename)
-        dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
+        dst = str(outputdir.joinpath(ApplicationSettingsHelper.get_filename("netcdf.out")))
         GridOperations.copy_ugrid(one_fm_filename, meshname, dst)
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
@@ -378,7 +378,7 @@ def analyse_and_report_dflowfm(
                     units="m",
                 )
         
-        projmesh = outputdir + os.sep + 'projected_mesh.nc'
+        projmesh = str(outputdir.joinpath('projected_mesh.nc'))
         GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
         GridOperations.ugrid_add(
             projmesh,
@@ -460,7 +460,7 @@ def analyse_and_report_dflowfm(
                     print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
-            projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
+            projmesh = str(outputdir.joinpath('sedimentation_weights.nc'))
             GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
             GridOperations.ugrid_add(
                 projmesh,
@@ -712,7 +712,7 @@ def comp_sedimentation_volume(
     plot_n = 3
 
     print("-- detecting separate sedimentation areas")
-    xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
+    xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
     sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)

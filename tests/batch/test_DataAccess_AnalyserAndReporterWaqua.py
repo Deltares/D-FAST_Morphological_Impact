@@ -10,7 +10,7 @@ class Test_analyse_and_report_waqua_mode():
         T = [1.0, 2.0, 3.0]
         rsigma = [0.1, 0.2, 0.3]
         ucrit = 0.3
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
 

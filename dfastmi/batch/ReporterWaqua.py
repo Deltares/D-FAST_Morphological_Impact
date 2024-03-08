@@ -27,7 +27,6 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-import os
 from dfastmi.batch.OutputDataWaqua import OutputDataWaqua
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
@@ -69,4 +68,4 @@ class ReporterWaqua():
         DataTextFileOperations.write_simona_box(mindzb_file, output_data.data_zmin, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
 
     def _get_file_location(self, output_file_name : str) -> str:
-        return self.output_dir + os.sep + ApplicationSettingsHelper.get_filename(output_file_name)
+        return str(self.output_dir.joinpath(ApplicationSettingsHelper.get_filename(output_file_name)))

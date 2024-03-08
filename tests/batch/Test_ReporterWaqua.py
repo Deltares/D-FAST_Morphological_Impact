@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 import numpy
 from dfastmi.batch.OutputDataWaqua import OutputDataWaqua
@@ -10,7 +11,7 @@ class Test_ReporterWaqua():
         when :  write report  
         then  : expect 3 calls for writing report
         """
-        reporter = ReporterWaqua("filepath")
+        reporter = ReporterWaqua(Path("filepath"))
         first_min_velocity_m = 0
         first_min_velocity_n = 0
         data_zgem = numpy.array([1, 2, 3, 4, 5])
