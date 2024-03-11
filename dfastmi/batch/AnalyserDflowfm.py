@@ -11,7 +11,6 @@ from dfastmi.kernel.typehints import Vector, BoolVector
 
 import numpy
 import shapely
-import math
 import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
@@ -245,7 +244,7 @@ class AnalyserDflowfm():
 
             # determine line direction for each cell
             self._logger.log_direction()
-            dxi, dyi = self._get_direction(xyline, sfi)
+            dxi, dyi = dfastmi.batch.Distance.get_direction(xyline, sfi)
 
             self._logger.log_done()
 
@@ -394,55 +393,3 @@ class AnalyserDflowfm():
             face_node_connectivity.mask = numpy.logical_or(face_node_connectivity.mask,face_node_connectivity<0)
 
         return xn, yn, face_node_connectivity
-
-    def _get_direction(self, xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
-        """
-        Determine the orientation of a line at a given set of points.
-
-        Arguments
-        ---------
-        xyline : numpy.ndarray
-            Array containing the x,y data of a line.
-        spnt : numpy.ndarray
-            Array of length N containing the location of points measured as distance along the same line.
-
-        Results
-        -------
-        dxpnt : numpy.ndarray
-            Array of length N containing x-component of the unit direction vector at the given points.
-        dypnt : numpy.ndarray
-            Array of length N containing y-component of the unit direction vector at the given points.
-        """
-        sline = dfastmi.batch.Distance.distance_along_line(xyline)
-        M = len(sline)
-        N = len(spnt)
-
-        # make sure that spnt is sorted
-        isort = numpy.argsort(spnt)
-        unsort = numpy.argsort(isort)
-        spnt_sorted = spnt[isort]
-
-        dxpnt = numpy.zeros(N)
-        dypnt = numpy.zeros(N)
-        j = 0
-        for i in range(N):
-            s = spnt_sorted[i]
-            while j < M:
-                if sline[j] < s:
-                    j = j+1
-                else:
-                    break
-            if j == 0:
-                # distance is less than the distance of the first point, use the direction of the first line segment
-                dxy = xyline[1] - xyline[0]
-            elif j == M:
-                # distance is larger than the distance of all the points on the line, use the direction of the last line segment
-                dxy = xyline[-1] - xyline[-2]
-            else:
-                # somewhere in the middle, get the direction of the line segment
-                dxy = xyline[j] - xyline[j-1]
-            ds = math.sqrt((dxy**2).sum())
-            dxpnt[i] = dxy[0]/ds
-            dypnt[i] = dxy[1]/ds
-
-        return dxpnt[unsort], dypnt[unsort]

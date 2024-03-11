@@ -1,5 +1,6 @@
 import numpy
-
+import math
+from typing import Tuple
 
 def distance_to_chainage(sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy.ndarray) -> numpy.ndarray:
     """
@@ -49,7 +50,6 @@ def distance_to_chainage(sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy
 
     return kpnt[unsort]
 
-
 def distance_along_line(xyline: numpy.ndarray)-> numpy.ndarray:
     """
     Compute distance coordinate along the specified line
@@ -70,3 +70,55 @@ def distance_along_line(xyline: numpy.ndarray)-> numpy.ndarray:
     sline = numpy.cumsum(numpy.concatenate([numpy.zeros(1),ds]))
 
     return sline
+
+def get_direction(xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    """
+    Determine the orientation of a line at a given set of points.
+
+    Arguments
+    ---------
+    xyline : numpy.ndarray
+        Array containing the x,y data of a line.
+    spnt : numpy.ndarray
+        Array of length N containing the location of points measured as distance along the same line.
+
+    Results
+    -------
+    dxpnt : numpy.ndarray
+        Array of length N containing x-component of the unit direction vector at the given points.
+    dypnt : numpy.ndarray
+        Array of length N containing y-component of the unit direction vector at the given points.
+    """
+    sline = distance_along_line(xyline)
+    M = len(sline)
+    N = len(spnt)
+
+    # make sure that spnt is sorted
+    isort = numpy.argsort(spnt)
+    unsort = numpy.argsort(isort)
+    spnt_sorted = spnt[isort]
+
+    dxpnt = numpy.zeros(N)
+    dypnt = numpy.zeros(N)
+    j = 0
+    for i in range(N):
+        s = spnt_sorted[i]
+        while j < M:
+            if sline[j] < s:
+                j = j+1
+            else:
+                break
+        if j == 0:
+            # distance is less than the distance of the first point, use the direction of the first line segment
+            dxy = xyline[1] - xyline[0]
+        elif j == M:
+            # distance is larger than the distance of all the points on the line, use the direction of the last line segment
+            dxy = xyline[-1] - xyline[-2]
+        else:
+            # somewhere in the middle, get the direction of the line segment
+            dxy = xyline[j] - xyline[j-1]
+        ds = math.sqrt((dxy**2).sum())
+        dxpnt[i] = dxy[0]/ds
+        dypnt[i] = dxy[1]/ds
+
+    return dxpnt[unsort], dypnt[unsort]
