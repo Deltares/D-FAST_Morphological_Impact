@@ -14,11 +14,11 @@ import math
 import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
-class _DflowfmLogger():
+class _AnalyserDflowfmLogger():
     def __init__(self, display : bool, report : TextIO):
         self.display = display
         self.report = report
-        
+
     def log_char_bed_changes(self):
         if self.display:
             ApplicationSettingsHelper.log_text("char_bed_changes")
@@ -60,7 +60,7 @@ class _DflowfmLogger():
         else:
             ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=self.report)
         ApplicationSettingsHelper.log_text("end_program", file=self.report)
-        
+
     def report_file_not_specified(self, q):
         ApplicationSettingsHelper.log_text("no_file_specified", dict={"q": q}, file=self.report)
         ApplicationSettingsHelper.log_text("end_program", file=self.report)
@@ -69,12 +69,30 @@ class _DflowfmLogger():
         ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filename}, file=self.report)
         ApplicationSettingsHelper.log_text("end_program", file=self.report)
 
+    def print_riverkm_needed_for_tidal(self):
+        print("RiverKM needs to be specified for tidal applications.")
+
+    def print_measure_not_active_for_checked_conditions(self):
+        print("The measure is not active for any of the checked conditions.")
+
+    def print_apply_filter(self):
+        print("apply filter")
+
+    def print_prepare_filter(self, step : int):
+        print(f"prepare filter step {step}")
+
+    def print_prepare(self):
+        print("prepare")
+
+    def print_buffer(self):
+        print("buffer")
+
 class AnalyserDflowfm():
     
-    _logger : _DflowfmLogger
+    _logger : _AnalyserDflowfmLogger
     
     def __init__(self, display : bool, report : TextIO):
-        self._logger = _DflowfmLogger(display, report)
+        self._logger = _AnalyserDflowfmLogger(display, report)
     
     def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
         missing_data = False
@@ -90,7 +108,7 @@ class AnalyserDflowfm():
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
         if xykm is None and needs_tide:
-            print("RiverKM needs to be specified for tidal applications.")
+            self._logger.print_riverkm_needed_for_tidal()
             return True, None
 
         missing_data, dzq = self._get_dzq(discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
@@ -162,7 +180,7 @@ class AnalyserDflowfm():
                         missing_data = True
 
         if one_fm_filename is None:
-            print("The measure is not active for any of the checked conditions.")
+            self._logger.print_measure_not_active_for_checked_conditions()
             missing_data = True
 
         return one_fm_filename, missing_data
@@ -187,24 +205,24 @@ class AnalyserDflowfm():
             dnmax = 3000.0
             self._logger.log_identify_region_of_interest()
             # add call to dfastbe.io.clip_path_to_kmbounds?
-            print("buffer")
+            self._logger.print_buffer()
             xybuffer = xykm.buffer(dnmax)
             bbox = xybuffer.envelope.exterior
-            print("prepare")
+            self._logger.print_prepare()
             xybprep = shapely.prepared.prep(xybuffer)
 
-            print("prepare filter step 1")
+            self._logger.print_prepare_filter(1)
             xmin = bbox.coords[0][0]
             xmax = bbox.coords[1][0]
             ymin = bbox.coords[0][1]
             ymax = bbox.coords[2][1]
             keep = (xn > xmin) & (xn < xmax) & (yn > ymin) & (yn < ymax)
-            print("prepare filter step 2")
+            self._logger.print_prepare_filter(2)
             for i in range(xn.size):
                 if keep[i] and not xybprep.contains(shapely.geometry.Point((xn[i], yn[i]))):
                     keep[i] = False
 
-            print("apply filter")
+            self._logger.print_apply_filter()
             xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
             interest_region = numpy.zeros(face_node_connectivity.shape[0], dtype=numpy.int64)
             interest_region[iface] = 1
@@ -267,8 +285,6 @@ class AnalyserDflowfm():
                 else:
                     dzq[i] = 0
         return missing_data,dzq
-
-
 
     def _get_values_fm(
         self,
