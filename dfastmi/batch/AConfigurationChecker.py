@@ -29,11 +29,10 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import configparser
 import pathlib
 from abc import ABC, abstractmethod
-from typing import Tuple, Type, TypeVar
+from typing import Type, TypeVar
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.IReach import IReach
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import BoolVector, Vector
 
 T = TypeVar('T', bound=IReach)
 

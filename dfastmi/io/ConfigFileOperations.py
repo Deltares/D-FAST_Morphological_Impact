@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 import os
+from pathlib import Path
 from packaging.version import Version
 
 from dfastmi.io.FileUtils import FileUtils
@@ -51,23 +52,23 @@ class ConfigFileOperations:
         """
         sections = config.sections()
         ml = 0
-        for s in sections:
-            options = config.options(s)
+        for section in sections:
+            options = config.options(section)
             if len(options) > 0:
                 ml = max(ml, max([len(x) for x in options]))
 
         OPTIONLINE = "  {{:{}s}} = {{}}\n".format(ml)
-        with open(filename, "w") as configfile:
+        with Path(filename).open("w", encoding="utf-8") as configfile:
             first = True
-            for s in sections:
+            for section in sections:
                 if first:
                     first = False
                 else:
                     configfile.write("\n")
-                configfile.write("[{}]\n".format(s))
-                options = config.options(s)
+                configfile.write(f"[{section}]\n")
+                options = config.options(section)
                 for o in options:
-                    configfile.write(OPTIONLINE.format(o, config[s][o]))
+                    configfile.write(OPTIONLINE.format(o, config[section][o]))
 
     @staticmethod
     def save_configuration_file(filename: str, config):
@@ -165,7 +166,7 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         config = configparser.ConfigParser()
-        with open(filename, "r") as configfile:
+        with Path(filename).open("r", encoding="utf-8") as configfile:
             config.read_file(configfile)
 
         file_version = config.get("General", "Version", fallback= "")

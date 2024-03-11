@@ -1,4 +1,3 @@
-from dfastmi.batch.ConfigurationChecker import ConfigurationChecker
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
 from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
 from dfastmi.io.Reach import Reach

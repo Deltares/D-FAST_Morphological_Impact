@@ -10,7 +10,7 @@ class Test_FileNameRetrieverFactory():
     def factory(self) -> FileNameRetrieverFactory:
         factory = FileNameRetrieverFactory()
         factory.register_creator(Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
-        factory.register_creator(Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
+        factory.register_creator(Version("2.0"), FileNameRetriever)
         return factory
 
     @pytest.mark.parametrize("string_version", [
