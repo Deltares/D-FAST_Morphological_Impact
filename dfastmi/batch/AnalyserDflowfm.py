@@ -14,30 +14,89 @@ import math
 import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
+class _DflowfmLogger():
+    def __init__(self, display : bool, report : TextIO):
+        self.display = display
+        self.report = report
+        
+    def log_char_bed_changes(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text("char_bed_changes")
+
+    def log_load_mesh(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('-- load mesh')
+
+    def log_done(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('-- done')
+
+    def log_direction(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('-- direction')
+
+    def log_chainage(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('-- chainage')
+
+    def log_project(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('-- project')
+
+    def log_identify_region_of_interest(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('-- identify region of interest')
+
+    def report_missing_calculation_values(self, needs_tide, q, t):
+        if needs_tide:
+            ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=self.report)
+        else:
+            ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=self.report)
+        ApplicationSettingsHelper.log_text("end_program", file=self.report)
+
+    def report_missing_calculation_dzq_values(self, q, t):
+        if t > 0:
+            ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=self.report)
+        else:
+            ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=self.report)
+        ApplicationSettingsHelper.log_text("end_program", file=self.report)
+        
+    def report_file_not_specified(self, q):
+        ApplicationSettingsHelper.log_text("no_file_specified", dict={"q": q}, file=self.report)
+        ApplicationSettingsHelper.log_text("end_program", file=self.report)
+
+    def report_file_not_found(self, filename):
+        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filename}, file=self.report)
+        ApplicationSettingsHelper.log_text("end_program", file=self.report)
+
 class AnalyserDflowfm():
-    def analyse(self, display, report, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
+    
+    _logger : _DflowfmLogger
+    
+    def __init__(self, display : bool, report : TextIO):
+        self._logger = _DflowfmLogger(display, report)
+    
+    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
         missing_data = False
 
-        one_fm_filename, missing_data = self._get_first_fm_data_filename(report, q_threshold, discharges, rsigma, filenames, needs_tide, tide_bc)
+        one_fm_filename, missing_data = self._get_first_fm_data_filename(q_threshold, discharges, rsigma, filenames, needs_tide, tide_bc)
 
         if missing_data:
             return missing_data, None
 
-        if display:
-            ApplicationSettingsHelper.log_text('-- load mesh')
+        self._logger.log_load_mesh()
         xn, yn, face_node_connectivity = self._get_xynode_connect(one_fm_filename)
 
-        xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity, display)
+        xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
         if xykm is None and needs_tide:
             print("RiverKM needs to be specified for tidal applications.")
             return True, None
 
-        missing_data, dzq = self._get_dzq(report, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+        missing_data, dzq = self._get_dzq(discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
         if not missing_data:
-            if display:
-                ApplicationSettingsHelper.log_text("char_bed_changes")
+            self._logger.log_char_bed_changes()
 
             if tstag > 0:
                 dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
@@ -66,7 +125,6 @@ class AnalyserDflowfm():
         return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
     def _get_first_fm_data_filename(self,
-        report: TextIO,
         q_threshold: float,
         discharges: Vector,
         rsigma: Vector,
@@ -91,6 +149,7 @@ class AnalyserDflowfm():
                         t = tide_bc[i]
                         key = (q,t)
                     else:
+                        t = None
                         key = q
                     if rsigma[i] == 1 or discharges[i] <= q_threshold:
                         # no celerity or measure not active, so ignore field
@@ -99,11 +158,7 @@ class AnalyserDflowfm():
                         one_fm_filename = filenames[key][0]
                         break
                     else:
-                        if needs_tide:
-                            ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
-                        else:
-                            ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                        ApplicationSettingsHelper.log_text("end_program", file=report)
+                        self._logger.report_missing_calculation_values(needs_tide, q, t)
                         missing_data = True
 
         if one_fm_filename is None:
@@ -112,7 +167,7 @@ class AnalyserDflowfm():
 
         return one_fm_filename, missing_data
 
-    def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity, display):
+    def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity):
         if xykm is None:
             # keep all nodes and faces
             keep = numpy.full(xn.shape, True)
@@ -130,8 +185,7 @@ class AnalyserDflowfm():
             nni = None
         else:
             dnmax = 3000.0
-            if display:
-                ApplicationSettingsHelper.log_text('-- identify region of interest')
+            self._logger.log_identify_region_of_interest()
             # add call to dfastbe.io.clip_path_to_kmbounds?
             print("buffer")
             xybuffer = xykm.buffer(dnmax)
@@ -163,31 +217,27 @@ class AnalyserDflowfm():
 
             # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
             # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
-            if display:
-                ApplicationSettingsHelper.log_text('-- project')
+            self._logger.log_project()
             sni, nni = self._proj_xy_line(xni, yni, xyline)
             sfi = dfastmi.batch.Face.face_mean(sni, FNCi)
 
             # determine chainage values of each cell
-            if display:
-                ApplicationSettingsHelper.log_text('-- chainage')
+            self._logger.log_chainage()
 
             # determine line direction for each cell
-            if display:
-                ApplicationSettingsHelper.log_text('-- direction')
+            self._logger.log_direction()
             dxi, dyi = self._get_direction(xyline, sfi)
 
-            if display:
-                ApplicationSettingsHelper.log_text('-- done')
+            self._logger.log_done()
 
         return XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
 
-    def _get_dzq(self, report, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
+    def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
         dzq = [None] * len(discharges)
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
                 if not missing_data and discharges[i] is not None:
-                    dzq[i] = self._get_values_fm(i+1, discharges[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
+                    dzq[i] = self._get_values_fm(i+1, discharges[i], ucrit, filenames[i], n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
                         missing_data = True
                 else:
@@ -210,24 +260,21 @@ class AnalyserDflowfm():
                             n_fields_request = n_fields
                         else:
                             n_fields_request = 1
-                        dzq[i] = self._get_values_fm(i+1, q, ucrit, report, filenames[key], n_fields_request, dxi, dyi, iface)
+                        dzq[i] = self._get_values_fm(i+1, q, ucrit, filenames[key], n_fields_request, dxi, dyi, iface)
                     else:
-                        if t > 0:
-                            ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=report)
-                        else:
-                            ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=report)
-                        ApplicationSettingsHelper.log_text("end_program", file=report)
+                        self._logger.report_missing_calculation_dzq_values(q, t)
                         missing_data = True
                 else:
                     dzq[i] = 0
         return missing_data,dzq
+
+
 
     def _get_values_fm(
         self,
         stage: int,
         q: float,
         ucrit: float,
-        report: TextIO,
         filenames: Tuple[str, str],
         n_fields: int,
         dx: numpy.ndarray,
@@ -245,8 +292,6 @@ class AnalyserDflowfm():
             Discharge value.
         ucrit : float
             Critical flow velocity.
-        report : TextIO
-            Text stream for log file.
         filenames : Tuple[str, str]
             Names of the reference simulation file and file with the implemented measure.
         n_fields : int
@@ -265,20 +310,17 @@ class AnalyserDflowfm():
         """
         # reference file
         if filenames[0] == "":
-            ApplicationSettingsHelper.log_text("no_file_specified", dict={"q": q}, file=report)
-            ApplicationSettingsHelper.log_text("end_program", file=report)
+            self._logger.report_file_not_specified(q)
             return None
         elif not os.path.isfile(filenames[0]):
-            ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filenames[0]}, file=report)
-            ApplicationSettingsHelper.log_text("end_program", file=report)
+            self._logger.report_file_not_found(filenames[0])
             return None
         else:
             pass
 
         # file with measure implemented
         if not os.path.isfile(filenames[1]):
-            ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filenames[1]}, file=report)
-            ApplicationSettingsHelper.log_text("end_program", file=report)
+            self._logger.report_file_not_found(filenames[1])
             return None
         else:
             pass
