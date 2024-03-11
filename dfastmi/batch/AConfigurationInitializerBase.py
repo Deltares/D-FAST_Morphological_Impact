@@ -1,3 +1,31 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2024 Stichting Deltares.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation version 2.1.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+contact: delft3d.support@deltares.nl
+Stichting Deltares
+P.O. Box 177
+2600 MH Delft, The Netherlands
+
+All indications and logos of, and references to, "Delft3D" and "Deltares"
+are registered trademarks of Stichting Deltares, and remain the property of
+Stichting Deltares. All rights reserved.
+
+INFORMATION
+This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
+"""
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from typing import Tuple
@@ -8,6 +36,8 @@ from dfastmi.kernel.typehints import BoolVector, Vector
 
 
 class AConfigurationInitializerBase(ABC):
+    """
+    """
     
     def __init__(self, reach : IReach, config: ConfigParser):
         """
@@ -29,22 +59,21 @@ class AConfigurationInitializerBase(ABC):
         self.init(reach, config)
         self._set_slenght()
 
-    
     @property
     def discharges(self) -> Vector:
         """Array of discharges (Q); one for each forcing condition [m3/s]."""
         return self._discharges
-    
+
     @property
     def rsigma(self) -> Vector:
         """A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-]."""
         return self._rsigma
-    
+
     @property
     def q_threshold(self) -> float:
         """River discharge at which the measure becomes active [m3/s]."""
         return self._q_threshold
-    
+
     @property
     def tstag(self) -> float:
         """Fraction of year during which flow velocity is considered negligible [-]."""
@@ -99,7 +128,9 @@ class AConfigurationInitializerBase(ABC):
     def init(self,
         reach: IReach,
         config: ConfigParser) -> None:
-        """"""
+        """
+        Will initialize the config for this reach
+        """
 
     def _set_ucrit(self, reach : IReach, config: ConfigParser):
         try:

@@ -31,7 +31,7 @@ from typing import List, Tuple
 import math
 import numpy
 
-from packaging import Version
+from packaging.version import Version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.io.RiversObject import RiversObject
 

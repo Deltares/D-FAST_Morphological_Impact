@@ -66,8 +66,8 @@ class ConfigurationCheckerFactory:
         raise ValueError(f"No ConfigurationChecker constructor registered for version {configuration_version}")
 
 legacy_version = Version("1.0")
-ConfigurationCheckerFactory.register_creator(legacy_version, lambda: ConfigurationCheckerLegacy() )
+ConfigurationCheckerFactory.register_creator(legacy_version, ConfigurationCheckerLegacy)
 
 correct_version = Version("2.0")
-ConfigurationCheckerFactory.register_creator(correct_version, lambda: ConfigurationChecker())
+ConfigurationCheckerFactory.register_creator(correct_version, ConfigurationChecker)
 

@@ -1,9 +1,35 @@
-from typing import List
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2024 Stichting Deltares.
 
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation version 2.1.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+contact: delft3d.support@deltares.nl
+Stichting Deltares
+P.O. Box 177
+2600 MH Delft, The Netherlands
+
+All indications and logos of, and references to, "Delft3D" and "Deltares"
+are registered trademarks of Stichting Deltares, and remain the property of
+Stichting Deltares. All rights reserved.
+
+INFORMATION
+This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
+"""
+from typing import List
 
 from configparser import ConfigParser
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
-from dfastmi.io.IReach import IReach
 
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.kernel.legacy import char_discharges, char_times
@@ -14,12 +40,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
     """
     Determine discharges, times, etc. for version 1 analysis
     """
-    # def __init__(self, reach : IReach, config: ConfigParser):
-    #     """
-    #     """
-    #     self._q_bankfull : float = 0.0
-    #     super().__init__(reach, config)
-    
+
     def init(
         self,
         reach: ReachLegacy,
@@ -66,11 +87,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self._set_discharges(reach, config, reach.qstagnant, self.q_threshold, celerity_hg, celerity_lw, reach.normal_width)
         self._time_mi = tuple(0 if self.discharges[i] is None or self.discharges[i]<= reach.qstagnant else self.time_fractions_of_the_year[i] for i in range(len(self.time_fractions_of_the_year)))
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
-
-        #self._n_fields = 1 # default 1?
-        #self._tide_bc: Tuple[str, ...] = () # default?
-
-        
 
     def _set_discharges(
         self,
@@ -127,8 +143,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         q_list = self._discharge_from_config(config, three_characteristic_discharges, self.apply_q)
         self._discharges = (q_list[0], q_list[1], q_list[2])
 
-       
-
     def _discharge_from_config(self, config : ConfigParser, three_characteristic_discharges : QRuns, apply_q : BoolVector) -> List:
         """
         Tuple of (at most) three characteristic discharges [m3/s].
@@ -184,7 +198,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             if self._is_float_str(q_bankfull):
                 q_bankfull = float(q_bankfull)
         return q_bankfull
-    
+
     def _get_q_threshold_from_config(self, config):
         """
         Get the simulation discharge threshold from configuration in batch mode (no user interaction).

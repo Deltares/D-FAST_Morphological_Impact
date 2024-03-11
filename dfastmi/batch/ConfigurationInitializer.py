@@ -1,3 +1,31 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2024 Stichting Deltares.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation version 2.1.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+contact: delft3d.support@deltares.nl
+Stichting Deltares
+P.O. Box 177
+2600 MH Delft, The Netherlands
+
+All indications and logos of, and references to, "Delft3D" and "Deltares"
+are registered trademarks of Stichting Deltares, and remain the property of
+Stichting Deltares. All rights reserved.
+
+INFORMATION
+This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
+"""
 import math
 from typing import List, Tuple
 
@@ -15,11 +43,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
     """
     Determine discharges, times, etc. for version 2 analysis
     """
-
-   
-
-    
-    
     def init(
         self,
         reach: Reach,
@@ -74,9 +97,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         self._needs_tide = reach.use_tide
         if self.needs_tide:
             self._tide_bc = reach.tide_boundary_condition
-        
-    
-    
+
     def _get_tide(self, reach: Reach, config: ConfigParser):
         if reach.use_tide:
             try:
@@ -92,6 +113,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
     @staticmethod
     def get_bed_celerity(reach : Reach, discharges :Vector) -> Vector:
         """
+        Will create a vector of values each representing the bed celerity for the period given by the corresponding entry in discharge (Q) [m/s] by the celerity type (via a discharge or via legacy using properties).
         """
         cform = reach.celer_form
         celerity = ()
@@ -102,7 +124,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         elif cform == 2:
             cdisch = reach.celer_object.cdisch
             celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in discharges)
-         
+
          # set the celerity equal to 0 for discharges less or equal to qstagnant
         celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.qstagnant] for i in range(len(discharges)))
         

@@ -35,6 +35,7 @@ import os
 import math
 import numpy
 import matplotlib
+from packaging.version import Version
 
 from dfastmi.batch.ConfigurationInitializerFactory import ConfigurationInitializerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
@@ -57,7 +58,7 @@ from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
 import dfastmi.kernel.core
 import dfastmi.plotting
-from packaging.version import Version
+
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
@@ -116,7 +117,7 @@ def batch_mode_core(
     """
     display = False
     data = DFastMIConfigParser(config)
-    
+
     # check outputdir
     rootdir = _get_root_dir(rootdir)
     outputdir = _get_output_dir(rootdir, display, data)
@@ -152,7 +153,7 @@ def batch_mode_core(
                 rootdir,
                 outputdir,
                 gui
-            )           
+            )
 
     ApplicationSettingsHelper.log_text("end", file=report)
     report.close()
@@ -171,8 +172,6 @@ def _get_riverkm_options(display : bool, data: DFastMIConfigParser):
         kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
         if display:
             ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
-    
-        
     return xykline,kmfile,xykm,kmbounds
 
 def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmfile:str, xykline:numpy.ndarray, kmbounds:Tuple[float,float]):
@@ -218,7 +217,7 @@ def _set_output_figure_dir(rootdir, display, data, saveplot):
         else:
             figdir.mkdir()
     else:
-        figdir = '' 
+        figdir = ''
     return str(figdir)
 
 def _get_figure_ext(data, saveplot):
@@ -260,7 +259,7 @@ def _log_report_mode_usage(config:ConfigParser, report:TextIO) -> int:
     return imode
 
 def _get_verion(rivers, config):
-    cfg_version = config.get("General", "Version", fallback="")    
+    cfg_version = config.get("General", "Version", fallback="")
     if Version(cfg_version) != rivers.version:
         raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
     cfg_version = Version(cfg_version)
@@ -305,14 +304,14 @@ def _count_discharges(discharges: Vector) -> int:
 
 def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
     factory = FileNameRetrieverFactory()
-    factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
-    factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
+    factory.register_creator(Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
+    factory.register_creator(Version("2.0"), FileNameRetriever)
     return factory
 
 def get_filenames(
     imode: int,
     needs_tide: bool,
-    config: Optional[configparser.ConfigParser] = None,
+    config: Optional[ConfigParser] = None,
 ) -> Dict[Any, Tuple[str,str]]:
     """
     Extract the list of six file names from the configuration.
@@ -337,24 +336,24 @@ def get_filenames(
         conditions, such as a Discharge and Tide forcing tuple.
     """
     factory = _initialize_file_name_retriever_factory()
-    
+
     if imode != 0:
         general_version = config.get("General", "Version", fallback= None)
     else:
         general_version = None
 
     if general_version:
-        file_name_retriever_version = version.Version(general_version)
+        file_name_retriever_version = Version(general_version)
     else:
         file_name_retriever_version = None
-        
+
     file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
     return file_name_retriever.get_file_names(config)
 
 def _analyse_and_report(
-    config : configparser.ConfigParser,
+    config : ConfigParser,
     data : DFastMIConfigParser,
-    cfg_version : version.Version,
+    cfg_version : Version,
     branch : IBranch,
     reach: IReach,
     display: bool,
@@ -426,15 +425,15 @@ def _analyse_and_report(
     -------
     success : bool
         Flag indicating whether analysis could be carried out.
-    """    
+    """
     initialized_config = ConfigurationInitializerFactory.generate(cfg_version, reach, config)
-    
+
     xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
     old_zmin_zmax = False
-    
-    # set plotting flags            
+
+    # set plotting flags
     plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
-    
+
     imode = _log_report_mode_usage(config, report)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
     success = False
@@ -509,7 +508,7 @@ def write_report(
     q_stagnant: float,
     tstag: float,
     q_fit: Tuple[float, float],
-    Q: Vector,
+    discharges: Vector,
     t: Vector,
     slength: float,
 ) -> None:
@@ -534,8 +533,8 @@ def write_report(
         Fraction of year during which the flow velocity is negligible.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    Q : Vector
-        A tuple of 3 discharges for which simulation results are (expected to be) available.
+    discharges : Vector
+        A tuple of 3 discharges (Q) for which simulation results are (expected to be) available.
     t : Vector
         A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
     slength : float
@@ -564,10 +563,10 @@ def write_report(
         )
         ApplicationSettingsHelper.log_text("", file=report)
     for i in range(3):
-        if not Q[i] is None:
+        if not discharges[i] is None:
             ApplicationSettingsHelper.log_text(
                 "char_discharge",
-                dict={"n": i + 1, "q": Q[i], "border": q_location},
+                dict={"n": i + 1, "q": discharges[i], "border": q_location},
                 file=report,
             )
             if i < 2:
@@ -583,21 +582,21 @@ def write_report(
                 ApplicationSettingsHelper.log_text("", file=report)
             else:
                 ApplicationSettingsHelper.log_text("---", file=report)
-    nQ = _count_discharges(Q)
-    if nQ == 1:
+    number_of_discharges = _count_discharges(discharges)
+    if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach}, file=report)
     else:
         ApplicationSettingsHelper.log_text(
-            "need_multiple_input", dict={"reach": reach, "numq": nQ}, file=report,
+            "need_multiple_input", dict={"reach": reach, "numq": number_of_discharges}, file=report,
         )
 
     stagenames = ["lowwater", "transition", "highwater"]
     # Code name of the discharge level.
 
     for i in range(3):
-        if not Q[i] is None:
+        if not discharges[i] is None:
             ApplicationSettingsHelper.log_text(
-                stagenames[i], dict={"q": Q[i], "border": q_location}, file=report
+                stagenames[i], dict={"q": discharges[i], "border": q_location}, file=report
             )
     ApplicationSettingsHelper.log_text("---", file=report)
     if slength > 1:

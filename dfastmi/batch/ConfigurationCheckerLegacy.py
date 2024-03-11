@@ -27,7 +27,6 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
-from typing import List, Optional, Tuple
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
 from dfastmi.batch.ConfigurationInitializerLegacy import ConfigurationInitializerLegacy
@@ -35,8 +34,6 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.legacy import char_discharges, char_times
-from dfastmi.kernel.typehints import BoolVector, QRuns, Vector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
