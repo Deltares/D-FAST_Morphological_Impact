@@ -201,10 +201,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         p_do = 1.0
         p_th = math.exp(min(0.0, q_fit[0] - max(q_stagnant, q_threshold))/q_fit[1])
 
-        t = [0.0] * len(q)  # Initialize t list
-        tmi = [0.0] * len(q)  # Initialize tmi list
-        p_do = 1.0  # Initial value for p_do
-
         for i, discharge in enumerate(q):
             if discharge <= q_stagnant:
                 if i < len(q) - 1 and q[i + 1] > q_stagnant:
