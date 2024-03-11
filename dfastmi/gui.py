@@ -36,6 +36,7 @@ from functools import partial
 import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
+from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
 from dfastmi.batch.DFastUtils import check_configuration
 import dfastmi.batch.core
 from dfastmi.io.Reach import Reach
@@ -47,7 +48,6 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 rivers: RiversObject
 dialog: Dict[str, PyQt5.QtCore.QObject]
-
 
 def gui_text(key: str, prefix: str = "gui_", dict: Dict[str, Any] = {}):
     """
@@ -377,13 +377,14 @@ def update_qvalues(reach:Reach) -> None:
             dialog[prefix+"qval"].setText(qval)
             tabs.setTabText(1+j,qval+" m3/s")
             
-    try:
-        nwidth = reach.normal_width
+    try:        
         q_threshold = float(dialog["qthr"].text())
-        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
+        time_fractions_of_the_year = ConfigurationInitializer.get_time_fractions_of_the_year(reach.hydro_t)
+        time_mi = ConfigurationInitializer.get_time_mi(q_threshold, reach.hydro_q, time_fractions_of_the_year)
+        celerity = ConfigurationInitializer.get_bed_celerity(reach, reach.hydro_q)
         slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
-    except:
+    except Exception as e:
         dialog["slength"].setText("---")
 
 
@@ -449,8 +450,8 @@ def load_configuration(filename: str) -> None:
         Name of the configuration file to be opened.
     """
     try:
-        config = ConfigFileOperations.load_configuration_file(filename)
-    except:
+       config = ConfigFileOperations.load_configuration_file(filename)
+    except Exception as e:
         if filename != "dfastmi.cfg":
             showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
         return
@@ -640,7 +641,7 @@ def menu_open_manual():
     subprocess.Popen(filename, shell=True)
 
 
-def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> None:
+def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) -> None:
     """
     Start the program for selected river system and optional configuration.
 
@@ -662,9 +663,9 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
     create_dialog()
     dialog["branch"].addItems([branch.name for branch in rivers.branches])
 
-    if not config is None:
-        load_configuration(config)
-
+    if not config_file is None:
+        load_configuration(config_file)
+    
     activate_dialog()
 
 

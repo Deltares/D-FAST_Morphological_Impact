@@ -201,8 +201,8 @@ class RiversObject():
                 qfit = reach.qfit
                 self._verify_consistency_HydroQ_and_HydroT(hydro_q, hydro_t, auto_time, qfit, branch.name, reach.name)
 
-                use_tide = reach.tide
-                tide_boundary_condition = reach.tide_bc
+                use_tide = reach.use_tide
+                tide_boundary_condition = reach.tide_boundary_condition
                 self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch.name, reach.name)
                 
                 celer_form = reach.celer_form                
@@ -292,9 +292,9 @@ class RiversObject():
         # for AutoTime = False
         reach.hydro_t = river_data.read_key(Tuple[float, ...], "HydroT", reach)
 
-        reach.tide = river_data.read_key(bool, "Tide", reach, False)
+        reach.use_tide = river_data.read_key(bool, "Tide", reach, False)
         # for Tide = True
-        reach.tide_bc = river_data.read_key(Tuple[str, ...], "TideBC", reach)
+        reach.tide_boundary_condition = river_data.read_key(Tuple[str, ...], "TideBC", reach)
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:

@@ -38,6 +38,7 @@ import matplotlib
 from packaging import version
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+from dfastmi.batch.ConfigurationInitializerFactory import ConfigurationInitializerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.IBranch import IBranch
@@ -45,7 +46,7 @@ from dfastmi.io.IReach import IReach
 from dfastmi.io.Reach import Reach
 
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import Vector, BoolVector
+from dfastmi.kernel.typehints import Vector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
@@ -234,16 +235,7 @@ def _get_figure_ext(data, saveplot):
         plot_ext = ''
     return plot_ext
 
-def _get_ucrit(config, reach):
-    try:
-        ucrit = float(config.get("General", "Ucrit", fallback=""))
-    except ValueError:
-        ucrit = reach.ucritical
-    ucrit_min = 0.01
-    ucrit = max(ucrit_min, ucrit)
-    return ucrit
-
-def _log_report_usage(config, report) -> int:
+def _log_report_mode_usage(config:configparser.ConfigParser, report:TextIO) -> int:
     """
 
     Return
@@ -252,9 +244,9 @@ def _log_report_usage(config, report) -> int:
         Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
 
     """
-    mode_str = config["General"].get("Mode",DFLOWFM_MAP)
+    mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
     if mode_str == WAQUA_EXPORT:
-        mode = 0
+        imode = 0
         ApplicationSettingsHelper.log_text(
                     "results_with_input_waqua",
                     file=report,
@@ -265,14 +257,14 @@ def _log_report_usage(config, report) -> int:
                     },
                 )
     else:
-        mode = 1
+        imode = 1
         ApplicationSettingsHelper.log_text(
                     "results_with_input_dflowfm",
                     file=report,
                     dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
                 )
         
-    return mode
+    return imode
 
 def _get_verion(rivers, config):
     cfg_version = config.get("General", "Version", fallback="")    
@@ -441,19 +433,8 @@ def analyse_and_report(
     -------
     success : bool
         Flag indicating whether analysis could be carried out.
-    """
-    [discharges,
-     apply_q,
-     tide_bc,
-     q_threshold,
-     tstag,
-     T,
-     rsigma,
-     n_fields,
-     slength] = _initialize_core_run(config, ConfigurationCheckerFactory.generate(cfg_version), reach)
-    
-    ucrit = _get_ucrit(config, reach)
-    needs_tide = reach.use_tide if isinstance(reach, Reach) else False
+    """    
+    initialized_config = ConfigurationInitializerFactory.generate(cfg_version, reach, config)
     
     xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
     old_zmin_zmax = False
@@ -461,20 +442,20 @@ def analyse_and_report(
     # set plotting flags            
     plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
     
-    imode = _log_report_usage(config, report)
-    filenames = get_filenames(imode, needs_tide, config)
+    imode = _log_report_mode_usage(config, report)
+    filenames = get_filenames(imode, initialized_config.needs_tide, config)
     success = False
     if imode == 0:
         success = AnalyserAndReporterWaqua.analyse_and_report_waqua(
             display,
             report,
             reduced_output,
-            tstag,
-            discharges,
-            apply_q,
-            T,
-            rsigma,
-            ucrit,
+            initialized_config.tstag,
+            initialized_config.discharges,
+            initialized_config.apply_q,
+            initialized_config.time_fractions_of_the_year,
+            initialized_config.rsigma,
+            initialized_config.ucrit,
             old_zmin_zmax,
             outputdir,
         )
@@ -484,27 +465,27 @@ def analyse_and_report(
             report,
             reach,
             branch.qlocation,
-            q_threshold,
-            tstag,
-            discharges,
-            apply_q,
-            T,
-            rsigma,
-            slength,
+            initialized_config.q_threshold,
+            initialized_config.tstag,
+            initialized_config.discharges,
+            initialized_config.apply_q,
+            initialized_config.time_fractions_of_the_year,
+            initialized_config.rsigma,
+            initialized_config.slength,
             reach.normal_width,
-            ucrit,
+            initialized_config.ucrit,
             filenames,
             xykm,
-            reach.use_tide if isinstance(reach, Reach) else False,
-            n_fields,
-            tide_bc,
+            initialized_config.needs_tide,
+            initialized_config.n_fields,
+            initialized_config.tide_bc,
             old_zmin_zmax,
             kmbounds,
             outputdir,
             plotops,
         )
 
-    _log_length_estimate(report, slength)
+    _log_length_estimate(report, initialized_config.slength)
 
     _finalize_plotting(plotops, gui)
 

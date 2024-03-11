@@ -1,0 +1,215 @@
+import math
+from typing import List, Tuple
+
+from configparser import ConfigParser
+
+import numpy
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.io.Reach import Reach
+
+from dfastmi.kernel.core import get_celerity, relax_factors
+from dfastmi.kernel.typehints import Vector
+
+
+class ConfigurationInitializer(AConfigurationInitializerBase):
+    """
+    Determine discharges, times, etc. for version 2 analysis
+    """
+
+   
+
+    
+    
+    def init(
+        self,
+        reach: Reach,
+        config: ConfigParser
+    ) -> None:
+        """
+        Determine discharges, times, etc. for version 2 analysis
+
+        Arguments
+        ---------
+        reach : ReachLegacy
+            The reach we want to get the levels from.
+        config : configparser.ConfigParser
+            Configuration of the analysis to be run.
+        nwidth : float
+            Normal river width (from rivers configuration file) [m].
+
+        Return
+        ------
+        discharges : Vector
+            Array of discharges (Q); one for each forcing condition [m3/s].
+        apply_q : BoolVector
+            A list of flags indicating whether the corresponding entry in Q should be used.
+        q_threshold : float
+            River discharge at which the measure becomes active [m3/s].
+        time_mi : Vector
+            A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+        tstag : float
+            Fraction of year during which flow velocity is considered negligible [-].
+        fractions_of_the_year : Vector
+            A vector of values each representing the fraction of the year (T) during which the discharge is given by the corresponding entry in Q [-].
+        rsigma : Vector
+            A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+        celerity : Vector
+            A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
+        n_fields : int
+            An int stating the number of fields
+        """       
+        
+        self._set_q_threshold(config, reach.qstagnant)
+        self._discharges = reach.hydro_q
+        self._apply_q = (True,) * len(self.discharges)
+        self._set_fraction_times(reach, self.q_threshold, self.discharges)
+        
+        # determine the bed celerity based on the input settings
+        self._celerity = self.get_bed_celerity(reach, self.discharges)
+
+        self._rsigma = relax_factors(self.discharges, self.time_fractions_of_the_year, reach.qstagnant, self.celerity, reach.normal_width)
+        self._tstag = 0.0
+        
+        self._n_fields = self._get_tide(reach, config)
+        self._needs_tide = reach.use_tide
+        if self.needs_tide:
+            self._tide_bc = reach.tide_boundary_condition
+        
+    
+    
+    def _get_tide(self, reach: Reach, config: ConfigParser):
+        if reach.use_tide:
+            try:
+                n_fields = int(config.get("General", "NFields", fallback=""))
+            except ValueError:
+                n_fields = 1 # Or should I raise ValueError exception?
+            if n_fields == 1:
+                raise ValueError("Unexpected combination of tides and NFields = 1!")
+        else:
+            n_fields = 1
+        return n_fields
+
+    @staticmethod
+    def get_bed_celerity(reach : Reach, discharges :Vector) -> Vector:
+        """
+        """
+        cform = reach.celer_form
+        celerity = ()
+        if cform == 1:
+            prop_q = reach.celer_object.prop_q
+            prop_c = reach.celer_object.prop_c
+            celerity = tuple(get_celerity(q, prop_q, prop_c) for q in discharges)
+        elif cform == 2:
+            cdisch = reach.celer_object.cdisch
+            celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in discharges)
+         
+         # set the celerity equal to 0 for discharges less or equal to qstagnant
+        celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.qstagnant] for i in range(len(discharges)))
+        
+        # check if all celerities are equal to 0. If so, the impact would be 0.
+        all_zero = True
+        for i, discharge in enumerate(discharges):
+            if celerity[i] < 0.0:
+                raise ValueError(f"Invalid negative celerity {celerity[i]} m/s encountered for discharge {discharge} m3/s!")
+            if celerity[i] > 0.0:
+                all_zero = False
+        if all_zero:
+            raise ValueError("The celerities can't all be equal to zero for a measure to have any impact!")
+        return celerity
+
+    def _set_fraction_times(self, reach:Reach, q_threshold, discharges):
+        if reach.autotime:
+            self._set_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
+        else:
+            self._time_fractions_of_the_year = self.get_time_fractions_of_the_year(reach.hydro_t)
+            self._time_mi = self.get_time_mi(q_threshold, discharges, self.time_fractions_of_the_year)
+
+    @staticmethod
+    def get_time_fractions_of_the_year(time_fractions_of_the_year : List[float]) -> Vector:
+        """
+        """
+        sum_of_time_fractions_of_the_year = sum(time_fractions_of_the_year)
+        time_fractions_of_the_year = tuple(t / sum_of_time_fractions_of_the_year for t in time_fractions_of_the_year)
+        return time_fractions_of_the_year
+
+    @staticmethod
+    def get_time_mi(q_threshold: float, discharges: Vector, time_fractions_of_the_year: Vector):
+        return tuple(0 if discharges[i]<q_threshold else time_fractions_of_the_year[i] for i in range(len(time_fractions_of_the_year)))
+
+    def _set_q_threshold(self, config, q_stagnant):
+        if "Qthreshold" in config["General"]:
+            try:
+                q_threshold = float(config.get("General", "Qthreshold", fallback=""))
+            except ValueError:
+                q_threshold = q_stagnant # Or should I raise ValueError exception?
+        else:
+            q_threshold = q_stagnant
+        self._q_threshold = q_threshold
+
+    def _set_times(self, discharges: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> None:
+        """
+        Get the representative time span for each discharge.
+
+        Arguments
+        ---------
+        discharges : Vector
+            a vector of discharges (Q) included in hydrograph [m3/s].
+        q_fit : float
+            A discharge and dicharge change determining the discharge exceedance curve [m3/s].
+        q_stagnant : float
+            Discharge below which flow conditions are stagnant [m3/s].
+        q_threshold : float
+            Discharge below which the measure has no effect (due to measure design) [m3/s].
+
+        Results
+        -------
+        time_fractions_of_the_year : Vector
+            A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+        time_mi : Vector
+            A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
+        """
+        
+        # make sure that the discharges are sorted low to high
+        qvec = numpy.array(discharges)
+        sorted_qvec = numpy.argsort(qvec)
+        q = qvec[sorted_qvec]
+        
+        t = numpy.zeros(q.shape)
+        tmi = numpy.zeros(q.shape)
+        p_do = 1.0
+        p_th = math.exp(min(0.0, q_fit[0] - max(q_stagnant, q_threshold))/q_fit[1])
+
+        t = [0.0] * len(q)  # Initialize t list
+        tmi = [0.0] * len(q)  # Initialize tmi list
+        p_do = 1.0  # Initial value for p_do
+
+        for i, discharge in enumerate(q):
+            if discharge <= q_stagnant:
+                if i < len(q) - 1 and q[i + 1] > q_stagnant:
+                    q_up = q_stagnant
+                    p_up = math.exp(min(0.0, q_fit[0] - q_up) / q_fit[1])
+                else:
+                    p_up = 1.0
+            elif i < len(q) - 1:
+                q_up = math.sqrt(discharge * q[i + 1])
+                p_up = math.exp(min(0.0, q_fit[0] - q_up) / q_fit[1])
+            else:
+                p_up = 0.0
+            
+            t[i] = p_do - p_up
+            
+            if discharge <= q_threshold:
+                tmi[i] = max(0.0, p_th - p_up)
+            else:
+                tmi[i] = min(p_th, p_do) - p_up
+            
+            p_do = p_up
+        
+        # correct in case the sorting of the discharges changed the order
+        tvec = numpy.zeros(q.shape)
+        tvec[sorted_qvec] = t
+        self._time_fractions_of_the_year = tuple(ti for ti in tvec)
+
+        tvec_mi = numpy.zeros(q.shape)
+        tvec_mi[sorted_qvec] = tmi
+        self._time_mi = tuple(ti for ti in tvec_mi)

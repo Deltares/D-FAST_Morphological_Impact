@@ -27,7 +27,6 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 from typing import Callable
-from packaging import version
 from packaging.version import Version
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationChecker import ConfigurationChecker
@@ -66,9 +65,9 @@ class ConfigurationCheckerFactory:
             return constructor()
         raise ValueError(f"No ConfigurationChecker constructor registered for version {configuration_version}")
 
-legacy_version = version.parse("1.0")
-ConfigurationCheckerFactory.register_creator(legacy_version, lambda: ConfigurationCheckerLegacy())
+legacy_version = Version("1.0")
+ConfigurationCheckerFactory.register_creator(legacy_version, lambda: ConfigurationCheckerLegacy() )
 
-correct_version = version.parse("2.0")
+correct_version = Version("2.0")
 ConfigurationCheckerFactory.register_creator(correct_version, lambda: ConfigurationChecker())
 
