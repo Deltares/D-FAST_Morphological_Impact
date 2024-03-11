@@ -74,7 +74,6 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         except ValueError:
             return False
 
-        nwidth = reach.normal_width
         initialized_config = ConfigurationInitializerLegacy(reach, config)
 
         mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
