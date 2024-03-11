@@ -61,6 +61,6 @@ class ConfigurationCheckerValidator:
         """
         validate_method = self._validators.get(mode, self._unsupported)
         return validate_method(config, i)
-    
+
     def _unsupported(self, config: configparser.ConfigParser, i : int) -> bool:
         return False

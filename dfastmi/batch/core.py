@@ -181,7 +181,7 @@ def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmf
     kmzoom = []
     xyzoom = []
     closeplot = False
-    
+
     plotting = data.config_get(bool, "General", "Plotting", False)
     if plotting:
         saveplot = data.config_get(bool, "General", "SavePlots", True)
@@ -189,19 +189,19 @@ def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmf
             saveplot_zoomed = data.config_get(bool, "General", "SaveZoomPlots", False)
             zoom_km_step = max(1.0, math.floor((kmbounds[1]-kmbounds[0])/10.0))
             zoom_km_step = data.config_get(float, "General", "ZoomStepKM", zoom_km_step)
-            
+
         if zoom_km_step < 0.01:
             saveplot_zoomed = False
-        
+
         if saveplot_zoomed:
             kmzoom, xyzoom = get_zoom_extends(kmbounds[0], kmbounds[1], zoom_km_step, xykline)
-        
+
         closeplot = data.config_get(bool, "General", "ClosePlots", False)
-    
+
     # as appropriate check output dir for figures and file format
     figdir = _set_output_figure_dir(rootdir, display, data, saveplot)
     plot_ext = _get_figure_ext(data, saveplot)
-            
+
     plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
     return plotops
 
@@ -221,7 +221,7 @@ def _set_output_figure_dir(rootdir, display, data, saveplot):
     return str(figdir)
 
 def _get_figure_ext(data, saveplot):
-    if saveplot:        
+    if saveplot:
         plot_ext = data.config_get(str, "General", "FigureExt", ".png")
     else:
         plot_ext = ''
@@ -255,7 +255,6 @@ def _log_report_mode_usage(config:ConfigParser, report:TextIO) -> int:
                     file=report,
                     dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
                 )
-        
     return imode
 
 def _get_verion(rivers, config):
