@@ -6,9 +6,9 @@ def face_all(bn: numpy.ndarray, face_node_connectivity: numpy.ndarray) -> numpy.
         bf = bn[face_node_connectivity].all(axis=1)
     else:
         # varying number of nodes
-        face_node_connectivity = face_node_connectivity.data
-        face_node_connectivity[face_node_connectivity.mask] = 0
-        bfn = numpy.ma.array(bn[face_node_connectivity], mask=face_node_connectivity.mask)
+        face_node_connectivity_data = face_node_connectivity.data
+        face_node_connectivity_data[face_node_connectivity.mask] = 0
+        bfn = numpy.ma.array(bn[face_node_connectivity_data], mask=face_node_connectivity.mask)
         bf = bfn.all(axis=1)
 
     return bf
@@ -19,9 +19,9 @@ def face_mean(vn: numpy.ndarray, face_node_connectivity: numpy.ndarray) -> numpy
         vf = vn[face_node_connectivity].mean(axis=1)
     else:
         # varying number of nodes
-        face_node_connectivity = face_node_connectivity.data
-        face_node_connectivity[face_node_connectivity.mask] = 0
-        vfn = numpy.ma.array(vn[face_node_connectivity], mask=face_node_connectivity.mask)
+        face_node_connectivity_data = face_node_connectivity.data
+        face_node_connectivity_data[face_node_connectivity.mask] = 0
+        vfn = numpy.ma.array(vn[face_node_connectivity_data], mask=face_node_connectivity.mask)
         vf = vfn.all(axis=1)
 
     return vf
