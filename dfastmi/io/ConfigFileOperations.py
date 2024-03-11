@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 import os
-from packaging import version
+from packaging.version import Version
 
 from dfastmi.io.FileUtils import FileUtils
 
@@ -172,7 +172,7 @@ class ConfigFileOperations:
         if len(file_version) == 0 :
             raise LookupError("No version information in the file!")
 
-        if not (version.parse(file_version) == version.parse("1") or version.parse(file_version) == version.parse("2")):
+        if not (Version(file_version) == Version("1") or Version(file_version) == Version("2")):
             raise ValueError(f"Unsupported version number {file_version} in the file!")
 
         rootdir = os.path.dirname(filename)

@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import configparser
 from typing import List, Tuple
 import zlib
-from packaging import version
+from packaging.version import Version
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
@@ -42,7 +42,7 @@ from dfastmi.io.ReachLegacy import ReachLegacy
 
 class RiversObject():
     branches: List[IBranch]
-    version: version # type: ignore
+    version: Version # type: ignore
 
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)
@@ -136,9 +136,9 @@ class RiversObject():
         except:
             raise Exception("No version information in the file {}!".format(filename))
 
-        if version.parse(file_version) == version.parse("1"):
+        if Version(file_version) == Version("1"):
             iversion = 1
-        elif version.parse(file_version) == version.parse("2"):
+        elif Version(file_version) == Version("2"):
             iversion = 2
         else:
             raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
@@ -152,7 +152,7 @@ class RiversObject():
         and their associated default parameter settings.
         """
               
-        self.version = version.parse("1.0")
+        self.version = Version("1.0")
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize(river_data, reach)
@@ -184,7 +184,7 @@ class RiversObject():
         filename : str
             The name of the river configuration file (default "rivers.ini").    
         """
-        self.version = version.parse("2.0")
+        self.version = Version("2.0")
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize(river_data, reach)

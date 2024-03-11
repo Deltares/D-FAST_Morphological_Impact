@@ -1,5 +1,5 @@
 import pytest
-from packaging import version
+from packaging.version import Version
 from dfastmi.batch.FileNameRetriever import FileNameRetriever
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
 from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
@@ -9,8 +9,8 @@ class Test_FileNameRetrieverFactory():
     @pytest.fixture
     def factory(self) -> FileNameRetrieverFactory:
         factory = FileNameRetrieverFactory()
-        factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
-        factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
+        factory.register_creator(Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
+        factory.register_creator(Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
         return factory
 
     @pytest.mark.parametrize("string_version", [
@@ -25,7 +25,7 @@ class Test_FileNameRetrieverFactory():
         when :  generate 
         then  : return FileNameRetrieverLegacy
         """
-        file_name_retriever_version = version.Version(string_version)
+        file_name_retriever_version = Version(string_version)
         needs_tide = True
         file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
         assert isinstance(file_name_retriever, FileNameRetrieverLegacy)
@@ -40,7 +40,7 @@ class Test_FileNameRetrieverFactory():
         when :  generate 
         then  : return FileNameRetriever
         """
-        file_name_retriever_version = version.Version("2.0")
+        file_name_retriever_version = Version("2.0")
         file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
         assert isinstance(file_name_retriever, FileNameRetriever)
 
@@ -56,7 +56,7 @@ class Test_FileNameRetrieverFactory():
         when :  generate 
         then  : return FileNameRetrieverLegacy
         """
-        file_name_retriever_version = version.Version(string_version)
+        file_name_retriever_version = Version(string_version)
         file_name_retriever = factory.generate(file_name_retriever_version, True)
         assert isinstance(file_name_retriever, FileNameRetriever)
 
@@ -71,6 +71,6 @@ class Test_FileNameRetrieverFactory():
         then  : return FileNameRetrieverUnsupported
         """
         needs_tide = True
-        file_name_retriever_version = version.Version(string_version)
+        file_name_retriever_version = Version(string_version)
         file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
         assert isinstance(file_name_retriever, FileNameRetrieverUnsupported)

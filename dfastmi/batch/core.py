@@ -27,23 +27,20 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from configparser import ConfigParser
 from pathlib import Path
 from typing import Optional, Dict, Any, Tuple, TextIO
 import sys
 import os
 import math
-import configparser
 import numpy
 import matplotlib
-from packaging import version
-from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
-from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+
 from dfastmi.batch.ConfigurationInitializerFactory import ConfigurationInitializerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
-from dfastmi.io.Reach import Reach
 
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector
@@ -60,6 +57,7 @@ from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
 import dfastmi.kernel.core
 import dfastmi.plotting
+from packaging.version import Version
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
@@ -92,7 +90,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
         batch_mode_core(rivers, reduced_output, config, rootdir = rootdir)
 
 def batch_mode_core(
-    rivers: RiversObject, reduced_output: bool, config: configparser.ConfigParser, rootdir: str = "", gui: bool = False
+    rivers: RiversObject, reduced_output: bool, config: ConfigParser, rootdir: str = "", gui: bool = False
 ) -> bool:
     """
     Run the analysis for a given configuration in batch mode.
@@ -142,7 +140,7 @@ def batch_mode_core(
             )
             success = False
         else:
-            success = analyse_and_report(
+            success = _analyse_and_report(
                 config,
                 data,
                 cfg_version,
@@ -160,11 +158,6 @@ def batch_mode_core(
     report.close()
 
     return success
-
-def _initialize_core_run(config:configparser.ConfigParser, config_checker : AConfigurationCheckerBase, reach:IReach):
-    [discharges, apply_q, q_threshold, time_mi, tstag, fraction_of_times_per_condition, rsigma, celerity, n_fields, tide_bc] = config_checker.get_levels(reach, config, reach.normal_width)
-    slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
-    return discharges,apply_q,tide_bc,q_threshold,tstag,fraction_of_times_per_condition,rsigma,n_fields,slength
 
 def _get_riverkm_options(display : bool, data: DFastMIConfigParser):
     xykline = numpy.ndarray(shape=(3,0))
@@ -235,7 +228,7 @@ def _get_figure_ext(data, saveplot):
         plot_ext = ''
     return plot_ext
 
-def _log_report_mode_usage(config:configparser.ConfigParser, report:TextIO) -> int:
+def _log_report_mode_usage(config:ConfigParser, report:TextIO) -> int:
     """
 
     Return
@@ -268,9 +261,9 @@ def _log_report_mode_usage(config:configparser.ConfigParser, report:TextIO) -> i
 
 def _get_verion(rivers, config):
     cfg_version = config.get("General", "Version", fallback="")    
-    if version.parse(cfg_version) != rivers.version:
+    if Version(cfg_version) != rivers.version:
         raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
-    cfg_version = version.parse(cfg_version)
+    cfg_version = Version(cfg_version)
     return cfg_version
 
 def _core_initialize(report):
@@ -293,21 +286,21 @@ def _get_root_dir(rootdir):
         rootdir = os.getcwd()
     return rootdir
 
-def countQ(Q: Vector) -> int:
+def _count_discharges(discharges: Vector) -> int:
     """
     Count the number of non-empty discharges.
 
     Arguments
     ---------
-    Q : Vector
-        Tuple of (at most) three characteristic discharges.
+    discharges : Vector
+        Tuple of (at most) three characteristic discharges (Q).
 
     Returns
     -------
     n : int
         Number of non-empty discharges.
     """
-    return sum([not q is None for q in Q])
+    return sum([not q is None for q in discharges])
 
 
 def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
@@ -358,7 +351,7 @@ def get_filenames(
     file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
     return file_name_retriever.get_file_names(config)
 
-def analyse_and_report(
+def _analyse_and_report(
     config : configparser.ConfigParser,
     data : DFastMIConfigParser,
     cfg_version : version.Version,
@@ -590,7 +583,7 @@ def write_report(
                 ApplicationSettingsHelper.log_text("", file=report)
             else:
                 ApplicationSettingsHelper.log_text("---", file=report)
-    nQ = countQ(Q)
+    nQ = _count_discharges(Q)
     if nQ == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach}, file=report)
     else:

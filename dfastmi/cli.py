@@ -484,7 +484,7 @@ def write_report_nodata(
         Flag indicating whether the program should be closed.
     """
     ApplicationSettingsHelper.log_text("---")
-    nQ = dfastmi.batch.core.countQ(Q)
+    nQ = dfastmi.batch.core._count_discharges(Q)
     if nQ == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:

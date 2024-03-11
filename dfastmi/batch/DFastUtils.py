@@ -31,7 +31,7 @@ from typing import List, Tuple
 import math
 import numpy
 
-from packaging import version
+from packaging import Version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.io.RiversObject import RiversObject
 
@@ -157,7 +157,7 @@ def check_configuration(rivers: RiversObject, config: ConfigParser) -> bool:
     cfg_version = config.get("General", "Version", fallback=None)
 
     try:
-        configuration_version = version.parse(cfg_version)
+        configuration_version = Version(cfg_version)
         configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
         return configuration_checker.check_configuration(rivers, config)
     except SystemExit as e:
