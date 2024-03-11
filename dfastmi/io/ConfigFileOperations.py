@@ -27,11 +27,14 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
+from configparser import ConfigParser
 import os
 from pathlib import Path
 from packaging.version import Version
+from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 
 from dfastmi.io.FileUtils import FileUtils
+from dfastmi.io.RiversObject import RiversObject
 
 class ConfigFileOperations:
     @staticmethod
@@ -232,3 +235,31 @@ class ConfigFileOperations:
         relative_path = config.get(section, key, fallback="")
         relative_path_converted_to_absolute_path = FileUtils.absolute_path(rootdir, relative_path)
         config.set(section, key, relative_path_converted_to_absolute_path)
+
+
+def check_configuration(rivers: RiversObject, config: ConfigParser) -> bool:
+    """
+    Check if an analysis configuration is valid.
+
+    Arguments
+    ---------
+    rivers: RiversObject
+        An object containing the river data.
+    config : configparser.ConfigParser
+        Configuration for the D-FAST Morphological Impact analysis.
+
+    Returns
+    -------
+    success : bool
+        Boolean indicating whether the D-FAST MI analysis configuration is valid.
+    """
+    cfg_version = config.get("General", "Version", fallback=None)
+
+    try:
+        configuration_version = Version(cfg_version)
+        configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
+        return configuration_checker.check_configuration(rivers, config)
+    except SystemExit as e:
+        raise e
+    except:
+        return False

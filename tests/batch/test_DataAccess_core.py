@@ -3,8 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 import pytest
 from dfastmi.batch.ConfigurationCheckerLegacy import WAQUA_EXPORT, DFLOWFM_MAP
-from dfastmi.batch.DFastUtils import check_configuration
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 
 from dfastmi.io.RiversObject import RiversObject
 from configparser import ConfigParser

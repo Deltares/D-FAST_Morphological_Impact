@@ -37,7 +37,7 @@ import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
-from dfastmi.batch.DFastUtils import check_configuration
+from dfastmi.io.ConfigFileOperations import check_configuration
 import dfastmi.batch.core
 from dfastmi.io.Reach import Reach
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
