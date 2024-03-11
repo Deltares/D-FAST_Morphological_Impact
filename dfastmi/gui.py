@@ -384,7 +384,7 @@ def update_qvalues(reach:Reach) -> None:
         celerity = ConfigurationInitializer.get_bed_celerity(reach, reach.hydro_q)
         slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
-    except Exception as e:
+    except:
         dialog["slength"].setText("---")
 
 
@@ -451,7 +451,7 @@ def load_configuration(filename: str) -> None:
     """
     try:
        config = ConfigFileOperations.load_configuration_file(filename)
-    except Exception as e:
+    except:
         if filename != "dfastmi.cfg":
             showError(gui_text("file_not_found", prefix="", dict={"name": filename}))
         return
@@ -663,7 +663,7 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
     create_dialog()
     dialog["branch"].addItems([branch.name for branch in rivers.branches])
 
-    if not config_file is None:
+    if config_file:
         load_configuration(config_file)
     
     activate_dialog()
