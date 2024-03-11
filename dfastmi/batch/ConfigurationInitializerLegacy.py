@@ -84,7 +84,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         celerity_lw = reach.proprate_low
         self._q_threshold = self._get_q_threshold_from_config(config)
         
-        self._set_discharges(reach, config, reach.qstagnant, self.q_threshold, celerity_hg, celerity_lw, reach.normal_width)
+        self._set_discharges(reach, config, celerity_hg, celerity_lw)
         self._time_mi = tuple(0 if self.discharges[i] is None or self.discharges[i]<= reach.qstagnant else self.time_fractions_of_the_year[i] for i in range(len(self.time_fractions_of_the_year)))
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
 
@@ -92,11 +92,8 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self,
         reach : ReachLegacy,
         config: ConfigParser,
-        q_stagnant: float,
-        q_threshold: float,
         celerity_hg: float,
-        celerity_lw: float,
-        nwidth: float,
+        celerity_lw: float
     ) -> None :
         """
         Get the simulation discharges in batch mode (no user interaction).
@@ -113,10 +110,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             Bed celerity during transitional and flood periods (from rivers configuration file) [m/s].
         celerity_lw : float
             Bed celerity during low flow period (from rivers configuration file) [m/s].
-        nwidth : float
-            Normal river width (from rivers configuration file) [m].        
-        q_threshold : Optional[float]
-            River discharge at which the measure becomes active [m3/s].
         
         Results
         -------
@@ -132,12 +125,12 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         rsigma : Vector
             A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
         """
-        q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, reach.qlevels)
+        q_bankfull = self._get_q_bankfull_from_config(config, self.q_threshold, reach.qlevels)
 
-        three_characteristic_discharges, self._apply_q = char_discharges(reach.qlevels, reach.dq, q_threshold, q_bankfull)
+        three_characteristic_discharges, self._apply_q = char_discharges(reach.qlevels, reach.dq, self.q_threshold, q_bankfull)
 
         self._tstag, self._time_fractions_of_the_year, self._rsigma = char_times(
-            reach.qfit, q_stagnant, three_characteristic_discharges, celerity_hg, celerity_lw, nwidth
+            reach.qfit, reach.qstagnant, three_characteristic_discharges, celerity_hg, celerity_lw, reach.normal_width
         )
 
         q_list = self._discharge_from_config(config, three_characteristic_discharges, self.apply_q)
