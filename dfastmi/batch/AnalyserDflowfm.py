@@ -80,12 +80,12 @@ class AnalyserDflowfm():
         # determine the name of the first FM data file that will be used
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
-                if not missing_data and not discharges[i] is None:
+                if not missing_data and discharges[i] is not None:
                     one_fm_filename = filenames[i][0]
                     break
         else: # the keys are the conditions
             for i in range(len(discharges)):
-                if not missing_data and not discharges[i] is None:
+                if not missing_data and discharges[i] is not None:
                     q = discharges[i]
                     if needs_tide:
                         t = tide_bc[i]
@@ -186,7 +186,7 @@ class AnalyserDflowfm():
         dzq = [None] * len(discharges)
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
-                if not missing_data and not discharges[i] is None:
+                if not missing_data and discharges[i] is not None:
                     dzq[i] = self._get_values_fm(i+1, discharges[i], ucrit, report, filenames[i], n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
                         missing_data = True
@@ -194,7 +194,7 @@ class AnalyserDflowfm():
                     dzq[i] = 0
         else: # the keys are the conditions
             for i in range(len(discharges)):
-                if not missing_data and not discharges[i] is None:
+                if not missing_data and discharges[i] is not None:
                     q = discharges[i]
                     if needs_tide:
                         t = tide_bc[i]
@@ -283,7 +283,6 @@ class AnalyserDflowfm():
         else:
             pass
 
-        dzq = 0.
         ifld: Optional[int]
         if n_fields > 1:
             ustream_pos = numpy.zeros(dx.shape)
