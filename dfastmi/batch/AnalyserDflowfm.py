@@ -255,7 +255,7 @@ class AnalyserDflowfm():
         if 0 in filenames.keys(): # the keys are 0,1,2
             for i in range(3):
                 if not missing_data and discharges[i] is not None:
-                    dzq[i] = self._get_values_fm(i+1, discharges[i], ucrit, filenames[i], n_fields, dxi, dyi, iface)
+                    dzq[i] = self._get_values_fm(discharges[i], ucrit, filenames[i], n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
                         missing_data = True
                 else:
@@ -278,7 +278,7 @@ class AnalyserDflowfm():
                             n_fields_request = n_fields
                         else:
                             n_fields_request = 1
-                        dzq[i] = self._get_values_fm(i+1, q, ucrit, filenames[key], n_fields_request, dxi, dyi, iface)
+                        dzq[i] = self._get_values_fm(q, ucrit, filenames[key], n_fields_request, dxi, dyi, iface)
                     else:
                         self._logger.report_missing_calculation_dzq_values(q, t)
                         missing_data = True
@@ -288,7 +288,6 @@ class AnalyserDflowfm():
 
     def _get_values_fm(
         self,
-        stage: int,
         q: float,
         ucrit: float,
         filenames: Tuple[str, str],
@@ -302,8 +301,6 @@ class AnalyserDflowfm():
 
         Arguments
         ---------
-        stage : int
-            Discharge level (1, 2 or 3).
         q : float
             Discharge value.
         ucrit : float
