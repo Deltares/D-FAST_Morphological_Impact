@@ -8,10 +8,53 @@ import netCDF4
 import numpy
 import os
 
-class ReporterDflowfm():
-    def report(self, display, outputdir, plotops, report_data : OutputDataDflowfm):
-        if display:
+class _ReporterDflowfmLogger():
+    def __init__(self, display : bool):
+        self.display = display
+        
+    def log_compute_initial_year_dredging(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
+
+    def log_writing_output(self):
+        if self.display:
             ApplicationSettingsHelper.log_text('writing_output')
+
+    def print_sedimentation_and_erosion(self, sedimentation_data):
+        if self.display:
+            if sedimentation_data.sedvol.shape[1] > 0:
+                print("Estimated sedimentation volume per area using 3 methods")
+                print("                              Max:             Method 1:        Method 2:       ")
+                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+                for i in range(sedimentation_data.sedvol.shape[1]):
+                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.sedarea[i], sedimentation_data.sedvol[0,i], sedimentation_data.sedvol[1,i], sedimentation_data.sedvol[2,i]))
+                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedvol[0,:].max(), sedimentation_data.sedvol[1,:].max(), sedimentation_data.sedvol[2,:].max()))
+                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedarea.sum(), sedimentation_data.sedvol[0,:].sum(), sedimentation_data.sedvol[1,:].sum(), sedimentation_data.sedvol[2,:].sum()))
+
+            if sedimentation_data.sedvol.shape[1] > 0 and sedimentation_data.erovol.shape[1] > 0:
+                print("")
+
+            if sedimentation_data.erovol.shape[1] > 0:
+                print("Estimated erosion volume per area using 3 methods")
+                print("                              Max:             Method 1:        Method 2:       ")
+                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+                for i in range(sedimentation_data.erovol.shape[1]):
+                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.eroarea[i], sedimentation_data.erovol[0,i], sedimentation_data.erovol[1,i], sedimentation_data.erovol[2,i]))
+                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.erovol[0,:].max(), sedimentation_data.erovol[1,:].max(), sedimentation_data.erovol[2,:].max()))
+                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.eroarea.sum(), sedimentation_data.erovol[0,:].sum(), sedimentation_data.erovol[1,:].sum(), sedimentation_data.erovol[2,:].sum()))
+
+    def print_replacing_coordinates(self):
+        print("replacing coordinates")
+
+class ReporterDflowfm():
+    
+    _logger : _ReporterDflowfmLogger
+    
+    def __init__(self, display : bool):
+        self._logger = _ReporterDflowfmLogger(display)
+    
+    def report(self, outputdir, plotops, report_data : OutputDataDflowfm):
+        self._logger.log_writing_output()
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(report_data.one_fm_filename)
         dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
         GridOperations.copy_ugrid(report_data.one_fm_filename, meshname, dst)
@@ -25,11 +68,12 @@ class ReporterDflowfm():
 
         self._plot_data(plotops, report_data.xykm_data.xni, report_data.xykm_data.yni, report_data.xykm_data.FNCi, report_data.xykm_data.xmin, report_data.xykm_data.xmax, report_data.xykm_data.ymin, report_data.xykm_data.ymax, report_data.xykm_data.xykline, report_data.dzgemi)
 
-        if display:
-            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
+        self._logger.log_compute_initial_year_dredging()
 
         if report_data.xykm_data.xykm is not None:
-            self._grid_update_xykm(display, outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, report_data.xykm_data.iface, report_data.xykm_data.interest_region, meshname, facedim, nc_fill, report_data.sedimentation_data)
+            self._grid_update_xykm(outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, report_data.xykm_data.iface, report_data.xykm_data.interest_region, meshname, facedim, nc_fill, report_data.sedimentation_data)
+
+
 
     def _grid_update(self, rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh):
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
@@ -104,13 +148,13 @@ class ReporterDflowfm():
             )
 
     def _replace_coordinates_in_destination_file(self, xn, inode, sni, nni, meshname, nc_fill, projmesh):
-        print("replacing coordinates")
+        self._logger.print_replacing_coordinates()
         sn = numpy.repeat(nc_fill, xn.shape[0])
         sn[inode]=sni
         nn = numpy.repeat(nc_fill, xn.shape[0])
         nn[inode]=nni
 
-                # open destination file
+        # open destination file
         dst = netCDF4.Dataset(projmesh, "a")
         dst.variables[meshname + '_node_x'][:] = sn[:]
         dst.variables[meshname + '_node_y'][:] = nn[:]
@@ -146,28 +190,8 @@ class ReporterDflowfm():
                 figfile = figbase + plotops['plot_ext']
                 dfastmi.plotting.savefig(fig, figfile)
 
-    def _grid_update_xykm(self, display, outputdir, one_fm_filename, FNC, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : SedimentationData):
-        if display:
-            if sedimentation_data.sedvol.shape[1] > 0:
-                print("Estimated sedimentation volume per area using 3 methods")
-                print("                              Max:             Method 1:        Method 2:       ")
-                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                for i in range(sedimentation_data.sedvol.shape[1]):
-                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.sedarea[i], sedimentation_data.sedvol[0,i], sedimentation_data.sedvol[1,i], sedimentation_data.sedvol[2,i]))
-                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedvol[0,:].max(), sedimentation_data.sedvol[1,:].max(), sedimentation_data.sedvol[2,:].max()))
-                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedarea.sum(), sedimentation_data.sedvol[0,:].sum(), sedimentation_data.sedvol[1,:].sum(), sedimentation_data.sedvol[2,:].sum()))
-
-            if sedimentation_data.sedvol.shape[1] > 0 and sedimentation_data.erovol.shape[1] > 0:
-                print("")
-
-            if sedimentation_data.erovol.shape[1] > 0:
-                print("Estimated erosion volume per area using 3 methods")
-                print("                              Max:             Method 1:        Method 2:       ")
-                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                for i in range(sedimentation_data.erovol.shape[1]):
-                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.eroarea[i], sedimentation_data.erovol[0,i], sedimentation_data.erovol[1,i], sedimentation_data.erovol[2,i]))
-                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.erovol[0,:].max(), sedimentation_data.erovol[1,:].max(), sedimentation_data.erovol[2,:].max()))
-                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.eroarea.sum(), sedimentation_data.erovol[0,:].sum(), sedimentation_data.erovol[1,:].sum(), sedimentation_data.erovol[2,:].sum()))
+    def _grid_update_xykm(self, outputdir, one_fm_filename, FNC, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : SedimentationData):
+        self._logger.print_sedimentation_and_erosion(sedimentation_data)
 
         projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
         GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)

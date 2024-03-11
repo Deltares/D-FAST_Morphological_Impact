@@ -114,7 +114,7 @@ def analyse_and_report_dflowfm(
     if missing_data:
         return missing_data
     
-    reporter = ReporterDflowfm()
-    reporter.report(display, outputdir, plotops, report_data)
+    reporter = ReporterDflowfm(display)
+    reporter.report(outputdir, plotops, report_data)
 
     return not missing_data
