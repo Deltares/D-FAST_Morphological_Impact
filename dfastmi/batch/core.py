@@ -284,7 +284,7 @@ def _get_root_dir(rootdir):
         rootdir = os.getcwd()
     return rootdir
 
-def _count_discharges(discharges: Vector) -> int:
+def count_discharges(discharges: Vector) -> int:
     """
     Count the number of non-empty discharges.
 
@@ -298,7 +298,7 @@ def _count_discharges(discharges: Vector) -> int:
     n : int
         Number of non-empty discharges.
     """
-    return sum([not q is None for q in discharges])
+    return sum([q is not None for q in discharges])
 
 
 def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
@@ -546,7 +546,7 @@ def write_report(
     ApplicationSettingsHelper.log_text("", file=report)
     ApplicationSettingsHelper.log_text("reach", dict={"reach": reach}, file=report)
     ApplicationSettingsHelper.log_text("", file=report)
-    if not q_threshold is None:
+    if q_threshold is not None:
         ApplicationSettingsHelper.log_text(
             "report_qthreshold",
             dict={"q": q_threshold, "border": q_location},
@@ -562,7 +562,7 @@ def write_report(
         )
         ApplicationSettingsHelper.log_text("", file=report)
     for i in range(3):
-        if not discharges[i] is None:
+        if discharges[i] is not None:
             ApplicationSettingsHelper.log_text(
                 "char_discharge",
                 dict={"n": i + 1, "q": discharges[i], "border": q_location},
@@ -581,7 +581,7 @@ def write_report(
                 ApplicationSettingsHelper.log_text("", file=report)
             else:
                 ApplicationSettingsHelper.log_text("---", file=report)
-    number_of_discharges = _count_discharges(discharges)
+    number_of_discharges = count_discharges(discharges)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach}, file=report)
     else:
@@ -593,7 +593,7 @@ def write_report(
     # Code name of the discharge level.
 
     for i in range(3):
-        if not discharges[i] is None:
+        if discharges[i] is not None:
             ApplicationSettingsHelper.log_text(
                 stagenames[i], dict={"q": discharges[i], "border": q_location}, file=report
             )

@@ -292,7 +292,7 @@ class Test_batch_countq():
         ([None, None, None, None, None], 0),
     ])    
     def given_vector_with_discharges_when_countq_then_return_expected_amount_of_non_empty_discharges(self, vector_data: Vector, expected_non_empty_discharges_count: int):
-        assert dfastmi.batch.core._count_discharges(vector_data) == expected_non_empty_discharges_count
+        assert dfastmi.batch.core.count_discharges(vector_data) == expected_non_empty_discharges_count
  
 class Test_batch_write_report():   
     @pytest.mark.parametrize("slength", [
