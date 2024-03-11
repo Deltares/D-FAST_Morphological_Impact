@@ -1,32 +1,32 @@
 import numpy
 
-def face_all(bn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
-    if FNC.mask.shape == ():
+def face_all(bn: numpy.ndarray, face_node_connectivity: numpy.ndarray) -> numpy.ndarray:
+    if face_node_connectivity.mask.shape == ():
         # all faces have the same number of nodes
-        bf = bn[FNC].all(axis=1)
+        bf = bn[face_node_connectivity].all(axis=1)
     else:
         # varying number of nodes
-        fnc = FNC.data
-        fnc[FNC.mask] = 0
-        bfn = numpy.ma.array(bn[fnc], mask=FNC.mask)
+        face_node_connectivity = face_node_connectivity.data
+        face_node_connectivity[face_node_connectivity.mask] = 0
+        bfn = numpy.ma.array(bn[face_node_connectivity], mask=face_node_connectivity.mask)
         bf = bfn.all(axis=1)
 
     return bf
 
-def face_mean(vn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
-    if FNC.mask.shape == ():
+def face_mean(vn: numpy.ndarray, face_node_connectivity: numpy.ndarray) -> numpy.ndarray:
+    if face_node_connectivity.mask.shape == ():
         # all faces have the same number of nodes
-        vf = vn[FNC].mean(axis=1)
+        vf = vn[face_node_connectivity].mean(axis=1)
     else:
         # varying number of nodes
-        fnc = FNC.data
-        fnc[FNC.mask] = 0
-        vfn = numpy.ma.array(vn[fnc], mask=FNC.mask)
+        face_node_connectivity = face_node_connectivity.data
+        face_node_connectivity[face_node_connectivity.mask] = 0
+        vfn = numpy.ma.array(vn[face_node_connectivity], mask=face_node_connectivity.mask)
         vf = vfn.all(axis=1)
 
     return vf
 
-def filter_faces_by_face_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, condition: numpy.ndarray) -> [numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+def filter_faces_by_face_condition(xn: numpy.ndarray, yn: numpy.ndarray, face_node_connectivity: numpy.ma.masked_array, condition: numpy.ndarray) -> [numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     """
     Reduces the mesh to only those cells in which the condition is True. 
 
@@ -36,7 +36,7 @@ def filter_faces_by_face_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: nu
         Array of length K containing the x-coordinates of the mesh nodes [m or deg east].
     yn : numpy.ndarray
         Array of length K containing the y-coordinate of the mesh nodes [m or deg north].
-    FNC : numpy.ma.masked_array
+    face_node_connectivity : numpy.ma.masked_array
         Masked M x N array containing the indices of (max N) corner nodes for each of the M cells [-].
         Node indices are 0-based, hence the maximum node index is K-1.
     condition : numpy.ndarray
@@ -48,7 +48,7 @@ def filter_faces_by_face_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: nu
         Array of length K2 <= K containing the x-coordinates of the reduced mesh nodes [m or deg east].
     ryn : numpy.ndarray
         Array of length K2 <= K containing the y-coordinate of the reduced mesh nodes [m or deg north].
-    rFNC : numpy.ma.masked_array
+    renumbered_face_node_connectivity : numpy.ma.masked_array
         Masked M2 x N2 array containing the indices of (max N2) corner nodes for each of the M2 <= M cells [-].
         Node indices are 0-based, hence the maximum node index is K2-1.
     iface : numpy.ndarray
@@ -57,22 +57,22 @@ def filter_faces_by_face_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: nu
         Array of length K2 containing the indices of the nodes to keep [-]. 
     """
     iface = numpy.where(condition)[0]
-    FNCi = FNC[iface]
-    inode = numpy.unique(FNCi.flatten())
+    face_node_connectivity_index = face_node_connectivity[iface]
+    inode = numpy.unique(face_node_connectivity_index.flatten())
     if len(inode) == 0:
         inode_max = 0
     else:
         inode_max = inode.max()
 
-    FNCi.data[FNCi.mask] = 0
+    face_node_connectivity_index.data[face_node_connectivity_index.mask] = 0
     renum = numpy.zeros(inode_max + 1, dtype=numpy.int64)
     renum[inode] = range(len(inode))
-    rFNCi = numpy.ma.masked_array(renum[FNCi], mask=FNCi.mask)
+    renumbered_face_node_connectivity = numpy.ma.masked_array(renum[face_node_connectivity_index], mask=face_node_connectivity_index.mask)
 
-    return xn[inode], yn[inode], rFNCi, iface, inode
+    return xn[inode], yn[inode], renumbered_face_node_connectivity, iface, inode
 
 
-def filter_faces_by_node_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ma.masked_array, condition: numpy.ndarray) -> [numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+def filter_faces_by_node_condition(xn: numpy.ndarray, yn: numpy.ndarray, face_node_connectivity: numpy.ma.masked_array, condition: numpy.ndarray) -> [numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     """
     Reduces the mesh to only those cells in which the condition is True. 
 
@@ -82,7 +82,7 @@ def filter_faces_by_node_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: nu
         Array of length K containing the x-coordinates of the mesh nodes [m or deg east].
     yn : numpy.ndarray
         Array of length K containing the y-coordinate of the mesh nodes [m or deg north].
-    FNC : numpy.ma.masked_array
+    face_node_connectivity : numpy.ma.masked_array
         Masked M x N array containing the indices of (max N) corner nodes for each of the M cells [-].
         Node indices are 0-based, hence the maximum node index is K-1.
     condition : numpy.ndarray
@@ -94,7 +94,7 @@ def filter_faces_by_node_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: nu
         Array of length K2 <= K containing the x-coordinates of the reduced mesh nodes [m or deg east].
     ryn : numpy.ndarray
         Array of length K2 <= K containing the y-coordinate of the reduced mesh nodes [m or deg north].
-    rFNC : numpy.ma.masked_array
+    renumbered_face_node_connectivity : numpy.ma.masked_array
         Masked M2 x N2 array containing the indices of (max N2) corner nodes for each of the M2 <= M cells [-].
         Node indices are 0-based, hence the maximum node index is K2-1.
     iface : numpy.ndarray
@@ -102,28 +102,28 @@ def filter_faces_by_node_condition(xn: numpy.ndarray, yn: numpy.ndarray, FNC: nu
     inode : numpy.ndarray
         Array of length K2 containing the indices of the nodes to keep [-]. 
     """
-    fcondition = face_all(condition, FNC)
-    rxn, ryn, rFNC, iface, inode = filter_faces_by_face_condition(xn, yn, FNC, fcondition)
-    return rxn, ryn, rFNC, iface, inode
+    fcondition = face_all(condition, face_node_connectivity)
+    rxn, ryn, renumbered_face_node_connectivity, iface, inode = filter_faces_by_face_condition(xn, yn, face_node_connectivity, fcondition)
+    return rxn, ryn, renumbered_face_node_connectivity, iface, inode
 
 
-def count_nodes(FNC: numpy.ndarray) -> numpy.ndarray:
-    if FNC.mask.shape == ():
+def count_nodes(face_node_connectivity: numpy.ndarray) -> numpy.ndarray:
+    if face_node_connectivity.mask.shape == ():
         # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int64) * FNC.data.shape[1]
+        nnodes = numpy.ones(face_node_connectivity.data.shape[0], dtype=numpy.int64) * face_node_connectivity.data.shape[1]
     else:
         # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
+        nnodes = face_node_connectivity.mask.shape[1] - face_node_connectivity.mask.sum(axis=1)
 
     return nnodes
 
-def facenode_to_edgeface(FNC: numpy.ndarray) -> numpy.ndarray:
+def facenode_to_edgeface(face_node_connectivity: numpy.ndarray) -> numpy.ndarray:
     """
     Derive face 2 face connectivity from face 2 node connectivity.
 
     Arguments
     ---------
-    FNC : numpy.ma.masked_array
+    face_node_connectivity : numpy.ma.masked_array
         Masked M x N array containing the indices of (max N) corner nodes for each of the M cells.
         Maximum node index is K-1.
 
@@ -132,15 +132,15 @@ def facenode_to_edgeface(FNC: numpy.ndarray) -> numpy.ndarray:
     FFC : numpy.ma.masked_array
         Masked K x 2 array containing the indices of neighbouring cell pairs.
     """
-    nfaces = FNC.shape[0]
-    nnodes = count_nodes(FNC) # nedges equals to nnodes
+    nfaces = face_node_connectivity.shape[0]
+    nnodes = count_nodes(face_node_connectivity) # nedges equals to nnodes
     tot_nedges = nnodes.sum()
 
     edges = numpy.zeros((tot_nedges, 2), dtype=numpy.int64)
     ie = 0
     for i in range(nfaces):
         nni = nnodes[i]
-        fni = FNC[i][0:nni]
+        fni = face_node_connectivity[i][0:nni]
         fni2 = numpy.roll(fni, 1)
 
         m_fni = numpy.reshape(fni,(-1,1))

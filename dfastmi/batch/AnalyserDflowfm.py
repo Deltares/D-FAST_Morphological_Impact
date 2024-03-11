@@ -138,7 +138,7 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedimentation_data = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.FNCi, dzgemi, slength, nwidth, xykm_data.xykline, outputdir, plotops)
+            sedimentation_data = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, slength, nwidth, xykm_data.xykline, outputdir, plotops)
 
         return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
@@ -200,8 +200,8 @@ class AnalyserDflowfm():
         if xykm is None:
             # keep all nodes and faces
             keep = numpy.full(xn.shape, True)
-            xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
-            return XykmData(xykm, xni, yni, FNCi, iface, inode, xn.min(), xn.max(), yn.min(), yn.max(), None, None, None, None, None, None)
+            xni, yni, face_node_connectivity_index, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
+            return XykmData(xykm, xni, yni, face_node_connectivity_index, iface, inode, xn.min(), xn.max(), yn.min(), yn.max(), None, None, None, None, None, None)
         else:
             dnmax = 3000.0
             self._logger.log_identify_region_of_interest()
@@ -223,7 +223,7 @@ class AnalyserDflowfm():
                     keep[i] = False
 
             self._logger.print_apply_filter()
-            xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
+            xni, yni, face_node_connectivity_index, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
             interest_region = numpy.zeros(face_node_connectivity.shape[0], dtype=numpy.int64)
             interest_region[iface] = 1
 
@@ -237,7 +237,7 @@ class AnalyserDflowfm():
             # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
             self._logger.log_project()
             sni, nni = dfastmi.batch.Projection.project_xy_point_onto_line(xni, yni, xyline)
-            sfi = dfastmi.batch.Face.face_mean(sni, FNCi)
+            sfi = dfastmi.batch.Face.face_mean(sni, face_node_connectivity_index)
 
             # determine chainage values of each cell
             self._logger.log_chainage()
@@ -248,7 +248,7 @@ class AnalyserDflowfm():
 
             self._logger.log_done()
 
-            return XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
+            return XykmData(xykm, xni, yni, face_node_connectivity_index, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
 
     def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
         dzq = [None] * len(discharges)

@@ -106,7 +106,7 @@ def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndar
 
     return jbin, wthresh
 
-def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> numpy.ndarray:
+def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, face_node_connectivity: numpy.ndarray) -> numpy.ndarray:
     """
     Compute the surface area of all cells.
 
@@ -116,7 +116,7 @@ def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> n
         Array of length K containing the x-coordinates of the nodes [m].
     yn : numpy.ndarray
         Array of length K containing the y-coordinate of the nodes [m].
-    FNC : numpy.ma.masked_array
+    face_node_connectivity : numpy.ma.masked_array
         Masked M x N array containing the indices of (max N) corner nodes for each of the M cells.
         Maximum node index is K-1.
 
@@ -125,16 +125,16 @@ def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> n
     area : numpy.ndarray
         Array of length M containing the grid cell area [m2].
     """
-    if FNC.mask.shape == ():
+    if face_node_connectivity.mask.shape == ():
         # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int64) * FNC.data.shape[1]
+        nnodes = numpy.ones(face_node_connectivity.data.shape[0], dtype=numpy.int64) * face_node_connectivity.data.shape[1]
     else:
         # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
-    nfaces = FNC.shape[0]
+        nnodes = face_node_connectivity.mask.shape[1] - face_node_connectivity.mask.sum(axis=1)
+    nfaces = face_node_connectivity.shape[0]
     area = numpy.zeros((nfaces,))
     for i in range(nfaces):
-        fni = FNC[i]
+        fni = face_node_connectivity[i]
         nni = nnodes[i]
         xni = xn[fni][0:nni]
         yni = yn[fni][0:nni]
@@ -145,18 +145,18 @@ def xynode_2_area(xn: numpy.ndarray, yn: numpy.ndarray, FNC: numpy.ndarray) -> n
 
     return area
 
-def min_max_s(s, FNC):
-    if FNC.mask.shape == ():
+def min_max_s(s, face_node_connectivity):
+    if face_node_connectivity.mask.shape == ():
         # all faces have the same number of nodes
-        nnodes = numpy.ones(FNC.data.shape[0], dtype=numpy.int64) * FNC.data.shape[1]
+        nnodes = numpy.ones(face_node_connectivity.data.shape[0], dtype=numpy.int64) * face_node_connectivity.data.shape[1]
     else:
         # varying number of nodes
-        nnodes = FNC.mask.shape[1] - FNC.mask.sum(axis=1)
-    nfaces = FNC.shape[0]
+        nnodes = face_node_connectivity.mask.shape[1] - face_node_connectivity.mask.sum(axis=1)
+    nfaces = face_node_connectivity.shape[0]
     min_s = numpy.zeros((nfaces,))
     max_s = numpy.zeros((nfaces,))
     for i in range(nfaces):
-        fni = FNC[i]
+        fni = face_node_connectivity[i]
         nni = nnodes[i]
         sni = s[fni][0:nni]
         min_s[i] = sni.min()
@@ -169,7 +169,7 @@ def comp_sedimentation_volume(
     yni: numpy.ndarray,
     sni: numpy.ndarray,
     dni: numpy.ndarray,
-    FNCi: numpy.ndarray,
+    face_node_connectivity_index: numpy.ndarray,
     dzgemi: numpy.ndarray,
     slength: float,
     nwidth: float,
@@ -202,16 +202,16 @@ def comp_sedimentation_volume(
     nwbins = 10
     sbin_length = 10.0
 
-    areai = xynode_2_area(xni, yni, FNCi)
+    areai = xynode_2_area(xni, yni, face_node_connectivity_index)
 
     print("bin cells in across-stream direction")
     # determine the mean normal distance dfi per cell
-    dfi = dfastmi.batch.Face.face_mean(dni, FNCi)
+    dfi = dfastmi.batch.Face.face_mean(dni, face_node_connectivity_index)
     # distribute the cells over nwbins bins over the channel width
     wbini, wthresh = width_bins(dfi, nwidth, nwbins)
     print("bin cells in along-stream direction")
     # determine the minimum and maximum along line distance of each cell
-    min_sfi, max_sfi = min_max_s(sni, FNCi)
+    min_sfi, max_sfi = min_max_s(sni, face_node_connectivity_index)
     # determine the weighted mapping of cells to chainage bins
     siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
     wbin = wbini[siface]
@@ -221,7 +221,7 @@ def comp_sedimentation_volume(
     sline = dfastmi.batch.Distance.distance_along_line(xykline[:,:2])
     kmid = dfastmi.batch.Distance.distance_to_chainage(sline, xykline[:,2], smid)
 
-    EFCi = dfastmi.batch.Face.facenode_to_edgeface(FNCi)
+    edgeface_index = dfastmi.batch.Face.facenode_to_edgeface(face_node_connectivity_index)
     wght_area_tot = numpy.zeros(dzgemi.shape)
     wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
     plot_n = 3
@@ -230,11 +230,11 @@ def comp_sedimentation_volume(
     xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
-    sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
+    sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
     
     print("-- detecting separate erosion areas")
     xyzfil = ""
     area_str = "erosion area {}"
     total_str = "total erosion volume"
-    eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
+    eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
     return SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini)

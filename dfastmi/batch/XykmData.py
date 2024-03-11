@@ -3,7 +3,7 @@ class XykmData():
                  xykm,
                  xni,
                  yni,
-                 FNCi,
+                 face_node_connectivity_index,
                  iface,
                  inode,
                  xmin,
@@ -19,7 +19,7 @@ class XykmData():
         self.xykm = xykm
         self.xni = xni
         self.yni = yni
-        self.FNCi = FNCi
+        self.face_node_connectivity_index = face_node_connectivity_index
         self.iface = iface
         self.inode = inode
         self.xmin = xmin

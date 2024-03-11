@@ -66,7 +66,7 @@ class ReporterDflowfm():
         if report_data.xykm_data.xykm is not None:
             self._replace_coordinates_in_destination_file(report_data.xn, report_data.xykm_data.inode, report_data.xykm_data.sni, report_data.xykm_data.nni, meshname, nc_fill, projmesh)
 
-        self._plot_data(plotops, report_data.xykm_data.xni, report_data.xykm_data.yni, report_data.xykm_data.FNCi, report_data.xykm_data.xmin, report_data.xykm_data.xmax, report_data.xykm_data.ymin, report_data.xykm_data.ymax, report_data.xykm_data.xykline, report_data.dzgemi)
+        self._plot_data(plotops, report_data.xykm_data.xni, report_data.xykm_data.yni, report_data.xykm_data.face_node_connectivity_index, report_data.xykm_data.xmin, report_data.xykm_data.xmax, report_data.xykm_data.ymin, report_data.xykm_data.ymax, report_data.xykm_data.xykline, report_data.dzgemi)
 
         self._logger.log_compute_initial_year_dredging()
 
@@ -172,18 +172,18 @@ class ReporterDflowfm():
         dst.variables[meshname + '_node_y'][:] = nn[:]
         dst.close()
 
-    def _plot_data(self, plotops, xni, yni, FNCi, xmin, xmax, ymin, ymax, xykline, dzgemi):
+    def _plot_data(self, plotops, xni, yni, face_node_connectivity_index, xmin, xmax, ymin, ymax, xykline, dzgemi):
         if plotops['plotting']:
-            if FNCi.mask.shape == ():
+            if face_node_connectivity_index.mask.shape == ():
                     # all faces have the same number of nodes
-                nnodes = numpy.ones(FNCi.data.shape[0], dtype=numpy.int64) * FNCi.data.shape[1]
+                nnodes = numpy.ones(face_node_connectivity_index.data.shape[0], dtype=numpy.int64) * face_node_connectivity_index.data.shape[1]
             else:
                     # varying number of nodes
-                nnodes = FNCi.mask.shape[1] - FNCi.mask.sum(axis=1)
+                nnodes = face_node_connectivity_index.mask.shape[1] - face_node_connectivity_index.mask.sum(axis=1)
             fig, ax = dfastmi.plotting.plot_overview(
                     (xmin, ymin, xmax, ymax),
                     xykline,
-                    FNCi,
+                    face_node_connectivity_index,
                     nnodes,
                     xni,
                     yni,
@@ -202,7 +202,7 @@ class ReporterDflowfm():
                 figfile = figbase + plotops['plot_ext']
                 dfastmi.plotting.savefig(fig, figfile)
 
-    def _grid_update_xykm(self, outputdir, one_fm_filename, FNC, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : SedimentationData):
+    def _grid_update_xykm(self, outputdir, one_fm_filename, face_node_connectivity, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : SedimentationData):
         self._logger.print_sedimentation_and_erosion(sedimentation_data)
 
         projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
@@ -216,7 +216,7 @@ class ReporterDflowfm():
                     long_name="Region on which the sedimentation analysis was performed",
                 units="1",
                 )
-        sed_area = numpy.repeat(nc_fill, FNC.shape[0])
+        sed_area = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
 
         for i in range(len(sedimentation_data.sed_area_list)):
             sed_area[iface[sedimentation_data.sed_area_list[i] == 1]] = i+1
@@ -229,7 +229,7 @@ class ReporterDflowfm():
                     long_name="Sedimentation area",
                     units="1",
                 )
-        ero_area = numpy.repeat(nc_fill, FNC.shape[0])
+        ero_area = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
 
         for i in range(len(sedimentation_data.ero_area_list)):
             ero_area[iface[sedimentation_data.ero_area_list[i] == 1]] = i+1
@@ -242,7 +242,7 @@ class ReporterDflowfm():
                     long_name="Erosion area",
                     units="1",
                 )
-        wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
+        wght_estimate1 = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         wght_estimate1[iface] = sedimentation_data.wght_estimate1i
         GridOperations.ugrid_add(
                     projmesh,
@@ -253,7 +253,7 @@ class ReporterDflowfm():
                     long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
                     units="1",
                 )
-        wbin = numpy.repeat(nc_fill, FNC.shape[0])
+        wbin = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         wbin[iface] = sedimentation_data.wbini
         GridOperations.ugrid_add(
                     projmesh,
