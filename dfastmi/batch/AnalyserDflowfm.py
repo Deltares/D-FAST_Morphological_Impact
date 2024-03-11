@@ -150,61 +150,61 @@ class AnalyserDflowfm():
         needs_tide: bool,
         tide_bc: Tuple[str, ...],
     ):
-        key: Union[Tuple[float, int], float]
         missing_data = False
         one_fm_filename: Union[None, str] = None
         # determine the name of the first FM data file that will be used
         if 0 in filenames.keys(): # the keys are 0,1,2
-            for i in range(3):
-                if not missing_data and discharges[i] is not None:
-                    one_fm_filename = filenames[i][0]
-                    break
+            one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(discharges, filenames)
         else: # the keys are the conditions
-            for i in range(len(discharges)):
-                if not missing_data and discharges[i] is not None:
-                    q = discharges[i]
-                    if needs_tide:
-                        t = tide_bc[i]
-                        key = (q,t)
-                    else:
-                        t = None
-                        key = q
-                    if rsigma[i] == 1 or discharges[i] <= q_threshold:
-                        # no celerity or measure not active, so ignore field
-                        pass
-                    elif key in filenames.keys():
-                        one_fm_filename = filenames[key][0]
-                        break
-                    else:
-                        self._logger.report_missing_calculation_values(needs_tide, q, t)
-                        missing_data = True
+            one_fm_filename, missing_data = self._get_first_fm_data_filename_based_on_conditions_keys(discharges, filenames, needs_tide, tide_bc, rsigma, q_threshold)
 
         if one_fm_filename is None:
             self._logger.print_measure_not_active_for_checked_conditions()
             missing_data = True
 
         return one_fm_filename, missing_data
+    
+    def _get_first_fm_data_filename_based_on_numbered_keys(self, discharges, filenames):
+        for i in range(3):
+            if discharges[i] is not None:
+                return filenames[i][0]
+        return None
+    
+    def _get_first_fm_data_filename_based_on_conditions_keys(self, discharges, filenames, needs_tide, tide_bc, rsigma, q_threshold):
+        key: Union[Tuple[float, int], float]
+        missing_data = False
+        for i in range(len(discharges)):
+            if not missing_data and discharges[i] is not None:
+                key, q, t = self._get_condition_key(discharges, needs_tide, tide_bc, i)
+                if rsigma[i] == 1 or discharges[i] <= q_threshold:
+                    # no celerity or measure not active, so ignore field
+                    pass
+                elif key in filenames:
+                    return filenames[key][0], missing_data
+                else:
+                    self._logger.report_missing_calculation_values(needs_tide, q, t)
+                    missing_data = True
+        return None, missing_data
+
+    def _get_condition_key(self, discharges, needs_tide, tide_bc, i):
+        q = discharges[i]
+        if needs_tide:
+            t = tide_bc[i]
+            key = (q,t)
+        else:
+            t = None
+            key = q
+        return key,q,t
 
     def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity):
         if xykm is None:
             # keep all nodes and faces
             keep = numpy.full(xn.shape, True)
             xni, yni, FNCi, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
-            xmin = xn.min()
-            xmax = xn.max()
-            ymin = yn.min()
-            ymax = yn.max()
-            dxi = None
-            dyi = None
-            xykline = None
-
-            interest_region = None
-            sni = None
-            nni = None
+            return XykmData(xykm, xni, yni, FNCi, iface, inode, xn.min(), xn.max(), yn.min(), yn.max(), None, None, None, None, None, None)
         else:
             dnmax = 3000.0
             self._logger.log_identify_region_of_interest()
-            # add call to dfastbe.io.clip_path_to_kmbounds?
             self._logger.print_buffer()
             xybuffer = xykm.buffer(dnmax)
             bbox = xybuffer.envelope.exterior
@@ -248,7 +248,7 @@ class AnalyserDflowfm():
 
             self._logger.log_done()
 
-        return XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
+            return XykmData(xykm, xni, yni, FNCi, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
 
     def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
         dzq = [None] * len(discharges)
@@ -263,13 +263,7 @@ class AnalyserDflowfm():
         else: # the keys are the conditions
             for i in range(len(discharges)):
                 if not missing_data and discharges[i] is not None:
-                    q = discharges[i]
-                    if needs_tide:
-                        t = tide_bc[i]
-                        key = (q,t)
-                    else:
-                        t = None
-                        key = q
+                    key, q, t = self._get_condition_key(discharges, needs_tide, tide_bc, i)
                     if rsigma[i] == 1:
                         # no celerity, so ignore field
                         dzq[i] = 0
