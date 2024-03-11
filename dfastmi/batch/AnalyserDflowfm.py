@@ -284,7 +284,7 @@ class AnalyserDflowfm():
                         missing_data = True
                 else:
                     dzq[i] = 0
-        return missing_data,dzq
+        return missing_data, dzq
 
     def _get_values_fm(
         self,
@@ -328,15 +328,11 @@ class AnalyserDflowfm():
         elif not os.path.isfile(filenames[0]):
             self._logger.report_file_not_found(filenames[0])
             return None
-        else:
-            pass
 
         # file with measure implemented
         if not os.path.isfile(filenames[1]):
             self._logger.report_file_not_found(filenames[1])
             return None
-        else:
-            pass
 
         ifld: Optional[int]
         if n_fields > 1:
