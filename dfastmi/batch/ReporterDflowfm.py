@@ -61,7 +61,7 @@ class ReporterDflowfm():
         nc_fill = netCDF4.default_fillvals['f8']
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
 
-        self._grid_update(report_data.rsigma, report_data.one_fm_filename, report_data.face_node_connectivity, report_data.xykm_data.iface, report_data.dzq, report_data.dzgemi, report_data.dzmaxi, report_data.dzmini, report_data.dzbi, report_data.zmax_str, report_data.zmin_str, meshname, facedim, dst, nc_fill, projmesh)
+        self._grid_update(report_data, report_data.xykm_data.iface, meshname, facedim, dst, nc_fill, projmesh)
 
         if report_data.xykm_data.xykm is not None:
             self._replace_coordinates_in_destination_file(report_data.xn, report_data.xykm_data.inode, report_data.xykm_data.sni, report_data.xykm_data.nni, meshname, nc_fill, projmesh)
@@ -75,8 +75,20 @@ class ReporterDflowfm():
 
 
 
-    def _grid_update(self, rsigma, one_fm_filename, FNC, iface, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, meshname, facedim, dst, nc_fill, projmesh):
-        dzgem = numpy.repeat(nc_fill, FNC.shape[0])
+    def _grid_update(self, report_data : OutputDataDflowfm, iface, meshname, facedim, dst, nc_fill, projmesh):
+        
+        rsigma = report_data.rsigma
+        one_fm_filename = report_data.one_fm_filename
+        face_node_connectivity = report_data.face_node_connectivity
+        dzq = report_data.dzq
+        dzgemi = report_data.dzgemi
+        dzmaxi = report_data.dzmaxi
+        dzmini = report_data.dzmini
+        dzbi = report_data.dzbi
+        zmax_str = report_data.zmax_str
+        zmin_str = report_data.zmin_str
+        
+        dzgem = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         dzgem[iface]=dzgemi
         GridOperations.ugrid_add(
                 dst,
@@ -87,7 +99,7 @@ class ReporterDflowfm():
                 long_name="year-averaged bed level change without dredging",
                 units="m",
             )
-        dzmax = numpy.repeat(nc_fill, FNC.shape[0])
+        dzmax = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         dzmax[iface]=dzmaxi
         GridOperations.ugrid_add(
                 dst,
@@ -98,7 +110,7 @@ class ReporterDflowfm():
                 long_name=zmax_str,
                 units="m",
             )
-        dzmin = numpy.repeat(nc_fill, FNC.shape[0])
+        dzmin = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         dzmin[iface]=dzmini
         GridOperations.ugrid_add(
                 dst,
@@ -111,7 +123,7 @@ class ReporterDflowfm():
             )
         for i in range(len(dzbi)):
             j = (i + 1) % len(dzbi)
-            dzb = numpy.repeat(nc_fill, FNC.shape[0])
+            dzb = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
             dzb[iface]=dzbi[j]
             GridOperations.ugrid_add(
                     dst,
@@ -123,7 +135,7 @@ class ReporterDflowfm():
                     units="m",
                 )
             if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
-                dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
+                dzq_full = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
                 dzq_full[iface]=dzq[i]
                 GridOperations.ugrid_add(
                         dst,
