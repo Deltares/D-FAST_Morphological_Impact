@@ -170,7 +170,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         None
         """
         
-        if reach.autotime:
+        if reach.auto_time:
             self._set_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
         else:
             self._time_fractions_of_the_year = self.get_time_fractions_of_the_year(reach.hydro_t)

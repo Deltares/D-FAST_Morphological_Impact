@@ -130,7 +130,7 @@ class Test_read_rivers():
         assert reach1.qstagnant == 50.0
         
         assert reach1.qfit == (10.0, 20.0)
-        assert not reach1.autotime 
+        assert not reach1.auto_time 
         assert reach1.celer_form == 2
         assert isinstance(reach1.celer_object, CelerDischarge)
         assert reach1.celer_object.cdisch == (11.0, 21.0)
@@ -152,7 +152,7 @@ class Test_read_rivers():
         assert reach2.qstagnant == 0.0
         
         assert reach2.qfit == (800.0, 1280.0)
-        assert not reach2.autotime
+        assert not reach2.auto_time
         assert reach2.celer_form == 2
         assert isinstance(reach2.celer_object, CelerDischarge)
         assert reach2.celer_object.cdisch == (11.0, 21.0)
@@ -169,7 +169,7 @@ class Test_read_rivers():
         assert reach3.qstagnant == 1500.0
         
         assert reach3.qfit == (800.0, 1280.0)
-        assert not reach3.autotime
+        assert not reach3.auto_time
         assert reach3.celer_form == 2
         assert isinstance(reach3.celer_object, CelerDischarge)
         assert reach3.celer_object.cdisch == (11.0, 21.0)

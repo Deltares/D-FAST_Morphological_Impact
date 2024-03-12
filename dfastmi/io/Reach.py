@@ -52,3 +52,49 @@ class Reach(AReach):
 
     celer_form : int
     celer_object : ICelerObject = None
+
+    def verify(self):
+        self._verify_consistency_hydro_q_and_hydro_t()
+
+        self._verify_consistency_hydro_q_and_tide_bc()
+
+        if self.celer_object:
+            self.celer_object.verify(self.parent_branch.name, self.name)
+
+        if self.celer_form not in (1,2):
+            raise ValueError(f'Invalid value {self.celer_form} specified for "CelerForm" '
+                             f'for branch "{self.parent_branch.name}", reach "{self.name}";'
+                             f' only 1 and 2 are supported.')
+
+    def _verify_consistency_hydro_q_and_tide_bc(self):        
+        """
+            Verify consistent length of hydro discharge and tide boundary condition values for this branch on this reach.
+        """
+        if self.use_tide:
+            hydro_q_length = len(self.hydro_q)
+            tide_boundary_condition_length = len(self.tide_boundary_condition)
+            if hydro_q_length != tide_boundary_condition_length:
+                raise LookupError(f'Length of "HydroQ" and "TideBC" for branch "{self.parent_branch.name}", '
+                                  f'reach "{self.name}" are not consistent: '
+                                  f'{hydro_q_length} and {tide_boundary_condition_length} '
+                                  f'values read respectively.')
+
+    def _verify_consistency_hydro_q_and_hydro_t(self):
+        """
+            Verify consistent length of hydro_q and hydro_t for this branch on this reach.
+        """        
+        if self.auto_time:
+            self._check_qfit_on_branch_on_reach_with_auto_time()
+        else:            
+            hydro_q_length = len(self.hydro_q)
+            hydro_t_length = len(self.hydro_t)
+            if hydro_q_length != hydro_t_length:
+                raise LookupError(f'Length of "HydroQ" and "HydroT" for branch "{self.parent_branch.name}", '
+                                  f'reach "{self.name}" are not consistent: '
+                                  f'{hydro_q_length} and {hydro_t_length} '
+                                  f'values read respectively.')
+            
+    def _check_qfit_on_branch_on_reach_with_auto_time(self):
+        if self.qfit == (0.0, 0.0):
+            raise ValueError(f'The parameter "QFit" must be specified for branch "{self.parent_branch.name}", '
+                             f'reach "{self.name}" since "AutoTime" is set to True.')               

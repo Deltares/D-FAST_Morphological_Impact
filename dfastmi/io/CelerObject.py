@@ -38,7 +38,7 @@ Classes:
 
 """
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 from dfastmi.kernel.typehints import Vector
 
@@ -46,9 +46,12 @@ from dfastmi.kernel.typehints import Vector
 class ICelerObject(ABC):
     "Interface or abstract base class to the CelerObject."
     @abstractmethod
-    def validate(self):
-        pass
-    
+    def verify(self, branch_name : str, reach_name : str):
+        """
+        Validate the Celerity object.
+
+        """
+        
     @abstractmethod
     def get_celerity(self, discharges : Vector) -> Vector:
         """
@@ -70,18 +73,15 @@ class ICelerObject(ABC):
         pass
 
 class CelerDischarge(ICelerObject):
-    cdisch = tuple[float,float]
+    """
+        Series of discharge, bed celerity pairs
+    """
+    cdisch : Tuple[float,float] = (0.0, 0.0)
     
-    def validate(self):
-        if self.cdisch == (0.0, 0.0):            
-            # raise Exception(
-            #             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
-            #                 branch,
-            #                 reach,
-            #             )
-            #         )
-            return
-    
+    def verify(self, branch_name : str, reach_name : str):
+        if self.cdisch == (0.0, 0.0):
+             raise ValueError(f'The parameter "CelerQ" must be specified for branch "{branch_name}", '
+                              f'reach "{reach_name}" since "CelerForm" is set to 2.')
     def get_celerity(self, discharges : Vector) -> Vector:
         """
         Will create a vector of values each representing the bed celerity for the 
@@ -106,8 +106,11 @@ class CelerDischarge(ICelerObject):
 
 
 class CelerProperties(ICelerObject):
-    prop_q : List[float]
-    prop_c : List[float]
+    """
+        Power-law relation between celerity and discharge
+    """
+    prop_q : List[float] = []
+    prop_c : List[float] = []
 
     def validate(self):
         return super().validate()

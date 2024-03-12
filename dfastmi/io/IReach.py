@@ -52,3 +52,7 @@ class IReach(ABC):
     @abstractmethod
     def config_key_index(self) -> int:
         """Index number of the Reach in the branch"""
+    
+    @abstractmethod
+    def verify(self) -> None:
+        """Verifies the reach"""

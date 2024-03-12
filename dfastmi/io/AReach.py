@@ -63,3 +63,6 @@ class AReach(IReach):
         """Index of the Reach in the branch"""
         return self._config_key_index
     
+    def verify(self):
+        pass
+    
