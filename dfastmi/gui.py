@@ -37,6 +37,7 @@ import pathlib
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
+from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.io.ConfigFileOperations import check_configuration
 import dfastmi.batch.core
 from dfastmi.io.Reach import Reach
@@ -636,7 +637,7 @@ def menu_open_manual():
     ---------
     None
     """
-    progloc = FileUtils.get_progloc()
+    progloc = get_progloc()
     filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
     subprocess.Popen(filename, shell=True)
 
