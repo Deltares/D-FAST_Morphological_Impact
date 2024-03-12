@@ -17,12 +17,13 @@ class AnalyserDflowfm():
     
     _logger : AnalyserDflowfmLogger
     
-    def __init__(self, display : bool, report : TextIO, needs_tide : bool, old_zmin_zmax : bool):
+    def __init__(self, display : bool, report : TextIO, needs_tide : bool, old_zmin_zmax : bool, outputdir : str):
         self._logger = AnalyserDflowfmLogger(display, report)
         self._needs_tide = needs_tide
         self._old_zmin_zmax = old_zmin_zmax
+        self._outputdir = outputdir
     
-    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, n_fields, tide_bc, outputdir, plotops):
+    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, n_fields, tide_bc, plotops):
         missing_data = False
 
         one_fm_filename, missing_data = self._get_first_fm_data_filename(q_threshold, discharges, rsigma, filenames, tide_bc)
@@ -66,7 +67,7 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedimentation_data = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, slength, nwidth, xykm_data.xykline, outputdir, plotops)
+            sedimentation_data = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
 
         return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
