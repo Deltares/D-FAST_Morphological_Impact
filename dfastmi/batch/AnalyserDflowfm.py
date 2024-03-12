@@ -2,97 +2,23 @@ import dfastmi.batch.Distance
 import dfastmi.batch.Face
 import dfastmi.batch.SedimentationVolume
 import dfastmi.batch.Projection
+from dfastmi.batch.DflowFmLoggers import AnalyserDflowfmLogger
 import dfastmi.kernel.core
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.XykmData import XykmData
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
 from dfastmi.kernel.typehints import Vector, BoolVector
 
 import numpy
-import shapely
 import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
-class _AnalyserDflowfmLogger():
-    def __init__(self, display : bool, report : TextIO):
-        self.display = display
-        self.report = report
-
-    def log_char_bed_changes(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text("char_bed_changes")
-
-    def log_load_mesh(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('-- load mesh')
-
-    def log_done(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('-- done')
-
-    def log_direction(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('-- direction')
-
-    def log_chainage(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('-- chainage')
-
-    def log_project(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('-- project')
-
-    def log_identify_region_of_interest(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('-- identify region of interest')
-
-    def report_missing_calculation_values(self, needs_tide, q, t):
-        if needs_tide:
-            ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=self.report)
-        else:
-            ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=self.report)
-        ApplicationSettingsHelper.log_text("end_program", file=self.report)
-
-    def report_missing_calculation_dzq_values(self, q, t):
-        if t > 0:
-            ApplicationSettingsHelper.log_text("no_file_specified_q_and_t", dict={"q": q, "t": t}, file=self.report)
-        else:
-            ApplicationSettingsHelper.log_text("no_file_specified_q_only", dict={"q": q}, file=self.report)
-        ApplicationSettingsHelper.log_text("end_program", file=self.report)
-
-    def report_file_not_specified(self, q):
-        ApplicationSettingsHelper.log_text("no_file_specified", dict={"q": q}, file=self.report)
-        ApplicationSettingsHelper.log_text("end_program", file=self.report)
-
-    def report_file_not_found(self, filename):
-        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": filename}, file=self.report)
-        ApplicationSettingsHelper.log_text("end_program", file=self.report)
-
-    def print_riverkm_needed_for_tidal(self):
-        print("RiverKM needs to be specified for tidal applications.")
-
-    def print_measure_not_active_for_checked_conditions(self):
-        print("The measure is not active for any of the checked conditions.")
-
-    def print_apply_filter(self):
-        print("apply filter")
-
-    def print_prepare_filter(self, step : int):
-        print(f"prepare filter step {step}")
-
-    def print_prepare(self):
-        print("prepare")
-
-    def print_buffer(self):
-        print("buffer")
-
 class AnalyserDflowfm():
     
-    _logger : _AnalyserDflowfmLogger
+    _logger : AnalyserDflowfmLogger
     
     def __init__(self, display : bool, report : TextIO):
-        self._logger = _AnalyserDflowfmLogger(display, report)
+        self._logger = AnalyserDflowfmLogger(display, report)
     
     def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
         missing_data = False
@@ -197,58 +123,9 @@ class AnalyserDflowfm():
         return key,q,t
 
     def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity):
-        if xykm is None:
-            # keep all nodes and faces
-            keep = numpy.full(xn.shape, True)
-            xni, yni, face_node_connectivity_index, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
-            return XykmData(xykm, xni, yni, face_node_connectivity_index, iface, inode, xn.min(), xn.max(), yn.min(), yn.max(), None, None, None, None, None, None)
-        else:
-            dnmax = 3000.0
-            self._logger.log_identify_region_of_interest()
-            self._logger.print_buffer()
-            xybuffer = xykm.buffer(dnmax)
-            bbox = xybuffer.envelope.exterior
-            self._logger.print_prepare()
-            xybprep = shapely.prepared.prep(xybuffer)
-
-            self._logger.print_prepare_filter(1)
-            xmin = bbox.coords[0][0]
-            xmax = bbox.coords[1][0]
-            ymin = bbox.coords[0][1]
-            ymax = bbox.coords[2][1]
-            keep = (xn > xmin) & (xn < xmax) & (yn > ymin) & (yn < ymax)
-            self._logger.print_prepare_filter(2)
-            for i in range(xn.size):
-                if keep[i] and not xybprep.contains(shapely.geometry.Point((xn[i], yn[i]))):
-                    keep[i] = False
-
-            self._logger.print_apply_filter()
-            xni, yni, face_node_connectivity_index, iface, inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
-            interest_region = numpy.zeros(face_node_connectivity.shape[0], dtype=numpy.int64)
-            interest_region[iface] = 1
-
-            xykline = numpy.array(xykm.coords)
-
-            # project all nodes onto the line, obtain the distance along (sni) and normal (dni) the line
-            # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
-            xyline = xykline[:,:2]
-
-            # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
-            # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
-            self._logger.log_project()
-            sni, nni = dfastmi.batch.Projection.project_xy_point_onto_line(xni, yni, xyline)
-            sfi = dfastmi.batch.Face.face_mean(sni, face_node_connectivity_index)
-
-            # determine chainage values of each cell
-            self._logger.log_chainage()
-
-            # determine line direction for each cell
-            self._logger.log_direction()
-            dxi, dyi = dfastmi.batch.Distance.get_direction(xyline, sfi)
-
-            self._logger.log_done()
-
-            return XykmData(xykm, xni, yni, face_node_connectivity_index, iface, inode, xmin, xmax, ymin, ymax, dxi, dyi, xykline, interest_region, sni, nni)
+        xykm_data = XykmData(self._logger.xykm_data_logger)
+        xykm_data.initialize_data(xykm, xn, yn, face_node_connectivity)
+        return xykm_data
 
     def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
         dzq = [None] * len(discharges)
