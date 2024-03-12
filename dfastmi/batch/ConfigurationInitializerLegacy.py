@@ -26,7 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from typing import List
+from typing import List, Optional
 
 from configparser import ConfigParser
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
@@ -58,26 +58,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
 
         Return
         ------
-        discharges : Vector
-            Array of discharges (Q); one for each forcing condition [m3/s].
-        apply_q : BoolVector
-            A list of flags indicating whether the corresponding entry in Q should be used.
-        q_threshold : float
-            River discharge at which the measure becomes active [m3/s].
-        time_mi : Vector
-            A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
-        tstag : float
-            Fraction of year during which flow velocity is considered negligible [-].
-        fractions_of_the_year : Vector
-            A vector of values each representing the fraction of the year (T) during which the discharge is given by the corresponding entry in Q [-].
-        rsigma : Vector
-            A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
-        celerity : Vector
-            A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s].
-        needs_tide : bool
-            A bool stating if the calculation needs to make use of tide
-        n_fields : int
-            An int stating the number of fields
+        None
         """
         
         celerity_hg = reach.proprate_high
@@ -96,7 +77,13 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         celerity_lw: float
     ) -> None :
         """
-        Get the simulation discharges in batch mode (no user interaction).
+        Set the simulation discharges in batch mode (no user interaction).
+        three_characteristic_discharges :  Tuple of (at most) three characteristic discharges [m3/s].
+        apply_q :A list of 3 flags indicating whether each value should be used or not.
+            The Q1 value can't be set to None because it's needed for char_times.
+        tstag : Fraction of year during which flow velocity is considered negligible [-].
+        fractions_of_the_year :  A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
+        rsigma : A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
 
         Arguments
         ---------
@@ -104,8 +91,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             The reach we want to get the discharges from.
         config : configparser.ConfigParser
             Configuration of the analysis to be run.
-        q_stagnant : float
-            Discharge below which the river flow is negligible [m3/s].
         celerity_hg : float
             Bed celerity during transitional and flood periods (from rivers configuration file) [m/s].
         celerity_lw : float
@@ -113,17 +98,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         
         Results
         -------
-        three_characteristic_discharges : QRuns
-            Tuple of (at most) three characteristic discharges [m3/s].
-        apply_q : Tuple[bool, bool, bool]
-            A list of 3 flags indicating whether each value should be used or not.
-            The Q1 value can't be set to None because it's needed for char_times.
-        tstag : float
-            Fraction of year during which flow velocity is considered negligible [-].
-        fractions_of_the_year : Vector
-            A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
-        rsigma : Vector
-            A vector of values each representing the relaxation factor for the period given by the corresponding entry in Q [-].
+        None
         """
         q_bankfull = self._get_q_bankfull_from_config(config, self.q_threshold, reach.qlevels)
 
@@ -180,6 +155,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             River discharge at which the measure becomes active 
         q_levels : 
             Characteristic discharges used by algorithm [m3/s].
+
         Results
         -------
         q_bankfull : float
@@ -192,7 +168,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
                 q_bankfull = float(q_bankfull)
         return q_bankfull
 
-    def _get_q_threshold_from_config(self, config):
+    def _get_q_threshold_from_config(self, config) -> Optional[float]:
         """
         Get the simulation discharge threshold from configuration in batch mode (no user interaction).
 

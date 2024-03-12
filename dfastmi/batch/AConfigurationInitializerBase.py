@@ -37,10 +37,12 @@ from dfastmi.kernel.typehints import BoolVector, Vector
 
 class AConfigurationInitializerBase(ABC):
     """
+    DTO with discharges, times, etc. for analysis
     """
     
     def __init__(self, reach : IReach, config: ConfigParser):
         """
+        Initialize the DTO with defaults and then initialize
         """
         self._discharges : Vector = ()
         self._rsigma : Vector = ()
@@ -132,7 +134,23 @@ class AConfigurationInitializerBase(ABC):
         Will initialize the config for this reach
         """
 
-    def _set_ucrit(self, reach : IReach, config: ConfigParser):
+    def _set_ucrit(self, reach : IReach, config: ConfigParser) -> None:
+        """
+        Set critical flow velocity [m/s] based on dfast mi configuration 
+        and river default configuration or use min default.
+
+        Arguments
+        ---------
+        reach : IReach
+            Reach which we want to do the initialization on.
+        config : ConfigParser        
+            The variable containing the configuration.
+        
+        Return
+        ------
+        None
+        """
+
         try:
             ucrit = float(config.get("General", "Ucrit", fallback=""))
         except ValueError:
@@ -143,5 +161,16 @@ class AConfigurationInitializerBase(ABC):
     
     def _set_slenght(self) -> None:
         """
+        Should only be called AFTER(!) init. 
+        Set the expected yearly impacted sedimentation length 
+        depending on time_mi and celerity.
+
+        Arguments
+        ---------
+        None
+
+        Return
+        ------
+        None
         """
         self._slength = estimate_sedimentation_length(self.time_mi, self.celerity)

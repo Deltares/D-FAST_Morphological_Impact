@@ -380,7 +380,7 @@ def update_qvalues(reach:Reach) -> None:
     try:        
         q_threshold = float(dialog["qthr"].text())
         time_fractions_of_the_year = ConfigurationInitializer.get_time_fractions_of_the_year(reach.hydro_t)
-        time_mi = ConfigurationInitializer.get_time_mi(q_threshold, reach.hydro_q, time_fractions_of_the_year)
+        time_mi = ConfigurationInitializer.calculate_time_mi(q_threshold, reach.hydro_q, time_fractions_of_the_year)
         celerity = ConfigurationInitializer.get_bed_celerity(reach, reach.hydro_q)
         slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))

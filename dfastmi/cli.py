@@ -332,7 +332,7 @@ def interactive_get_discharges(
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
-        ischarge below which the river flow is negligible.
+        A discharge below which the river flow is negligible.
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
     applyQ : Tuple[bool, bool, bool]
