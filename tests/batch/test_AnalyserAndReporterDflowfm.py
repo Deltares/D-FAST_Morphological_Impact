@@ -102,7 +102,6 @@ class Test_analyse_and_report_dflowfm_mode():
                 self.n_fields,
                 self.tide_bc,
                 old_zmin_zmax,
-                self.kmbounds,
                 outputdir,
                 self.plotops)
 
@@ -147,7 +146,6 @@ class Test_analyse_and_report_dflowfm_mode():
                 self.n_fields,
                 self.tide_bc,
                 old_zmin_zmax,
-                self.kmbounds,
                 outputdir,
                 self.plotops)
 
@@ -206,7 +204,6 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.n_fields,
                     self.tide_bc,
                     old_zmin_zmax,
-                    self.kmbounds,
                     outputdir,
                     self.plotops)
             finally:
@@ -270,7 +267,6 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.n_fields,
                     self.tide_bc,
                     old_zmin_zmax,
-                    self.kmbounds,
                     outputdir,
                     self.plotops)
             finally:
@@ -334,7 +330,6 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.n_fields,
                     self.tide_bc,
                     old_zmin_zmax,
-                    self.kmbounds,
                     outputdir,
                     self.plotops)
             finally:
@@ -398,7 +393,6 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.n_fields,
                     self.tide_bc,
                     old_zmin_zmax,
-                    self.kmbounds,
                     outputdir,
                     self.plotops)
             finally:
@@ -468,7 +462,6 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.n_fields,
                     self.tide_bc,
                     old_zmin_zmax,
-                    self.kmbounds,
                     outputdir,
                     self.plotops)
             finally:

@@ -51,7 +51,6 @@ def analyse_and_report_dflowfm(
     n_fields: int,
     tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
-    kmbounds: Tuple[float, float],
     outputdir: str,
     plotops: Dict,
 ) -> bool:
@@ -90,14 +89,14 @@ def analyse_and_report_dflowfm(
         Original river chainage line.
     needs_tide : bool
         Specifies whether the tidal boundary is needed.
+    nwidth : float
+        normal width of the reach.
     n_fields : int
         Number of fields to process (e.g. to cover a tidal period).
     tide_bc : Tuple[str, ...]
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
-    kmbounds : Tuple[float,float]
-        Minimum and maximum chainage values indicating range of interest.
     outputdir : str
         Name of output directory.
     plotops : Dict

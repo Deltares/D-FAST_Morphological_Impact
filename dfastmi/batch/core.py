@@ -659,7 +659,6 @@ def analyse_and_report(
             n_fields,
             tide_bc,
             old_zmin_zmax,
-            kmbounds,
             outputdir,
             plotops,
         )
