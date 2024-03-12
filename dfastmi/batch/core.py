@@ -198,7 +198,7 @@ def _get_riverkm_linestring(kmfile: str) -> shapely.geometry.linestring.LineStri
     xykm : shapely.geometry.linestring.LineString
         LineString describing the chainage along the reach.
     """
-    
+    xykm = None
     if len(kmfile)>0:
         xykm = DataTextFileOperations.get_xykm(kmfile)
     return xykm
@@ -312,6 +312,7 @@ def _set_plotting_flags(rootdir : str, display : bool, data : DFastMIConfigParse
     plotops['figdir'] = figdir
     plotops['plot_ext'] = plot_ext
     plotops['xykm'] = xykm
+    plotops['kmbounds'] = kmbounds
     plotops['kmzoom'] = kmzoom
     plotops['xyzoom'] = xyzoom
     return plotops
