@@ -2,7 +2,7 @@ import dfastmi.batch.Distance
 import dfastmi.batch.Face
 import dfastmi.batch.SedimentationVolume
 import dfastmi.batch.Projection
-from dfastmi.batch.DflowFmLoggers import AnalyserDflowfmLogger
+from dfastmi.batch.DflowfmLoggers import AnalyserDflowfmLogger
 import dfastmi.kernel.core
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.XykmData import XykmData
