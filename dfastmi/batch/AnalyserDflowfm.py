@@ -17,13 +17,14 @@ class AnalyserDflowfm():
     
     _logger : AnalyserDflowfmLogger
     
-    def __init__(self, display : bool, report : TextIO):
+    def __init__(self, display : bool, report : TextIO, needs_tide : bool):
         self._logger = AnalyserDflowfmLogger(display, report)
+        self._needs_tide = needs_tide
     
-    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, needs_tide, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
+    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
         missing_data = False
 
-        one_fm_filename, missing_data = self._get_first_fm_data_filename(q_threshold, discharges, rsigma, filenames, needs_tide, tide_bc)
+        one_fm_filename, missing_data = self._get_first_fm_data_filename(q_threshold, discharges, rsigma, filenames, tide_bc)
 
         if missing_data:
             return missing_data, None
@@ -33,11 +34,11 @@ class AnalyserDflowfm():
 
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
-        if xykm is None and needs_tide:
+        if xykm is None and self._needs_tide:
             self._logger.print_riverkm_needed_for_tidal()
             return True, None
 
-        missing_data, dzq = self._get_dzq(discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+        missing_data, dzq = self._get_dzq(discharges, rsigma, ucrit, filenames, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
         if not missing_data:
             self._logger.log_char_bed_changes()
@@ -73,7 +74,6 @@ class AnalyserDflowfm():
         discharges: Vector,
         rsigma: Vector,
         filenames: Dict[Any, Tuple[str,str]],
-        needs_tide: bool,
         tide_bc: Tuple[str, ...],
     ):
         missing_data = False
@@ -82,7 +82,7 @@ class AnalyserDflowfm():
         if 0 in filenames.keys(): # the keys are 0,1,2
             one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(discharges, filenames)
         else: # the keys are the conditions
-            one_fm_filename, missing_data = self._get_first_fm_data_filename_based_on_conditions_keys(discharges, filenames, needs_tide, tide_bc, rsigma, q_threshold)
+            one_fm_filename, missing_data = self._get_first_fm_data_filename_based_on_conditions_keys(discharges, filenames, tide_bc, rsigma, q_threshold)
 
         if one_fm_filename is None:
             self._logger.print_measure_not_active_for_checked_conditions()
@@ -96,19 +96,19 @@ class AnalyserDflowfm():
                 return filenames[i][0]
         return None
     
-    def _get_first_fm_data_filename_based_on_conditions_keys(self, discharges, filenames, needs_tide, tide_bc, rsigma, q_threshold):
+    def _get_first_fm_data_filename_based_on_conditions_keys(self, discharges, filenames, tide_bc, rsigma, q_threshold):
         key: Union[Tuple[float, int], float]
         missing_data = False
         for i in range(len(discharges)):
             if not missing_data and discharges[i] is not None:
-                key, q, t = self._get_condition_key(discharges, needs_tide, tide_bc, i)
+                key, q, t = self._get_condition_key(discharges, tide_bc, i)
                 if rsigma[i] == 1 or discharges[i] <= q_threshold:
                     # no celerity or measure not active, so ignore field
                     pass
                 elif key in filenames:
                     return filenames[key][0], missing_data
                 else:
-                    self._logger.report_missing_calculation_values(needs_tide, q, t)
+                    self._logger.report_missing_calculation_values(self._needs_tide, q, t)
                     missing_data = True
         return None, missing_data
 
@@ -117,11 +117,11 @@ class AnalyserDflowfm():
         xykm_data.initialize_data(xykm, xn, yn, face_node_connectivity)
         return xykm_data
 
-    def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
+    def _get_dzq(self, discharges, rsigma, ucrit, filenames, n_fields, tide_bc, missing_data, iface, dxi, dyi):
         if 0 in filenames.keys(): # the keys are 0,1,2
             return self._get_dzq_based_on_numbered_keys(missing_data, discharges, filenames, ucrit, n_fields, dxi, dyi, iface)
         else: # the keys are the conditions
-            return self._get_dzq_based_on_conditions_keys(missing_data,discharges, filenames, needs_tide, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface)
+            return self._get_dzq_based_on_conditions_keys(missing_data,discharges, filenames, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface)
     
     def _get_dzq_based_on_numbered_keys(self, missing_data, discharges, filenames, ucrit, n_fields, dxi, dyi, iface):
         dzq = [None] * len(discharges)
@@ -134,11 +134,11 @@ class AnalyserDflowfm():
                     dzq[i] = 0
         return missing_data, dzq
     
-    def _get_dzq_based_on_conditions_keys(self, missing_data, discharges, filenames, needs_tide, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface):
+    def _get_dzq_based_on_conditions_keys(self, missing_data, discharges, filenames, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface):
         dzq = [None] * len(discharges)
         for i in range(len(discharges)):
             if not missing_data and discharges[i] is not None:
-                key, q, t = self._get_condition_key(discharges, needs_tide, tide_bc, i)
+                key, q, t = self._get_condition_key(discharges, tide_bc, i)
                 if rsigma[i] == 1:
                     # no celerity, so ignore field
                     dzq[i] = 0
@@ -155,9 +155,9 @@ class AnalyserDflowfm():
                 dzq[i] = 0
         return missing_data, dzq
     
-    def _get_condition_key(self, discharges, needs_tide, tide_bc, i):
+    def _get_condition_key(self, discharges, tide_bc, i):
         q = discharges[i]
-        if needs_tide:
+        if self._needs_tide:
             t = tide_bc[i]
             key = (q,t)
         else:
