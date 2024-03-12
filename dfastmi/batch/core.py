@@ -34,6 +34,7 @@ import sys
 import os
 import math
 import numpy
+import shapely
 import matplotlib
 from packaging.version import Version
 
@@ -121,66 +122,152 @@ def batch_mode_core(
     # check outputdir
     rootdir = _get_root_dir(rootdir)
     outputdir = _get_output_dir(rootdir, display, data)
-    report = outputdir.joinpath(ApplicationSettingsHelper.get_filename("report.out")).open(mode="w", encoding="utf-8")
+    report_path = outputdir.joinpath(ApplicationSettingsHelper.get_filename("report.out"))
+    
+    with report_path.open(mode="w", encoding="utf-8") as report:
+        _core_initialize(report)
 
-    _core_initialize(report)
+        cfg_version = _get_verion(rivers, config)
 
-    cfg_version = _get_verion(rivers, config)
-
-    branch_name = config.get("General", "Branch", fallback="")
-    branch = rivers.get_branch(branch_name)
-    if not branch:
-        ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch_name}, file=report)
-        success = False
-    else:
-        reach_name = config.get("General", "Reach", fallback="")
-        reach = branch.get_reach(reach_name)
-        if not reach:
-            ApplicationSettingsHelper.log_text(
-                "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
-            )
+        branch_name = config.get("General", "Branch", fallback="")
+        branch = rivers.get_branch(branch_name)
+        if not branch:
+            ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch_name}, file=report)
             success = False
         else:
-            success = _analyse_and_report(
-                config,
-                data,
-                cfg_version,
-                branch,
-                reach,
-                display,
-                report,
-                reduced_output,
-                rootdir,
-                outputdir,
-                gui
-            )
+            reach_name = config.get("General", "Reach", fallback="")
+            reach = branch.get_reach(reach_name)
+            if not reach:
+                ApplicationSettingsHelper.log_text(
+                    "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
+                )
+                success = False
+            else:
+                success = _analyse_and_report(
+                    config,
+                    data,
+                    cfg_version,
+                    branch,
+                    reach,
+                    display,
+                    report,
+                    reduced_output,
+                    rootdir,
+                    outputdir,
+                    gui
+                )
 
-    ApplicationSettingsHelper.log_text("end", file=report)
-    report.close()
-
+        ApplicationSettingsHelper.log_text("end", file=report)
+    
     return success
 
-def _get_riverkm_options(display : bool, data: DFastMIConfigParser):
-    xykline = numpy.ndarray(shape=(3,0))
-    kmbounds = (-math.inf, math.inf)
-    xykm = None
+
+def _get_riverkm_file(data: DFastMIConfigParser) -> str:
+    """
+    Get the file specifying chainage along the reach of 
+    interest is needed for estimating the initial year dredging volumes.
+
+    Arguments
+    ---------
+    display : bool
+        Flag indicating text output to stdout.
+    data : DFastMIConfigParser        
+        DFast MI application config file.
+    Return
+    ------
+    kmfile : str
+        A string to the RiverKM file location.
+
+    """
     kmfile = data.config_get(str, "General", "RiverKM", "")
+    return kmfile
+
+def _get_riverkm_linestring(kmfile: str) -> shapely.geometry.linestring.LineString:
+    """
+    Get the chainage in a LineString along the reach of interest is needed for estimating the initial year dredging volumes.
+
+    Arguments
+    ---------
+    kmfile : str
+        A string to the RiverKM file location.
+    Return
+    ------
+    xykm : shapely.geometry.linestring.LineString
+        LineString describing the chainage along the reach.
+
+    """
+    
     if len(kmfile)>0:
         xykm = DataTextFileOperations.get_xykm(kmfile)
-        xykline = numpy.array(xykm.coords)
+    return xykm
+
+def _get_riverkm_coordinates(kmfile: str) -> numpy.ndarray:
+    """
+    Get the chainage in coordinates along the reach of interest is needed for estimating the initial year dredging volumes.
+
+    Arguments
+    ---------
+    kmfile : str
+        A string to the RiverKM file location.
+
+    Return
+    ------
+    xykline : numpy.ndarray
+        Array with coordinates describing the chainage along the reach.
+
+    """
+    xykline = numpy.empty((0, 3))    
+    if len(kmfile)>0:
+        xykm = _get_riverkm_linestring(kmfile)
+        xykline = numpy.array(xykm.coords)        
+    return xykline
+
+def _get_riverkm_boundaries(display : bool, data: DFastMIConfigParser, kmfile_exists: bool, xykline : numpy.ndarray) -> Tuple[float,float]:
+    """
+    Get the chainage boundaries along the reach of interest 
+    is needed for estimating the initial year dredging volumes.
+
+    Arguments
+    ---------
+    display : bool
+        Flag indicating text output to stdout.
+    data : DFastMIConfigParser        
+        DFast MI application config file.
+    kmfile_exists : bool
+        A boolean stating a RiverKM file is provided in the dfast mi configuration.
+    xykline : numpy.ndarray
+        Array with coordinates describing the chainage along the reach.
+
+    Return
+    ------
+    kmbounds : Tuple[float, float]
+        interest area clipped to the range low ([0]) to high ([1]) km
+
+    """
+    kmbounds = (-math.inf, math.inf)
+    if kmfile_exists:
         kline = xykline[:,2]
         kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
         if display:
             ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
-    return xykline,kmfile,xykm,kmbounds
+    return kmbounds
 
-def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmfile:str, xykline:numpy.ndarray, kmbounds:Tuple[float,float]):
+def _set_plotting_flags(rootdir : str, display : bool, data : DFastMIConfigParser) -> dict[str, Any]:
+    """
+    Set dictionary to be used
+
+    """
     saveplot = False
     saveplot_zoomed = False
     zoom_km_step = 1.0
     kmzoom = []
     xyzoom = []
     closeplot = False
+    
+    kmfile = _get_riverkm_file(data)
+    xykline = _get_riverkm_coordinates(kmfile)
+    kmbounds = _get_riverkm_boundaries(display, data, len(kmfile)>0, xykline)
+    
 
     plotting = data.config_get(bool, "General", "Plotting", False)
     if plotting:
@@ -202,10 +289,21 @@ def _set_plotting_flags(rootdir:str, display:bool, data:DFastMIConfigParser, kmf
     figdir = _set_output_figure_dir(rootdir, display, data, saveplot)
     plot_ext = _get_figure_ext(data, saveplot)
 
-    plotops = {'plotting': plotting, 'saveplot':saveplot, 'saveplot_zoomed':saveplot_zoomed, 'closeplot':closeplot, 'figdir': figdir, 'plot_ext': plot_ext, 'kmzoom': kmzoom, 'xyzoom': xyzoom}
+    plotops = {}
+    plotops['plotting'] = plotting
+    plotops['saveplot'] = saveplot
+    plotops['saveplot_zoomed'] = saveplot_zoomed
+    plotops['closeplot'] = closeplot
+    plotops['figdir'] = figdir
+    plotops['plot_ext'] = plot_ext
+    plotops['kmzoom'] = kmzoom
+    plotops['xyzoom'] = xyzoom
     return plotops
 
 def _set_output_figure_dir(rootdir, display, data, saveplot):
+    """
+
+    """
     if saveplot:
         figdir = Path(data.config_get(str,
                     "General", "FigureDir", Path(rootdir).joinpath("figure")))
@@ -220,15 +318,42 @@ def _set_output_figure_dir(rootdir, display, data, saveplot):
         figdir = ''
     return str(figdir)
 
-def _get_figure_ext(data, saveplot):
+def _get_figure_ext(data : DFastMIConfigParser, saveplot : bool) -> str:
+    """
+    Return expected file extensions for plotted figures.
+
+    Arguments
+    ---------
+    data : DFastMIConfigParser
+        Configuration of the analysis to be run.
+    report : TextIO
+        Text stream for log file.
+
+    Return
+    ------
+    plot_ext : str
+
+
+    """
+
     if saveplot:
         plot_ext = data.config_get(str, "General", "FigureExt", ".png")
     else:
         plot_ext = ''
     return plot_ext
 
-def _log_report_mode_usage(config:ConfigParser, report:TextIO) -> int:
+def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     """
+    Detect and log which mode is used to create the output report. 
+    The mode could be using WAQUA or (default) DFLOWFM.
+    Depending on the mode select the appropriate analysis runner.
+
+    Arguments
+    ---------
+    config: ConfigParser
+        Configuration of the analysis to be run.
+    report : TextIO
+        Text stream for log file.
 
     Return
     ------
@@ -257,20 +382,68 @@ def _log_report_mode_usage(config:ConfigParser, report:TextIO) -> int:
                 )
     return imode
 
-def _get_verion(rivers, config):
+def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
+    """
+    Will get the stated version string from the application config 
+    and convert this to a Version object.
+    This can be used to determine which Rivers configuration should 
+    be used in the calculation.
+
+    Arguments
+    ---------
+    rivers : RiversObject
+        An object containing the river data.    
+    
+    config: ConfigParser
+        Configuration of the analysis to be run.
+    
+    Return
+    ------
+    version : Version
+        Version object extracted from the configuration file.
+
+    """
     cfg_version = config.get("General", "Version", fallback="")
     if Version(cfg_version) != rivers.version:
         raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
     cfg_version = Version(cfg_version)
     return cfg_version
 
-def _core_initialize(report):
+def _core_initialize(report: TextIO) -> None:
+    """
+    Will log into the report default static header information
+    
+    Arguments
+    ---------
+    report: TextIO
+        An object containing the river data.
+    
+    """
     prog_version = dfastmi.__version__
     ApplicationSettingsHelper.log_text("header", dict={"version": prog_version}, file=report)
     ApplicationSettingsHelper.log_text("limits", file=report)
     ApplicationSettingsHelper.log_text("===", file=report)
 
-def _get_output_dir(rootdir, display, data):
+def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -> Path:
+    """
+    Will get the string containing the explicit output directory from the dfast configuration. 
+    If not available it will create an explicit output directory relative to the root directory.
+    From this string it will create a PathLib Path object.
+
+    Arguments
+    ---------
+    rootdir : str
+        Reference directory for default folders.
+    display : bool
+        Flag indicating text output to stdout.
+    data : DFastMIConfigParser        
+        DFast MI application config file.
+    Return
+    ------
+    outputdir : Path
+        A Path object to the output directory location.
+
+    """
     outputdir = Path(data.config_get(str, "General", "OutputDir", Path(rootdir).joinpath("output")))
     if outputdir.exists():
         if display:
@@ -279,10 +452,25 @@ def _get_output_dir(rootdir, display, data):
         outputdir.mkdir()
     return outputdir
 
-def _get_root_dir(rootdir):
+def _get_root_dir(rootdir) -> str:
+    """
+    Return a new path object representing the current directory.
+
+    Arguments
+    ---------
+    rootdir : str
+        Reference directory for default folders.
+    
+    Return
+    ------
+    rootdir : str
+        A to string converted Path object to the currenct directory 
+        location or default directory location.
+
+    """
     if rootdir == "":
-        rootdir = os.getcwd()
-    return rootdir
+        rootdir = Path.cwd()
+    return str(rootdir)
 
 def count_discharges(discharges: Vector) -> int:
     """
@@ -300,13 +488,6 @@ def count_discharges(discharges: Vector) -> int:
     """
     return sum([q is not None for q in discharges])
 
-
-def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
-    factory = FileNameRetrieverFactory()
-    factory.register_creator(Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
-    factory.register_creator(Version("2.0"), FileNameRetriever)
-    return factory
-
 def get_filenames(
     imode: int,
     needs_tide: bool,
@@ -323,7 +504,7 @@ def get_filenames(
     needs_tide : bool
         Specifies whether the tidal boundary is needed.
 
-    config : Optional[configparser.ConfigParser]
+    config : Optional[ConfigParser]
         The variable containing the configuration (may be None for imode = 0).
 
     Returns
@@ -334,7 +515,6 @@ def get_filenames(
         can be the discharge index, discharge value or a tuple of forcing
         conditions, such as a Discharge and Tide forcing tuple.
     """
-    factory = _initialize_file_name_retriever_factory()
 
     if imode != 0:
         general_version = config.get("General", "Version", fallback= None)
@@ -346,7 +526,7 @@ def get_filenames(
     else:
         file_name_retriever_version = None
 
-    file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
+    file_name_retriever = FileNameRetrieverFactory.generate(file_name_retriever_version, needs_tide)
     return file_name_retriever.get_file_names(config)
 
 def _analyse_and_report(
@@ -354,12 +534,12 @@ def _analyse_and_report(
     data : DFastMIConfigParser,
     cfg_version : Version,
     branch : IBranch,
-    reach: IReach,
-    display: bool,
-    report: TextIO,
-    reduced_output: bool,
-    rootdir: str,
-    outputdir: str,
+    reach : IReach,
+    display : bool,
+    report : TextIO,
+    reduced_output : bool,
+    rootdir : str,
+    outputdir : str,
     gui : bool
 ) -> bool:
     """
@@ -369,8 +549,16 @@ def _analyse_and_report(
 
     Arguments
     ---------
-    imode : int
-        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+    config : ConfigParser
+        The variable containing the configuration.
+    data : DFastMIConfigParser
+        DFast MI application config file.
+    cfg_version : Version,
+        Version object extracted from the configuration file.
+    branch : IBranch
+        Branch object we want to do analysis on.
+    reach: IReach,
+        Reach object we want to do analysis on,
     display : bool
         Flag indicating text output to stdout.
     report : TextIO
@@ -378,47 +566,12 @@ def _analyse_and_report(
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
-    reach : str
-        Name of the reach.
-    q_location : str
-        Name of the location at which the discharge is defined.
-    q_threshold : float
-        Threshold discharge above which the measure is active.
-    tstag : float
-        Fraction of year that the river is stagnant.
-    Q : Vector
-        Array of discharges; one for each forcing condition.
-    apply_q : BoolVector
-        A tuple of 3 flags indicating whether each value should be used or not.
-    T : Vector
-        Fraction of year represented by each forcing condition.
-    rsigma : Vector
-        Array of relaxation factors; one per forcing condition.
-    slength : float
-        The expected yearly impacted sedimentation length.
-    ucrit : float
-        Critical flow velocity [m/s].
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of the names of the data file containing the simulation
-        results to be processed. The conditions (discharge, wave conditions,
-        ...) are the key in the dictionary. Per condition a tuple of two file
-        names is given: a reference file and a file with measure.
-    xykm : shapely.geometry.linestring.LineString
-        Original river chainage line.
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-    n_fields : int
-        Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Tuple[str, ...]
-        Array of tidal boundary condition; one per forcing condition.
-    old_zmin_zmax : bool
-        Specifies the minimum and maximum should follow old or new definition.
-    kmbounds : Tuple[float,float]
-        Minimum and maximum chainage values indicating range of interest.
+    rootdir : str
+        Reference directory for default folders.        
     outputdir : str
-        Name of the output directory.
-    plotops : Dict
-        Dictionary of plot settings
+        Reference directory for default output folders.
+    gui : bool
+        Flag indicating whether this routine is called from the GUI.
 
     Returns
     -------
@@ -426,16 +579,16 @@ def _analyse_and_report(
         Flag indicating whether analysis could be carried out.
     """
     initialized_config = ConfigurationInitializerFactory.generate(cfg_version, reach, config)
-
-    xykline, kmfile, xykm, kmbounds = _get_riverkm_options(display, data)
+    
     old_zmin_zmax = False
 
     # set plotting flags
-    plotops = _set_plotting_flags(rootdir, display, data, kmfile, xykline, kmbounds)
+    plotops = _set_plotting_flags(rootdir, display, data)
 
     imode = _log_report_mode_usage(config, report)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
     success = False
+
     if imode == 0:
         success = AnalyserAndReporterWaqua.analyse_and_report_waqua(
             display,

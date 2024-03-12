@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2020 Stichting Deltares.
+Copyright (C) 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from typing import Callable
 from packaging.version import Version
 from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
+from dfastmi.batch.FileNameRetriever import FileNameRetriever
+from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 from dfastmi.batch.FileNameRetrieverUnsupported import FileNameRetrieverUnsupported
 
 class FileNameRetrieverFactory:
@@ -39,14 +41,14 @@ class FileNameRetrieverFactory:
     _creators = {}
     """Contains the AFileNameRetriever Objects creators to be used"""
 
-    def __init__(self):
-        self._creators = {}
-
-    def register_creator(self, file_name_retriever_version: Version, creator: Callable[[bool], AFileNameRetriever]):
+    @staticmethod
+    def register_creator(file_name_retriever_version: Version, creator: Callable[[bool], AFileNameRetriever]):
         """Register creator function to create a AFileNameRetriever object."""
-        self._creators[file_name_retriever_version] = creator
+        if file_name_retriever_version not in FileNameRetrieverFactory._creators:
+            FileNameRetrieverFactory._creators[file_name_retriever_version] = creator
 
-    def generate(self, file_name_retriever_version: Version, needs_tide: bool) -> AFileNameRetriever:
+    @staticmethod
+    def generate(file_name_retriever_version: Version, needs_tide: bool) -> AFileNameRetriever:
         """
         Call the Constructor function to generate AFileNameRetriever object.
 
@@ -62,8 +64,15 @@ class FileNameRetrieverFactory:
         FileNameRetriever : AFileNameRetriever
             AFileNameRetriever object based on the given version, if no valid FileNameRetriever can be found FileNameRetrieverUnsupported is returned.
         """
-        constructor = self._creators.get(file_name_retriever_version)
+        constructor = FileNameRetrieverFactory._creators.get(file_name_retriever_version)
         if constructor:
             return constructor(needs_tide)
         else:
             return FileNameRetrieverUnsupported()
+
+legacy_version = Version("1.0")
+FileNameRetrieverFactory.register_creator(legacy_version, lambda needs_tide: FileNameRetrieverLegacy())
+
+correct_version = Version("2.0")
+FileNameRetrieverFactory.register_creator(correct_version, FileNameRetriever)
+    
