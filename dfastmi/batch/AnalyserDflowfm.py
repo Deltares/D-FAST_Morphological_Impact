@@ -17,11 +17,12 @@ class AnalyserDflowfm():
     
     _logger : AnalyserDflowfmLogger
     
-    def __init__(self, display : bool, report : TextIO, needs_tide : bool):
+    def __init__(self, display : bool, report : TextIO, needs_tide : bool, old_zmin_zmax : bool):
         self._logger = AnalyserDflowfmLogger(display, report)
         self._needs_tide = needs_tide
+        self._old_zmin_zmax = old_zmin_zmax
     
-    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, n_fields, tide_bc, old_zmin_zmax, outputdir, plotops):
+    def analyse(self, q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, n_fields, tide_bc, outputdir, plotops):
         missing_data = False
 
         one_fm_filename, missing_data = self._get_first_fm_data_filename(q_threshold, discharges, rsigma, filenames, tide_bc)
@@ -53,7 +54,7 @@ class AnalyserDflowfm():
                 dzq, fraction_of_year, rsigma
             )
 
-            if old_zmin_zmax:
+            if self._old_zmin_zmax:
                 # get old zmax and zmin
                 dzmaxi = dzbi[0]
                 zmax_str = "maximum bed level change after flood without dredging"
