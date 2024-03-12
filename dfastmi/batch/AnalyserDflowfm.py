@@ -112,6 +112,49 @@ class AnalyserDflowfm():
                     missing_data = True
         return None, missing_data
 
+    def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity):
+        xykm_data = XykmData(self._logger.xykm_data_logger)
+        xykm_data.initialize_data(xykm, xn, yn, face_node_connectivity)
+        return xykm_data
+
+    def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
+        if 0 in filenames.keys(): # the keys are 0,1,2
+            return self._get_dzq_based_on_numbered_keys(missing_data, discharges, filenames, ucrit, n_fields, dxi, dyi, iface)
+        else: # the keys are the conditions
+            return self._get_dzq_based_on_conditions_keys(missing_data,discharges, filenames, needs_tide, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface)
+    
+    def _get_dzq_based_on_numbered_keys(self, missing_data, discharges, filenames, ucrit, n_fields, dxi, dyi, iface):
+        dzq = [None] * len(discharges)
+        for i in range(3):
+                if not missing_data and discharges[i] is not None:
+                    dzq[i] = self._get_values_fm(discharges[i], ucrit, filenames[i], n_fields, dxi, dyi, iface)
+                    if dzq[i] is None:
+                        missing_data = True
+                else:
+                    dzq[i] = 0
+        return missing_data, dzq
+    
+    def _get_dzq_based_on_conditions_keys(self, missing_data, discharges, filenames, needs_tide, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface):
+        dzq = [None] * len(discharges)
+        for i in range(len(discharges)):
+            if not missing_data and discharges[i] is not None:
+                key, q, t = self._get_condition_key(discharges, needs_tide, tide_bc, i)
+                if rsigma[i] == 1:
+                    # no celerity, so ignore field
+                    dzq[i] = 0
+                elif key in filenames.keys():
+                    if t:
+                        n_fields_request = n_fields
+                    else:
+                        n_fields_request = 1
+                    dzq[i] = self._get_values_fm(q, ucrit, filenames[key], n_fields_request, dxi, dyi, iface)
+                else:
+                    self._logger.report_missing_calculation_dzq_values(q, t)
+                    missing_data = True
+            else:
+                dzq[i] = 0
+        return missing_data, dzq
+    
     def _get_condition_key(self, discharges, needs_tide, tide_bc, i):
         q = discharges[i]
         if needs_tide:
@@ -121,41 +164,6 @@ class AnalyserDflowfm():
             t = None
             key = q
         return key,q,t
-
-    def _get_xykm_data(self, xykm, xn, yn, face_node_connectivity):
-        xykm_data = XykmData(self._logger.xykm_data_logger)
-        xykm_data.initialize_data(xykm, xn, yn, face_node_connectivity)
-        return xykm_data
-
-    def _get_dzq(self, discharges, rsigma, ucrit, filenames, needs_tide, n_fields, tide_bc, missing_data, iface, dxi, dyi):
-        dzq = [None] * len(discharges)
-        if 0 in filenames.keys(): # the keys are 0,1,2
-            for i in range(3):
-                if not missing_data and discharges[i] is not None:
-                    dzq[i] = self._get_values_fm(discharges[i], ucrit, filenames[i], n_fields, dxi, dyi, iface)
-                    if dzq[i] is None:
-                        missing_data = True
-                else:
-                    dzq[i] = 0
-        else: # the keys are the conditions
-            for i in range(len(discharges)):
-                if not missing_data and discharges[i] is not None:
-                    key, q, t = self._get_condition_key(discharges, needs_tide, tide_bc, i)
-                    if rsigma[i] == 1:
-                        # no celerity, so ignore field
-                        dzq[i] = 0
-                    elif key in filenames.keys():
-                        if t:
-                            n_fields_request = n_fields
-                        else:
-                            n_fields_request = 1
-                        dzq[i] = self._get_values_fm(q, ucrit, filenames[key], n_fields_request, dxi, dyi, iface)
-                    else:
-                        self._logger.report_missing_calculation_dzq_values(q, t)
-                        missing_data = True
-                else:
-                    dzq[i] = 0
-        return missing_data, dzq
 
     def _get_values_fm(
         self,

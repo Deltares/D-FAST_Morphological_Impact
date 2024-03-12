@@ -41,7 +41,6 @@ class XykmData():
             self.xmax = xn.max()
             self.ymin = yn.min()
             self.ymax = yn.max()
-            return
         else:
             dnmax = 3000.0
             self._logger.log_identify_region_of_interest()
@@ -87,4 +86,3 @@ class XykmData():
             self.dxi, self.dyi = dfastmi.batch.Distance.get_direction(xyline, sfi)
 
             self._logger.log_done()
-            return
