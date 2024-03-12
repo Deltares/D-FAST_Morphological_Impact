@@ -54,8 +54,6 @@ from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch import AnalyserAndReporterWaqua
 
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
-from dfastmi.batch.FileNameRetriever import FileNameRetriever
-from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
 import dfastmi.kernel.core
 import dfastmi.plotting
@@ -79,6 +77,10 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
+    
+    Return
+    ------
+    None
     """
     if reduced_output:
         ApplicationSettingsHelper.log_text("reduce_output")
@@ -173,11 +175,11 @@ def _get_riverkm_file(data: DFastMIConfigParser) -> str:
         Flag indicating text output to stdout.
     data : DFastMIConfigParser        
         DFast MI application config file.
+    
     Return
     ------
     kmfile : str
         A string to the RiverKM file location.
-
     """
     kmfile = data.config_get(str, "General", "RiverKM", "")
     return kmfile
@@ -190,18 +192,18 @@ def _get_riverkm_linestring(kmfile: str) -> shapely.geometry.linestring.LineStri
     ---------
     kmfile : str
         A string to the RiverKM file location.
+    
     Return
     ------
     xykm : shapely.geometry.linestring.LineString
         LineString describing the chainage along the reach.
-
     """
     
     if len(kmfile)>0:
         xykm = DataTextFileOperations.get_xykm(kmfile)
     return xykm
 
-def _get_riverkm_coordinates(kmfile: str) -> numpy.ndarray:
+def _get_riverkm_coordinates(kmfile: str, xykm : shapely.geometry.linestring.LineString) -> numpy.ndarray:
     """
     Get the chainage in coordinates along the reach of interest is needed for estimating the initial year dredging volumes.
 
@@ -209,17 +211,17 @@ def _get_riverkm_coordinates(kmfile: str) -> numpy.ndarray:
     ---------
     kmfile : str
         A string to the RiverKM file location.
+    xykm : shapely.geometry.linestring.LineString
+        LineString describing the chainage along the reach.
 
     Return
     ------
     xykline : numpy.ndarray
         Array with coordinates describing the chainage along the reach.
-
     """
-    xykline = numpy.empty((0, 3))    
-    if len(kmfile)>0:
-        xykm = _get_riverkm_linestring(kmfile)
-        xykline = numpy.array(xykm.coords)        
+    xykline = numpy.empty((0, 3))
+    if len(kmfile)>0:        
+        xykline = numpy.array(xykm.coords)
     return xykline
 
 def _get_riverkm_boundaries(display : bool, data: DFastMIConfigParser, kmfile_exists: bool, xykline : numpy.ndarray) -> Tuple[float,float]:
@@ -242,7 +244,6 @@ def _get_riverkm_boundaries(display : bool, data: DFastMIConfigParser, kmfile_ex
     ------
     kmbounds : Tuple[float, float]
         interest area clipped to the range low ([0]) to high ([1]) km
-
     """
     kmbounds = (-math.inf, math.inf)
     if kmfile_exists:
@@ -254,8 +255,21 @@ def _get_riverkm_boundaries(display : bool, data: DFastMIConfigParser, kmfile_ex
 
 def _set_plotting_flags(rootdir : str, display : bool, data : DFastMIConfigParser) -> dict[str, Any]:
     """
-    Set dictionary to be used
+    Set dictionary key values to be used in the analysis runner.
 
+    Arguments
+    ---------
+    rootdir : str
+        Reference directory for default output folders.
+    display : bool
+        Flag indicating text output to stdout.
+    data : DFastMIConfigParser        
+        DFast MI application config file.
+    
+    Return
+    ------
+    plotops : dict[str, Any]
+        The variable with the key values    
     """
     saveplot = False
     saveplot_zoomed = False
@@ -265,7 +279,8 @@ def _set_plotting_flags(rootdir : str, display : bool, data : DFastMIConfigParse
     closeplot = False
     
     kmfile = _get_riverkm_file(data)
-    xykline = _get_riverkm_coordinates(kmfile)
+    xykm = _get_riverkm_linestring(kmfile)
+    xykline = _get_riverkm_coordinates(kmfile, xykm)
     kmbounds = _get_riverkm_boundaries(display, data, len(kmfile)>0, xykline)
     
 
@@ -296,17 +311,34 @@ def _set_plotting_flags(rootdir : str, display : bool, data : DFastMIConfigParse
     plotops['closeplot'] = closeplot
     plotops['figdir'] = figdir
     plotops['plot_ext'] = plot_ext
+    plotops['xykm'] = xykm
     plotops['kmzoom'] = kmzoom
     plotops['xyzoom'] = xyzoom
     return plotops
 
-def _set_output_figure_dir(rootdir, display, data, saveplot):
+def _set_output_figure_dir(rootdir : str, display : bool, data : DFastMIConfigParser, saveplot : bool) -> str:
     """
+    Read from the dfast mi configuration the output directory
+    create when it doesn't exist or feedback that the content 
+    in the directory will be overwritten.
 
+    Arguments
+    ---------
+    rootdir : str
+        Reference directory for default output folders.
+    display : bool
+        Flag indicating text output to stdout.
+    data : DFastMIConfigParser        
+        DFast MI application config file.
+    
+    Return
+    ------
+    figdir : str
+        The location where the plotted results will be stored.
     """
     if saveplot:
-        figdir = Path(data.config_get(str,
-                    "General", "FigureDir", Path(rootdir).joinpath("figure")))
+        default_figure_dir = Path(rootdir).joinpath("figure")
+        figdir = Path(data.config_get(str,"General", "FigureDir", default_figure_dir))
         if display:
             ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": str(figdir)})
         if figdir.exists():
@@ -314,9 +346,10 @@ def _set_output_figure_dir(rootdir, display, data, saveplot):
                 ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": str(figdir)})
         else:
             figdir.mkdir()
+        figdir = str(figdir)
     else:
         figdir = ''
-    return str(figdir)
+    return figdir
 
 def _get_figure_ext(data : DFastMIConfigParser, saveplot : bool) -> str:
     """
@@ -332,8 +365,6 @@ def _get_figure_ext(data : DFastMIConfigParser, saveplot : bool) -> str:
     Return
     ------
     plot_ext : str
-
-
     """
 
     if saveplot:
@@ -359,7 +390,6 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     ------
     imode : int
         Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
-
     """
     mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
     if mode_str == WAQUA_EXPORT:
@@ -392,8 +422,7 @@ def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
     Arguments
     ---------
     rivers : RiversObject
-        An object containing the river data.    
-    
+        An object containing the river data.        
     config: ConfigParser
         Configuration of the analysis to be run.
     
@@ -401,7 +430,6 @@ def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
     ------
     version : Version
         Version object extracted from the configuration file.
-
     """
     cfg_version = config.get("General", "Version", fallback="")
     if Version(cfg_version) != rivers.version:
@@ -418,6 +446,9 @@ def _core_initialize(report: TextIO) -> None:
     report: TextIO
         An object containing the river data.
     
+    Returns
+    -------
+    None
     """
     prog_version = dfastmi.__version__
     ApplicationSettingsHelper.log_text("header", dict={"version": prog_version}, file=report)
@@ -438,11 +469,11 @@ def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -
         Flag indicating text output to stdout.
     data : DFastMIConfigParser        
         DFast MI application config file.
+
     Return
     ------
     outputdir : Path
         A Path object to the output directory location.
-
     """
     outputdir = Path(data.config_get(str, "General", "OutputDir", Path(rootdir).joinpath("output")))
     if outputdir.exists():
@@ -466,7 +497,6 @@ def _get_root_dir(rootdir) -> str:
     rootdir : str
         A to string converted Path object to the currenct directory 
         location or default directory location.
-
     """
     if rootdir == "":
         rootdir = Path.cwd()
@@ -619,12 +649,12 @@ def _analyse_and_report(
             reach.normal_width,
             initialized_config.ucrit,
             filenames,
-            xykm,
+            plotops['xykm'],
             initialized_config.needs_tide,
             initialized_config.n_fields,
             initialized_config.tide_bc,
             old_zmin_zmax,
-            kmbounds,
+            plotops['kmbounds'],
             outputdir,
             plotops,
         )
@@ -635,14 +665,44 @@ def _analyse_and_report(
 
     return success
 
-def _finalize_plotting(plotops: dict[str,any], gui: bool):
+def _finalize_plotting(plotops : dict[str,any], gui : bool) -> None:
+    """
+    When plotting the analysis results and done analysing we need to
+    finalize some actions to stop the plotting.
+    
+    Arguments
+    ---------
+    plotops : dict[str, Any]
+        The variable with the key values    
+    gui : bool
+        Flag indicating whether this routine is called from the GUI.
+
+    Returns
+    -------
+    None
+    """
     if plotops['plotting']:
         if plotops['closeplot']:
             matplotlib.pyplot.close("all")
         else:
             matplotlib.pyplot.show(block=not gui)
 
-def _log_length_estimate(report, slength):
+def _log_length_estimate(report : TextIO, slength:float) -> None:
+    """
+    After analysis is done we want to report the used estimated
+    length in the report.
+    
+    Arguments
+    ---------
+    report : TextIO
+        Text stream for log file.
+    slength : float
+        The expected yearly impacted sedimentation length.
+
+    Returns
+    -------
+    None
+    """
     if slength > 1:
         nlength = f"{int(slength)}"
     else:
