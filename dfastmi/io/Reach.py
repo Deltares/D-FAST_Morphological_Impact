@@ -42,18 +42,18 @@ class Reach(AReach):
     """
     Derived class with reach data information used with current (AKA v2) river configuration files.
     """
-    hydro_q : List[float]
-    hydro_t : List[float]
+    hydro_q : List[float] = []
+    hydro_t : List[float] = []
     auto_time : bool = False
-    qfit : Tuple[float,float]
+    qfit : Tuple[float,float] = (0.0, 0.0)
 
     use_tide : bool = False
-    tide_boundary_condition : Tuple[str, ...]
+    tide_boundary_condition : Tuple[str, ...] =()
 
-    celer_form : int
+    celer_form : int = 0
     celer_object : ICelerObject = None
 
-    def verify(self):
+    def validate(self, values):
         self._verify_consistency_hydro_q_and_hydro_t()
 
         self._verify_consistency_hydro_q_and_tide_bc()
@@ -65,6 +65,10 @@ class Reach(AReach):
             raise ValueError(f'Invalid value {self.celer_form} specified for "CelerForm" '
                              f'for branch "{self.parent_branch.name}", reach "{self.name}";'
                              f' only 1 and 2 are supported.')
+
+        # Call the parent class's validate method to perform default validation
+        super().model_validate(values)
+
 
     def _verify_consistency_hydro_q_and_tide_bc(self):        
         """

@@ -116,7 +116,7 @@ class RiversObject():
                     else:    
                         reach = Reach(reach_name, i)
                     branch.reaches.append(reach)
-                except:
+                except Exception as e:
                     break
 
     def _parse_branches(self, config : configparser.ConfigParser):
@@ -189,7 +189,7 @@ class RiversObject():
             for reach in branch.reaches:
                 self._initialize_base(river_data, reach)
                 self._initialize(river_data, reach)
-                reach.verify()
+                #reach.verify()
         
         #self._verify_reaches()
         
@@ -210,12 +210,12 @@ class RiversObject():
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:
-            celerProperties = CelerProperties()
+            celerProperties = CelerProperties(reach)
             celerProperties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
             celerProperties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
             reach.celer_object = celerProperties
         elif reach.celer_form == 2:
-            celerDischarge = CelerDischarge()
+            celerDischarge = CelerDischarge(reach)
             celerDischarge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
             reach.celer_object = celerDischarge       
     

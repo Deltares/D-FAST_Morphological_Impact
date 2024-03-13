@@ -35,10 +35,12 @@ Interfaces:
 """
 
 from abc import ABC, abstractmethod
+from pydantic import BaseModel
+
 
 from dfastmi.io.IReach import IReach
 
-class IBranch(ABC):
+class IBranch(ABC, BaseModel):
     """Interface for branch information"""  
 
     @property
