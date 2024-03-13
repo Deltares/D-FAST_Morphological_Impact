@@ -159,7 +159,7 @@ class AnalyserDflowfm():
 
         return one_fm_filename, missing_data
     
-    def _get_first_fm_data_filename_based_on_numbered_keys(self, discharges : Vector, filenames : Dict[Any, Tuple[str,str]]) -> str:
+    def _get_first_fm_data_filename_based_on_numbered_keys(self, discharges : Vector, filenames : Dict[Any, Tuple[str,str]]) -> Optional[str]:
         for i in range(3):
             if discharges[i] is not None:
                 return filenames[i][0]
