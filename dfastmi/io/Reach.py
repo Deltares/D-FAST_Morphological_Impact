@@ -53,13 +53,13 @@ class Reach(AReach):
     celer_form : int = 0
     celer_object : ICelerObject = None
 
-    def validate(self, values):
+    def validate(self, **kwargs):
         self._verify_consistency_hydro_q_and_hydro_t()
 
         self._verify_consistency_hydro_q_and_tide_bc()
 
         if self.celer_object:
-            self.celer_object.verify(self.parent_branch.name, self.name)
+            self.celer_object.validate(self.celer_object)
 
         if self.celer_form not in (1,2):
             raise ValueError(f'Invalid value {self.celer_form} specified for "CelerForm" '
@@ -67,7 +67,7 @@ class Reach(AReach):
                              f' only 1 and 2 are supported.')
 
         # Call the parent class's validate method to perform default validation
-        super().model_validate(values)
+        self.model_validate(self,**kwargs)
 
 
     def _verify_consistency_hydro_q_and_tide_bc(self):        

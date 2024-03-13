@@ -43,9 +43,6 @@ from pydantic import BaseModel
 from dfastmi.io.AReach import AReach
 
 class ICelerObject(ABC, BaseModel):
-
-
-class ICelerObject(ABC):
     "Interface or abstract base class to the CelerObject."
     parent_reach : AReach = None
     def __init__(self, reach : AReach):
@@ -121,7 +118,7 @@ class CelerProperties(ICelerObject):
 
     def validate(self):
         return super().validate()
-        reach_name : str = self.parent_reach.name        
+        reach_name : str = self.parent_reach.name
         prop_q_length = len(self.prop_q)
         prop_c_length = len(self.prop_c)
         if prop_q_length != prop_c_length:

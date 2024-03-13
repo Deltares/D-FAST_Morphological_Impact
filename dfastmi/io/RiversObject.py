@@ -30,6 +30,7 @@ import configparser
 from typing import List, Tuple
 import zlib
 from packaging.version import Version
+from pydantic import ValidationError
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
@@ -188,8 +189,11 @@ class RiversObject():
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize_base(river_data, reach)
-                self._initialize(river_data, reach)
-                #reach.verify()
+                self._initialize(river_data, reach)                
+                try:
+                    reach.validate()
+                except ValidationError as e:
+                    print("Validation reach failed:", e)
         
         #self._verify_reaches()
         
