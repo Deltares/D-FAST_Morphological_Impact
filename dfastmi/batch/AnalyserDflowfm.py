@@ -15,6 +15,9 @@ import os
 from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
 class AnalyserDflowfm():
+    """
+    Class that analyses the Dflowfm data.
+    """
     
     _logger : AnalyserDflowfmLogger
     

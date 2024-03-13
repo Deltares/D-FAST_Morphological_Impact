@@ -1,3 +1,4 @@
+from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
 import dfastmi.plotting
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -8,52 +9,32 @@ import netCDF4
 import numpy
 import os
 
-class _ReporterDflowfmLogger():
-    def __init__(self, display : bool):
-        self.display = display
-        
-    def log_compute_initial_year_dredging(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
-
-    def log_writing_output(self):
-        if self.display:
-            ApplicationSettingsHelper.log_text('writing_output')
-
-    def print_sedimentation_and_erosion(self, sedimentation_data):
-        if self.display:
-            if sedimentation_data.sedvol.shape[1] > 0:
-                print("Estimated sedimentation volume per area using 3 methods")
-                print("                              Max:             Method 1:        Method 2:       ")
-                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                for i in range(sedimentation_data.sedvol.shape[1]):
-                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.sedarea[i], sedimentation_data.sedvol[0,i], sedimentation_data.sedvol[1,i], sedimentation_data.sedvol[2,i]))
-                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedvol[0,:].max(), sedimentation_data.sedvol[1,:].max(), sedimentation_data.sedvol[2,:].max()))
-                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedarea.sum(), sedimentation_data.sedvol[0,:].sum(), sedimentation_data.sedvol[1,:].sum(), sedimentation_data.sedvol[2,:].sum()))
-
-            if sedimentation_data.sedvol.shape[1] > 0 and sedimentation_data.erovol.shape[1] > 0:
-                print("")
-
-            if sedimentation_data.erovol.shape[1] > 0:
-                print("Estimated erosion volume per area using 3 methods")
-                print("                              Max:             Method 1:        Method 2:       ")
-                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
-                for i in range(sedimentation_data.erovol.shape[1]):
-                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.eroarea[i], sedimentation_data.erovol[0,i], sedimentation_data.erovol[1,i], sedimentation_data.erovol[2,i]))
-                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.erovol[0,:].max(), sedimentation_data.erovol[1,:].max(), sedimentation_data.erovol[2,:].max()))
-                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.eroarea.sum(), sedimentation_data.erovol[0,:].sum(), sedimentation_data.erovol[1,:].sum(), sedimentation_data.erovol[2,:].sum()))
-
-    def print_replacing_coordinates(self):
-        print("replacing coordinates")
-
 class ReporterDflowfm():
     
-    _logger : _ReporterDflowfmLogger
+    _logger : ReporterDflowfmLogger
     
     def __init__(self, display : bool):
-        self._logger = _ReporterDflowfmLogger(display)
+        """
+        Arguments
+        ---------
+        display : bool
+            Flag indicating text output to stdout.
+        """
+        self._logger = ReporterDflowfmLogger(display)
     
     def report(self, outputdir, plotops, report_data : OutputDataDflowfm):
+        """
+        write report data to a netCDF UGRID file similar to D-Flow FM.
+
+        Arguments
+        ---------
+        outputdir : str
+            Name of output directory.
+        plotops : Dict
+            Dictionary of plot settings
+        report_data  : OutputDataDflowfm
+            DTO with the data which is needed to create a report.
+        """
         self._logger.log_writing_output()
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(report_data.one_fm_filename)
         dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")

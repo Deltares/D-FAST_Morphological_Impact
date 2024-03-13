@@ -86,3 +86,42 @@ class AnalyserDflowfmLogger():
 
     def print_measure_not_active_for_checked_conditions(self):
         print("The measure is not active for any of the checked conditions.")
+
+
+class ReporterDflowfmLogger():
+    def __init__(self, display : bool):
+        self.display = display
+
+    def log_compute_initial_year_dredging(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
+
+    def log_writing_output(self):
+        if self.display:
+            ApplicationSettingsHelper.log_text('writing_output')
+
+    def print_sedimentation_and_erosion(self, sedimentation_data):
+        if self.display:
+            if sedimentation_data.sedvol.shape[1] > 0:
+                print("Estimated sedimentation volume per area using 3 methods")
+                print("                              Max:             Method 1:        Method 2:       ")
+                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+                for i in range(sedimentation_data.sedvol.shape[1]):
+                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.sedarea[i], sedimentation_data.sedvol[0,i], sedimentation_data.sedvol[1,i], sedimentation_data.sedvol[2,i]))
+                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedvol[0,:].max(), sedimentation_data.sedvol[1,:].max(), sedimentation_data.sedvol[2,:].max()))
+                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.sedarea.sum(), sedimentation_data.sedvol[0,:].sum(), sedimentation_data.sedvol[1,:].sum(), sedimentation_data.sedvol[2,:].sum()))
+
+            if sedimentation_data.sedvol.shape[1] > 0 and sedimentation_data.erovol.shape[1] > 0:
+                print("")
+
+            if sedimentation_data.erovol.shape[1] > 0:
+                print("Estimated erosion volume per area using 3 methods")
+                print("                              Max:             Method 1:        Method 2:       ")
+                print("                                sum area*dzeqa      sum_L dzeqa   L*W*avg(dzeqa)")
+                for i in range(sedimentation_data.erovol.shape[1]):
+                    print("Area{:3d} ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(i+1, sedimentation_data.eroarea[i], sedimentation_data.erovol[0,i], sedimentation_data.erovol[1,i], sedimentation_data.erovol[2,i]))
+                print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.erovol[0,:].max(), sedimentation_data.erovol[1,:].max(), sedimentation_data.erovol[2,:].max()))
+                print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(sedimentation_data.eroarea.sum(), sedimentation_data.erovol[0,:].sum(), sedimentation_data.erovol[1,:].sum(), sedimentation_data.erovol[2,:].sum()))
+
+    def print_replacing_coordinates(self):
+        print("replacing coordinates")

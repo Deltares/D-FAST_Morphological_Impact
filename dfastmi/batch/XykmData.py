@@ -8,10 +8,19 @@ import numpy
 import shapely
 
 class XykmData():
+    """
+    Class that initializes and keeps Xykm related data.
+    """
     
     _logger : XykmDataLogger
     
     def __init__(self, logger : XykmDataLogger):
+        """
+        Arguments
+        ---------
+        logger : XykmDataLogger
+            Logger that logs information for this class.
+        """
         self._xykm : LineString = None
         self._xni : numpy.ndarray = None
         self._yni : numpy.ndarray = None
@@ -143,6 +152,21 @@ class XykmData():
         return self._nni
             
     def initialize_data(self, xykm : LineString, xn : numpy.ndarray, yn : numpy.ndarray, face_node_connectivity : numpy.ndarray):
+        """
+        initializes the properties in the XykmData object.
+        
+        Arguments
+        ---------
+        xykm : LineString
+            Array containing the x, y, and chainage; unit m for x and y, km for chainage.
+        xn : numpy.ndarray
+            X-coordinates of the mesh nodes.
+        yn : numpy.ndarray
+            Y-coordinates of the mesh nodes.
+        face_node_connectivity : numpy.ndarray
+            Masked M x N array containing the indices of (max N) corner nodes for each of the M cells [-].
+            Node indices are 0-based, hence the maximum node index is K-1.
+        """
         self._xykm = xykm
         
         if self._xykm is None:
