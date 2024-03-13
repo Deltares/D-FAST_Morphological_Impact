@@ -23,7 +23,7 @@ class Test_Configuration_Initializer():
         mock_reach.ucritical = 1
         mock_reach.normal_width = 3.4
 
-        mock_reach.celer_object = CelerProperties(mock_reach)
+        mock_reach.celer_object = CelerProperties()
         mock_reach.celer_object.prop_q = [13.13, 14.14]
         mock_reach.celer_object.prop_c = [15.13, 16.14]
         return mock_reach
@@ -108,7 +108,7 @@ class Test_Configuration_Initializer():
         reach.qstagnant = 4.5
         reach.auto_time = False
         reach.celer_form = 2
-        reach.celer_object = CelerDischarge(reach)
+        reach.celer_object = CelerDischarge()
         reach.celer_object.cdisch = [1.0, 1.0]
         reach.hydro_t = [0.0, 1.0, 0.0]
         

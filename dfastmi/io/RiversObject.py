@@ -214,12 +214,12 @@ class RiversObject():
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:
-            celerProperties = CelerProperties(reach)
+            celerProperties = CelerProperties()
             celerProperties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
             celerProperties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
             reach.celer_object = celerProperties
         elif reach.celer_form == 2:
-            celerDischarge = CelerDischarge(reach)
+            celerDischarge = CelerDischarge()
             celerDischarge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
             reach.celer_object = celerDischarge       
     

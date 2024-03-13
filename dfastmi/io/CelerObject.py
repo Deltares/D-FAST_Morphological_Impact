@@ -45,6 +45,7 @@ from dfastmi.io.AReach import AReach
 class ICelerObject(ABC, BaseModel):
     "Interface or abstract base class to the CelerObject."
     parent_reach : AReach = None
+   
     def __init__(self, reach : AReach):
         super().__init__(parent_reach=reach)
         self.parent_reach = reach

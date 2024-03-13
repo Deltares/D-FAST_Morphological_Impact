@@ -51,7 +51,16 @@ class Reach(AReach):
     tide_boundary_condition : Tuple[str, ...] =()
 
     celer_form : int = 0
-    celer_object : ICelerObject = None
+    _celer_object : ICelerObject = None
+    
+    @property
+    def celer_object(self):
+        return self._celer_object
+
+    @celer_object.setter
+    def celer_object(self, value : ICelerObject):
+        self._celer_object = value
+        self._celer_object.parent_reach = self
 
     def validate(self, **kwargs):
         self._verify_consistency_hydro_q_and_hydro_t()
@@ -102,3 +111,7 @@ class Reach(AReach):
         if self.qfit == (0.0, 0.0):
             raise ValueError(f'The parameter "QFit" must be specified for branch "{self.parent_branch.name}", '
                              f'reach "{self.name}" since "AutoTime" is set to True.')               
+    
+    def notify(self, celer_object:ICelerObject) -> None:
+        """When a celer object is set to the reach we want to set the parent reach in the celer object element"""
+        celer_object.parent_reach = self
