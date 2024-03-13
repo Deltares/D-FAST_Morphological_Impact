@@ -11,7 +11,7 @@ report.txt
 [!ref]*.out
 tests/**/report.txt
 tests/**/verslag.run
-tests/c01 - GendtseWaardNevengeul/output
+tests/c01 - GendtseWaardNevengeul/output*
 
 # Latex generated files
 docs/**/*.aux
