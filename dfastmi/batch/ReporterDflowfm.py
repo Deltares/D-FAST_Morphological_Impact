@@ -148,8 +148,11 @@ class ReporterDflowfm():
 
         # open destination file
         dst = netCDF4.Dataset(projmesh, "a")
-        dst.variables[meshname + '_node_x'][:] = sn[:]
-        dst.variables[meshname + '_node_y'][:] = nn[:]
+        dst = netCDF4.Dataset(projmesh, "a")
+        node_x = meshname + '_node_x'
+        node_y = meshname + '_node_y'
+        dst.variables[node_x][:] = sn[:]
+        dst.variables[node_y][:] = nn[:]
         dst.close()
 
     def _plot_data(self, plotops : Dict, xykm_data : XykmData, dzgemi : numpy.ndarray):
