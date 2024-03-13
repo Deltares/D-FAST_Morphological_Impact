@@ -1,4 +1,6 @@
+from typing import Dict
 from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
+from dfastmi.batch.XykmData import XykmData
 import dfastmi.plotting
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -22,7 +24,7 @@ class ReporterDflowfm():
         """
         self._logger = ReporterDflowfmLogger(display)
     
-    def report(self, outputdir, plotops, report_data : OutputDataDflowfm):
+    def report(self, outputdir : str, plotops : Dict, report_data : OutputDataDflowfm):
         """
         write report data to a netCDF UGRID file similar to D-Flow FM.
 
@@ -45,18 +47,16 @@ class ReporterDflowfm():
         self._grid_update(report_data, report_data.xykm_data.iface, meshname, facedim, dst, nc_fill, projmesh)
 
         if report_data.xykm_data.xykm is not None:
-            self._replace_coordinates_in_destination_file(report_data.xn, report_data.xykm_data.inode, report_data.xykm_data.sni, report_data.xykm_data.nni, meshname, nc_fill, projmesh)
+            self._replace_coordinates_in_destination_file(report_data, report_data.xykm_data, meshname, nc_fill, projmesh)
 
-        self._plot_data(plotops, report_data.xykm_data.xni, report_data.xykm_data.yni, report_data.xykm_data.face_node_connectivity_index, report_data.xykm_data.xmin, report_data.xykm_data.xmax, report_data.xykm_data.ymin, report_data.xykm_data.ymax, report_data.xykm_data.xykline, report_data.dzgemi)
+        self._plot_data(plotops, report_data.xykm_data, report_data.dzgemi)
 
         self._logger.log_compute_initial_year_dredging()
 
         if report_data.xykm_data.xykm is not None:
-            self._grid_update_xykm(outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, report_data.xykm_data.iface, report_data.xykm_data.interest_region, meshname, facedim, nc_fill, report_data.sedimentation_data)
+            self._grid_update_xykm(outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, meshname, facedim, nc_fill, report_data.sedimentation_data, report_data.xykm_data)
 
-
-
-    def _grid_update(self, report_data : OutputDataDflowfm, iface, meshname, facedim, dst, nc_fill, projmesh):
+    def _grid_update(self, report_data : OutputDataDflowfm, iface : numpy.ndarray, meshname : str, facedim : str, dst : str, nc_fill : float, projmesh :str):
         
         rsigma = report_data.rsigma
         one_fm_filename = report_data.one_fm_filename
@@ -128,7 +128,6 @@ class ReporterDflowfm():
                         units="m",
                     )
 
-
         GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
         GridOperations.ugrid_add(
                 projmesh,
@@ -140,12 +139,12 @@ class ReporterDflowfm():
                 units="m",
             )
 
-    def _replace_coordinates_in_destination_file(self, xn, inode, sni, nni, meshname, nc_fill, projmesh):
+    def _replace_coordinates_in_destination_file(self, report_data : OutputDataDflowfm, xykm_data : XykmData, meshname : str, nc_fill : float, projmesh : str):
         self._logger.print_replacing_coordinates()
-        sn = numpy.repeat(nc_fill, xn.shape[0])
-        sn[inode]=sni
-        nn = numpy.repeat(nc_fill, xn.shape[0])
-        nn[inode]=nni
+        sn = numpy.repeat(nc_fill, report_data.xn.shape[0])
+        sn[xykm_data.inode]=xykm_data.sni
+        nn = numpy.repeat(nc_fill, report_data.xn.shape[0])
+        nn[xykm_data.inode]=xykm_data.nni
 
         # open destination file
         dst = netCDF4.Dataset(projmesh, "a")
@@ -153,21 +152,21 @@ class ReporterDflowfm():
         dst.variables[meshname + '_node_y'][:] = nn[:]
         dst.close()
 
-    def _plot_data(self, plotops, xni, yni, face_node_connectivity_index, xmin, xmax, ymin, ymax, xykline, dzgemi):
+    def _plot_data(self, plotops : Dict, xykm_data : XykmData, dzgemi : numpy.ndarray):
         if plotops['plotting']:
-            if face_node_connectivity_index.mask.shape == ():
+            if xykm_data.face_node_connectivity_index.mask.shape == ():
                     # all faces have the same number of nodes
-                nnodes = numpy.ones(face_node_connectivity_index.data.shape[0], dtype=numpy.int64) * face_node_connectivity_index.data.shape[1]
+                nnodes = numpy.ones(xykm_data.face_node_connectivity_index.data.shape[0], dtype=numpy.int64) * xykm_data.face_node_connectivity_index.data.shape[1]
             else:
                     # varying number of nodes
-                nnodes = face_node_connectivity_index.mask.shape[1] - face_node_connectivity_index.mask.sum(axis=1)
+                nnodes = xykm_data.face_node_connectivity_index.mask.shape[1] - xykm_data.face_node_connectivity_index.mask.sum(axis=1)
             fig, ax = dfastmi.plotting.plot_overview(
-                    (xmin, ymin, xmax, ymax),
-                    xykline,
-                    face_node_connectivity_index,
+                    (xykm_data.xmin, xykm_data.ymin, xykm_data.xmax, xykm_data.ymax),
+                    xykm_data.xykline,
+                    xykm_data.face_node_connectivity_index,
                     nnodes,
-                    xni,
-                    yni,
+                    xykm_data.xni,
+                    xykm_data.yni,
                     dzgemi,
                     "x-coordinate [km]",
                     "y-coordinate [km]",
@@ -183,7 +182,7 @@ class ReporterDflowfm():
                 figfile = figbase + plotops['plot_ext']
                 dfastmi.plotting.savefig(fig, figfile)
 
-    def _grid_update_xykm(self, outputdir, one_fm_filename, face_node_connectivity, iface, interest_region, meshname, facedim, nc_fill, sedimentation_data : SedimentationData):
+    def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):
         self._logger.print_sedimentation_and_erosion(sedimentation_data)
 
         projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
@@ -191,16 +190,16 @@ class ReporterDflowfm():
         GridOperations.ugrid_add(
                     projmesh,
                     "interest_region",
-                    interest_region,
+                    xykm_data.interest_region,
                     meshname,
                     facedim,
                     long_name="Region on which the sedimentation analysis was performed",
                 units="1",
                 )
+        
         sed_area = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
-
         for i in range(len(sedimentation_data.sed_area_list)):
-            sed_area[iface[sedimentation_data.sed_area_list[i] == 1]] = i+1
+            sed_area[xykm_data.iface[sedimentation_data.sed_area_list[i] == 1]] = i+1
         GridOperations.ugrid_add(
                     projmesh,
                     "sed_area",
@@ -210,10 +209,10 @@ class ReporterDflowfm():
                     long_name="Sedimentation area",
                     units="1",
                 )
+        
         ero_area = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
-
         for i in range(len(sedimentation_data.ero_area_list)):
-            ero_area[iface[sedimentation_data.ero_area_list[i] == 1]] = i+1
+            ero_area[xykm_data.iface[sedimentation_data.ero_area_list[i] == 1]] = i+1
         GridOperations.ugrid_add(
                     projmesh,
                     "ero_area",
@@ -223,8 +222,9 @@ class ReporterDflowfm():
                     long_name="Erosion area",
                     units="1",
                 )
+        
         wght_estimate1 = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
-        wght_estimate1[iface] = sedimentation_data.wght_estimate1i
+        wght_estimate1[xykm_data.iface] = sedimentation_data.wght_estimate1i
         GridOperations.ugrid_add(
                     projmesh,
                     "wght_estimate1",
@@ -234,8 +234,9 @@ class ReporterDflowfm():
                     long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
                     units="1",
                 )
+        
         wbin = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
-        wbin[iface] = sedimentation_data.wbini
+        wbin[xykm_data.iface] = sedimentation_data.wbini
         GridOperations.ugrid_add(
                     projmesh,
                     "wbin",
