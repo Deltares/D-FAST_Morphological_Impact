@@ -31,46 +31,14 @@ Module for Reach implementation
 
 Classes:
     Reach
-    ReachLegacy
-    ReachAdvanced
-
 """
-from abc import ABC
 from typing import List
+from dfastmi.io.AReach import AReach
 
 from dfastmi.io.CelerObject import ICelerObject
-from dfastmi.io.IBranch import IBranch
-
-class Reach(ABC):
-    """
-    Abstract base class with reach data information. Should never be instantiated.
-    """
-    name : str
-    config_key_index : int
-    normal_width : float
-    ucritical : float
-    qstagnant : float
-    parent_branch : IBranch
-
-    def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
-        self.name = reach_name
-        self.config_key_index = reach_config_key_index
 
 
-class ReachLegacy(Reach):
-    """
-    Derived class with reach data information used with legacy river configuration files.
-    """
-    proprate_high : float
-    proprate_low : float
-    qbankfull : float
-    qmin : float
-    qfit : tuple[float,float]
-    qlevels : List[float]
-    dq : tuple[float,float]
-
-
-class ReachAdvanced(Reach):
+class Reach(AReach):
     """
     Derived class with reach data information used with current (AKA v2) river configuration files.
     """

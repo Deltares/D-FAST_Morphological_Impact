@@ -29,9 +29,19 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import Optional, List, Dict, Any, Tuple, TextIO
 import sys
-from dfastmi.io.Reach import ReachAdvanced
+import os
+import math
+import configparser
+import numpy
+import matplotlib
+import shapely
+from packaging import version
+from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
+
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.core import Vector, BoolVector, QRuns
+from dfastmi.kernel.typehints import Vector, BoolVector, QRuns
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
@@ -41,18 +51,13 @@ from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch import AnalyserAndReporterWaqua
 from dfastmi.batch import ConfigurationChecker
-from dfastmi.batch import FileNameRetriever
 
-import os
-import math
-import numpy
+from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from dfastmi.batch.FileNameRetriever import FileNameRetriever
+from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
+
 import dfastmi.kernel.core
 import dfastmi.plotting
-
-import matplotlib
-import configparser
-import shapely
-from packaging import version
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
@@ -68,7 +73,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     config_file : str
         Name of the configuration file.
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
@@ -93,7 +98,7 @@ def batch_mode_core(
     Arguments
     ---------
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
@@ -166,7 +171,7 @@ def batch_mode_core(
             
             if version.parse(cfg_version) == version.parse("1"):
                 # version 1
-                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationChecker.get_levels_v1(reach, config, nwidth)
+                [Q, apply_q, q_threshold, time_mi, tstag, T, rsigma, celerity] = ConfigurationCheckerLegacy().get_levels(reach, config, nwidth)
                 needs_tide = False
                 n_fields = 1
 
@@ -219,7 +224,7 @@ def batch_mode_core(
             kmfile = data.config_get(str, "General", "RiverKM", "")
             if kmfile != "":
                 xykm = DataTextFileOperations.get_xykm(kmfile)
-                xykline = numpy.array(xykm)
+                xykline = numpy.array(xykm.coords)
                 kline = xykline[:,2]
                 kmbounds = data.config_get_range("General", "Boundaries", (min(kline), max(kline)))
                 if display:
@@ -321,7 +326,7 @@ def batch_mode_core(
     return success
 
 def get_levels_v2(
-    reach : ReachAdvanced, q_threshold: float, nwidth: float
+    reach : Reach, q_threshold: float, nwidth: float
 ) -> (Vector, BoolVector, Vector, float, Vector, Vector, Vector):
     """
     Determine discharges, times, etc. for version 2 analysis
@@ -329,7 +334,7 @@ def get_levels_v2(
     Arguments
     ---------
     rivers : RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     ibranch : int
         Number of selected branch.
     ireach : int
@@ -485,6 +490,12 @@ def batch_get_times(Q: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_
 
     return T, time_mi
 
+def _initialize_file_name_retriever_factory() -> FileNameRetrieverFactory:
+    factory = FileNameRetrieverFactory()
+    factory.register_creator(version.Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy())
+    factory.register_creator(version.Version("2.0"), lambda needs_tide: FileNameRetriever(needs_tide))
+    return factory
+
 def get_filenames(
     imode: int,
     needs_tide: bool,
@@ -512,15 +523,20 @@ def get_filenames(
         can be the discharge index, discharge value or a tuple of forcing
         conditions, such as a Discharge and Tide forcing tuple.
     """
-    filenames: Dict[Any, Tuple[str,str]]
-    if imode == 0 or config is None:
-        filenames = {}
-    elif version.parse(config["General"]["Version"]) == version.parse("1"):
-        filenames = FileNameRetriever.get_filenames_version1(config)
+    factory = _initialize_file_name_retriever_factory()
+    
+    if imode != 0:
+        general_version = config.get("General", "Version", fallback= None)
     else:
-        filenames = FileNameRetriever.get_filenames_version2(needs_tide, config)
+        general_version = None
 
-    return filenames
+    if general_version:
+        file_name_retriever_version = version.Version(general_version)
+    else:
+        file_name_retriever_version = None
+        
+    file_name_retriever = factory.generate(file_name_retriever_version, needs_tide)
+    return file_name_retriever.get_file_names(config)
 
 def analyse_and_report(
     imode: int,
@@ -616,14 +632,11 @@ def analyse_and_report(
             display,
             report,
             reduced_output,
-            reach,
-            q_location,
             tstag,
             Q,
             apply_q,
             T,
             rsigma,
-            slength,
             ucrit,
             old_zmin_zmax,
             outputdir,
@@ -836,7 +849,7 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
     Arguments
     ---------
     rivers: RiversObject
-        A dictionary containing the river data.
+        An object containing the river data.
     config : configparser.ConfigParser
         Configuration for the D-FAST Morphological Impact analysis.
 
@@ -845,20 +858,17 @@ def check_configuration(rivers: RiversObject, config: configparser.ConfigParser)
     success : bool
         Boolean indicating whether the D-FAST MI analysis configuration is valid.
     """
-    try:
-        cfg_version = config["General"]["Version"]
+    cfg_version = config.get("General", "Version", fallback=None)
         
-        if version.parse(cfg_version) != rivers.version:
-            return False
-        if version.parse(cfg_version) == version.parse("1.0"):
-            return ConfigurationChecker.check_configuration_v1(rivers, config)
-        else:
-            return ConfigurationChecker.check_configuration_v2(rivers, config)
+    try:        
+        configuration_version = version.parse(cfg_version)
+        configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
+        return configuration_checker.check_configuration(rivers, config)
     except SystemExit as e:
         raise e
     except:
         return False
-
+    
 def config_to_relative_paths(
     rootdir: str, config: configparser.ConfigParser
 ) -> configparser.ConfigParser:

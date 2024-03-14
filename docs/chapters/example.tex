@@ -1,2 +1,23 @@
-\chapter{Example}
-\todo{Example to be included.}
+\chapter{Examples}
+
+\section{Example 1: secondary channel along the Nederrijn}
+
+For this first example, we compare the results of \dfastmi with the results of a morphological simulation using Delft3D-FLOW.
+For consistency the \dfastmi analysis was performed using the hydrodynamic results of Delft3D-FLOW\footnote{Since \dfastmi expects \dflowfm results in netCDF UGRID format, the results were converted to the appropriate file format by means of \texttt{sim2ugrid}.
+This MATLAB-based tool is included in the Delft3D-QUICKPLOT distribution.}.
+
+For this analysis, the Nederrijn grid of the DVR model has been used.
+The measure concerns a secondary channel planned in the Palmerswaard which is located at Rkm 910-912 in the reach upstream of the Amerongen barrier at Rkm 922.
+The reference model is based on the Baseline schematization ‘rijn-beno18\_5-v1’.
+Since the DVR model was too coarse to represent the actual secondary channel, a combination of flow extraction and insertion was used to represent the side channel.
+
+\todo{Merge new results and case description of \citet{GiriJagers2022}.}
+
+\section{Example 2: secondary channel along the Pannerdensch Kanaal}
+
+For this second example, we follow the same approach as example 1: we compare the results of \dfastmi with the results of a morphological simulation using Delft3D-FLOW.
+The model domain was reduced to focus mainly on the Pannerdensch Kanaal, but because of the two bifurcations upstream and downstream, it still included parts of all the branches (Bovenrijn, Pannerdensch Kanaal, Waal, Nederrijn and IJssel).
+The reference model is based on the Baseline schematization ‘rijn-beno18\_5-v1’.
+Again, a combination of flow extraction and insertion was used to represent the side channel.
+
+\todo{Merge new results and case description of \citet{GiriJagers2022}.}

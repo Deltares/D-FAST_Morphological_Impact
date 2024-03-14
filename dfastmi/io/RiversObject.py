@@ -30,19 +30,37 @@ import configparser
 from typing import List, Tuple
 import zlib
 from packaging import version
+from dfastmi.io.IReach import IReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
-from dfastmi.io.Reach import Reach, ReachAdvanced, ReachLegacy
+from dfastmi.io.IBranch import IBranch
+from dfastmi.io.Reach import Reach
 
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
+from dfastmi.io.ReachLegacy import ReachLegacy
 
 class RiversObject():
-    branches: List[Branch]
+    branches: List[IBranch]
     version: version # type: ignore
 
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)
+    
+    def get_branch(self, branch_name : str) -> IBranch:
+        """
+        Return the branch from the read branches list
+        Arguments
+        ---------
+        branch_name : str
+            The name of the branch in the river configuration 
+        """
+        for branch in self.branches:
+            if branch.name == branch_name:
+                return branch
+        return None  # Return None if the branch with the given name is not found
+
+        
 
     def _read_rivers_file(self, filename):
         """
@@ -96,7 +114,7 @@ class RiversObject():
                     if iversion == 1:
                         reach = ReachLegacy(reach_name, i)
                     else:    
-                        reach = ReachAdvanced(reach_name, i)
+                        reach = Reach(reach_name, i)
                     branch.reaches.append(reach)
                 except:
                     break
@@ -149,7 +167,7 @@ class RiversObject():
         reach.qlevels = river_data.read_key(Tuple[float, ...], "QLevels", reach, expected_number_of_values=4)
         reach.dq = river_data.read_key(Tuple[float, ...], "dQ", reach, expected_number_of_values=2)
 
-    def _initialize(self, river_data : DFastMIConfigParser, reach:Reach):
+    def _initialize(self, river_data : DFastMIConfigParser, reach:IReach):
         reach.normal_width = river_data.read_key(float, "NWidth", reach)
         reach.ucritical = river_data.read_key(float, "UCrit", reach)
         reach.qstagnant = river_data.read_key(float, "QStagnant", reach)
@@ -265,7 +283,7 @@ class RiversObject():
                             )
                         )
 
-    def _initialize_advanced(self, river_data : DFastMIConfigParser, reach : ReachAdvanced):
+    def _initialize_advanced(self, river_data : DFastMIConfigParser, reach : Reach):
         reach.hydro_q = river_data.read_key(Tuple[float, ...], "HydroQ", reach)
 
         reach.autotime = river_data.read_key(bool, "AutoTime", reach, False)
@@ -276,7 +294,7 @@ class RiversObject():
 
         reach.tide = river_data.read_key(bool, "Tide", reach, False)
         # for Tide = True
-        reach.tide_bc = river_data.read_key(Tuple[float, ...], "TideBC", reach)
+        reach.tide_bc = river_data.read_key(Tuple[str, ...], "TideBC", reach)
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:

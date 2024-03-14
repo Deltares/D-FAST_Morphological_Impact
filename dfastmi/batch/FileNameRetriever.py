@@ -27,121 +27,68 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional, Union, Dict, Any, Tuple
+from typing import Any, Dict, Optional, Tuple
 import configparser
+from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
 
-def get_filenames_version1(
-    config: Optional[configparser.ConfigParser] = None,
-) -> Dict[Any, Tuple[str,str]]:
+class FileNameRetriever(AFileNameRetriever):
     """
-    Extract the list of six file names from the configuration.
-    This routine is valid for version 1 configuration files.
-
-    Arguments
-    ---------
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
-
-    Returns
-    -------
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of string tuples representing the D-Flow FM file names for
-        each reference/with measure pair. The keys of the dictionary vary. They
-        can be the discharge index, discharge value or a tuple of forcing
-        conditions, such as a Discharge and Tide forcing tuple.
+    File name retriever for version 2.
     """
-    filenames: Dict[Any, Tuple[str,str]]
-    key: Union[Tuple[float, int], float]
-    filenames = {}
-    for i in range(3):
-        qstr = "Q{}".format(i + 1)
-        if qstr in config:
-            reference = cfg_get(config, qstr, "Reference")
-            measure = cfg_get(config, qstr, "WithMeasure")
-            filenames[i] = (reference, measure)
+    
+    def __init__(self, needs_tide: bool):
+        """
+        Constructor of the FileNameRetriever.
 
-    return filenames
+        Arguments
+        ---------
+        needs_tide : bool
+            Specifies whether the tidal boundary is needed.
+        """
+        self.needs_tide = needs_tide
+    
+    def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
+        """
+        Extract the list of 2N file names from the configuration.
+        This routine is valid for version 2 configuration files.
 
+        Arguments
+        ---------
+        config : Optional[configparser.ConfigParser]
+            The variable containing the configuration (may be None for if 0).
 
-def get_filenames_version2(
-    needs_tide: bool,
-    config: Optional[configparser.ConfigParser] = None,
-) -> Dict[Any, Tuple[str,str]]:
-    """
-    Extract the list of 2N file names from the configuration.
-    This routine is valid for version 2 configuration files.
-
-    Arguments
-    ---------
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for if 0).
-
-    Returns
-    -------
-    filenames : Dict[Any, Tuple[str,str]]
-        Dictionary of string tuples representing the D-Flow FM file names for
-        each reference/with measure pair. The keys of the dictionary vary. They
-        can be the discharge index, discharge value or a tuple of forcing
-        conditions, such as a Discharge and Tide forcing tuple.
-    """
-    filenames: Dict[Any, Tuple[str,str]]
-    key: Union[Tuple[float, int], float]
-    filenames = {}
-    i = 0
-    while True:
-        i = i + 1
-        CSTR = "C{}".format(i)
-        if CSTR in config:
-            Q = float(cfg_get(config, CSTR, "Discharge"))
-            reference = cfg_get(config, CSTR, "Reference")
-            measure = cfg_get(config, CSTR, "WithMeasure")
-            if needs_tide:
-               T = cfg_get(config, CSTR, "TideBC")
-               key = (Q,T)
+        Returns
+        -------
+        filenames : Dict[Any, Tuple[str,str]]
+            Dictionary of string tuples representing the D-Flow FM file names for
+            each reference/with measure pair. The keys of the dictionary vary. They
+            can be the discharge index, discharge value or a tuple of forcing
+            conditions, such as a Discharge and Tide forcing tuple.
+        """
+        filenames: Dict[Any, Tuple[str,str]]
+        key: Union[Tuple[float, int], float]
+        filenames = {}
+        i = 0
+        while True:
+            i = i + 1
+            CSTR = f'C{i}'
+            if CSTR in config:
+                q_string = self._cfg_get(config, CSTR, "Discharge")
+                
+                try:
+                    Q = float(q_string)
+                except ValueError as exc:
+                    raise TypeError(f'{q_string} from Discharge could now be handled as a float.') from exc
+                
+                reference = self._cfg_get(config, CSTR, "Reference")
+                measure = self._cfg_get(config, CSTR, "WithMeasure")
+                if self.needs_tide:
+                    T = self._cfg_get(config, CSTR, "TideBC")
+                    key = (Q,T)
+                else:
+                    key = Q
+                filenames[key] = (reference, measure)
             else:
-               key = Q
-            filenames[key] = (reference, measure)
-        else:
-            break
+                break
 
-    return filenames
-
-
-def cfg_get(config: configparser.ConfigParser, chap: str, key: str) -> str:
-    """
-    Get a single entry from the analysis configuration structure.
-    Raise clear exception message when it fails.
-
-    Arguments
-    ---------
-    config : Optional[configparser.ConfigParser]
-        The variable containing the configuration (may be None for imode = 0).
-    chap : str
-        The name of the chapter in which to search for the key.
-    key : str
-        The name of the key for which to return the value.
-
-    Raises
-    ------
-    Exception
-        If the key in the chapter doesn't exist.
-
-    Returns
-    -------
-    value : str
-        The value specified for the key in the chapter.
-    """
-    try:
-         return config[chap][key]
-    except:
-        pass
-    raise Exception(
-        'Keyword "{}" is not specified in group "{}" of analysis configuration file.'.format(
-            key,
-            chap,
-        )
-    )
-
+        return filenames
