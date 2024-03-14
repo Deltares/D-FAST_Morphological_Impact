@@ -1,12 +1,12 @@
 import math
-import dfastmi.batch.Distance
-import dfastmi.batch.Face
-from dfastmi.batch import DetectAndPlot
 import numpy
 import os
-from typing import Dict, Tuple
 
+from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
+from dfastmi.batch.Face import face_mean, facenode_to_edgeface
+from dfastmi.batch.DetectAndPlot import detect_and_plot_areas
 from dfastmi.batch.SedimentationData import SedimentationData
+from typing import Dict, Tuple
 
 def stream_bins(min_s, max_s, ds):
     """
@@ -206,7 +206,7 @@ def comp_sedimentation_volume(
 
     print("bin cells in across-stream direction")
     # determine the mean normal distance dfi per cell
-    dfi = dfastmi.batch.Face.face_mean(dni, face_node_connectivity_index)
+    dfi = face_mean(dni, face_node_connectivity_index)
     # distribute the cells over nwbins bins over the channel width
     wbini, wthresh = width_bins(dfi, nwidth, nwbins)
     print("bin cells in along-stream direction")
@@ -218,10 +218,10 @@ def comp_sedimentation_volume(
     print("determine chainage per bin")
     # determine chainage values of at the midpoints
     smid = (sthresh[1:] + sthresh[:-1])/2
-    sline = dfastmi.batch.Distance.distance_along_line(xykline[:,:2])
-    kmid = dfastmi.batch.Distance.distance_to_chainage(sline, xykline[:,2], smid)
+    sline = distance_along_line(xykline[:,:2])
+    kmid = distance_to_chainage(sline, xykline[:,2], smid)
 
-    edgeface_index = dfastmi.batch.Face.facenode_to_edgeface(face_node_connectivity_index)
+    edgeface_index = facenode_to_edgeface(face_node_connectivity_index)
     wght_area_tot = numpy.zeros(dzgemi.shape)
     wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
     plot_n = 3
@@ -230,11 +230,11 @@ def comp_sedimentation_volume(
     xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
-    sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
+    sedarea, sedvol, sed_area_list, wght_area_tot = detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
     
     print("-- detecting separate erosion areas")
     xyzfil = ""
     area_str = "erosion area {}"
     total_str = "total erosion volume"
-    eroarea, erovol, ero_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
+    eroarea, erovol, ero_area_list, wght_area_tot = detect_and_plot_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
     return SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini)

@@ -1,9 +1,6 @@
-import dfastmi.batch.Distance
-import dfastmi.batch.Face
-import dfastmi.batch.SedimentationVolume
-import dfastmi.batch.Projection
+from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
+from dfastmi.kernel.core import main_computation, dzq_from_du_and_h
 from dfastmi.batch.DflowfmLoggers import AnalyserDflowfmLogger
-import dfastmi.kernel.core
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.io.GridOperations import GridOperations
@@ -124,9 +121,7 @@ class AnalyserDflowfm():
                 rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
 
             # main_computation now returns new pointwise zmin and zmax
-            dzgemi, dzmaxi, dzmini, dzbi = dfastmi.kernel.core.main_computation(
-                dzq, fraction_of_year, rsigma
-            )
+            dzgemi, dzmaxi, dzmini, dzbi = main_computation(dzq, fraction_of_year, rsigma)
 
             if self._old_zmin_zmax:
                 # get old zmax and zmin
@@ -140,7 +135,7 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedimentation_data = dfastmi.batch.SedimentationVolume.comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
+            sedimentation_data = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
 
         return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
@@ -338,7 +333,7 @@ class AnalyserDflowfm():
             v1 = GridOperations.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
             umag1 = numpy.sqrt(u1**2 + v1**2)
 
-            dzq1 = dfastmi.kernel.core.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
+            dzq1 = dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
 
             if n_fields > 1:
                 ustream = u0*dx + v0*dy

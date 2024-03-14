@@ -1,6 +1,6 @@
-import dfastmi.batch.Distance
-import dfastmi.batch.Face
-import dfastmi.batch.Projection
+from dfastmi.batch.Distance import get_direction
+from dfastmi.batch.Projection import project_xy_point_onto_line
+from dfastmi.batch.Face import filter_faces_by_node_condition, face_mean
 from dfastmi.batch.DflowfmLoggers import XykmDataLogger
 from shapely.geometry.linestring import LineString
 
@@ -172,7 +172,7 @@ class XykmData():
         if self._xykm is None:
             # keep all nodes and faces
             keep = numpy.full(xn.shape, True)
-            self._xni, self._yni, self._face_node_connectivity_index, self._iface, self._inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
+            self._xni, self._yni, self._face_node_connectivity_index, self._iface, self._inode = filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
             self._xmin = xn.min()
             self._xmax = xn.max()
             self._ymin = yn.min()
@@ -198,7 +198,7 @@ class XykmData():
                     keep[i] = False
 
             self._logger.print_apply_filter()
-            self._xni, self._yni, self._face_node_connectivity_index, self._iface, self._inode = dfastmi.batch.Face.filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
+            self._xni, self._yni, self._face_node_connectivity_index, self._iface, self._inode = filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
             self._interest_region = numpy.zeros(face_node_connectivity.shape[0], dtype=numpy.int64)
             self._interest_region[self._iface] = 1
 
@@ -211,14 +211,14 @@ class XykmData():
             # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
             # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
             self._logger.log_project()
-            self._sni, self._nni = dfastmi.batch.Projection.project_xy_point_onto_line(self._xni, self._yni, xyline)
-            sfi = dfastmi.batch.Face.face_mean(self._sni, self._face_node_connectivity_index)
+            self._sni, self._nni = project_xy_point_onto_line(self._xni, self._yni, xyline)
+            sfi = face_mean(self._sni, self._face_node_connectivity_index)
 
             # determine chainage values of each cell
             self._logger.log_chainage()
 
             # determine line direction for each cell
             self._logger.log_direction()
-            self._dxi, self._dyi = dfastmi.batch.Distance.get_direction(xyline, sfi)
+            self._dxi, self._dyi = get_direction(xyline, sfi)
 
             self._logger.log_done()

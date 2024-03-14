@@ -1,9 +1,9 @@
-from typing import List
 import numpy
+
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.kernel.typehints import Vector
-
+from typing import List
 
 class OutputDataDflowfm():
     

@@ -1,7 +1,7 @@
 from typing import Dict
 from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
 from dfastmi.batch.XykmData import XykmData
-import dfastmi.plotting
+from dfastmi.plotting import plot_overview, zoom_xy_and_save, savefig
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.GridOperations import GridOperations
@@ -163,7 +163,7 @@ class ReporterDflowfm():
             else:
                     # varying number of nodes
                 nnodes = xykm_data.face_node_connectivity_index.mask.shape[1] - xykm_data.face_node_connectivity_index.mask.sum(axis=1)
-            fig, ax = dfastmi.plotting.plot_overview(
+            fig, ax = plot_overview(
                     (xykm_data.xmin, xykm_data.ymin, xykm_data.xmax, xykm_data.ymax),
                     xykm_data.xykline,
                     xykm_data.face_node_connectivity_index,
@@ -181,9 +181,9 @@ class ReporterDflowfm():
             if plotops['saveplot']:
                 figbase = plotops['figdir'] + os.sep + "overview"
                 if plotops['saveplot_zoomed']:
-                    dfastmi.plotting.zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
+                    zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
                 figfile = figbase + plotops['plot_ext']
-                dfastmi.plotting.savefig(fig, figfile)
+                savefig(fig, figfile)
 
     def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):
         self._logger.print_sedimentation_and_erosion(sedimentation_data)
