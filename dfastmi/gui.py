@@ -27,21 +27,23 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Dict, Any, Optional
-import sys
-import os
 import configparser
-import subprocess
-from functools import partial
+import os
 import pathlib
-from PyQt5 import QtWidgets
+import subprocess
+import sys
+from functools import partial
+from typing import Any, Dict, Optional
+
 import PyQt5.QtGui
+from PyQt5 import QtWidgets
+
 import dfastmi.batch.core
-from dfastmi.io.Reach import Reach
 import dfastmi.kernel.core
-from dfastmi.io.RiversObject import RiversObject
-from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.FileUtils import FileUtils
+from dfastmi.io.Reach import Reach
+from dfastmi.io.RiversObject import RiversObject
 
 rivers: RiversObject
 dialog: Dict[str, PyQt5.QtCore.QObject]
@@ -106,7 +108,9 @@ def create_dialog() -> None:
     layout.addWidget(tabs)
 
     button_bar = QtWidgets.QWidget(win)
-    button_bar_layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight, button_bar)
+    button_bar_layout = QtWidgets.QBoxLayout(
+        QtWidgets.QBoxLayout.LeftToRight, button_bar
+    )
     button_bar_layout.setContentsMargins(0, 0, 0, 0)
     layout.addWidget(button_bar)
 
@@ -117,9 +121,9 @@ def create_dialog() -> None:
     done = QtWidgets.QPushButton(gui_text("action_close"), win)
     done.clicked.connect(close_dialog)
     button_bar_layout.addWidget(done)
-    
+
     add_general_tab(tabs, win)
-    
+
 
 def create_menus(menubar: PyQt5.QtWidgets.QMenuBar) -> None:
     """
@@ -266,30 +270,30 @@ def add_condition_tab(
     """
     general_widget = QtWidgets.QWidget()
     layout = QtWidgets.QFormLayout(general_widget)
-    dialog["tabs"].addTab(general_widget, prefix+"tab")
+    dialog["tabs"].addTab(general_widget, prefix + "tab")
     win = dialog["window"]
 
     # show the discharge location
     qloc = QtWidgets.QLabel("", win)
     qloc.setToolTip(gui_text("qloc"))
-    dialog[prefix+"qloc"] = qloc
+    dialog[prefix + "qloc"] = qloc
     layout.addRow(gui_text("qloc"), qloc)
 
     # show the discharge value
     qval = QtWidgets.QLabel("", win)
     qval.setToolTip(gui_text("qval"))
-    dialog[prefix+"qval"] = qval
+    dialog[prefix + "qval"] = qval
     layout.addRow(gui_text("qval"), qval)
 
     # get the reference file
     q1file1 = QtWidgets.QLineEdit(win)
-    dialog[prefix+"file1"] = q1file1
-    layout.addRow(gui_text("reference"), openFileLayout(win, q1file1, prefix+"file1"))
+    dialog[prefix + "file1"] = q1file1
+    layout.addRow(gui_text("reference"), openFileLayout(win, q1file1, prefix + "file1"))
 
     # get the file with measure
     q1file2 = QtWidgets.QLineEdit(win)
-    dialog[prefix+"file2"] = q1file2
-    layout.addRow(gui_text("measure"), openFileLayout(win, q1file2, prefix+"file2"))
+    dialog[prefix + "file2"] = q1file2
+    layout.addRow(gui_text("measure"), openFileLayout(win, q1file2, prefix + "file2"))
 
 
 def activate_dialog() -> None:
@@ -316,7 +320,7 @@ def updated_branch(ibranch: int) -> None:
         Newly selected branch number.
     """
     reach = dialog["reach"]
-    reach.clear()    
+    reach.clear()
     reach.addItems([reach.name for reach in rivers.branches[ibranch].reaches])
 
     dialog["qloc"].setText(rivers.branches[ibranch].qlocation)
@@ -341,7 +345,7 @@ def updated_reach(ireach: int) -> None:
     update_qvalues(reach)
 
 
-def update_qvalues(reach:Reach) -> None:
+def update_qvalues(reach: Reach) -> None:
     """
     Adjust the GUI for updated characteristic discharges.
 
@@ -356,29 +360,31 @@ def update_qvalues(reach:Reach) -> None:
 
     hydro_q = reach.hydro_q
     tabs = dialog["tabs"]
-    for j in range(tabs.count()-2,-1,-1):
+    for j in range(tabs.count() - 2, -1, -1):
         if j >= len(hydro_q):
-            tabs.removeTab(1+j)
+            tabs.removeTab(1 + j)
         else:
-            prefix = str(j)+"_"
+            prefix = str(j) + "_"
             qval = str(hydro_q[j])
-            dialog[prefix+"qloc"].setText(rivers.branches[ibranch].qlocation)
-            dialog[prefix+"qval"].setText(qval)
-            tabs.setTabText(1+j,qval+" m3/s")
-    
-    if len(hydro_q) > tabs.count()-1:
-        for j in range(tabs.count()-1, len(hydro_q)):
-            prefix = str(j)+"_"
+            dialog[prefix + "qloc"].setText(rivers.branches[ibranch].qlocation)
+            dialog[prefix + "qval"].setText(qval)
+            tabs.setTabText(1 + j, qval + " m3/s")
+
+    if len(hydro_q) > tabs.count() - 1:
+        for j in range(tabs.count() - 1, len(hydro_q)):
+            prefix = str(j) + "_"
             add_condition_tab(prefix)
-            qval = str(hydro_q[j])	
-            dialog[prefix+"qloc"].setText(rivers.branches[ibranch].qlocation)
-            dialog[prefix+"qval"].setText(qval)
-            tabs.setTabText(1+j,qval+" m3/s")
-            
+            qval = str(hydro_q[j])
+            dialog[prefix + "qloc"].setText(rivers.branches[ibranch].qlocation)
+            dialog[prefix + "qval"].setText(qval)
+            tabs.setTabText(1 + j, qval + " m3/s")
+
     try:
         nwidth = reach.normal_width
         q_threshold = float(dialog["qthr"].text())
-        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.core.get_levels_v2(reach, q_threshold, nwidth)
+        [_, _, time_mi, _, _, _, celerity] = dfastmi.batch.core.get_levels_v2(
+            reach, q_threshold, nwidth
+        )
         slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
         dialog["slength"].setText("{:.0f}".format(slength))
     except:
@@ -388,7 +394,7 @@ def update_qvalues(reach:Reach) -> None:
 def update_plotting() -> None:
     """
     Update the plotting flags.
-    
+
     Arguments
     ---------
     None
@@ -460,35 +466,21 @@ def load_configuration(filename: str) -> None:
     ireach = dialog["reach"].currentIndex()
     reach = rivers.branches[ibranch].reaches[ireach]
 
-    dialog["qthr"].setText(
-        section.get("Qthreshold", str(reach.qstagnant))
-    )
+    dialog["qthr"].setText(section.get("Qthreshold", str(reach.qstagnant)))
 
-    dialog["ucrit"].setText(
-        section.get("Ucrit", str(reach.ucritical))
-    )
-    
-    dialog["outputDir"].setText(
-        section.get("OutputDir", "output")
-    )
-    dialog["makePlotsEdit"].setChecked(
-        str_to_bool(section.get("Plotting", "false"))
-    )
-    dialog["savePlotsEdit"].setChecked(
-        str_to_bool(section.get("SavePlots", "false"))
-    )
-    dialog["figureDirEdit"].setText(
-        section.get("FigureDir", "figure")
-    )
-    dialog["closePlotsEdit"].setChecked(
-        str_to_bool(section.get("ClosePlots", "false"))
-    )
+    dialog["ucrit"].setText(section.get("Ucrit", str(reach.ucritical)))
+
+    dialog["outputDir"].setText(section.get("OutputDir", "output"))
+    dialog["makePlotsEdit"].setChecked(str_to_bool(section.get("Plotting", "false")))
+    dialog["savePlotsEdit"].setChecked(str_to_bool(section.get("SavePlots", "false")))
+    dialog["figureDirEdit"].setText(section.get("FigureDir", "figure"))
+    dialog["closePlotsEdit"].setChecked(str_to_bool(section.get("ClosePlots", "false")))
     update_qvalues(reach)
-    
+
     hydro_q = reach.hydro_q
     for i in range(len(hydro_q)):
-        prefix = str(i)+"_"
-        cond = "C{}".format(i+1)
+        prefix = str(i) + "_"
+        cond = "C{}".format(i + 1)
         if cond in config.keys():
             cond_section = config[cond]
             file1 = cond_section.get("Reference", "")
@@ -496,8 +488,8 @@ def load_configuration(filename: str) -> None:
         else:
             file1 = ""
             file2 = ""
-        dialog[prefix+"file1"].setText(file1)
-        dialog[prefix+"file2"].setText(file2)
+        dialog[prefix + "file1"].setText(file1)
+        dialog[prefix + "file2"].setText(file2)
 
 
 def str_to_bool(x: str) -> bool:
@@ -509,7 +501,7 @@ def str_to_bool(x: str) -> bool:
     x : str
         String to be interpreted.
     """
-    val = x.lower() in ['true', '1', 't', 'y', 'yes']
+    val = x.lower() in ["true", "1", "t", "y", "yes"]
     return val
 
 
@@ -563,13 +555,13 @@ def get_configuration() -> configparser.ConfigParser:
     reach = rivers.branches[ibranch].reaches[ireach]
     hydro_q = reach.hydro_q
     for i in range(len(hydro_q)):
-        cond = "C{}".format(i+1)
+        cond = "C{}".format(i + 1)
         config.add_section(cond)
-        prefix = str(i)+"_"
-        config[cond]["Discharge"] = dialog[prefix+"qval"].text()
-        config[cond]["Reference"] = dialog[prefix+"file1"].text()
-        config[cond]["WithMeasure"] = dialog[prefix+"file2"].text()
-    
+        prefix = str(i) + "_"
+        config[cond]["Discharge"] = dialog[prefix + "qval"].text()
+        config[cond]["Reference"] = dialog[prefix + "file1"].text()
+        config[cond]["WithMeasure"] = dialog[prefix + "file2"].text()
+
     return config
 
 
@@ -589,11 +581,25 @@ def run_analysis() -> None:
             success = False
         report = ApplicationSettingsHelper.get_filename("report.out")
         if success:
-            showMessage(gui_text("end_of_analysis", dict={"report": report},))
+            showMessage(
+                gui_text(
+                    "end_of_analysis",
+                    dict={"report": report},
+                )
+            )
         else:
-            showError(gui_text("error_during_analysis", dict={"report": report},))
+            showError(
+                gui_text(
+                    "error_during_analysis",
+                    dict={"report": report},
+                )
+            )
     else:
-        showError(gui_text("analysis_config_incomplete",))
+        showError(
+            gui_text(
+                "analysis_config_incomplete",
+            )
+        )
 
 
 def menu_about_self() -> None:
@@ -653,10 +659,10 @@ def main(rivers_configuration: RiversObject, config: Optional[str] = None) -> No
     global dialog
 
     rivers = rivers_configuration
-    if rivers.version.major < 2 :
+    if rivers.version.major < 2:
         ApplicationSettingsHelper.log_text("legacy_river_config_loaded")
         return
-    
+
     create_dialog()
     dialog["branch"].addItems([branch.name for branch in rivers.branches])
 

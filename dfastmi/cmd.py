@@ -26,15 +26,15 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import sys
 import os
+import sys
+
+import dfastmi.batch.core
 import dfastmi.cli
 import dfastmi.gui
-import dfastmi.batch.core
-
-from dfastmi.io.RiversObject import RiversObject
-from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.FileUtils import FileUtils
+from dfastmi.io.RiversObject import RiversObject
 
 
 def run(
@@ -46,7 +46,7 @@ def run(
 ) -> None:
     """
     Main routine initializing the language file and starting the chosen run mode.
-    
+
     Arguments
     ---------
     language: str

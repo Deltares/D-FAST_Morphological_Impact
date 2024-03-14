@@ -28,19 +28,20 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 
-from dfastmi.io.RiversObject import RiversObject
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Reach import Reach
+from dfastmi.io.RiversObject import RiversObject
+
 
 class ConfigurationChecker(AConfigurationCheckerBase):
     """
-        Check if a version 2 analysis configuration is valid.
+    Check if a version 2 analysis configuration is valid.
     """
-    def check_configuration(self,
-                            rivers: RiversObject,
-                            config: configparser.ConfigParser) -> bool:
+
+    def check_configuration(
+        self, rivers: RiversObject, config: configparser.ConfigParser
+    ) -> bool:
         """
         Check if a version 2 analysis configuration is valid.
 
@@ -65,30 +66,32 @@ class ConfigurationChecker(AConfigurationCheckerBase):
 
         hydro_q = reach.hydro_q
         q_stagnant = reach.qstagnant
-        if config.has_section("General") and config.has_option("General", "Qthreshold") :
+        if config.has_section("General") and config.has_option("General", "Qthreshold"):
             try:
                 q_threshold = config.getfloat("General", "Qthreshold")
             except ValueError:
                 q_threshold_str = config.get("General", "Qthreshold", fallback="")
-                ApplicationSettingsHelper.log_text(f"Please this configuration has in the General section an option for Qthreshold"
-                                                   f"but is not float but : {q_threshold_str}!" 
-                                                   f"Using q_stagnant as q_threshold : {q_stagnant}")
+                ApplicationSettingsHelper.log_text(
+                    f"Please this configuration has in the General section an option for Qthreshold"
+                    f"but is not float but : {q_threshold_str}!"
+                    f"Using q_stagnant as q_threshold : {q_stagnant}"
+                )
                 q_threshold = q_stagnant
         else:
-            q_threshold = q_stagnant        
+            q_threshold = q_stagnant
         n_cond = len(hydro_q)
 
         return_value = False
         for i in range(n_cond):
-            if hydro_q[i] > q_threshold : 
+            if hydro_q[i] > q_threshold:
                 success = self._check_configuration_cond(config, hydro_q[i])
                 if success and not return_value:
                     return_value = True
         return return_value
 
-    def _check_configuration_cond(self, 
-                                 config: configparser.ConfigParser,
-                                 discharge: float) -> bool:
+    def _check_configuration_cond(
+        self, config: configparser.ConfigParser, discharge: float
+    ) -> bool:
         """
         Check if a version 2 analysis condition configuration is valid for a discharge.
 
@@ -96,7 +99,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         ---------
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis.
-        
+
         discharge : float
             Discharge (q) [m3/s]
 
@@ -104,13 +107,17 @@ class ConfigurationChecker(AConfigurationCheckerBase):
         -------
         success : bool
             Boolean indicating whether the D-FAST MI analysis configuration condition is valid for this discharge.
-        
+
         """
         return_value = True
         has_condition_section_for_this_discharge = False
-        condition_sections = [section for section in config.sections() if section[0] == "C"]
+        condition_sections = [
+            section for section in config.sections() if section[0] == "C"
+        ]
         if len(condition_sections) == 0:
-            ApplicationSettingsHelper.log_text("No condition sections found in conditions configurations file!")
+            ApplicationSettingsHelper.log_text(
+                "No condition sections found in conditions configurations file!"
+            )
             return False
 
         for condition in condition_sections:
@@ -119,31 +126,45 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                     discharge_cond = config.getfloat(condition, "Discharge")
                 except ValueError:
                     discharge_cond_str = config.get(condition, "Discharge", fallback="")
-                    ApplicationSettingsHelper.log_text(f"Please this is a condition ({condition}), "
-                        f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
+                    ApplicationSettingsHelper.log_text(
+                        f"Please this is a condition ({condition}), "
+                        f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!"
+                    )
                     continue
 
                 if abs(discharge - discharge_cond) <= 0.001:
                     has_condition_section_for_this_discharge = True
-                    
+
                     # we found the correct condition
-                    return_value = self._check_key_with_file_value_and_set_return_value_if_needed(config, return_value, condition, "Reference")
-                    return_value = self._check_key_with_file_value_and_set_return_value_if_needed(config, return_value, condition, "WithMeasure")
+                    return_value = (
+                        self._check_key_with_file_value_and_set_return_value_if_needed(
+                            config, return_value, condition, "Reference"
+                        )
+                    )
+                    return_value = (
+                        self._check_key_with_file_value_and_set_return_value_if_needed(
+                            config, return_value, condition, "WithMeasure"
+                        )
+                    )
             else:
-                ApplicationSettingsHelper.log_text(f"Please this is a condition : {condition}, but 'Discharge' key is not set!")
+                ApplicationSettingsHelper.log_text(
+                    f"Please this is a condition : {condition}, but 'Discharge' key is not set!"
+                )
                 if return_value:
                     return_value = False
 
         return return_value and has_condition_section_for_this_discharge
 
-    def _check_key_with_file_value_and_set_return_value_if_needed(self,
-               config : configparser.ConfigParser,
-               return_value : bool,
-               condition : str,
-               key : str) -> bool:
+    def _check_key_with_file_value_and_set_return_value_if_needed(
+        self,
+        config: configparser.ConfigParser,
+        return_value: bool,
+        condition: str,
+        key: str,
+    ) -> bool:
         """
         Check if key exist as option in the section of this condition.
-        If exist check if file which is the key value is representing exist.        
+        If exist check if file which is the key value is representing exist.
         """
         if not self._check_key_with_file_value(config, condition, key) and return_value:
             return_value = False

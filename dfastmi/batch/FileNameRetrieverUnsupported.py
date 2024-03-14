@@ -27,16 +27,20 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Any, Dict, Optional, Tuple
 import configparser
+from typing import Any, Dict, Optional, Tuple
+
 from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
+
 
 class FileNameRetrieverUnsupported(AFileNameRetriever):
     """
     File name retriever for unsupported file name retrieving, e.g. for imode = 0.
     """
 
-    def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
+    def get_file_names(
+        self, config: Optional[configparser.ConfigParser] = None
+    ) -> Dict[Any, Tuple[str, str]]:
         """
         Get file names for unsupported file name retriever.
 

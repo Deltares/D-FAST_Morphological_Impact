@@ -1,5 +1,4 @@
 import configparser
-
 import sys
 from contextlib import contextmanager
 from io import StringIO
@@ -7,6 +6,7 @@ from io import StringIO
 import mock
 
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+
 
 @contextmanager
 def captured_output():
@@ -19,7 +19,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class Test_write_config():
+class Test_write_config:
     def test_write_config_check_written(self):
         """
         Testing write_config.
@@ -36,13 +36,19 @@ class Test_write_config():
 
         with mock.patch("builtins.open") as mock_file:
             ConfigFileOperations.write_config(filename, config)
-            mock_file.assert_called_once_with(filename, 'w')
+            mock_file.assert_called_once_with(filename, "w")
             mock_file.return_value.__enter__().write.assert_called()
-            mock_file.return_value.__enter__().write.assert_any_call('[G 1]\n')
-            mock_file.return_value.__enter__().write.assert_any_call('  k 1     = V 1\n')
-            mock_file.return_value.__enter__().write.assert_any_call('\n')
-            mock_file.return_value.__enter__().write.assert_any_call('[Group 2]\n')
-            mock_file.return_value.__enter__().write.assert_any_call('  k1      = 1.0 0.1 0.0 0.01\n')
-            mock_file.return_value.__enter__().write.assert_any_call('  k2      = 2.0 0.2 0.02 0.0\n')
-            mock_file.return_value.__enter__().write.assert_any_call('[Group 3]\n')
-            mock_file.return_value.__enter__().write.assert_any_call('  longkey = 3\n')
+            mock_file.return_value.__enter__().write.assert_any_call("[G 1]\n")
+            mock_file.return_value.__enter__().write.assert_any_call(
+                "  k 1     = V 1\n"
+            )
+            mock_file.return_value.__enter__().write.assert_any_call("\n")
+            mock_file.return_value.__enter__().write.assert_any_call("[Group 2]\n")
+            mock_file.return_value.__enter__().write.assert_any_call(
+                "  k1      = 1.0 0.1 0.0 0.01\n"
+            )
+            mock_file.return_value.__enter__().write.assert_any_call(
+                "  k2      = 2.0 0.2 0.02 0.0\n"
+            )
+            mock_file.return_value.__enter__().write.assert_any_call("[Group 3]\n")
+            mock_file.return_value.__enter__().write.assert_any_call("  longkey = 3\n")

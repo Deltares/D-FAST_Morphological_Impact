@@ -33,8 +33,8 @@ Classes:
     Reach
 """
 from typing import List
-from dfastmi.io.AReach import AReach
 
+from dfastmi.io.AReach import AReach
 from dfastmi.io.CelerObject import ICelerObject
 
 
@@ -42,13 +42,14 @@ class Reach(AReach):
     """
     Derived class with reach data information used with current (AKA v2) river configuration files.
     """
-    hydro_q : List[float]
-    hydro_t : List[float]
-    auto_time : bool
-    qfit : tuple[float,float]
 
-    use_tide : bool
-    tide_boundary_condition : List[float]
+    hydro_q: List[float]
+    hydro_t: List[float]
+    auto_time: bool
+    qfit: tuple[float, float]
 
-    celer_form : int
-    celer_object : ICelerObject = None
+    use_tide: bool
+    tide_boundary_condition: List[float]
+
+    celer_form: int
+    celer_object: ICelerObject = None

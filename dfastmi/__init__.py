@@ -32,7 +32,7 @@ are registered trademarks of Stichting Deltares, and remain the property of
 Stichting Deltares. All rights reserved.
 """
 
-from typing import List, Any
+from typing import Any, List
 
 __version__ = "3.0.0"
 

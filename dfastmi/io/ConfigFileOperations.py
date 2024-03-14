@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 
+
 class ConfigFileOperations:
     @staticmethod
     def write_config(filename: str, config: configparser.ConfigParser) -> None:

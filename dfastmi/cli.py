@@ -27,18 +27,17 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional, List, Dict, Any, Tuple, TextIO
-from dfastmi.io.IReach import IReach
-from dfastmi.io.Branch import Branch
-from dfastmi.io.ReachLegacy import ReachLegacy
+from typing import Any, Dict, List, Optional, TextIO, Tuple
+
+import dfastmi.batch.core
 import dfastmi.kernel.core
 import dfastmi.kernel.legacy
-import dfastmi.batch.core
-
-from dfastmi.kernel.typehints import QRuns
-from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-
+from dfastmi.io.Branch import Branch
+from dfastmi.io.IReach import IReach
+from dfastmi.io.ReachLegacy import ReachLegacy
+from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import QRuns
 
 
 def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) -> None:
@@ -66,7 +65,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     have_files = interactive_mode_opening(src, version, report)
 
     all_done = False
-    while not all_done:        
+    while not all_done:
         branch = None
         reach = None
         while branch is None or reach is None:
@@ -97,24 +96,27 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
         tmi = []
         for i in range(len(applyQ)):
             if applyQ[i]:
-               tmi.append(T[i])
+                tmi.append(T[i])
             else:
-               tmi.append(0.0)
+                tmi.append(0.0)
         celerity = [celerity_lw, celerity_hg, celerity_hg]
         slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
 
-        
         if have_files:
             # determine critical flow velocity
             ucrit = reach.ucritical
             ucritMin = 0.01
             ApplicationSettingsHelper.log_text("", repeat=3)
-            ApplicationSettingsHelper.log_text("default_ucrit", dict={"uc": ucrit, "reach": reach})
+            ApplicationSettingsHelper.log_text(
+                "default_ucrit", dict={"uc": ucrit, "reach": reach}
+            )
             tdum = interactive_get_bool(src, "confirm_or")
             if not tdum:
                 ucrit = interactive_get_float(src, "query_ucrit")
                 if ucrit < ucritMin:
-                    ApplicationSettingsHelper.log_text("ucrit_too_low", dict={"uc": ucritMin})
+                    ApplicationSettingsHelper.log_text(
+                        "ucrit_too_low", dict={"uc": ucritMin}
+                    )
                     ApplicationSettingsHelper.log_text(
                         "ucrit_too_low", dict={"uc": ucritMin}, file=report
                     )
@@ -129,7 +131,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             n_fields = 0
             tide_bc = []
             xykm = None
-            kmbounds = [0,1]
+            kmbounds = [0, 1]
             outputdir = "."
             plotops = {}
             Success = dfastmi.batch.core.analyse_and_report(
@@ -164,7 +166,9 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 else:
                     nlength = slength
                 ApplicationSettingsHelper.log_text("")
-                ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
+                ApplicationSettingsHelper.log_text(
+                    "length_estimate", dict={"nlength": nlength}
+                )
                 ApplicationSettingsHelper.log_text(
                     "length_estimate", dict={"nlength": nlength}, file=report
                 )
@@ -254,7 +258,8 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
 
 
 def interactive_get_location(
-    src: TextIO, rivers: RiversObject,
+    src: TextIO,
+    rivers: RiversObject,
 ) -> Tuple[Optional[Branch], Optional[IReach]]:
     """
     Ask the user interactively for the branch and reach.
@@ -274,14 +279,15 @@ def interactive_get_location(
         Number of selected reach (None if user cancels).
     """
     branches = [branch.name for branch in rivers.branches]
-    
 
     accept = False
     ibranch = interactive_get_item(src, "branch", branches)
     if not ibranch is None:
-        ireach = interactive_get_item(src, "reach", [reach.name for reach in rivers.branches[ibranch].reaches])
+        ireach = interactive_get_item(
+            src, "reach", [reach.name for reach in rivers.branches[ibranch].reaches]
+        )
         ApplicationSettingsHelper.log_text("---")
-        if not ireach is None:            
+        if not ireach is None:
             branch = rivers.branches[ibranch]
             reach = branch.reaches[ireach]
             ApplicationSettingsHelper.log_text("reach", dict={"reach": reach.name})
@@ -376,7 +382,8 @@ def interactive_get_discharges(
         ApplicationSettingsHelper.log_text("query_flowing_when_barriers_open")
     else:
         ApplicationSettingsHelper.log_text(
-            "query_flowing_above_qmin", dict={"border": q_location, "qmin": int(q_min)},
+            "query_flowing_above_qmin",
+            dict={"border": q_location, "qmin": int(q_min)},
         )
     tdrem = interactive_get_bool(src, "confirm_or")
     if tdrem:
@@ -387,7 +394,9 @@ def interactive_get_discharges(
         )
 
     if q_threshold is None or q_threshold < q_levels[1]:
-        ApplicationSettingsHelper.log_text("query_flowing", dict={"qborder": int(q_levels[1])})
+        ApplicationSettingsHelper.log_text(
+            "query_flowing", dict={"qborder": int(q_levels[1])}
+        )
         tdum = interactive_get_bool(src, "confirm_or")
         if tdum:
             q_bankfull = q_levels[1]
@@ -400,7 +409,9 @@ def interactive_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, applyQ = dfastmi.kernel.legacy.char_discharges(q_levels, dq, q_threshold, q_bankfull)
+    Q, applyQ = dfastmi.kernel.legacy.char_discharges(
+        q_levels, dq, q_threshold, q_bankfull
+    )
 
     tstag, T, rsigma = dfastmi.kernel.legacy.char_times(
         q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
@@ -505,13 +516,21 @@ def write_report_nodata(
     if nQ == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
-        ApplicationSettingsHelper.log_text("need_multiple_input", dict={"reach": reach, "numq": nQ})
+        ApplicationSettingsHelper.log_text(
+            "need_multiple_input", dict={"reach": reach, "numq": nQ}
+        )
     if not Q[0] is None:
-        ApplicationSettingsHelper.log_text("lowwater", dict={"border": q_location, "q": Q[0]})
+        ApplicationSettingsHelper.log_text(
+            "lowwater", dict={"border": q_location, "q": Q[0]}
+        )
     if not Q[1] is None:
-        ApplicationSettingsHelper.log_text("transition", dict={"border": q_location, "q": Q[1]})
+        ApplicationSettingsHelper.log_text(
+            "transition", dict={"border": q_location, "q": Q[1]}
+        )
     if not Q[2] is None:
-        ApplicationSettingsHelper.log_text("highwater", dict={"border": q_location, "q": Q[2]})
+        ApplicationSettingsHelper.log_text(
+            "highwater", dict={"border": q_location, "q": Q[2]}
+        )
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
     ApplicationSettingsHelper.log_text("---")
     ApplicationSettingsHelper.log_text("canclose")
@@ -700,7 +719,9 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
     while i < 1 or i > nitems:
         ApplicationSettingsHelper.log_text("query_" + type + "_header")
         for i in range(nitems):
-            ApplicationSettingsHelper.log_text("query_list", dict={"item": list[i], "index": i + 1})
+            ApplicationSettingsHelper.log_text(
+                "query_list", dict={"item": list[i], "index": i + 1}
+            )
         i_opt = interactive_get_int(src, "query_" + type)
         if i_opt is None:
             return None

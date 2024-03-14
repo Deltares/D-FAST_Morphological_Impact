@@ -29,11 +29,20 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 import numpy
 
-class OutputDataWaqua():
+
+class OutputDataWaqua:
     """
     Class that holds the output data that is written to the report for waqua.
     """
-    def __init__(self, first_min_velocity_m : int, first_min_velocity_n : int, data_zgem : numpy.ndarray, data_zmax : numpy.ndarray, data_zmin : numpy.ndarray):
+
+    def __init__(
+        self,
+        first_min_velocity_m: int,
+        first_min_velocity_n: int,
+        data_zgem: numpy.ndarray,
+        data_zmax: numpy.ndarray,
+        data_zmin: numpy.ndarray,
+    ):
         """
         Init of the OutputDataWaqua.
 
@@ -49,7 +58,7 @@ class OutputDataWaqua():
             Maximum bed level change.
         dzmin : numpy.ndarray
             Minimum bed level change.
-            """
+        """
         self.first_min_velocity_m = first_min_velocity_m
         self.first_min_velocity_n = first_min_velocity_n
         self.data_zgem = data_zgem

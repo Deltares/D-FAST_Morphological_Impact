@@ -1,9 +1,14 @@
 from configparser import ConfigParser
+
 import pytest
+
 from dfastmi.batch.FileNameRetrieverLegacy import FileNameRetrieverLegacy
 
-class Test_FileNameRetriever_legacy():
-    def given_partial_setup_config_parser_when_get_file_names_legacy_then_throw_key_error_with_expected_message(self):
+
+class Test_FileNameRetriever_legacy:
+    def given_partial_setup_config_parser_when_get_file_names_legacy_then_throw_key_error_with_expected_message(
+        self,
+    ):
         """
         given : partial setup config parser
         when :  get file names legacy
@@ -22,7 +27,9 @@ class Test_FileNameRetriever_legacy():
             fnr_legacy.get_file_names(config)
         assert str(e.value.args[0]) == expected_exception_message
 
-    def given_empty_config_parser_when_get_file_names_legacy_then_return_no_file_names(self):
+    def given_empty_config_parser_when_get_file_names_legacy_then_return_no_file_names(
+        self,
+    ):
         """
         given : empty config parser
         when :  get file names legacy
@@ -35,7 +42,9 @@ class Test_FileNameRetriever_legacy():
 
         assert len(filenames) == 0
 
-    def given_config_parser_with_data_when_get_file_names_legacy_then_return_expected_file_names(self):
+    def given_config_parser_with_data_when_get_file_names_legacy_then_return_expected_file_names(
+        self,
+    ):
         """
         given : config parser with data
         when :  get file names legacy
@@ -44,9 +53,15 @@ class Test_FileNameRetriever_legacy():
         config = ConfigParser()
         fnr_legacy = FileNameRetrieverLegacy()
 
-        q1_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q1")
-        q2_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q2")
-        q3_expected_filename= self.get_expected_q_filename_and_update_config(config, "Q3")
+        q1_expected_filename = self.get_expected_q_filename_and_update_config(
+            config, "Q1"
+        )
+        q2_expected_filename = self.get_expected_q_filename_and_update_config(
+            config, "Q2"
+        )
+        q3_expected_filename = self.get_expected_q_filename_and_update_config(
+            config, "Q3"
+        )
 
         filenames = fnr_legacy.get_file_names(config)
 
@@ -54,7 +69,7 @@ class Test_FileNameRetriever_legacy():
         assert filenames[1] == q2_expected_filename
         assert filenames[2] == q3_expected_filename
 
-    def get_expected_q_filename_and_update_config(self, config : ConfigParser, q : str):
+    def get_expected_q_filename_and_update_config(self, config: ConfigParser, q: str):
         reference = "Reference"
         with_measure = "WithMeasure"
         q_reference_filename = q + "-" + reference
@@ -64,4 +79,4 @@ class Test_FileNameRetriever_legacy():
         config.set(q, reference, q_reference_filename)
         config.set(q, with_measure, q_with_measure_filename)
 
-        return (q_reference_filename,q_with_measure_filename)
+        return (q_reference_filename, q_with_measure_filename)

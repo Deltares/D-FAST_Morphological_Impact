@@ -28,10 +28,11 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 from typing import List, Optional, Tuple
+
+import dfastmi.kernel.core
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-import dfastmi.kernel.core
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.legacy import char_discharges, char_times
@@ -39,18 +40,27 @@ from dfastmi.kernel.typehints import BoolVector, QRuns, Vector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
+
+
 class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
     """
-        Check if a version 1 / legacy analysis configuration is valid.
+    Check if a version 1 / legacy analysis configuration is valid.
     """
-    _validator : ConfigurationCheckerValidator
+
+    _validator: ConfigurationCheckerValidator
 
     def __init__(self):
         self._validator = ConfigurationCheckerValidator()
-        self._validator.register_validator(WAQUA_EXPORT, self._check_configuration_cond_waqua)
-        self._validator.register_validator(DFLOWFM_MAP, self._check_configuration_cond_fm)
-    
-    def check_configuration(self, rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+        self._validator.register_validator(
+            WAQUA_EXPORT, self._check_configuration_cond_waqua
+        )
+        self._validator.register_validator(
+            DFLOWFM_MAP, self._check_configuration_cond_fm
+        )
+
+    def check_configuration(
+        self, rivers: RiversObject, config: configparser.ConfigParser
+    ) -> bool:
         """
         Check if a version 1 / legacy analysis configuration is valid.
 
@@ -77,17 +87,18 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         [_, apply_q, _, _, _, _, _, _] = self.get_levels(reach, config, nwidth)
 
         mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
-        ret_val  = True
+        ret_val = True
         for i in range(3):
-            if apply_q[i] and not self._validator.is_valid(mode_str, config, i) and ret_val:
+            if (
+                apply_q[i]
+                and not self._validator.is_valid(mode_str, config, i)
+                and ret_val
+            ):
                 ret_val = False
         return ret_val
 
     def get_levels(
-        self,
-        reach: ReachLegacy,
-        config: configparser.ConfigParser,
-        nwidth: float
+        self, reach: ReachLegacy, config: configparser.ConfigParser, nwidth: float
     ) -> Tuple[Vector, BoolVector, float, Vector, float, Vector, Vector, Vector]:
         """
         Determine discharges, times, etc. for version 1 analysis
@@ -136,14 +147,30 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         )
         discharges = Q1
         apply_q = apply_q1
-        time_mi = tuple(0 if discharges[i] is None or discharges[i]<=q_stagnant else fractions_of_the_year[i] for i in range(len(fractions_of_the_year)))
+        time_mi = tuple(
+            (
+                0
+                if discharges[i] is None or discharges[i] <= q_stagnant
+                else fractions_of_the_year[i]
+            )
+            for i in range(len(fractions_of_the_year))
+        )
         celerity = (celerity_lw, celerity_hg, celerity_hg)
 
-        return (discharges, apply_q, q_threshold, time_mi, tstag, fractions_of_the_year, rsigma, celerity)
+        return (
+            discharges,
+            apply_q,
+            q_threshold,
+            time_mi,
+            tstag,
+            fractions_of_the_year,
+            rsigma,
+            celerity,
+        )
 
     def _batch_get_discharges(
         self,
-        reach : ReachLegacy,
+        reach: ReachLegacy,
         config: configparser.ConfigParser,
         q_stagnant: float,
         celerity_hg: float,
@@ -198,13 +225,22 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         q_threshold = self._get_q_threshold_from_config(config)
         q_bankfull = self._get_q_bankfull_from_config(config, q_threshold, q_levels)
 
-        three_characteristic_discharges, apply_q = char_discharges(q_levels, dq, q_threshold, q_bankfull)
-
-        tstag, fractions_of_the_year, rsigma = char_times(
-            q_fit, q_stagnant, three_characteristic_discharges, celerity_hg, celerity_lw, nwidth
+        three_characteristic_discharges, apply_q = char_discharges(
+            q_levels, dq, q_threshold, q_bankfull
         )
 
-        q_list = self._discharge_from_config(config, three_characteristic_discharges, apply_q)
+        tstag, fractions_of_the_year, rsigma = char_times(
+            q_fit,
+            q_stagnant,
+            three_characteristic_discharges,
+            celerity_hg,
+            celerity_lw,
+            nwidth,
+        )
+
+        q_list = self._discharge_from_config(
+            config, three_characteristic_discharges, apply_q
+        )
         three_characteristic_discharges = (q_list[0], q_list[1], q_list[2])
 
         return (
@@ -216,10 +252,15 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             rsigma,
         )
 
-    def _discharge_from_config(self, config : configparser.ConfigParser, three_characteristic_discharges : QRuns, apply_q : BoolVector) -> List:
+    def _discharge_from_config(
+        self,
+        config: configparser.ConfigParser,
+        three_characteristic_discharges: QRuns,
+        apply_q: BoolVector,
+    ) -> List:
         """
         Tuple of (at most) three characteristic discharges [m3/s].
-        
+
         Arguments
         ---------
         config : configparser.ConfigParser
@@ -232,7 +273,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             The Q1 value can't be set to None because it's needed for char_times.
         Results
         -------
-        q_list : list 
+        q_list : list
             A list of discharges
         """
         q_list = list(three_characteristic_discharges)
@@ -249,7 +290,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
 
     def _get_q_bankfull_from_config(self, config, q_threshold, q_levels):
         """
-        Get the simulation discharge at which measure reaches bankfull 
+        Get the simulation discharge at which measure reaches bankfull
         from configuration in batch mode (no user interaction).
 
         Arguments
@@ -257,8 +298,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         config : configparser.ConfigParser
             Configuration of the analysis to be run.
         q_threshold : Optional[float]
-            River discharge at which the measure becomes active 
-        q_levels : 
+            River discharge at which the measure becomes active
+        q_levels :
             Characteristic discharges used by algorithm [m3/s].
         Results
         -------
@@ -283,7 +324,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         ---------
         config : configparser.ConfigParser
             Configuration of the analysis to be run.
-        
+
         Results
         -------
         q_threshold : Optional[float]
@@ -297,8 +338,7 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             q_threshold = None
         return q_threshold
 
-
-    def _is_float_str(self, string:str) -> bool:
+    def _is_float_str(self, string: str) -> bool:
         """
         Check if a string represents a (floating point) number.
 
@@ -319,9 +359,8 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
             return False
 
     def _check_configuration_cond_waqua(
-            self,
-            config: configparser.ConfigParser,
-            i : int) -> bool:
+        self, config: configparser.ConfigParser, i: int
+    ) -> bool:
         """
         Check validity of one condition of a version 1 analysis configuration using WAQUA results.
 
@@ -330,38 +369,43 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis.
         i : int
-            Flow condition to be checked.            
+            Flow condition to be checked.
 
         Returns
         -------
         success : bool
             Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
-        cond = "Q" + str(i+1)
+        cond = "Q" + str(i + 1)
         # condition block to be checked.
         # condition block must be specified since it must contain the Reference and WithMeasure file names
         return self._discharge_check(config, cond)
-    
+
     def _discharge_check(self, config: configparser.ConfigParser, cond: str) -> bool:
-        if not config.has_section(cond) :
-            ApplicationSettingsHelper.log_text(f"Please this {cond} is not in configuration file!")
+        if not config.has_section(cond):
+            ApplicationSettingsHelper.log_text(
+                f"Please this {cond} is not in configuration file!"
+            )
             return False
         if not config.has_option(cond, "Discharge"):
-            ApplicationSettingsHelper.log_text(f"Please this {cond} is in the config but has no 'Discharge' key set!")
+            ApplicationSettingsHelper.log_text(
+                f"Please this {cond} is in the config but has no 'Discharge' key set!"
+            )
             return False
         try:
             config.getfloat(cond, "Discharge")
         except ValueError:
             discharge_cond_str = config.get(cond, "Discharge", fallback="")
-            ApplicationSettingsHelper.log_text(f"Please this is a condition ({cond}), "
-                    f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!")
+            ApplicationSettingsHelper.log_text(
+                f"Please this is a condition ({cond}), "
+                f"but discharge in condition cfg file is not float but has value : {discharge_cond_str}!"
+            )
             return False
         return True
 
     def _check_configuration_cond_fm(
-            self,
-            config: configparser.ConfigParser,
-            i : int) -> bool:
+        self, config: configparser.ConfigParser, i: int
+    ) -> bool:
         """
         Check validity of one condition of a version 1 analysis configuration using D-Flow FM results.
 
@@ -370,22 +414,28 @@ class ConfigurationCheckerLegacy(AConfigurationCheckerBase):
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis.
         i : int
-            Flow condition to be checked.            
+            Flow condition to be checked.
 
         Returns
         -------
         success : bool
             Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
-        cond = "Q" + str(i+1)
+        cond = "Q" + str(i + 1)
         # condition block to be checked.
         # condition block must be specified since it must contain the Reference and WithMeasure file names
         return_value = self._discharge_check(config, cond)
 
-        if not self._check_key_with_file_value(config, cond, "Reference") and return_value:
+        if (
+            not self._check_key_with_file_value(config, cond, "Reference")
+            and return_value
+        ):
             return_value = False
 
-        if not self._check_key_with_file_value(config, cond, "WithMeasure") and return_value:
+        if (
+            not self._check_key_with_file_value(config, cond, "WithMeasure")
+            and return_value
+        ):
             return_value = False
 
         return return_value

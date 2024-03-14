@@ -27,13 +27,12 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Optional, Tuple
-
 # ------------------------------------------------------------------------------
 # Needed for Nuitka compilation
 # ------------------------------------------------------------------------------
 import os
 import pathlib
+from typing import Optional, Tuple
 
 is_nuitka = "__compiled__" in globals()
 if is_nuitka:
@@ -48,20 +47,21 @@ if is_nuitka:
     pyproj.datadir.set_data_dir(root + os.sep + "proj")
     import pyproj
 
+import argparse
+
+import _ctypes
+import cftime
 import fiona.enums
 import fiona.ogrext
 import fiona.schema
-import _ctypes
+import netCDF4.utils
 import pandas._libs.tslibs.base
 import shapely._geos
-
 import six
-import netCDF4.utils
-import cftime
-# ------------------------------------------------------------------------------
 
-import argparse
 import dfastmi.cmd
+
+# ------------------------------------------------------------------------------
 
 
 def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
@@ -135,7 +135,9 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
             rivers_file = "Dutch_rivers_v2.ini"
 
     if language not in ["NL", "UK"]:
-        raise LookupError(f'Incorrect language "{language}" specified. Should read "NL" or "UK".')
+        raise LookupError(
+            f'Incorrect language "{language}" specified. Should read "NL" or "UK".'
+        )
     return language, runmode, config, rivers_file, reduced_output
 
 
