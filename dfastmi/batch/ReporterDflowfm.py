@@ -148,7 +148,6 @@ class ReporterDflowfm():
 
         # open destination file
         dst = netCDF4.Dataset(projmesh, "a")
-        dst = netCDF4.Dataset(projmesh, "a")
         node_x = meshname + '_node_x'
         node_y = meshname + '_node_y'
         dst.variables[node_x][:] = sn[:]

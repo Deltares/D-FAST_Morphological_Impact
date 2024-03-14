@@ -24,7 +24,7 @@ class XykmData():
         self._xykm : LineString = None
         self._xni : numpy.ndarray = None
         self._yni : numpy.ndarray = None
-        self._face_node_connectivity_index : numpy.ndarray = None
+        self._face_node_connectivity_index : numpy.ma.masked_array = None
         self._iface : numpy.ndarray = None
         self._inode : numpy.ndarray = None
         self._xmin : numpy.ndarray = None
@@ -62,7 +62,7 @@ class XykmData():
         return self._yni
     
     @property
-    def face_node_connectivity_index(self) -> numpy.ndarray:
+    def face_node_connectivity_index(self) -> numpy.ma.masked_array:
         """
         Masked M x N array containing the indices of (max N) corner nodes for each of the M cells [-].
         Node indices are 0-based, hence the maximum node index is K-1.
