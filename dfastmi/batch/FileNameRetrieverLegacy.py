@@ -27,16 +27,20 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Any, Dict, Optional, Tuple
 import configparser
+from typing import Any, Dict, Optional, Tuple
+
 from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
+
 
 class FileNameRetrieverLegacy(AFileNameRetriever):
     """
     File name retriever for version 1 (Legacy).
     """
 
-    def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
+    def get_file_names(
+        self, config: Optional[configparser.ConfigParser] = None
+    ) -> Dict[Any, Tuple[str, str]]:
         """
         Extract the list of six file names from the configuration.
         This routine is valid for version 1 configuration files.
@@ -54,7 +58,7 @@ class FileNameRetrieverLegacy(AFileNameRetriever):
             can be the discharge index, discharge value or a tuple of forcing
             conditions, such as a Discharge and Tide forcing tuple.
         """
-        filenames: Dict[Any, Tuple[str,str]]
+        filenames: Dict[Any, Tuple[str, str]]
         filenames = {}
         for i in range(3):
             qstr = f"Q{i+1}"

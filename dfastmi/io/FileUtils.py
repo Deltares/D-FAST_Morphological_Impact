@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import os
 import pathlib
 
+
 class FileUtils:
     @staticmethod
     def absolute_path(rootdir: str, file: str) -> str:

@@ -30,9 +30,11 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Tuple, Optional
 import math
-from dfastmi.kernel.typehints import QLevels, QChange, QRuns, Vector, BoolVector
+from typing import Optional, Tuple
+
+from dfastmi.kernel.typehints import BoolVector, QChange, QLevels, QRuns, Vector
+
 
 def char_discharges(
     q_levels: QLevels, dq: QChange, q_threshold: Optional[float], q_bankfull: float
@@ -65,11 +67,16 @@ def char_discharges(
     Q3: float
 
     if q_threshold is None:  # no threshold discharge
-        Q1, Q2, Q3, use1, use2 = __get_discharges_without_threshold(q_levels, dq, q_bankfull)
+        Q1, Q2, Q3, use1, use2 = __get_discharges_without_threshold(
+            q_levels, dq, q_bankfull
+        )
     else:  # has threshold discharge
-        Q1, Q2, Q3, use1, use2 = __get_discharges_with_threshold(q_levels, dq, q_threshold, q_bankfull)
+        Q1, Q2, Q3, use1, use2 = __get_discharges_with_threshold(
+            q_levels, dq, q_threshold, q_bankfull
+        )
 
-    return (Q1, Q2, Q3), (use1, use2, True) 
+    return (Q1, Q2, Q3), (use1, use2, True)
+
 
 def __get_discharges_without_threshold(q_levels, dq, q_bankfull):
     Q1 = q_levels[0]
@@ -81,7 +88,8 @@ def __get_discharges_without_threshold(q_levels, dq, q_bankfull):
     else:
         Q2 = min(q_levels[1], q_bankfull - dq[1])
         Q3 = q_bankfull
-    return Q1,Q2,Q3,use1,use2 
+    return Q1, Q2, Q3, use1, use2
+
 
 def __get_discharges_with_threshold(q_levels, dq, q_threshold, q_bankfull):
     Q1 = q_threshold
@@ -105,7 +113,7 @@ def __get_discharges_with_threshold(q_levels, dq, q_threshold, q_bankfull):
             Q3 = min(q_threshold + dq[0], q_levels[3])
         else:
             Q3 = max(q_levels[2], q_threshold + dq[0])
-    return Q1,Q2,Q3,use1,use2  
+    return Q1, Q2, Q3, use1, use2
 
 
 def char_times(
@@ -158,7 +166,9 @@ def char_times(
 
     t_yr = [0.0] * 3
     if discharge_values[0] is not None:
-        t_yr[0] = 1 - math.exp((q_fit[0] - discharge_values[0]) / q_fit[1]) - t_stagnant_yr
+        t_yr[0] = (
+            1 - math.exp((q_fit[0] - discharge_values[0]) / q_fit[1]) - t_stagnant_yr
+        )
     if discharge_values[1] is not None and discharge_values[0] is not None:
         t_yr[1] = math.exp((q_fit[0] - discharge_values[0]) / q_fit[1]) - math.exp(
             (q_fit[0] - discharge_values[1]) / q_fit[1]
@@ -168,7 +178,7 @@ def char_times(
     rsigma0 = math.exp(-500 * celerity_lw * t_yr[0] / nwidth)
     rsigma1 = math.exp(-500 * celerity_hg * t_yr[1] / nwidth)
     rsigma2 = math.exp(-500 * celerity_hg * t_yr[2] / nwidth)
-    
+
     rsigma = (rsigma0, rsigma1, rsigma2)
     T = (t_yr[0], t_yr[1], t_yr[2])
 

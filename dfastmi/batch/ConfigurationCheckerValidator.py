@@ -32,18 +32,21 @@ from typing import Callable
 
 class ConfigurationCheckerValidator:
     """
-    Used to register validation methods and 
+    Used to register validation methods and
     validate river configuration by a mode
     """
+
     _validators = {}
     """Contains the configuration validator be used depending on mode"""
 
-    def register_validator(self, mode: str, validator: Callable[[configparser.ConfigParser,  int], bool]):
+    def register_validator(
+        self, mode: str, validator: Callable[[configparser.ConfigParser, int], bool]
+    ):
         """Register creator function to create a AConfigurationChecker object."""
         if mode not in self._validators:
             self._validators[mode] = validator
 
-    def is_valid(self, mode: str, config: configparser.ConfigParser, i : int ) -> bool:
+    def is_valid(self, mode: str, config: configparser.ConfigParser, i: int) -> bool:
         """
         Call the Validator function to valdite a ConfigurationCheckerLegacy object.
 
@@ -52,7 +55,7 @@ class ConfigurationCheckerValidator:
         mode: str
             The mode in the configuration to validate for.
         i : int
-            Flow condition to be checked.            
+            Flow condition to be checked.
 
         Returns
         -------
@@ -61,6 +64,6 @@ class ConfigurationCheckerValidator:
         """
         validate_method = self._validators.get(mode, self._unsupported)
         return validate_method(config, i)
-    
-    def _unsupported(self, config: configparser.ConfigParser, i : int) -> bool:
+
+    def _unsupported(self, config: configparser.ConfigParser, i: int) -> bool:
         return False

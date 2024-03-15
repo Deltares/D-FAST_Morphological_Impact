@@ -28,25 +28,35 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Callable
+
 from packaging import version
+
 from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
 from dfastmi.batch.FileNameRetrieverUnsupported import FileNameRetrieverUnsupported
+
 
 class FileNameRetrieverFactory:
     """
     Class is used to register and get creation of AFileNameRetriever Objects
     """
+
     _creators = {}
     """Contains the AFileNameRetriever Objects creators to be used"""
 
     def __init__(self):
         self._creators = {}
 
-    def register_creator(self, file_name_retriever_version: version, creator: Callable[[bool], AFileNameRetriever]):
+    def register_creator(
+        self,
+        file_name_retriever_version: version,
+        creator: Callable[[bool], AFileNameRetriever],
+    ):
         """Register creator function to create a AFileNameRetriever object."""
         self._creators[file_name_retriever_version] = creator
 
-    def generate(self, file_name_retriever_version: version, needs_tide: bool) -> AFileNameRetriever:
+    def generate(
+        self, file_name_retriever_version: version, needs_tide: bool
+    ) -> AFileNameRetriever:
         """
         Call the Constructor function to generate AFileNameRetriever object.
 

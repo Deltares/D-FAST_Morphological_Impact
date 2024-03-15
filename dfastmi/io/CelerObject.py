@@ -43,17 +43,17 @@ from typing import List
 
 class ICelerObject(ABC):
     "Interface or abstract base class to the CelerObject."
+
     @abstractmethod
     def validate(self):
         pass
-    
 
 
 class CelerDischarge(ICelerObject):
-    cdisch = tuple[float,float]
-    
+    cdisch = tuple[float, float]
+
     def validate(self):
-        if self.cdisch == (0.0, 0.0):            
+        if self.cdisch == (0.0, 0.0):
             # raise Exception(
             #             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
             #                 branch,
@@ -61,12 +61,11 @@ class CelerDischarge(ICelerObject):
             #             )
             #         )
             return
-    
 
 
 class CelerProperties(ICelerObject):
-    prop_q : List[float]
-    prop_c : List[float]
+    prop_q: List[float]
+    prop_c: List[float]
 
     def validate(self):
         return super().validate()

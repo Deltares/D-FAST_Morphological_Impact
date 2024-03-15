@@ -27,8 +27,9 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import List, Optional, TextIO, Tuple, Union
 import os
+from typing import List, Optional, TextIO, Tuple, Union
+
 import numpy
 
 import dfastmi.kernel.core
@@ -37,58 +38,76 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.kernel.typehints import Vector
 
-class _WaquaLogger():
-    def __init__(self, display : bool, report : TextIO):
+
+class _WaquaLogger:
+    def __init__(self, display: bool, report: TextIO):
         self.display = display
         self.report = report
-    
+
     def log_closing_statement_input(self):
         if self.display:
             ApplicationSettingsHelper.log_text("")
 
-    def log_input_file_found(self, cifil : str):
+    def log_input_file_found(self, cifil: str):
         if self.display:
             ApplicationSettingsHelper.log_text("input_xyz_found", dict={"name": cifil})
 
-    def log_input_name(self, discriptions : List[str], i : int):
+    def log_input_name(self, discriptions: List[str], i: int):
         if self.display:
-            ApplicationSettingsHelper.log_text("input_xyz_name", dict={"name": discriptions[i]})
+            ApplicationSettingsHelper.log_text(
+                "input_xyz_name", dict={"name": discriptions[i]}
+            )
 
-    def log_input_initialization(self, stage : int, discharge_value : float):
+    def log_input_initialization(self, stage: int, discharge_value: float):
         if self.display:
-            ApplicationSettingsHelper.log_text("input_xyz", dict={"stage": stage, "q": discharge_value})
+            ApplicationSettingsHelper.log_text(
+                "input_xyz", dict={"stage": stage, "q": discharge_value}
+            )
             ApplicationSettingsHelper.log_text("---")
             ApplicationSettingsHelper.log_text("")
 
-    def log_file_not_found(self, cifil : str):
+    def log_file_not_found(self, cifil: str):
         ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil})
-        ApplicationSettingsHelper.log_text("file_not_found", dict={"name": cifil}, file=self.report)
+        ApplicationSettingsHelper.log_text(
+            "file_not_found", dict={"name": cifil}, file=self.report
+        )
         ApplicationSettingsHelper.log_text("end_program", file=self.report)
-        
-    def log_input_stage(self, stage : int):
+
+    def log_input_stage(self, stage: int):
         if self.display:
             ApplicationSettingsHelper.log_text("input_xyz_read", dict={"stage": stage})
-            
+
     def log_dividers(self):
         if self.display:
             ApplicationSettingsHelper.log_text("---")
-            
+
     def log_char_bed_changes(self):
         if self.display:
             ApplicationSettingsHelper.log_text("char_bed_changes")
-            
-    def print_cifil(self, cifil : str):
+
+    def print_cifil(self, cifil: str):
         if self.display:
             print(cifil)
 
 
-class AnalyserWaqua():
+class AnalyserWaqua:
     """
     Class that analyses information for waqua.
     """
-    _logger : _WaquaLogger
 
-    def __init__(self, display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax):
+    _logger: _WaquaLogger
+
+    def __init__(
+        self,
+        display,
+        report,
+        reduced_output,
+        tstag,
+        discharges,
+        apply_q,
+        ucrit,
+        old_zmin_zmax,
+    ):
         """
         Init of the analyser.
 
@@ -120,7 +139,7 @@ class AnalyserWaqua():
         self.ucrit = ucrit
         self.old_zmin_zmax = old_zmin_zmax
 
-    def analyse(self, fraction_of_year : Vector, rsigma : Vector) -> OutputDataWaqua:
+    def analyse(self, fraction_of_year: Vector, rsigma: Vector) -> OutputDataWaqua:
         """
         Read data from samples files exported from WAQUA simulations and performanalysis.
 
@@ -137,16 +156,18 @@ class AnalyserWaqua():
             data used to generate a report.
         """
         dzq, first_min_velocity_m, first_min_velocity_n = self._process_files()
-        output_data = self._calculate_output_data(fraction_of_year, rsigma, dzq, first_min_velocity_m, first_min_velocity_n)
+        output_data = self._calculate_output_data(
+            fraction_of_year, rsigma, dzq, first_min_velocity_m, first_min_velocity_n
+        )
         return output_data
 
     def _process_files(self) -> Tuple[numpy.ndarray, int, int]:
         first_discharge = True
-        dzq : List[Optional[Union[float, numpy.ndarray]]]
+        dzq: List[Optional[Union[float, numpy.ndarray]]]
         dzq = [None] * len(self.discharges)
         for i in range(3):
             if self.apply_q[i]:
-                stage = i+1
+                stage = i + 1
                 discharge_value = self.discharges[i]
 
                 files = self._search_files(stage, discharge_value)
@@ -155,24 +176,34 @@ class AnalyserWaqua():
                     u0temp = None
                 else:
                     u0temp, h0temp, u1temp = self._read_files(stage, files)
-                    dzq[i] = self._calculate_waqua_bedlevel_values(u0temp, h0temp, u1temp)
+                    dzq[i] = self._calculate_waqua_bedlevel_values(
+                        u0temp, h0temp, u1temp
+                    )
 
                 if first_discharge:
-                    first_min_velocity_m, first_min_velocity_n = self.get_first_minimal_velocities(files, u0temp)
+                    first_min_velocity_m, first_min_velocity_n = (
+                        self.get_first_minimal_velocities(files, u0temp)
+                    )
                     first_discharge = False
             else:
                 dzq[i] = 0.0
         return dzq, first_min_velocity_m, first_min_velocity_n
 
-    def get_first_minimal_velocities(self, files : list, u0temp : numpy.ndarray) -> Tuple[int, int]:
+    def get_first_minimal_velocities(
+        self, files: list, u0temp: numpy.ndarray
+    ) -> Tuple[int, int]:
         if not files:
             first_min_velocity_m = 0
             first_min_velocity_n = 0
         else:
-            first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
-            first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
+            first_min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(
+                u0temp
+            )
+            first_min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(
+                u0temp
+            )
 
-        return first_min_velocity_m,first_min_velocity_n
+        return first_min_velocity_m, first_min_velocity_n
 
     def _search_files(self, stage: int, discharge_value: float) -> list:
         cblok = str(stage)
@@ -197,7 +228,9 @@ class AnalyserWaqua():
 
         return files
 
-    def _read_files(self, stage : int, files : list) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    def _read_files(
+        self, stage: int, files: list
+    ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
         self._logger.log_input_stage(stage)
 
         u0temp = DataTextFileOperations.read_waqua_xyz(files[0], cols=(2, 3, 4))
@@ -206,24 +239,30 @@ class AnalyserWaqua():
 
         return u0temp, h0temp, u1temp
 
-    def _calculate_waqua_values_minimal_velocity_m(self, velocity_u0temp : numpy.ndarray) -> int:
+    def _calculate_waqua_values_minimal_velocity_m(
+        self, velocity_u0temp: numpy.ndarray
+    ) -> int:
         if self.reduced_output:
             m = velocity_u0temp[:, 1].astype(int) - 1
             return min(m)
         else:
             return 0
 
-    def _calculate_waqua_values_minimal_velocity_n(self, velocity_u0temp : numpy.ndarray) -> int:
+    def _calculate_waqua_values_minimal_velocity_n(
+        self, velocity_u0temp: numpy.ndarray
+    ) -> int:
         if self.reduced_output:
             n = velocity_u0temp[:, 2].astype(int) - 1
             return min(n)
         else:
             return 0
 
-    def _calculate_waqua_bedlevel_values(self, u0temp : numpy.ndarray, h0temp : numpy.ndarray, u1temp : numpy.ndarray) -> numpy.ndarray:
+    def _calculate_waqua_bedlevel_values(
+        self, u0temp: numpy.ndarray, h0temp: numpy.ndarray, u1temp: numpy.ndarray
+    ) -> numpy.ndarray:
         m = u0temp[:, 1].astype(int) - 1
         n = u0temp[:, 2].astype(int) - 1
-        u0temp_first_column  = u0temp[:, 0]
+        u0temp_first_column = u0temp[:, 0]
 
         min_velocity_m = self._calculate_waqua_values_minimal_velocity_m(u0temp)
         min_velocity_n = self._calculate_waqua_values_minimal_velocity_n(u0temp)
@@ -252,23 +291,37 @@ class AnalyserWaqua():
 
         return dzq
 
-    def _calculate_output_data(self, fraction_of_year : Vector, rsigma : Vector, dzq : numpy.ndarray, first_min_velocity_m : int, first_min_velocity_n : int) -> OutputDataWaqua:
+    def _calculate_output_data(
+        self,
+        fraction_of_year: Vector,
+        rsigma: Vector,
+        dzq: numpy.ndarray,
+        first_min_velocity_m: int,
+        first_min_velocity_n: int,
+    ) -> OutputDataWaqua:
         self._logger.log_char_bed_changes()
 
         if self.tstag > 0:
             dzq = [dzq[0], 0.0, dzq[1], dzq[2]]
-            fraction_of_year = (fraction_of_year[0], self.tstag, fraction_of_year[1], fraction_of_year[2])
+            fraction_of_year = (
+                fraction_of_year[0],
+                self.tstag,
+                fraction_of_year[1],
+                fraction_of_year[2],
+            )
             rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
 
         # main_computation now returns new pointwise zmin and zmax
         data_zgem, data_zmax, data_zmin, dzb = dfastmi.kernel.core.main_computation(
-                dzq, fraction_of_year, rsigma
-            )
+            dzq, fraction_of_year, rsigma
+        )
 
         if self.old_zmin_zmax:
             # get old zmax and zmin
             data_zmax = dzb[0]
             data_zmin = dzb[1]
 
-        output_data = OutputDataWaqua(first_min_velocity_m, first_min_velocity_n, data_zgem, data_zmax, data_zmin)
+        output_data = OutputDataWaqua(
+            first_min_velocity_m, first_min_velocity_n, data_zgem, data_zmax, data_zmin
+        )
         return output_data

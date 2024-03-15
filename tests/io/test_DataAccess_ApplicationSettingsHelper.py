@@ -1,12 +1,12 @@
 import os
-
-
 import sys
 from contextlib import contextmanager
 from io import StringIO
 
 import pytest
+
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+
 
 @contextmanager
 def captured_output():
@@ -18,15 +18,20 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-class Test_data_access_load_program_texts():
+
+class Test_data_access_load_program_texts:
     def test_load_program_texts_load_default_uk_messages_file(self):
         """
         Testing load_program_texts.
         """
         print("current work directory: ", os.getcwd())
-        assert ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini") == None
+        assert (
+            ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+            == None
+        )
 
-class Test_data_access_log_text():
+
+class Test_data_access_log_text:
     @pytest.fixture
     def setup_data(self):
         """
@@ -42,7 +47,7 @@ class Test_data_access_log_text():
         with captured_output() as (out, err):
             ApplicationSettingsHelper.log_text(key)
         outstr = out.getvalue().splitlines()
-        strref = ['Confirm using "y" ...', '']
+        strref = ['Confirm using "y" ...', ""]
         assert outstr == strref
 
     def test_log_text_empty_keys(self, setup_data):
@@ -54,10 +59,12 @@ class Test_data_access_log_text():
         with captured_output() as (out, err):
             ApplicationSettingsHelper.log_text(key, repeat=nr)
         outstr = out.getvalue().splitlines()
-        strref = ['', '', '']
+        strref = ["", "", ""]
         assert outstr == strref
 
-    def test_log_text_replace_variable_id_with_provided_value_in_dictionary(self, setup_data):
+    def test_log_text_replace_variable_id_with_provided_value_in_dictionary(
+        self, setup_data
+    ):
         """
         Testing standard output of a text with expansion.
         """
@@ -66,10 +73,12 @@ class Test_data_access_log_text():
         with captured_output() as (out, err):
             ApplicationSettingsHelper.log_text(key, dict=dict)
         outstr = out.getvalue().splitlines()
-        strref = ['The measure is located on reach ABC']
+        strref = ["The measure is located on reach ABC"]
         assert outstr == strref
 
-    def test_log_text_replace_variable_id_with_provided_value_in_dictionary_and_write_in_file(self, setup_data):
+    def test_log_text_replace_variable_id_with_provided_value_in_dictionary_and_write_in_file(
+        self, setup_data
+    ):
         """
         Testing file output of a text with expansion.
         """
@@ -79,10 +88,11 @@ class Test_data_access_log_text():
         with open(filename, "w") as f:
             ApplicationSettingsHelper.log_text(key, dict=dict, file=f)
         all_lines = open(filename, "r").read().splitlines()
-        strref = ['The measure is located on reach ABC']
+        strref = ["The measure is located on reach ABC"]
         assert all_lines == strref
 
-class Test_data_access_get_text():
+
+class Test_data_access_get_text:
     @pytest.fixture
     def setup_data(self):
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
@@ -99,9 +109,11 @@ class Test_data_access_get_text():
         """
         assert ApplicationSettingsHelper.get_text("") == [""]
 
-    def test_get_text_messages_uk_loaded_key_confirm_returns_value(self, setup_data: None):
+    def test_get_text_messages_uk_loaded_key_confirm_returns_value(
+        self, setup_data: None
+    ):
         """
         Testing get_text: "confirm" key.
         """
         confirmText = ApplicationSettingsHelper.get_text("confirm")
-        assert confirmText == ['Confirm using "y" ...','']
+        assert confirmText == ['Confirm using "y" ...', ""]

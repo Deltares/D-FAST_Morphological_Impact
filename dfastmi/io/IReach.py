@@ -37,9 +37,9 @@ from abc import ABC, abstractmethod
 
 
 class IReach(ABC):
-    normal_width : float
-    ucritical : float
-    qstagnant : float
+    normal_width: float
+    ucritical: float
+    qstagnant: float
 
     """Interface for Reach information"""
 

@@ -26,10 +26,12 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from typing import Optional, Tuple
 import os
-import numpy
+from typing import Optional, Tuple
+
 import netCDF4
+import numpy
+
 
 class GridOperations:
     @staticmethod
@@ -195,7 +197,7 @@ class GridOperations:
         facedim = fnc.dimensions[0]
         mesh2d_name = mesh2d[0].name
 
-        rootgrp.close()        
+        rootgrp.close()
         return mesh2d_name, facedim
 
     @staticmethod

@@ -1,13 +1,14 @@
-import context
 import os
+import subprocess
 import sys
-
 from contextlib import contextmanager
 from io import StringIO
-import subprocess
+
+import context
 
 # dfast binary path relative to tstdir
 dfastexe = "../../dfastmi.dist/dfastmi.exe"
+
 
 @contextmanager
 def captured_output():
@@ -19,7 +20,8 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-class Test_basic():
+
+class Test_basic:
     def test_basic_00(self):
         """
         Test whether program runs at all.
@@ -29,7 +31,7 @@ class Test_basic():
         success = False
         try:
             os.chdir(tstdir)
-            result = subprocess.run([dfastexe,"--help"])
+            result = subprocess.run([dfastexe, "--help"])
             success = result.returncode == 0
         finally:
             os.chdir(cwd)
@@ -45,8 +47,8 @@ class Test_basic():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            result = subprocess.run([dfastexe,"--help"], capture_output=True)
-            outstr = result.stdout.decode('UTF-8').splitlines()
+            result = subprocess.run([dfastexe, "--help"], capture_output=True)
+            outstr = result.stdout.decode("UTF-8").splitlines()
         finally:
             os.chdir(cwd)
         #
@@ -65,9 +67,9 @@ class Test_basic():
             "                       default)",
             "  --rivers RIVERS      name of rivers configuration file ('Dutch_rivers.ini'",
             "                       is default)",
-            "  --reduced_output     write reduced M/N range (structured model only)"
+            "  --reduced_output     write reduced M/N range (structured model only)",
         ]
-        
+
     def test_basic_gui(self):
         """
         Testing startup of the GUI.
@@ -79,12 +81,16 @@ class Test_basic():
         try:
             os.chdir(tstdir)
             try:
-                process = subprocess.Popen(dfastexe, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen(
+                    dfastexe, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
                 process.wait(timeout=1)
 
             except subprocess.TimeoutExpired:
                 process.kill()
-                
-            assert process.returncode is None, f"Process returned exit code: {process.returncode}, please run the dfastmi.exe to find the specific error."
+
+            assert (
+                process.returncode is None
+            ), f"Process returned exit code: {process.returncode}, please run the dfastmi.exe to find the specific error."
         finally:
             os.chdir(cwd)

@@ -32,19 +32,20 @@ Module for Reach implementation
 Classes:
     ReachLegacy
 """
-from dfastmi.io.AReach import AReach
-
 from typing import List
+
+from dfastmi.io.AReach import AReach
 
 
 class ReachLegacy(AReach):
     """
     Derived class with reach data information used with legacy river configuration files.
     """
-    proprate_high : float
-    proprate_low : float
-    qbankfull : float
-    qmin : float
-    qfit : tuple[float,float]
-    qlevels : List[float]
-    dq : tuple[float,float]
+
+    proprate_high: float
+    proprate_low: float
+    qbankfull: float
+    qmin: float
+    qfit: tuple[float, float]
+    qlevels: List[float]
+    dq: tuple[float, float]

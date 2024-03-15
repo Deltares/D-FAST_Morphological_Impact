@@ -26,19 +26,24 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from typing import Tuple
 import os
-import numpy
+from typing import Tuple
+
 import fiona
-import pandas
 import geopandas
+import numpy
+import pandas
 import shapely
 import shapely.geometry
 
-fiona.supported_drivers['kml'] = 'rw' # enable KML support which is disabled by default
-fiona.supported_drivers['KML'] = 'rw' # enable KML support which is disabled by default
-fiona.supported_drivers['libkml'] = 'rw' # enable KML support which is disabled by default
-fiona.supported_drivers['LIBKML'] = 'rw' # enable KML support which is disabled by default
+fiona.supported_drivers["kml"] = "rw"  # enable KML support which is disabled by default
+fiona.supported_drivers["KML"] = "rw"  # enable KML support which is disabled by default
+fiona.supported_drivers["libkml"] = (
+    "rw"  # enable KML support which is disabled by default
+)
+fiona.supported_drivers["LIBKML"] = (
+    "rw"  # enable KML support which is disabled by default
+)
 
 
 class DataTextFileOperations:
@@ -61,7 +66,6 @@ class DataTextFileOperations:
         """
         data = numpy.genfromtxt(filename, delimiter=",", skip_header=1, usecols=cols)
         return data
-
 
     @staticmethod
     def write_simona_box(
@@ -104,10 +108,9 @@ class DataTextFileOperations:
         # close the file
         boxfile.close()
 
-
     @staticmethod
     def read_xyc(
-        filename: str, ncol: int = 2, delimiter = None, hasHeader = False
+        filename: str, ncol: int = 2, delimiter=None, hasHeader=False
     ) -> shapely.geometry.linestring.LineString:
         """
         Read lines from a file.
@@ -133,20 +136,34 @@ class DataTextFileOperations:
             if hasHeader:
                 if delimiter != None:
                     P = pandas.read_csv(
-                        filename, names=colnames, skipinitialspace=True, header=0, delimiter=delimiter
+                        filename,
+                        names=colnames,
+                        skipinitialspace=True,
+                        header=0,
+                        delimiter=delimiter,
                     )
                 else:
                     P = pandas.read_csv(
-                    filename, names=colnames, skipinitialspace=True, header=0, delim_whitespace=True
+                        filename,
+                        names=colnames,
+                        skipinitialspace=True,
+                        header=0,
+                        delim_whitespace=True,
                     )
             else:
                 if delimiter != None:
                     P = pandas.read_csv(
-                        filename, names=colnames, skipinitialspace=True, delimiter=delimiter
+                        filename,
+                        names=colnames,
+                        skipinitialspace=True,
+                        delimiter=delimiter,
                     )
                 else:
                     P = pandas.read_csv(
-                        filename, names=colnames, skipinitialspace=True, delim_whitespace=True
+                        filename,
+                        names=colnames,
+                        skipinitialspace=True,
+                        delim_whitespace=True,
                     )
 
             nPnts = len(P.X)
@@ -162,7 +179,6 @@ class DataTextFileOperations:
             GEO = geopandas.read_file(filename)["geometry"]
             L = GEO[0]
         return L
-
 
     @staticmethod
     def get_xykm(

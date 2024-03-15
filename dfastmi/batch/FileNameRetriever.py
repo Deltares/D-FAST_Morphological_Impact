@@ -27,15 +27,17 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Any, Dict, Optional, Tuple
 import configparser
+from typing import Any, Dict, Optional, Tuple
+
 from dfastmi.batch.AFileNameRetriever import AFileNameRetriever
+
 
 class FileNameRetriever(AFileNameRetriever):
     """
     File name retriever for version 2.
     """
-    
+
     def __init__(self, needs_tide: bool):
         """
         Constructor of the FileNameRetriever.
@@ -46,8 +48,10 @@ class FileNameRetriever(AFileNameRetriever):
             Specifies whether the tidal boundary is needed.
         """
         self.needs_tide = needs_tide
-    
-    def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
+
+    def get_file_names(
+        self, config: Optional[configparser.ConfigParser] = None
+    ) -> Dict[Any, Tuple[str, str]]:
         """
         Extract the list of 2N file names from the configuration.
         This routine is valid for version 2 configuration files.
@@ -65,26 +69,28 @@ class FileNameRetriever(AFileNameRetriever):
             can be the discharge index, discharge value or a tuple of forcing
             conditions, such as a Discharge and Tide forcing tuple.
         """
-        filenames: Dict[Any, Tuple[str,str]]
+        filenames: Dict[Any, Tuple[str, str]]
         key: Union[Tuple[float, int], float]
         filenames = {}
         i = 0
         while True:
             i = i + 1
-            CSTR = f'C{i}'
+            CSTR = f"C{i}"
             if CSTR in config:
                 q_string = self._cfg_get(config, CSTR, "Discharge")
-                
+
                 try:
                     Q = float(q_string)
                 except ValueError as exc:
-                    raise TypeError(f'{q_string} from Discharge could now be handled as a float.') from exc
-                
+                    raise TypeError(
+                        f"{q_string} from Discharge could now be handled as a float."
+                    ) from exc
+
                 reference = self._cfg_get(config, CSTR, "Reference")
                 measure = self._cfg_get(config, CSTR, "WithMeasure")
                 if self.needs_tide:
                     T = self._cfg_get(config, CSTR, "TideBC")
-                    key = (Q,T)
+                    key = (Q, T)
                 else:
                     key = Q
                 filenames[key] = (reference, measure)
