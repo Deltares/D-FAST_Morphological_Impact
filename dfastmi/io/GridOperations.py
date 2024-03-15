@@ -304,9 +304,8 @@ class GridOperations:
         src.close()
         dst.close()
 
-    @staticmethod
     def ugrid_add(
-        dstfile: str,
+        self,
         varname: str,
         ldata: numpy.array,
         meshname: str,
@@ -319,8 +318,6 @@ class GridOperations:
 
         Arguments
         ---------
-        dstfile : str
-            Name of netCDF file to write data to.
         varname : str
             Name of netCDF variable to be written.
         ldata : numpy.array
@@ -336,7 +333,7 @@ class GridOperations:
             String indicating the unit ("None" if no unit attribute should be written).
         """
         # open destination file
-        dst = nc.Dataset(dstfile, "a")
+        dst = nc.Dataset(self._map_file, "a")
 
         # check if face dimension exists
         dim = dst.dimensions[facedim]

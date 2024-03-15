@@ -323,8 +323,8 @@ def analyse_and_report_dflowfm(
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
         dzgem[iface]=dzgemi
-        GridOperations.ugrid_add(
-            dst,
+        dst_map_file = GridOperations(dst)
+        dst_map_file.ugrid_add(
             "avgdzb",
             dzgem,
             meshname,
@@ -334,8 +334,7 @@ def analyse_and_report_dflowfm(
         )
         dzmax = numpy.repeat(nc_fill, FNC.shape[0])
         dzmax[iface]=dzmaxi
-        GridOperations.ugrid_add(
-            dst,
+        dst_map_file.ugrid_add(
             "maxdzb",
             dzmax,
             meshname,
@@ -345,8 +344,7 @@ def analyse_and_report_dflowfm(
         )
         dzmin = numpy.repeat(nc_fill, FNC.shape[0])
         dzmin[iface]=dzmini
-        GridOperations.ugrid_add(
-            dst,
+        dst_map_file.ugrid_add(
             "mindzb",
             dzmin,
             meshname,
@@ -358,8 +356,7 @@ def analyse_and_report_dflowfm(
             j = (i + 1) % len(dzbi)
             dzb = numpy.repeat(nc_fill, FNC.shape[0])
             dzb[iface]=dzbi[j]
-            GridOperations.ugrid_add(
-                dst,
+            dst_map_file.ugrid_add(
                 "dzb_{}".format(i),
                 dzb,
                 meshname,
@@ -370,8 +367,7 @@ def analyse_and_report_dflowfm(
             if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
                 dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
                 dzq_full[iface]=dzq[i]
-                GridOperations.ugrid_add(
-                    dst,
+                dst_map_file.ugrid_add(
                     "dzq_{}".format(i),
                     dzq_full,
                     meshname,
@@ -382,8 +378,8 @@ def analyse_and_report_dflowfm(
         
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
         map_file.copy_ugrid(meshname, projmesh)
-        GridOperations.ugrid_add(
-            projmesh,
+        projmesh_map_file = GridOperations(projmesh)
+        projmesh_map_file.ugrid_add(
             "avgdzb",
             dzgem,
             meshname,
@@ -463,9 +459,9 @@ def analyse_and_report_dflowfm(
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
             projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
+            projmesh_map_file = GridOperations(projmesh)
             map_file.copy_ugrid(meshname, projmesh)
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.ugrid_add(
                 "interest_region",
                 interest_region,
                 meshname,
@@ -477,8 +473,7 @@ def analyse_and_report_dflowfm(
         
             for i in range(len(sed_area_list)):
                 sed_area[iface[sed_area_list[i] == 1]] = i+1
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.ugrid_add(
                 "sed_area",
                 sed_area,
                 meshname,
@@ -490,8 +485,7 @@ def analyse_and_report_dflowfm(
         
             for i in range(len(ero_area_list)):
                 ero_area[iface[ero_area_list[i] == 1]] = i+1
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.ugrid_add(
                 "ero_area",
                 ero_area,
                 meshname,
@@ -501,8 +495,7 @@ def analyse_and_report_dflowfm(
             )
             wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
             wght_estimate1[iface] = wght_estimate1i
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.ugrid_add(
                 "wght_estimate1",
                 wght_estimate1,
                 meshname,
@@ -512,8 +505,7 @@ def analyse_and_report_dflowfm(
             )
             wbin = numpy.repeat(nc_fill, FNC.shape[0])
             wbin[iface] = wbini
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.ugrid_add(
                 "wbin",
                 wbin,
                 meshname,
