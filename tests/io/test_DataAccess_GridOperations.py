@@ -270,7 +270,7 @@ class Test_copy_ugrid():
         
         map_file = GridOperations(src_filename)
         meshname, facedim = map_file.get_mesh_and_facedim_names()
-        GridOperations.copy_ugrid(src_filename, meshname, self.dst_filename)
+        map_file.copy_ugrid(meshname, self.dst_filename)
         #
         varname = "face_node_connectivity"
         map_file = GridOperations(self.dst_filename)

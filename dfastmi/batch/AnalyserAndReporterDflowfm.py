@@ -319,7 +319,7 @@ def analyse_and_report_dflowfm(
         map_file = GridOperations(one_fm_filename)
         meshname, facedim = map_file.get_mesh_and_facedim_names()
         dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
-        GridOperations.copy_ugrid(one_fm_filename, meshname, dst)
+        map_file.copy_ugrid(meshname, dst)
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
         dzgem[iface]=dzgemi
@@ -381,7 +381,7 @@ def analyse_and_report_dflowfm(
                 )
         
         projmesh = outputdir + os.sep + 'projected_mesh.nc'
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
+        map_file.copy_ugrid(meshname, projmesh)
         GridOperations.ugrid_add(
             projmesh,
             "avgdzb",
@@ -463,7 +463,7 @@ def analyse_and_report_dflowfm(
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
             projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
-            GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
+            map_file.copy_ugrid(meshname, projmesh)
             GridOperations.ugrid_add(
                 projmesh,
                 "interest_region",
