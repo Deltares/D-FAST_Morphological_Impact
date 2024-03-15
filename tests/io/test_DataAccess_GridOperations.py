@@ -278,8 +278,7 @@ class Test_copy_ugrid():
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         
         map_file = GridOperations(src_filename)
-        meshname = map_file.mesh2d_name
-        map_file.copy_ugrid(meshname, self.dst_filename)
+        map_file.copy_ugrid(self.dst_filename)
         #
         varname = "face_node_connectivity"
         map_file = GridOperations(self.dst_filename)

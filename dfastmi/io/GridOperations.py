@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 import os
 import numpy
 import netCDF4 as nc
@@ -257,7 +257,7 @@ class GridOperations:
         dstvar.setncatts(srcvar.__dict__)
         dstvar[:] = srcvar[:]
 
-    def copy_ugrid(self, meshname: str, dstname: str) -> None:
+    def copy_ugrid(self, dstname: str) -> None:
         """
         Copy UGRID mesh data from one netCDF file to another.
 
@@ -266,8 +266,6 @@ class GridOperations:
 
         Arguments
         ---------
-        meshname : str
-            Name of the UGRID mesh to be copied from source to destination.
         dstname : str
             Name of destination file, or dataset object representing the destination
             file.
@@ -279,6 +277,7 @@ class GridOperations:
         dst = nc.Dataset(dstname, "w", format="NETCDF4")
 
         # locate source mesh
+        meshname = self.mesh2d_name
         mesh = src.variables[meshname]
 
         # copy mesh variable
