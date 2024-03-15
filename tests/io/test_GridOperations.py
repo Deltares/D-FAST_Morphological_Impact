@@ -283,9 +283,9 @@ class Test_read_variable():
 
 
 class Test_get_mesh_and_facedim_names():
-    def test_get_mesh_and_facedim_names_01(self):
+    def test_get_mesh2d_name(self):
         """
-        Testing get_mesh_and_facedim_names.
+        Testing mesh2d_name property.
         """
         filename = "mocked_file_name.nc"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
@@ -295,5 +295,5 @@ class Test_get_mesh_and_facedim_names():
             netCDF4Dataset.get_variables_by_attributes.return_value = [mock_mesh, mock_mesh]
             with pytest.raises(Exception) as cm:
                 map_file = GridOperations(filename)
-                map_file.get_mesh_and_facedim_names()
+                map_file.mesh2d_name
             assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."

@@ -100,15 +100,23 @@ class Test_data_access_read_variable():
 
 
 class Test_data_access_get_mesh_and_facedim_names():
-    def test_get_mesh_and_facedim_names_01(self):
+    def test_get_mesh2d_name(self):
         """
-        Testing get_mesh_and_facedim_names.
+        Testing mesh2d_name property.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         map_file = GridOperations(filename)
-        name_and_dim = map_file.get_mesh_and_facedim_names()
-        assert name_and_dim == ("mesh2d", "mesh2d_nFaces")
+        mesh2d_name = map_file.mesh2d_name
+        assert mesh2d_name == "mesh2d"
 
+    def test_get_face_dimension_name(self):
+        """
+        Testing face_dimension_name property.
+        """
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        map_file = GridOperations(filename)
+        face_dimension_name = map_file.face_dimension_name
+        assert face_dimension_name == "mesh2d_nFaces"
 
 class Test_ugrid_add():
     dst_filename = "test.nc"
@@ -270,7 +278,7 @@ class Test_copy_ugrid():
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         
         map_file = GridOperations(src_filename)
-        meshname, facedim = map_file.get_mesh_and_facedim_names()
+        meshname = map_file.mesh2d_name
         map_file.copy_ugrid(meshname, self.dst_filename)
         #
         varname = "face_node_connectivity"

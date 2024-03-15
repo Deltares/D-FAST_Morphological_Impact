@@ -317,7 +317,8 @@ def analyse_and_report_dflowfm(
             ApplicationSettingsHelper.log_text('writing_output')
         
         map_file = GridOperations(one_fm_filename)
-        meshname, facedim = map_file.get_mesh_and_facedim_names()
+        meshname = map_file.mesh2d_name
+        facedim = map_file.face_dimension_name
         dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
         map_file.copy_ugrid(meshname, dst)
         nc_fill = netCDF4.default_fillvals['f8']

@@ -172,7 +172,31 @@ class GridOperations:
         # return data
         return data
 
-    def get_mesh_and_facedim_names(self) -> Tuple[str, str]:
+    @property
+    def mesh2d_name(self) -> str:
+        """Get the name of the mesh2d variable.
+
+        Returns
+        -------
+        str
+            String containing the name of the mesh2d variable.
+        """
+        mesh2d_name, _ = self._get_mesh_and_facedim_names()
+        return mesh2d_name
+
+    @property
+    def face_dimension_name(self) -> str:
+        """Get the name of the face dimension.
+
+        Returns
+        -------
+        str
+            String containing the name of the face dimension.
+        """
+        _, face_dimension_name = self._get_mesh_and_facedim_names()
+        return face_dimension_name
+    
+    def _get_mesh_and_facedim_names(self) -> Tuple[str, str]:
         """
         Obtain the names of 2D mesh and face dimension from netCDF UGRID file.
 
