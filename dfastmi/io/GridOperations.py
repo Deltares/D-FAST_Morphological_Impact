@@ -92,16 +92,8 @@ class GridOperations:
         rootgrp = nc.Dataset(self._map_file)
 
         # locate 2d mesh variable
-        mesh2d = rootgrp.get_variables_by_attributes(
-            cf_role="mesh_topology", topology_dimension=2
-        )
-        if len(mesh2d) != 1:
-            raise Exception(
-                "Currently only one 2D mesh supported ... this file contains {} 2D meshes.".format(
-                    len(mesh2d)
-                )
-            )
-        meshname = mesh2d[0].name
+        mesh2d = self._get_mesh2d_variable(rootgrp)
+        meshname = mesh2d.name
 
         # define a default start_index
         start_index = 0
@@ -109,7 +101,7 @@ class GridOperations:
         # locate the requested variable ... start with some special cases
         if varname == "x":
             # the x-coordinate or longitude
-            crdnames = mesh2d[0].getncattr(location + "_coordinates").split()
+            crdnames = mesh2d.getncattr(location + "_coordinates").split()
             for n in crdnames:
                 stdname = rootgrp.variables[n].standard_name
                 if stdname == "projection_x_coordinate" or stdname == "longitude":
@@ -118,7 +110,7 @@ class GridOperations:
 
         elif varname == "y":
             # the y-coordinate or latitude
-            crdnames = mesh2d[0].getncattr(location + "_coordinates").split()
+            crdnames = mesh2d.getncattr(location + "_coordinates").split()
             for n in crdnames:
                 stdname = rootgrp.variables[n].standard_name
                 if stdname == "projection_y_coordinate" or stdname == "latitude":
@@ -127,7 +119,7 @@ class GridOperations:
 
         elif varname[-12:] == "connectivity":
             # a mesh connectivity variable with corrected index
-            varname = mesh2d[0].getncattr(varname)
+            varname = mesh2d.getncattr(varname)
             var = rootgrp.variables[varname]
             if "start_index" in var.ncattrs():
                 start_index = var.getncattr("start_index")
