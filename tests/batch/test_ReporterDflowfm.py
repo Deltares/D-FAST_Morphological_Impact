@@ -33,45 +33,15 @@ class Test_ReporterDflowfm_Report():
         return plotops
 
     def set_report_data_without_xykm(self, tmp_path):
-        rsigma = [0.1, 0.2, 0.3]
-        one_fm_filename = str(tmp_path)
-        
-        xn = numpy.array([5, 10, 20, 1., 0.])
-        face_node_connectivity = numpy.array([5, 10, 20, 1., 0.])
-        
-        dzq = [numpy.array([5, 10, 20, 1., 0.]),
-                numpy.array([25, 30, 35, 1., 0.]),
-                numpy.array([40, 45, 50, 1., 0.])]
-        
-        dzgemi = numpy.array([5, 10, 20, 1., 0.])
-        dzmaxi = numpy.array([5, 10, 20, 1., 0.])
-        dzmini = numpy.array([5, 10, 20, 1., 0.])
-        
-        dzbi = [numpy.array([5, 10, 20, 1., 0.]),
-                numpy.array([25, 30, 35, 1., 0.]),
-                numpy.array([40, 45, 50, 1., 0.])]
-        
-        xykm_data = Mock(spec=XykmData)
-        xykm_data.iface = numpy.array([0, 1, 2, 3, 4])
-        xykm_data.xykm = None
-        xykm_data.face_node_connectivity_index.mask.shape = ()
-        xykm_data.face_node_connectivity_index.data.shape = numpy.array([1, 1])
-        xykm_data.xmin = 1
-        xykm_data.ymin = 1
-        xykm_data.xmax = 2
-        xykm_data.ymax = 2
-        xykm_data.xykline = None
-        xykm_data.xni = numpy.array([0, 1, 2, 3, 4])
-        xykm_data.yni = numpy.array([0, 1, 2, 3, 4])
-        
-        report_data =  OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, "zmax_str", "zmin_str", xykm_data, None)
-        return report_data
+        return self._get_report_data(tmp_path, False)
     
     def set_report_data_with_xykm(self, tmp_path):
+        return self._get_report_data(tmp_path, True)
+    
+    def _get_report_data(self, tmp_path, enable_xykm):
         rsigma = [0.1, 0.2, 0.3]
         one_fm_filename = str(tmp_path)
         
-        xykm = LineString()
         xn = numpy.array([5, 10, 20, 1., 0.])
         face_node_connectivity = numpy.array([5, 10, 20, 1., 0.])
         
@@ -86,6 +56,30 @@ class Test_ReporterDflowfm_Report():
         dzbi = [numpy.array([5, 10, 20, 1., 0.]),
                 numpy.array([25, 30, 35, 1., 0.]),
                 numpy.array([40, 45, 50, 1., 0.])]
+        
+        xykm_data = self._get_mocked_xykm_data(enable_xykm)
+        sedimentation_data = self._get_sedimentation_mocked_data()
+        
+        report_data =  OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, "zmax_str", "zmin_str", xykm_data, sedimentation_data)
+        return report_data
+
+    def _get_sedimentation_mocked_data(self):
+        sedimentation_data = Mock(spec=SedimentationData)
+        sedimentation_data.sedarea = numpy.array([0, 1, 2, 3, 4])
+        sedimentation_data.sedvol = numpy.array([0, 1, 2, 3, 4])
+        sedimentation_data.sed_area_list = [True, True]
+        sedimentation_data.eroarea = numpy.array([0, 1, 2, 3, 4])
+        sedimentation_data.erovol = numpy.array([0, 1, 2, 3, 4])
+        sedimentation_data.ero_area_list = [True, True]
+        sedimentation_data.wght_estimate1i = numpy.array([0, 1, 2, 3, 4])
+        sedimentation_data.wbini = numpy.array([0, 1, 2, 3, 4])
+        return sedimentation_data
+
+    def _get_mocked_xykm_data(self, enable_xykm):
+        if enable_xykm:
+            xykm = LineString()
+        else:
+            xykm = None
         
         xykm_data = Mock(spec=XykmData)
         xykm_data.iface = numpy.array([0, 1, 2, 3, 4])
@@ -102,19 +96,7 @@ class Test_ReporterDflowfm_Report():
         xykm_data.yni = numpy.array([0, 1, 2, 3, 4])
         xykm_data.sni = numpy.array([0, 1, 2, 3, 4])
         xykm_data.nni = numpy.array([0, 1, 2, 3, 4])
-        
-        sedimentation_data = Mock(spec=SedimentationData)
-        sedimentation_data.sedarea = numpy.array([0, 1, 2, 3, 4])
-        sedimentation_data.sedvol = numpy.array([0, 1, 2, 3, 4])
-        sedimentation_data.sed_area_list = [True, True]
-        sedimentation_data.eroarea = numpy.array([0, 1, 2, 3, 4])
-        sedimentation_data.erovol = numpy.array([0, 1, 2, 3, 4])
-        sedimentation_data.ero_area_list = [True, True]
-        sedimentation_data.wght_estimate1i = numpy.array([0, 1, 2, 3, 4])
-        sedimentation_data.wbini = numpy.array([0, 1, 2, 3, 4])
-        
-        report_data =  OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, "zmax_str", "zmin_str", xykm_data, sedimentation_data)
-        return report_data
+        return xykm_data
     
     @pytest.mark.parametrize("display", [True, False])
     def test_report_without_xykm_without_plotting(self, tmp_path, display):
