@@ -181,7 +181,11 @@ class GridOperations:
         str
             String containing the name of the mesh2d variable.
         """
-        mesh2d_name, _ = self._get_mesh_and_facedim_names()
+        rootgrp = nc.Dataset(self._map_file)
+        mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+        mesh2d_name = mesh2d.name
+        rootgrp.close()       
+ 
         return mesh2d_name
 
     @property
@@ -193,7 +197,13 @@ class GridOperations:
         str
             String containing the name of the face dimension.
         """
-        _, face_dimension_name = self._get_mesh_and_facedim_names()
+        rootgrp = nc.Dataset(self._map_file)
+        mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+        facenodeconnect_varname = mesh2d.face_node_connectivity
+        fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
+        face_dimension_name = fnc.dimensions[0]
+        rootgrp.close()    
+            
         return face_dimension_name
     
     @staticmethod
@@ -210,36 +220,7 @@ class GridOperations:
             )
         
         return mesh2d[0]
-    
-    def _get_mesh_and_facedim_names(self) -> Tuple[str, str]:
-        """
-        Obtain the names of 2D mesh and face dimension from netCDF UGRID file.
 
-        Raises
-        ------
-        Exception
-            If there is not one mesh in the netCDF file.
-
-        Returns
-        -------
-        tuple : Tuple[str, str]
-            Name of the 2D mesh variable
-            Name of the face dimension of that 2D mesh
-        """
-        # open file
-        rootgrp = nc.Dataset(self._map_file)
-
-        mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
-        #
-        facenodeconnect_varname = mesh2d.face_node_connectivity
-        fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
-
-        # default
-        facedim = fnc.dimensions[0]
-        mesh2d_name = mesh2d.name
-
-        rootgrp.close()        
-        return mesh2d_name, facedim
 
     @staticmethod
     def _copy_var(src: nc.Dataset, varname: str, dst: nc.Dataset) -> None:
