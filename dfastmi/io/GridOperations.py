@@ -172,15 +172,9 @@ class GridOperations:
         # return data
         return data
 
-    @staticmethod
-    def get_mesh_and_facedim_names(filename: str) -> Tuple[str, str]:
+    def get_mesh_and_facedim_names(self) -> Tuple[str, str]:
         """
         Obtain the names of 2D mesh and face dimension from netCDF UGRID file.
-
-        Arguments
-        ---------
-        filename : str
-            Name of the netCDF file.
 
         Raises
         ------
@@ -194,7 +188,7 @@ class GridOperations:
             Name of the face dimension of that 2D mesh
         """
         # open file
-        rootgrp = nc.Dataset(filename)
+        rootgrp = nc.Dataset(self._map_file)
 
         # locate 2d mesh variable
         mesh2d = rootgrp.get_variables_by_attributes(

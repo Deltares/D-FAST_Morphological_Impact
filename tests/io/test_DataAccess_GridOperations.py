@@ -105,7 +105,8 @@ class Test_data_access_get_mesh_and_facedim_names():
         Testing get_mesh_and_facedim_names.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        name_and_dim = GridOperations.get_mesh_and_facedim_names(filename)
+        map_file = GridOperations(filename)
+        name_and_dim = map_file.get_mesh_and_facedim_names()
         assert name_and_dim == ("mesh2d", "mesh2d_nFaces")
 
 
@@ -267,7 +268,8 @@ class Test_copy_ugrid():
         """
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         
-        meshname, facedim = GridOperations.get_mesh_and_facedim_names(src_filename)
+        map_file = GridOperations(src_filename)
+        meshname, facedim = map_file.get_mesh_and_facedim_names()
         GridOperations.copy_ugrid(src_filename, meshname, self.dst_filename)
         #
         varname = "face_node_connectivity"

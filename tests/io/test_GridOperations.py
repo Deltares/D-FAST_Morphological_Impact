@@ -294,5 +294,6 @@ class Test_get_mesh_and_facedim_names():
             mock_mesh.getncattr.return_value = "aVar"
             netCDF4Dataset.get_variables_by_attributes.return_value = [mock_mesh, mock_mesh]
             with pytest.raises(Exception) as cm:
-                GridOperations.get_mesh_and_facedim_names(filename)
+                map_file = GridOperations(filename)
+                map_file.get_mesh_and_facedim_names()
             assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."
