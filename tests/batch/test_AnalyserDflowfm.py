@@ -36,7 +36,7 @@ class Test_AnalyserDflowfm():
         self.nwidth = 1.0
         self.filenames = {}
         self.xykm = None
-        self.n_fields = 3
+        self.n_fields = 1
         self.tide_bc: Tuple[str, ...] = ("name1", "name2")
         self.tstag = 1.0
         self.discharges = [1.0, 2.0, 3.0]
@@ -61,6 +61,8 @@ class Test_AnalyserDflowfm():
         xykm_data.yni = numpy.array([0, 1, 2, 3, 4])
         xykm_data.sni = numpy.array([0, 1, 2, 3, 4])
         xykm_data.nni = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.dxi = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.dyi = numpy.array([0, 1, 2, 3, 4])
         return xykm_data
     
 
@@ -85,7 +87,7 @@ class Test_AnalyserDflowfm():
                 
         return dzgemi,dzmaxi,dzmini,dzbi
     
-    def assert_report_data(self, dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data):
+    def assert_report_data(self, dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str):
         assert report_data.rsigma == (0.1, 1.0, 0.2, 0.3)
         assert report_data.one_fm_filename == "file2.extension"
         assert report_data.xn is xn_yn_fnc[0]
@@ -95,16 +97,22 @@ class Test_AnalyserDflowfm():
         assert report_data.dzmaxi is dzmaxi
         assert report_data.dzmini is dzmini
         assert report_data.dzbi is dzbi
-        assert report_data.zmax_str == "maximum value of bed level change without dredging"
-        assert report_data.zmin_str == "minimum value of bed level change without dredging"
+        assert report_data.zmax_str == zmax_str
+        assert report_data.zmin_str == zmin_str
         assert report_data.xykm_data is xykm_data
         assert report_data.sedimentation_data is sedimentation_data
     
-    def test_analyser_early_return(self, tmp_path, setup):
-        display = False
-        needs_tide = False
-        old_zmin_zmax = False
-        
+    @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
+        (False, False, False),
+        (True, False, False),
+        (True, True, False),
+        (True, True, True),
+        (False, True, False),
+        (False, True, True),
+        (False, False, True),
+        (True, False, True),
+    ])
+    def test_analyser_early_return_when_filenames_missing(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):       
         outputdir = str(tmp_path)
         
         analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
@@ -113,12 +121,14 @@ class Test_AnalyserDflowfm():
         assert missing_data
         assert report_data == None
         
-        
-    def test_analyser_early_return_when_xykm_missing(self, tmp_path, setup):
-        display = True
-        needs_tide = True
-        old_zmin_zmax = False
-        
+    @pytest.mark.parametrize("display, old_zmin_zmax", [
+        (False, False),
+        (True,False),
+        (True,True),
+        (False, True),
+    ])
+    def test_analyser_early_return_when_xykm_missing(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):
+        needs_tide = True    
         outputdir = str(tmp_path)
         self._set_file_name_based_on_number()
         
@@ -126,16 +136,18 @@ class Test_AnalyserDflowfm():
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         
         with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_xynode_connect', return_value=xn_yn_fnc),\
-             patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data):
+             patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
+             patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
+             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])):
                  
             analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
             missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
             
             assert missing_data
             assert report_data == None        
-        
-    def test_analyse_without_xykm(self, tmp_path, setup):
-        display = False
+
+    @pytest.mark.parametrize("display", [True, False])
+    def test_analyse_without_xykm_and_with_old_zmin_zmax(self, tmp_path, display : bool, setup):
         needs_tide = False
         old_zmin_zmax = False
         
@@ -143,6 +155,8 @@ class Test_AnalyserDflowfm():
         self._set_file_name_based_on_discharge()
         
         dzgemi, dzmaxi, dzmini, dzbi = self._get_dz_mock_data()
+        zmax_str="maximum value of bed level change without dredging"
+        zmin_str = "minimum value of bed level change without dredging"
         xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
         
         xykm_data = self._get_mocked_xykm_data(self.xykm)
@@ -162,11 +176,53 @@ class Test_AnalyserDflowfm():
             
             assert missing_data == False
             
-            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data)
+            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
             assert main_computation.call_count == 1
             
-    def test_analyse_with_xykm(self, tmp_path, setup):
+    @pytest.mark.parametrize("display", [True, False])
+    def test_analyse_with_xykm_and_with_old_zmin_zmax(self, tmp_path, display : bool, setup):
+        needs_tide = False
+        old_zmin_zmax = True
+        
+        outputdir = str(tmp_path)
+        self._set_file_name_based_on_discharge()
+        
+        dzgemi, _, _, dzbi = self._get_dz_mock_data()
+        dzmaxi = dzbi[0]
+        zmax_str = "maximum bed level change after flood without dredging"
+        dzmini = dzbi[1]
+        zmin_str = "minimum bed level change after low flow without dredging"
+        xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
+        
+        xykm_data = self._get_mocked_xykm_data(self.xykm)
+        sedimentation_data = None
+        
+        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_xynode_connect', return_value=xn_yn_fnc),\
+             patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
+             patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
+             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])),\
+             patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
+             patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation:
+            
+            main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
+        
+            analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
+            missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
+            
+            assert missing_data == False
+            
+            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
+            assert dzq_from_du_and_h.call_count == 3
+            assert main_computation.call_count == 1
+    
+    @pytest.mark.parametrize("display, old_zmin_zmax", [
+        (False, False),
+        (True,False),
+        (True,True),
+        (False, True),
+    ])        
+    def test_analyse_with_xykm(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):
         display = True
         needs_tide = False
         old_zmin_zmax = False
@@ -175,6 +231,8 @@ class Test_AnalyserDflowfm():
         self._set_file_name_based_on_discharge()
         
         dzgemi, dzmaxi, dzmini, dzbi = self._get_dz_mock_data()
+        zmax_str="maximum value of bed level change without dredging"
+        zmin_str = "minimum value of bed level change without dredging"
         xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
         
         self.xykm = Mock(spec=LineString)
@@ -196,6 +254,6 @@ class Test_AnalyserDflowfm():
             
             assert missing_data == False
             
-            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data)
+            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
             assert main_computation.call_count == 1
