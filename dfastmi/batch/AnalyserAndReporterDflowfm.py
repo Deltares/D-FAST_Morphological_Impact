@@ -30,7 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.GridOperations import GridOperations
+from dfastmi.io.GridOperations import GridOperations, Location
 
 from dfastmi.batch import DetectAndPlot
 
@@ -597,7 +597,9 @@ def get_values_fm(
         wght_pos = numpy.zeros(dx.shape)
         wght_neg = numpy.zeros(dx.shape)
 
-    ref = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=0)
+    map_file1 = GridOperations(filenames[0])
+    map_file2 = GridOperations(filenames[1])
+    ref = map_file1.read_variable("sea_water_x_velocity", ifld=0)
     
     for ifld in range(n_fields):
         # if last time step is needed, pass None to allow for files without time specification
@@ -605,14 +607,14 @@ def get_values_fm(
             ifld = None
 
         # reference data
-        u0 = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)[iface]
-        v0 = GridOperations.read_fm_map(filenames[0], "sea_water_y_velocity", ifld=ifld)[iface]
+        u0 = map_file1.read_variable("sea_water_x_velocity", ifld=ifld)[iface]
+        v0 = map_file1.read_variable("sea_water_y_velocity", ifld=ifld)[iface]
         umag0 = numpy.sqrt(u0 ** 2 + v0 ** 2)
-        h0 = GridOperations.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
+        h0 = map_file1.read_variable("sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
 
         # data with measure
-        u1 = GridOperations.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)[iface]
-        v1 = GridOperations.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
+        u1 = map_file2.read_variable("sea_water_x_velocity", ifld=ifld)[iface]
+        v1 = map_file2.read_variable("sea_water_y_velocity", ifld=ifld)[iface]
         umag1 = numpy.sqrt(u1**2 + v1**2)
 
         dzq1 = dfastmi.kernel.core.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
@@ -843,9 +845,10 @@ def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndar
     return jbin, wthresh
     
 def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-    xn = GridOperations.read_fm_map(filename, "x", location="node")
-    yn = GridOperations.read_fm_map(filename, "y", location="node")
-    FNC = GridOperations.read_fm_map(filename, "face_node_connectivity")
+    map_file = GridOperations(filename)
+    xn = map_file.read_variable("x", location=Location.NODE)
+    yn = map_file.read_variable("y", location=Location.NODE)
+    FNC = map_file.read_variable("face_node_connectivity")
     if FNC.mask.shape == ():
         # all faces have the same number of nodes; empty mask
         FNC.mask = FNC<0

@@ -19,11 +19,11 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-class Test_read_fm_map():
+class Test_read_variable():
 
-    def test_read_fm_map_mock_2_2dmeshes_in_file_raises_exception(self):
+    def test_read_variable_mock_2_2dmeshes_in_file_raises_exception(self):
         """
-        Testing read_fm_map: raise exception when multiple meshes are in netCDF4 Dataset
+        Testing read_variable: raise exception when multiple meshes are in netCDF4 Dataset
         """
         filename = "mock_file_name.nc"
         varname = "mock_variable"
@@ -31,12 +31,13 @@ class Test_read_fm_map():
             netCDF4Dataset.return_value = netCDF4.Dataset
             netCDF4Dataset.get_variables_by_attributes.return_value = ['2dMesh_1', '2dMesh_2']
             with pytest.raises(Exception) as cm:
-                GridOperations.read_fm_map(filename, varname)
+                map_file = GridOperations(filename)
+                map_file.read_variable(varname)
             assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."
 
-    def test_read_fm_map_mock_2dmesh_unknown_varname_and_multi_attribute_raises_exception(self):
+    def test_read_variable_mock_2dmesh_unknown_varname_and_multi_attribute_raises_exception(self):
         """
-        Testing read_fm_map: raise exception when unknown (custom) variable is read from netcdf4 Dataset 
+        Testing read_variable: raise exception when unknown (custom) variable is read from netcdf4 Dataset 
         on attribute 'long_name' but 2 are returned after on attribute 'standard_name' return nothing
         """
         filename = "mock_file_name.nc"
@@ -51,12 +52,13 @@ class Test_read_fm_map():
                     [mock.MagicMock(name="aVariable", spec=netCDF4.Variable)]
                 ]]
             with pytest.raises(Exception) as cm:
-                GridOperations.read_fm_map(filename, varname)
+                map_file = GridOperations(filename)
+                map_file.read_variable(varname)
             assert str(cm.value) == 'Expected one variable for "naam", but obtained 2.'
 
-    def test_read_fm_map_mock_2dmesh_reading_var_without_unlimited_times_with_custom_offset_raises_exception(self):
+    def test_read_variable_mock_2dmesh_reading_var_without_unlimited_times_with_custom_offset_raises_exception(self):
         """
-        Testing read_fm_map: reading var without unlimited times (so time dimension is an integer) 
+        Testing read_variable: reading var without unlimited times (so time dimension is an integer) 
         with custom time offset raises exception. We see this variable not as a time depended variable 
         but independend. Time (slicing) cannot work if it is not an argument of the variable 
         """
@@ -70,12 +72,13 @@ class Test_read_fm_map():
             dim.isunlimited.return_value = False
             var.get_dims.return_value = [dim]
             with pytest.raises(Exception) as cm:
-                GridOperations.read_fm_map(filename, varname, ifld=8)
+                map_file = GridOperations(filename)
+                map_file.read_variable(varname, ifld=8)
             assert str(cm.value) == 'Trying to access time-independent variable "naam" with time offset -9.'
 
-    def test_read_fm_map_mock_2dmesh_get_double_var(self):
+    def test_read_variable_mock_2dmesh_get_double_var(self):
         """
-        Testing read_fm_map: reading a variable from netCDF4 dataset should return 
+        Testing read_variable: reading a variable from netCDF4 dataset should return 
         expected return value
         """
         filename = "mock_file_name.nc"
@@ -88,10 +91,11 @@ class Test_read_fm_map():
             dim = mock.MagicMock(name="aDimension", spec=netCDF4.Dimension)
             dim.isunlimited.return_value = True
             mock_variable.get_dims.return_value = [dim]
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
-    def test_read_fm_map_instantiate_dataset_in_memory_get_last_double_var(self):
+    def test_read_variable_instantiate_dataset_in_memory_get_last_double_var(self):
         with tempfile.NamedTemporaryFile(suffix='_map.nc') as temp_file:
             nc_file = netCDF4.Dataset(temp_file.name, mode='w', diskless=True)
 
@@ -115,10 +119,11 @@ class Test_read_fm_map():
 
             with mock.patch('netCDF4.Dataset') as mock_nc_dataset:
                 mock_nc_dataset.return_value = nc_file
-                data = GridOperations.read_fm_map(filename="mock.nc", varname='discharge')
+                map_file = GridOperations(map_file="mock.nc")
+                data = map_file.read_variable(varname="discharge")
                 assert numpy.array_equal(data, [214,588])
 
-    def test_read_fm_map_instantiate_dataset_in_memory_get_indexed_double_var(self):
+    def test_read_variable_instantiate_dataset_in_memory_get_indexed_double_var(self):
         with tempfile.NamedTemporaryFile(suffix='_map.nc') as temp_file:
             nc_file = netCDF4.Dataset(temp_file.name, mode='w', diskless=True)
 
@@ -142,12 +147,13 @@ class Test_read_fm_map():
 
             with mock.patch('netCDF4.Dataset') as mock_nc_dataset:
                 mock_nc_dataset.return_value = nc_file
-                data = GridOperations.read_fm_map(filename="mock.nc", varname='discharge', ifld=2)
+                map_file = GridOperations(map_file="mock.nc")
+                data = map_file.read_variable(varname="discharge", ifld=2)
                 assert numpy.array_equal(data, [27,76])
 
-    def test_read_fm_map_from_mocked_dataset_x_coordinates_of_faces_by_projection_x_coordinate(self):
+    def test_read_variable_from_mocked_dataset_x_coordinates_of_faces_by_projection_x_coordinate(self):
         """
-        Testing read_fm_map: x coordinates of the faces by projection_x_coordinate.
+        Testing read_variable: x coordinates of the faces by projection_x_coordinate.
         """
         filename = "mocked_file_name.nc"
         varname = "x"
@@ -162,12 +168,13 @@ class Test_read_fm_map():
             dim.isunlimited.return_value = True
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "projection_x_coordinate projection_y_coordinate"
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
-    def test_read_fm_map_from_mocked_dataset_x_coordinates_of_faces_by_longitude(self):
+    def test_read_variable_from_mocked_dataset_x_coordinates_of_faces_by_longitude(self):
         """
-        Testing read_fm_map: x coordinates of the faces by longitude.
+        Testing read_variable: x coordinates of the faces by longitude.
         """
         filename = "mocked_file_name.nc"
         varname = "x"
@@ -182,12 +189,13 @@ class Test_read_fm_map():
             dim.isunlimited.return_value = True
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "longitude latitude"
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
-    def test_read_fm_map_from_mocked_dataset_y_coordinates_of_faces_by_projection_y_coordinate(self):
+    def test_read_variable_from_mocked_dataset_y_coordinates_of_faces_by_projection_y_coordinate(self):
         """
-        Testing read_fm_map: y coordinates of the faces by projection_y_coordinate.
+        Testing read_variable: y coordinates of the faces by projection_y_coordinate.
         """
         filename = "mocked_file_name.nc"
         varname = "y"
@@ -202,12 +210,13 @@ class Test_read_fm_map():
             dim.isunlimited.return_value = True
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "projection_x_coordinate projection_y_coordinate"
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
-    def test_read_fm_map_from_mocked_dataset_y_coordinates_of_faces_by_latitude(self):
+    def test_read_variable_from_mocked_dataset_y_coordinates_of_faces_by_latitude(self):
         """
-        Testing read_fm_map: y coordinates of the faces by latitude.
+        Testing read_variable: y coordinates of the faces by latitude.
         """
         filename = "mocked_file_name.nc"
         varname = "y"
@@ -222,12 +231,13 @@ class Test_read_fm_map():
             dim.isunlimited.return_value = True
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "longitude latitude"
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
-    def test_read_fm_map_from_mocked_dataset_mesh_connectivity_variable(self):
+    def test_read_variable_from_mocked_dataset_mesh_connectivity_variable(self):
         """
-        Testing read_fm_map: dataset mesh connectivity variable
+        Testing read_variable: dataset mesh connectivity variable
         """
         filename = "mocked_file_name.nc"
         varname = "face_node_connectivity"
@@ -243,12 +253,13 @@ class Test_read_fm_map():
             mock_variable.get_dims.return_value = [dim]
             mock_variable.__getitem__.return_value = numpy.ma.masked_array(data=[801,802])
             netCDF4Dataset.variables = {'aVar':mock_variable}
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
-    def test_read_fm_map_from_mocked_dataset_mesh_connectivity_variable_with_start_index_of_1(self):
+    def test_read_variable_from_mocked_dataset_mesh_connectivity_variable_with_start_index_of_1(self):
         """
-        Testing read_fm_map: dataset mesh connectivity variable with start index of 1
+        Testing read_variable: dataset mesh connectivity variable with start index of 1
         """
         filename = "mocked_file_name.nc"
         varname = "face_node_connectivity"
@@ -266,7 +277,8 @@ class Test_read_fm_map():
             mock_variable.getncattr.return_value = 1
             mock_variable.__getitem__.return_value = numpy.ma.masked_array(data=[801,802])
             netCDF4Dataset.variables = {'aVar':mock_variable}
-            data = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            data = map_file.read_variable(varname)
             assert numpy.array_equal(data, numpy.array([800,801]))
 
 

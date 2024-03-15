@@ -19,76 +19,83 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class Test_data_access_read_fm_map():
-    def test_read_fm_map_from_example_file_x_coordinates_of_faces(self):
+class Test_data_access_read_variable():
+    def test_read_variable_from_example_file_x_coordinates_of_faces(self):
         """
-        Testing read_fm_map: x coordinates of the faces.
+        Testing read_variable: x coordinates of the faces.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "x"
-        datac = GridOperations.read_fm_map(filename, varname)
+        map_file = GridOperations(filename)
+        datac = map_file.read_variable(varname)
         dataref = 41.24417604888325
         assert datac[1] == dataref
 
-    def test_read_fm_map_02(self):
+    def test_read_variable_02(self):
         """
-        Testing read_fm_map: y coordinates of the edges.
+        Testing read_variable: y coordinates of the edges.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "y"
         location = "edge"
-        datac = GridOperations.read_fm_map(filename, varname, location)
+        map_file = GridOperations(filename)
+        datac = map_file.read_variable(varname, location)
         dataref = 7059.853000358055
         assert datac[1] == dataref
 
-    def test_read_fm_map_03(self):
+    def test_read_variable_03(self):
         """
-        Testing read_fm_map: face node connectivity.
+        Testing read_variable: face node connectivity.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "face_node_connectivity"
-        datac = GridOperations.read_fm_map(filename, varname)
+        map_file = GridOperations(filename)
+        datac = map_file.read_variable(varname)
         dataref = 2352
         assert datac[-1][1] == dataref
 
-    def test_read_fm_map_04(self):
+    def test_read_variable_04(self):
         """
-        Testing read_fm_map: variable by standard name.
+        Testing read_variable: variable by standard name.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "sea_floor_depth_below_sea_surface"
-        datac = GridOperations.read_fm_map(filename, varname)
+        map_file = GridOperations(filename)
+        datac = map_file.read_variable(varname)
         dataref = 3.894498393076889
         assert datac[1] == dataref
 
-    def test_read_fm_map_05(self):
+    def test_read_variable_05(self):
         """
-        Testing read_fm_map: variable by long name.
+        Testing read_variable: variable by long name.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "Water level"
-        datac = GridOperations.read_fm_map(filename, varname)
+        map_file = GridOperations(filename)
+        datac = map_file.read_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
 
-    def test_read_fm_map_06(self):
+    def test_read_variable_06(self):
         """
-        Testing read_fm_map: variable by long name.
+        Testing read_variable: variable by long name.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            datac = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            datac = map_file.read_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
-    def test_read_fm_map_07(self):
+    def test_read_variable_07(self):
         """
-        Testing read_fm_map: multiple mesh2dids.
+        Testing read_variable: multiple mesh2dids.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            datac = GridOperations.read_fm_map(filename, varname)
+            map_file = GridOperations(filename)
+            datac = map_file.read_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
 
@@ -149,7 +156,8 @@ class Test_ugrid_add():
         #        
         GridOperations.ugrid_add(self.dst_filename, varname, ldata, meshname, facedim, long_name)
         #
-        datac = GridOperations.read_fm_map(self.dst_filename, long_name)
+        map_file = GridOperations(self.dst_filename)
+        datac = map_file.read_variable(long_name)
         assert datac[1] == ldata[1]
 
     def test_ugrid_add_02(self, setup_data):
@@ -229,7 +237,8 @@ class Test_copy_var():
         dst.close()
         #                
         varname = "sea_surface_height"
-        datac = GridOperations.read_fm_map(self.dst_filename, varname)
+        map_file = GridOperations(self.dst_filename)
+        datac = map_file.read_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
 
@@ -262,7 +271,8 @@ class Test_copy_ugrid():
         GridOperations.copy_ugrid(src_filename, meshname, self.dst_filename)
         #
         varname = "face_node_connectivity"
-        datac = GridOperations.read_fm_map(self.dst_filename, varname)
+        map_file = GridOperations(self.dst_filename)
+        datac = map_file.read_variable(varname)
         dataref = 2352
         assert datac[-1][1] == dataref
 

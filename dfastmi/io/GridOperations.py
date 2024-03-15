@@ -26,30 +26,50 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+from enum import Enum
+from pathlib import Path
 from typing import Optional, Tuple
 import os
 import numpy
 import netCDF4 as nc
 
+class Location(str, Enum):
+    """Class defining the various locations of a grid on which data can be defined."""
+    
+    FACE = "face"
+    """Data is defined on the grid's cell faces."""
+    
+    EDGE = "edge"
+    """Data is defined on the grid's cell edges."""
+    
+    NODE = "node"
+    """Data is defined on the grid's cell nodes."""
+    
 class GridOperations:
-    @staticmethod
-    def read_fm_map(
-        filename: str,
-        varname: str,
-        location: str = "face",
-        ifld: Optional[int] = None,
+    def __init__(self, map_file: Path):
+        """Initializes a new instance of the 'GridOperations' class for the provided map file.
+
+        Arguments
+        ---------
+            map_file : Path
+                The path to the map file.
+        """
+        self._map_file = map_file
+    
+    def read_variable(self, 
+                      varname: str, 
+                      location: Location = Location.FACE,
+                      ifld: Optional[int] = None,
     ) -> numpy.ndarray:
         """
         Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
 
         Arguments
         ---------
-        filename : str
-            Name of the D-Flow FM map.nc file to read the data.
         varname : str
             Name of the netCDF variable to be read.
-        location : str
-            Name of the stagger location at which the data should be located
+        location : Location
+            The stagger location at which the data should be located
             (default is "face")
         ifld : Optional[int]
             Time step offset index from the last time step written.
@@ -67,7 +87,7 @@ class GridOperations:
             time dependent).
         """
         # open file
-        rootgrp = nc.Dataset(filename)
+        rootgrp = nc.Dataset(self._map_file)
 
         # locate 2d mesh variable
         mesh2d = rootgrp.get_variables_by_attributes(
