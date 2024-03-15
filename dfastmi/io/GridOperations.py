@@ -196,6 +196,21 @@ class GridOperations:
         _, face_dimension_name = self._get_mesh_and_facedim_names()
         return face_dimension_name
     
+    @staticmethod
+    def _get_mesh2d_variable(dataset: nc.Dataset) -> nc.Variable:
+        # locate 2d mesh variable
+        mesh2d = dataset.get_variables_by_attributes(
+            cf_role="mesh_topology", topology_dimension=2
+        )
+        if len(mesh2d) != 1:
+            raise Exception(
+                "Currently only one 2D mesh supported ... this file contains {} 2D meshes.".format(
+                    len(mesh2d)
+                )
+            )
+        
+        return mesh2d[0]
+    
     def _get_mesh_and_facedim_names(self) -> Tuple[str, str]:
         """
         Obtain the names of 2D mesh and face dimension from netCDF UGRID file.
@@ -214,24 +229,14 @@ class GridOperations:
         # open file
         rootgrp = nc.Dataset(self._map_file)
 
-        # locate 2d mesh variable
-        mesh2d = rootgrp.get_variables_by_attributes(
-            cf_role="mesh_topology", topology_dimension=2
-        )
-        if len(mesh2d) != 1:
-            raise Exception(
-                "Currently only one 2D mesh supported ... this file contains {} 2D meshes.".format(
-                    len(mesh2d)
-                )
-            )
-
+        mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
         #
-        facenodeconnect_varname = mesh2d[0].face_node_connectivity
+        facenodeconnect_varname = mesh2d.face_node_connectivity
         fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
 
         # default
         facedim = fnc.dimensions[0]
-        mesh2d_name = mesh2d[0].name
+        mesh2d_name = mesh2d.name
 
         rootgrp.close()        
         return mesh2d_name, facedim
