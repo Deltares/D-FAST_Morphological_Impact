@@ -55,6 +55,8 @@ class GridOperations:
                 The path to the map file.
         """
         self._map_file = map_file
+        self._mesh2d_name = None
+        self._face_dimension_name = None
     
     def read_variable(self, 
                       varname: str, 
@@ -181,12 +183,13 @@ class GridOperations:
         str
             String containing the name of the mesh2d variable.
         """
-        rootgrp = nc.Dataset(self._map_file)
-        mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
-        mesh2d_name = mesh2d.name
-        rootgrp.close()       
+        if not self._mesh2d_name:
+            rootgrp = nc.Dataset(self._map_file)
+            mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+            self._mesh2d_name = mesh2d.name
+            rootgrp.close()     
  
-        return mesh2d_name
+        return self._mesh2d_name
 
     @property
     def face_dimension_name(self) -> str:
@@ -197,14 +200,15 @@ class GridOperations:
         str
             String containing the name of the face dimension.
         """
-        rootgrp = nc.Dataset(self._map_file)
-        mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
-        facenodeconnect_varname = mesh2d.face_node_connectivity
-        fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
-        face_dimension_name = fnc.dimensions[0]
-        rootgrp.close()    
+        if not self._face_dimension_name:
+            rootgrp = nc.Dataset(self._map_file)
+            mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+            facenodeconnect_varname = mesh2d.face_node_connectivity
+            fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
+            self._face_dimension_name = fnc.dimensions[0]
+            rootgrp.close()    
             
-        return face_dimension_name
+        return self._face_dimension_name
     
     @staticmethod
     def _get_mesh2d_variable(dataset: nc.Dataset) -> nc.Variable:
@@ -277,11 +281,10 @@ class GridOperations:
         dst = nc.Dataset(dstname, "w", format="NETCDF4")
 
         # locate source mesh
-        meshname = self.mesh2d_name
-        mesh = src.variables[meshname]
+        mesh = src.variables[self.mesh2d_name]
 
         # copy mesh variable
-        GridOperations._copy_var(src, meshname, dst)
+        GridOperations._copy_var(src, self.mesh2d_name, dst)
         atts = [
             "face_node_connectivity",
             "edge_node_connectivity",
