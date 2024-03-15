@@ -213,7 +213,7 @@ class GridOperations:
         return mesh2d_name, facedim
 
     @staticmethod
-    def copy_var(src: nc.Dataset, varname: str, dst: nc.Dataset) -> None:
+    def _copy_var(src: nc.Dataset, varname: str, dst: nc.Dataset) -> None:
         """
         Copy a single variable from one netCDF file to another.
 
@@ -272,7 +272,7 @@ class GridOperations:
         mesh = src.variables[meshname]
 
         # copy mesh variable
-        GridOperations.copy_var(src, meshname, dst)
+        GridOperations._copy_var(src, meshname, dst)
         atts = [
             "face_node_connectivity",
             "edge_node_connectivity",
@@ -287,7 +287,7 @@ class GridOperations:
             except:
                 varlist = []
             for varname in varlist:
-                GridOperations.copy_var(src, varname, dst)
+                GridOperations._copy_var(src, varname, dst)
 
                 # check if variable has bounds attribute, if so copy those as well
                 var = src.variables[varname]
@@ -298,7 +298,7 @@ class GridOperations:
                     except:
                         varlist2 = []
                     for varname2 in varlist2:
-                        GridOperations.copy_var(src, varname2, dst)
+                        GridOperations._copy_var(src, varname2, dst)
 
         # close files
         src.close()

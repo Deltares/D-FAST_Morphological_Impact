@@ -233,7 +233,7 @@ class Test_copy_var():
         
         src = netCDF4.Dataset(src_filename)
         dst = netCDF4.Dataset(self.dst_filename, "a")
-        GridOperations.copy_var(src, "mesh2d_s1", dst)
+        GridOperations._copy_var(src, "mesh2d_s1", dst)
         src.close()
         dst.close()
         #                
