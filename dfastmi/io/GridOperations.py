@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from typing import Optional, Tuple
 import os
 import numpy
-import netCDF4
+import netCDF4 as nc
 
 class GridOperations:
     @staticmethod
@@ -67,7 +67,7 @@ class GridOperations:
             time dependent).
         """
         # open file
-        rootgrp = netCDF4.Dataset(filename)
+        rootgrp = nc.Dataset(filename)
 
         # locate 2d mesh variable
         mesh2d = rootgrp.get_variables_by_attributes(
@@ -174,7 +174,7 @@ class GridOperations:
             Name of the face dimension of that 2D mesh
         """
         # open file
-        rootgrp = netCDF4.Dataset(filename)
+        rootgrp = nc.Dataset(filename)
 
         # locate 2d mesh variable
         mesh2d = rootgrp.get_variables_by_attributes(
@@ -199,7 +199,7 @@ class GridOperations:
         return mesh2d_name, facedim
 
     @staticmethod
-    def copy_var(src: netCDF4.Dataset, varname: str, dst: netCDF4.Dataset) -> None:
+    def copy_var(src: nc.Dataset, varname: str, dst: nc.Dataset) -> None:
         """
         Copy a single variable from one netCDF file to another.
 
@@ -252,10 +252,10 @@ class GridOperations:
             file.
         """
         # open source and destination files
-        src = netCDF4.Dataset(srcname)
+        src = nc.Dataset(srcname)
         if os.path.exists(dstname):
             os.remove(dstname)
-        dst = netCDF4.Dataset(dstname, "w", format="NETCDF4")
+        dst = nc.Dataset(dstname, "w", format="NETCDF4")
 
         # locate source mesh
         mesh = src.variables[meshname]
@@ -325,7 +325,7 @@ class GridOperations:
             String indicating the unit ("None" if no unit attribute should be written).
         """
         # open destination file
-        dst = netCDF4.Dataset(dstfile, "a")
+        dst = nc.Dataset(dstfile, "a")
 
         # check if face dimension exists
         dim = dst.dimensions[facedim]
