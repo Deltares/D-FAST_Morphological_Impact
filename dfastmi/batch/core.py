@@ -438,7 +438,7 @@ def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
     except InvalidVersion as exception:
         raise LookupError(f"Wrong version detected in configuration file, when parsing the value got this : {exception}")
 
-    if Version(cfg_version) != rivers.version:
+    if cfg_version != rivers.version:
         raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
     
     return cfg_version
