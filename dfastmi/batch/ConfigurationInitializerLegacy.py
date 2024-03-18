@@ -41,7 +41,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
     Determine discharges, times, etc. for version 1 analysis
     """
 
-    def init(
+    def __init__(
         self,
         reach: ReachLegacy,
         config: ConfigParser
@@ -61,6 +61,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         None
         """
         
+        super().__init__(reach, config)
         celerity_hg = reach.proprate_high
         celerity_lw = reach.proprate_low
         self._q_threshold = self._get_q_threshold_from_config(config)
@@ -68,6 +69,8 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self._set_discharges(reach, config, celerity_hg, celerity_lw)
         self._time_mi = tuple(0 if self.discharges[i] is None or self.discharges[i]<= reach.qstagnant else self.time_fractions_of_the_year[i] for i in range(len(self.time_fractions_of_the_year)))
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
+        self._set_slenght()
+        
 
     def _set_discharges(
         self,

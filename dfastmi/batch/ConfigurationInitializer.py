@@ -35,7 +35,7 @@ import numpy
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.Reach import Reach
 
-from dfastmi.kernel.core import get_celerity, relax_factors
+from dfastmi.kernel.core import relax_factors
 from dfastmi.kernel.typehints import Vector
 
 
@@ -43,7 +43,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
     """
     Determine discharges, times, etc. for version 2 analysis
     """
-    def init(
+    def __init__(
         self,
         reach: Reach,
         config: ConfigParser
@@ -62,6 +62,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         ------
         None
         """
+        super().__init__(reach, config)
 
         self._set_q_threshold(config, reach.qstagnant)
         self._discharges = reach.hydro_q
@@ -78,6 +79,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         self._needs_tide = reach.use_tide
         if self.needs_tide:
             self._tide_bc = reach.tide_boundary_condition
+        self._set_slenght()
 
     def _get_tide(self, reach: Reach, config: ConfigParser) -> int:
         """
@@ -131,7 +133,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         celerity = ()
         if reach.celer_object :
             celerity = reach.celer_object.get_celerity(discharges)
-            
+
             # set the celerity equal to 0 for discharges less or equal to qstagnant
             celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.qstagnant] for i in range(len(discharges)))
             

@@ -26,7 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from abc import ABC, abstractmethod
+from abc import ABC
 from configparser import ConfigParser
 from typing import Tuple
 from dfastmi.io.IReach import IReach
@@ -57,9 +57,7 @@ class AConfigurationInitializerBase(ABC):
         self._n_fields : int = 1
         self._slength : float = 0.0
         self._needs_tide : bool = False
-        self._set_ucrit(reach, config)
-        self.init(reach, config)
-        self._set_slenght()
+        self._set_ucrit(reach, config)        
 
     @property
     def discharges(self) -> Vector:
@@ -126,14 +124,6 @@ class AConfigurationInitializerBase(ABC):
         """An int stating the number of fields."""
         return self._n_fields
     
-    @abstractmethod
-    def init(self,
-        reach: IReach,
-        config: ConfigParser) -> None:
-        """
-        Will initialize the config for this reach
-        """
-
     def _set_ucrit(self, reach : IReach, config: ConfigParser) -> None:
         """
         Set critical flow velocity [m/s] based on dfast mi configuration 
