@@ -20,40 +20,6 @@ def captured_output():
 
 
 class Test_data_access_read_variable():
-    def test_read_variable_from_example_file_x_coordinates_of_faces(self):
-        """
-        Testing read_variable: x coordinates of the faces.
-        """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        varname = "x"
-        map_file = GridOperations(filename)
-        datac = map_file.read_variable(varname)
-        dataref = 41.24417604888325
-        assert datac[1] == dataref
-
-    def test_read_variable_02(self):
-        """
-        Testing read_variable: y coordinates of the edges.
-        """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        varname = "y"
-        location = "edge"
-        map_file = GridOperations(filename)
-        datac = map_file.read_variable(varname, location)
-        dataref = 7059.853000358055
-        assert datac[1] == dataref
-
-    def test_read_variable_03(self):
-        """
-        Testing read_variable: face node connectivity.
-        """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        varname = "face_node_connectivity"
-        map_file = GridOperations(filename)
-        datac = map_file.read_variable(varname)
-        dataref = 2352
-        assert datac[-1][1] == dataref
-
     def test_read_variable_04(self):
         """
         Testing read_variable: variable by standard name.
@@ -110,8 +76,6 @@ class TestReadGridGeometryFromMapFile():
         assert node_x_coordinates[1181] == pytest.approx(6750)
         assert node_x_coordinates[2362] == pytest.approx(0.0)
         
-        numpy.array_equal(node_x_coordinates, map_file.read_variable("x", "node"))
-        
     def test_get_node_y_coordinates(self):
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         map_file = GridOperations(filename)
@@ -122,8 +86,6 @@ class TestReadGridGeometryFromMapFile():
         assert node_y_coordinates[0] == pytest.approx(7000)
         assert node_y_coordinates[1181] == pytest.approx(7200.542889)
         assert node_y_coordinates[2362] == pytest.approx(7500)
-        
-        numpy.array_equal(node_y_coordinates, map_file.read_variable("y", "node"))
      
     def test_get_face_node_connectivity(self):
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
@@ -135,9 +97,7 @@ class TestReadGridGeometryFromMapFile():
         assert numpy.array_equal(face_node_connectivity[0], [2361, 0, 1])
         assert numpy.array_equal(face_node_connectivity[2066], [1137, 1147, 1136])
         assert numpy.array_equal(face_node_connectivity[4131], [2348, 2352, 2350])
-        
-        numpy.array_equal(face_node_connectivity, map_file.read_variable("face_node_connectivity"))
-        
+          
 
 class Test_data_access_get_mesh_and_facedim_names():
     def test_get_mesh2d_name(self):
@@ -320,9 +280,8 @@ class Test_copy_ugrid():
         map_file = GridOperations(src_filename)
         map_file.copy_ugrid(self.dst_filename)
         #
-        varname = "face_node_connectivity"
         map_file = GridOperations(self.dst_filename)
-        datac = map_file.read_variable(varname)
+        datac = map_file.face_node_connectivity
         dataref = 2352
         assert datac[-1][1] == dataref
 

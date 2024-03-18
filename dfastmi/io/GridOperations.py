@@ -70,11 +70,9 @@ class GridOperations:
         """
         # open file
         rootgrp = nc.Dataset(self._map_file)
-        location = "node"
-
         mesh2d = self._get_mesh2d_variable(rootgrp)
 
-        crdnames = mesh2d.getncattr(location + "_coordinates").split()
+        crdnames = mesh2d.getncattr("node_coordinates").split()
         for n in crdnames:
             stdname = rootgrp.variables[n].standard_name
             if stdname == "projection_x_coordinate" or stdname == "longitude":
@@ -96,11 +94,9 @@ class GridOperations:
         """
         # open file
         rootgrp = nc.Dataset(self._map_file)
-        location = "node"
-
         mesh2d = self._get_mesh2d_variable(rootgrp)
 
-        crdnames = mesh2d.getncattr(location + "_coordinates").split()
+        crdnames = mesh2d.getncattr("node_coordinates").split()
         for n in crdnames:
             stdname = rootgrp.variables[n].standard_name
             if stdname == "projection_y_coordinate" or stdname == "latitude":
@@ -123,29 +119,16 @@ class GridOperations:
             where each True value indicates a fill value.
         """
         rootgrp = nc.Dataset(self._map_file)
-
-        # locate 2d mesh variable
         mesh2d = self._get_mesh2d_variable(rootgrp)
-        meshname = mesh2d.name
 
-        # define a default start_index
         start_index = 0
-
-       
-
-
-        # a mesh connectivity variable with corrected index
         varname = mesh2d.getncattr("face_node_connectivity")
         var = rootgrp.variables[varname]
         if "start_index" in var.ncattrs():
             start_index = var.getncattr("start_index")
 
         data = var[...] - start_index
-
-        # close file
         rootgrp.close()
-
-        # return data
         return data
     
     def read_variable(self, 
@@ -185,54 +168,22 @@ class GridOperations:
         mesh2d = self._get_mesh2d_variable(rootgrp)
         meshname = mesh2d.name
 
-        # define a default start_index
-        start_index = 0
-
-        # locate the requested variable ... start with some special cases
-        if varname == "x":
-            # the x-coordinate or longitude
-            crdnames = mesh2d.getncattr(location + "_coordinates").split()
-            for n in crdnames:
-                stdname = rootgrp.variables[n].standard_name
-                if stdname == "projection_x_coordinate" or stdname == "longitude":
-                    var = rootgrp.variables[n]
-                    break
-
-        elif varname == "y":
-            # the y-coordinate or latitude
-            crdnames = mesh2d.getncattr(location + "_coordinates").split()
-            for n in crdnames:
-                stdname = rootgrp.variables[n].standard_name
-                if stdname == "projection_y_coordinate" or stdname == "latitude":
-                    var = rootgrp.variables[n]
-                    break
-
-        elif varname[-12:] == "connectivity":
-            # a mesh connectivity variable with corrected index
-            varname = mesh2d.getncattr(varname)
-            var = rootgrp.variables[varname]
-            if "start_index" in var.ncattrs():
-                start_index = var.getncattr("start_index")
-
-        else:
-            # find any other variable by standard_name or long_name
+        # find any other variable by standard_name or long_name
+        var = rootgrp.get_variables_by_attributes(
+            standard_name=varname, mesh=meshname, location=location
+        )
+        if len(var) == 0:
             var = rootgrp.get_variables_by_attributes(
-                standard_name=varname, mesh=meshname, location=location
+                long_name=varname, mesh=meshname, location=location
             )
-            if len(var) == 0:
-                var = rootgrp.get_variables_by_attributes(
-                    long_name=varname, mesh=meshname, location=location
+        if len(var) != 1:
+            raise Exception(
+                'Expected one variable for "{}", but obtained {}.'.format(
+                    varname, len(var)
                 )
-            if len(var) != 1:
-                raise Exception(
-                    'Expected one variable for "{}", but obtained {}.'.format(
-                        varname, len(var)
-                    )
-                )
-            var = var[0]
+            )
+        var = var[0]
 
-        # read data checking for time dimension
-        dims = var.dimensions
         if var.get_dims()[0].isunlimited():
             # assume that time dimension is unlimited and is the first dimension
             # slice to obtain last time step or earlier as requested
@@ -248,7 +199,7 @@ class GridOperations:
                     )
                 )
 
-            data = var[...] - start_index
+            data = var[...]
 
         # close file
         rootgrp.close()

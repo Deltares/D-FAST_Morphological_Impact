@@ -156,7 +156,6 @@ class Test_read_variable():
         Testing read_variable: x coordinates of the faces by projection_x_coordinate.
         """
         filename = "mocked_file_name.nc"
-        varname = "x"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
             netCDF4Dataset.return_value = netCDF4.Dataset
             mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
@@ -169,7 +168,7 @@ class Test_read_variable():
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "projection_x_coordinate projection_y_coordinate"
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.node_x_coordinates
             assert numpy.array_equal(data, numpy.array([801,802]))
 
     def test_read_variable_from_mocked_dataset_x_coordinates_of_faces_by_longitude(self):
@@ -177,7 +176,6 @@ class Test_read_variable():
         Testing read_variable: x coordinates of the faces by longitude.
         """
         filename = "mocked_file_name.nc"
-        varname = "x"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
             netCDF4Dataset.return_value = netCDF4.Dataset
             mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
@@ -190,7 +188,7 @@ class Test_read_variable():
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "longitude latitude"
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.node_x_coordinates
             assert numpy.array_equal(data, numpy.array([801,802]))
 
     def test_read_variable_from_mocked_dataset_y_coordinates_of_faces_by_projection_y_coordinate(self):
@@ -198,7 +196,6 @@ class Test_read_variable():
         Testing read_variable: y coordinates of the faces by projection_y_coordinate.
         """
         filename = "mocked_file_name.nc"
-        varname = "y"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
             netCDF4Dataset.return_value = netCDF4.Dataset
             mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
@@ -211,7 +208,7 @@ class Test_read_variable():
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "projection_x_coordinate projection_y_coordinate"
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.node_y_coordinates
             assert numpy.array_equal(data, numpy.array([801,802]))
 
     def test_read_variable_from_mocked_dataset_y_coordinates_of_faces_by_latitude(self):
@@ -219,7 +216,6 @@ class Test_read_variable():
         Testing read_variable: y coordinates of the faces by latitude.
         """
         filename = "mocked_file_name.nc"
-        varname = "y"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
             netCDF4Dataset.return_value = netCDF4.Dataset
             mock_variable = mock.MagicMock(name="aVariable", spec=netCDF4.Variable)
@@ -232,7 +228,7 @@ class Test_read_variable():
             mock_variable.get_dims.return_value = [dim]
             mock_variable.getncattr.return_value = "longitude latitude"
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.node_y_coordinates
             assert numpy.array_equal(data, numpy.array([801,802]))
 
     def test_read_variable_from_mocked_dataset_mesh_connectivity_variable(self):
@@ -240,7 +236,6 @@ class Test_read_variable():
         Testing read_variable: dataset mesh connectivity variable
         """
         filename = "mocked_file_name.nc"
-        varname = "face_node_connectivity"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
             netCDF4Dataset.return_value = netCDF4.Dataset
             mock_mesh = mock.MagicMock(name="mesh2d", spec=netCDF4.Variable)
@@ -254,7 +249,7 @@ class Test_read_variable():
             mock_variable.__getitem__.return_value = numpy.ma.masked_array(data=[801,802])
             netCDF4Dataset.variables = {'aVar':mock_variable}
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.face_node_connectivity
             assert numpy.array_equal(data, numpy.array([801,802]))
 
     def test_read_variable_from_mocked_dataset_mesh_connectivity_variable_with_start_index_of_1(self):
@@ -262,7 +257,6 @@ class Test_read_variable():
         Testing read_variable: dataset mesh connectivity variable with start index of 1
         """
         filename = "mocked_file_name.nc"
-        varname = "face_node_connectivity"
         with mock.patch('netCDF4.Dataset') as netCDF4Dataset:
             netCDF4Dataset.return_value = netCDF4.Dataset
             mock_mesh = mock.MagicMock(name="mesh2d", spec=netCDF4.Variable)
@@ -278,7 +272,7 @@ class Test_read_variable():
             mock_variable.__getitem__.return_value = numpy.ma.masked_array(data=[801,802])
             netCDF4Dataset.variables = {'aVar':mock_variable}
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.face_node_connectivity
             assert numpy.array_equal(data, numpy.array([800,801]))
 
 
