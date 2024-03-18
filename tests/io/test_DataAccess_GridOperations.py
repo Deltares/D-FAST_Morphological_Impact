@@ -98,6 +98,46 @@ class Test_data_access_read_variable():
             datac = map_file.read_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
+class TestReadGridGeometryFromMapFile():
+    def test_get_node_x_coordinates(self):
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        map_file = GridOperations(filename)
+        
+        node_x_coordinates = map_file.node_x_coordinates
+        
+        assert node_x_coordinates.shape == (2363,)
+        assert node_x_coordinates[0] == pytest.approx(62.5)
+        assert node_x_coordinates[1181] == pytest.approx(6750)
+        assert node_x_coordinates[2362] == pytest.approx(0.0)
+        
+        numpy.array_equal(node_x_coordinates, map_file.read_variable("x", "node"))
+        
+    def test_get_node_y_coordinates(self):
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        map_file = GridOperations(filename)
+
+        node_y_coordinates = map_file.node_y_coordinates
+        
+        assert node_y_coordinates.shape == (2363,)
+        assert node_y_coordinates[0] == pytest.approx(7000)
+        assert node_y_coordinates[1181] == pytest.approx(7200.542889)
+        assert node_y_coordinates[2362] == pytest.approx(7500)
+        
+        numpy.array_equal(node_y_coordinates, map_file.read_variable("y", "node"))
+     
+    def test_get_face_node_connectivity(self):
+        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+        map_file = GridOperations(filename)
+
+        face_node_connectivity = map_file.face_node_connectivity
+        
+        assert face_node_connectivity.shape == (4132, 3)
+        assert numpy.array_equal(face_node_connectivity[0], [2361, 0, 1])
+        assert numpy.array_equal(face_node_connectivity[2066], [1137, 1147, 1136])
+        assert numpy.array_equal(face_node_connectivity[4131], [2348, 2352, 2350])
+        
+        numpy.array_equal(face_node_connectivity, map_file.read_variable("face_node_connectivity"))
+        
 
 class Test_data_access_get_mesh_and_facedim_names():
     def test_get_mesh2d_name(self):

@@ -841,9 +841,9 @@ def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndar
     
 def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     map_file = GridOperations(filename)
-    xn = map_file.read_variable("x", location=Location.NODE)
-    yn = map_file.read_variable("y", location=Location.NODE)
-    FNC = map_file.read_variable("face_node_connectivity")
+    xn = map_file.node_x_coordinates
+    yn = map_file.node_y_coordinates
+    FNC = map_file.face_node_connectivity
     if FNC.mask.shape == ():
         # all faces have the same number of nodes; empty mask
         FNC.mask = FNC<0

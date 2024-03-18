@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Optional
 import os
 import numpy
+import numpy.ma as ma
 import netCDF4 as nc
 
 class Location(str, Enum):
@@ -57,6 +58,95 @@ class GridOperations:
         self._map_file = map_file
         self._mesh2d_name = None
         self._face_dimension_name = None
+    
+    @property
+    def node_x_coordinates(self) -> numpy.ndarray:
+        """Get the x-coordinates of the nodes.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array with shape (N,) where N is the number of nodes.
+        """
+        # open file
+        rootgrp = nc.Dataset(self._map_file)
+        location = "node"
+
+        mesh2d = self._get_mesh2d_variable(rootgrp)
+
+        crdnames = mesh2d.getncattr(location + "_coordinates").split()
+        for n in crdnames:
+            stdname = rootgrp.variables[n].standard_name
+            if stdname == "projection_x_coordinate" or stdname == "longitude":
+                var = rootgrp.variables[n]
+                break
+
+        data = var[...]
+        rootgrp.close()
+        return data
+    
+    @property
+    def node_y_coordinates(self) -> numpy.ndarray:
+        """Get the y-coordinates of the nodes.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array with shape (N,) where N is the number of nodes.
+        """
+        # open file
+        rootgrp = nc.Dataset(self._map_file)
+        location = "node"
+
+        mesh2d = self._get_mesh2d_variable(rootgrp)
+
+        crdnames = mesh2d.getncattr(location + "_coordinates").split()
+        for n in crdnames:
+            stdname = rootgrp.variables[n].standard_name
+            if stdname == "projection_y_coordinate" or stdname == "latitude":
+                var = rootgrp.variables[n]
+                break
+
+        data = var[...]
+        rootgrp.close()
+        return data
+
+    @property
+    def face_node_connectivity(self)-> ma.masked_array:
+        """Get the face-node connectivity from the 2d mesh.
+
+        Returns
+        -------
+        ma.masked_array
+            Array with shape (N,M) where N is the number of faces and M the maximum number of nodes per face.
+            If not all the faces have the same number of nodes, a boolean mask is provided with shape (N,M) 
+            where each True value indicates a fill value.
+        """
+        rootgrp = nc.Dataset(self._map_file)
+
+        # locate 2d mesh variable
+        mesh2d = self._get_mesh2d_variable(rootgrp)
+        meshname = mesh2d.name
+
+        # define a default start_index
+        start_index = 0
+
+       
+
+
+        # a mesh connectivity variable with corrected index
+        varname = mesh2d.getncattr("face_node_connectivity")
+        var = rootgrp.variables[varname]
+        if "start_index" in var.ncattrs():
+            start_index = var.getncattr("start_index")
+
+        data = var[...] - start_index
+
+        # close file
+        rootgrp.close()
+
+        # return data
+        return data
     
     def read_variable(self, 
                       varname: str, 
