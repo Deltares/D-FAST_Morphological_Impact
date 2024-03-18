@@ -349,49 +349,42 @@ class GridOperations:
         src.close()
         dst.close()
 
-    def ugrid_add(
+    def add_variable(
         self,
-        varname: str,
-        ldata: numpy.array,
-        meshname: str,
-        facedim: str,
-        long_name: str = "None",
-        units: str = "None",
+        variable_name: str,
+        data: numpy.array,
+        mesh_name: str,
+        face_dimension_name: str,
+        long_name: str,
+        unit: str,
     ) -> None:
         """
         Add a new variable defined at faces to an existing UGRID netCDF file
 
         Arguments
         ---------
-        varname : str
+        variable_name : str
             Name of netCDF variable to be written.
-        ldata : numpy.array
+        data : numpy.array
             Linear array containing the data to be written.
-        meshname : str
+        mesh_name : str
             Name of mesh variable in the netCDF file.
-        facedim : str
+        face_dimension_name : str
             Name of the face dimension of the selected mesh.
         long_name : str
             Long descriptive name for the variable ("None" if no long name attribute
             should be written).
-        units : str
+        unit : str
             String indicating the unit ("None" if no unit attribute should be written).
         """
-        # open destination file
         dst = nc.Dataset(self._map_file, "a")
 
-        # check if face dimension exists
-        dim = dst.dimensions[facedim]
-
-        # add variable and write data
-        var = dst.createVariable(varname, "f8", (facedim,))
-        var.mesh = meshname
+        var = dst.createVariable(variable_name, "f8", (face_dimension_name,))
+        
+        var.mesh = mesh_name
         var.location = "face"
-        if long_name != "None":
-            var.long_name = long_name
-        if units != "None":
-            var.units = units
-        var[:] = ldata[:]
+        var.long_name = long_name
+        var.units = unit
+        var[:] = data[:]
 
-        # close destination file
         dst.close()

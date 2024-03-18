@@ -162,9 +162,10 @@ class Test_ugrid_add():
         ldata = numpy.zeros((4132))
         ldata[1] = 3.14159
         long_name = "added_variable"
+        unit = "some_unit"
         #
         map_file = GridOperations(self.dst_filename)        
-        map_file.ugrid_add(varname, ldata, meshname, facedim, long_name)
+        map_file.add_variable(varname, ldata, meshname, facedim, long_name, unit)
         #
         datac = map_file.read_variable(long_name)
         assert datac[1] == ldata[1]
@@ -184,7 +185,7 @@ class Test_ugrid_add():
         #
         
         map_file = GridOperations(self.dst_filename)
-        map_file.ugrid_add(varname, ldata, meshname, facedim, long_name, units)
+        map_file.add_variable(varname, ldata, meshname, facedim, long_name, units)
         rootgrp = netCDF4.Dataset(self.dst_filename)
         var = rootgrp.get_variables_by_attributes(
                 long_name=long_name, mesh=meshname, location="face"
