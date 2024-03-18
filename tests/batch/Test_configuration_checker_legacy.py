@@ -19,6 +19,7 @@ class Test_configuration_checker_legacy():
         mock_reach.name = "myReach"
         mock_reach.normal_width = 340
         mock_reach.qstagnant = 800
+        mock_reach.ucritical = 1
         mock_reach.proprate_high = 3.65
         mock_reach.proprate_low = 0.89
 

@@ -137,8 +137,8 @@ class Test_read_rivers():
         
         assert reach1.hydro_q == ()
         assert reach1.hydro_t == ()
-        assert reach1.tide
-        assert reach1.tide_bc == ()
+        assert reach1.use_tide
+        assert reach1.tide_boundary_condition == ()
         
         branch2 = rivers.branches[1]
         assert branch2.name == 'Branch2'
@@ -158,8 +158,8 @@ class Test_read_rivers():
         assert reach2.celer_object.cdisch == (11.0, 21.0)
         assert reach2.hydro_q == ()
         assert reach2.hydro_t == ()
-        assert reach2.tide
-        assert reach2.tide_bc == ()
+        assert reach2.use_tide
+        assert reach2.tide_boundary_condition == ()
 
         reach3 = branch2.reaches[1]
         assert isinstance(reach3, Reach)
@@ -175,8 +175,8 @@ class Test_read_rivers():
         assert reach3.celer_object.cdisch == (11.0, 21.0)
         assert reach3.hydro_q == ()
         assert reach3.hydro_t == ()
-        assert reach3.tide
-        assert reach3.tide_bc == ()
+        assert reach3.use_tide
+        assert reach3.tide_boundary_condition == ()
         
         assert rivers.version.major == 2
         assert rivers.version.minor == 0

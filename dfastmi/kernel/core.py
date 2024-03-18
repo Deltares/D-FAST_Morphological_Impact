@@ -35,7 +35,7 @@ import math
 import numpy
 
 from dfastmi.kernel.BedLevelCalculator import BedLevelCalculator
-from dfastmi.kernel.typehints import Vector, BoolVector
+from dfastmi.kernel.typehints import Vector
 
 def relax_factors(discharge_values: Vector, year_fraction_values: Vector, q_stagnant: float, celerity: Vector, nwidth: float) -> Vector:
     lsigma = [-1.0] * len(discharge_values)
@@ -48,17 +48,6 @@ def relax_factors(discharge_values: Vector, year_fraction_values: Vector, q_stag
 
     return rsigma
 
-def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
-    for i in range(len(cel_q)):
-        if q < cel_q[i]:
-            if i > 0:
-                c = cel_c[i - 1] + (cel_c[i] - cel_c[i - 1]) * (q - cel_q[i - 1]) / (cel_q[i] - cel_q[i - 1])
-            else:
-                c = cel_c[0]
-            break
-    else:
-        c = cel_c[-1]
-    return c
 
 def estimate_sedimentation_length(
     tmi: Vector,

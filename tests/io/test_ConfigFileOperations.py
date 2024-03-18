@@ -3,7 +3,8 @@ import configparser
 import sys
 from contextlib import contextmanager
 from io import StringIO
-
+from pathlib import Path
+from unittest.mock import patch
 import mock
 
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
@@ -34,9 +35,9 @@ class Test_write_config():
         config.add_section("Group 3")
         config["Group 3"]["LongKey"] = "3"
 
-        with mock.patch("builtins.open") as mock_file:
+        with mock.patch.object(Path,"open") as mock_file:
             ConfigFileOperations.write_config(filename, config)
-            mock_file.assert_called_once_with(filename, 'w')
+            mock_file.assert_called_once_with('w', encoding='utf-8')
             mock_file.return_value.__enter__().write.assert_called()
             mock_file.return_value.__enter__().write.assert_any_call('[G 1]\n')
             mock_file.return_value.__enter__().write.assert_any_call('  k 1     = V 1\n')
