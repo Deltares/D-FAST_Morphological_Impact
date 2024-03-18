@@ -643,12 +643,9 @@ def _analyse_and_report(
         success = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
-            reach,
-            branch.qlocation,
             initialized_config.q_threshold,
             initialized_config.tstag,
             initialized_config.discharges,
-            initialized_config.apply_q,
             initialized_config.time_fractions_of_the_year,
             initialized_config.rsigma,
             initialized_config.slength,
@@ -660,7 +657,6 @@ def _analyse_and_report(
             initialized_config.n_fields,
             initialized_config.tide_bc,
             old_zmin_zmax,
-            plotops['kmbounds'],
             outputdir,
             plotops,
         )

@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import Dict, Any, Tuple, TextIO
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
@@ -51,7 +52,7 @@ def analyse_and_report_dflowfm(
     n_fields: int,
     tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
-    outputdir: str,
+    outputdir: Path,
     plotops: Dict,
 ) -> bool:
     """
@@ -97,8 +98,8 @@ def analyse_and_report_dflowfm(
         Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
-    outputdir : str
-        Name of output directory.
+    outputdir : Path
+        Path of output directory.
     plotops : Dict
         Dictionary of plot settings
 

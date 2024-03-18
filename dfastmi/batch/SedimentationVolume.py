@@ -1,6 +1,6 @@
 import math
+from pathlib import Path
 import numpy
-import os
 
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
@@ -174,7 +174,7 @@ def comp_sedimentation_volume(
     slength: float,
     nwidth: float,
     xykline: numpy.ndarray,
-    outputdir: str,
+    outputdir: Path,
     plotops: Dict,
 ):
     """
@@ -191,8 +191,8 @@ def comp_sedimentation_volume(
         Array containing the x,y and chainage data of a line.
     simfile : str
         Name of simulation file.
-    outputdir : str
-        Name of output directory.
+    outputdir : Path
+        Path of output directory.
     Returns
     -------
     dvol : float
@@ -227,7 +227,7 @@ def comp_sedimentation_volume(
     plot_n = 3
     
     print("-- detecting separate sedimentation areas")
-    xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
+    xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
     sedarea, sedvol, sed_area_list, wght_area_tot = detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)

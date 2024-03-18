@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict
 from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
 from dfastmi.batch.XykmData import XykmData
@@ -9,7 +10,6 @@ from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 
 import netCDF4
 import numpy
-import os
 
 class ReporterDflowfm():
     
@@ -24,14 +24,14 @@ class ReporterDflowfm():
         """
         self._logger = ReporterDflowfmLogger(display)
     
-    def report(self, outputdir : str, plotops : Dict, report_data : OutputDataDflowfm):
+    def report(self, outputdir : Path, plotops : Dict, report_data : OutputDataDflowfm):
         """
         write report data to a netCDF UGRID file similar to D-Flow FM.
 
         Arguments
         ---------
-        outputdir : str
-            Name of output directory.
+        outputdir : Path
+            Path of output directory.
         plotops : Dict
             Dictionary of plot settings
         report_data  : OutputDataDflowfm
@@ -39,10 +39,10 @@ class ReporterDflowfm():
         """
         self._logger.log_writing_output()
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(report_data.one_fm_filename)
-        dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
+        dst = str(outputdir.joinpath(ApplicationSettingsHelper.get_filename("netcdf.out")))
         GridOperations.copy_ugrid(report_data.one_fm_filename, meshname, dst)
         nc_fill = netCDF4.default_fillvals['f8']
-        projmesh = outputdir + os.sep + 'projected_mesh.nc'
+        projmesh = str(Path(outputdir).joinpath('projected_mesh.nc'))
 
         self._grid_update(report_data, report_data.xykm_data.iface, meshname, facedim, dst, nc_fill, projmesh)
 
@@ -178,16 +178,16 @@ class ReporterDflowfm():
                 )
 
             if plotops['saveplot']:
-                figbase = plotops['figdir'] + os.sep + "overview"
+                figbase = plotops['figdir'] / "overview"
                 if plotops['saveplot_zoomed']:
                     zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
-                figfile = figbase + plotops['plot_ext']
+                figfile = figbase / plotops['plot_ext']
                 savefig(fig, figfile)
 
     def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):
         self._logger.print_sedimentation_and_erosion(sedimentation_data)
 
-        projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
+        projmesh = str(outputdir.joinpath('sedimentation_weights.nc'))
         GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
         GridOperations.ugrid_add(
                     projmesh,

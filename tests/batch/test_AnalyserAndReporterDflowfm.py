@@ -58,7 +58,7 @@ class Test_analyse_and_report_dflowfm_mode():
         self.plotops['plotting'] = True
         self.plotops['saveplot'] = True
         self.plotops['saveplot_zoomed'] = True
-        self.plotops['figdir'] = str(tmp_path)
+        self.plotops['figdir'] = tmp_path
         self.plotops['plot_ext'] = "plot_ext"
         
         random_list: List[Tuple[float, float, float, float]] = [
@@ -83,7 +83,7 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true
         """
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                 display,
@@ -123,7 +123,7 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true
         """
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         self.filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
         self.filenames["1"] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
@@ -166,7 +166,7 @@ class Test_analyse_and_report_dflowfm_mode():
         """
         needs_tide = False
         
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         self.n_fields = 1
         
@@ -229,7 +229,7 @@ class Test_analyse_and_report_dflowfm_mode():
         """
         needs_tide = True
         
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         self.n_fields = 1
         
@@ -292,7 +292,7 @@ class Test_analyse_and_report_dflowfm_mode():
         """
         needs_tide = False
         
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         self.n_fields = 1
         
@@ -355,7 +355,7 @@ class Test_analyse_and_report_dflowfm_mode():
         """
         needs_tide = True
         
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         self.n_fields = 1
         
@@ -417,7 +417,7 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true and expect sixteen grids addedand plotting called
         """
-        outputdir = str(tmp_path)
+        outputdir = tmp_path
         
         self.n_fields = 1
         

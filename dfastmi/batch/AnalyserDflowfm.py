@@ -1,3 +1,4 @@
+from pathlib import Path
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
 from dfastmi.kernel.core import main_computation, dzq_from_du_and_h
 from dfastmi.batch.DflowfmLoggers import AnalyserDflowfmLogger
@@ -18,7 +19,7 @@ class AnalyserDflowfm():
     
     _logger : AnalyserDflowfmLogger
     
-    def __init__(self, display : bool, report : TextIO, needs_tide : bool, old_zmin_zmax : bool, outputdir : str):
+    def __init__(self, display : bool, report : TextIO, needs_tide : bool, old_zmin_zmax : bool, outputdir : Path):
         """
         Arguments
         ---------
@@ -30,8 +31,8 @@ class AnalyserDflowfm():
             Specifies whether the tidal boundary is needed.
         old_zmin_zmax : bool
             Specifies the minimum and maximum should follow old or new definition.
-        outputdir : str
-            Name of output directory.
+        outputdir : Path
+            Path of output directory.
         """
         self._logger = AnalyserDflowfmLogger(display, report)
         self._needs_tide = needs_tide
