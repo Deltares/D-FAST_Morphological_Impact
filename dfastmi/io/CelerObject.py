@@ -40,6 +40,8 @@ Classes:
 from abc import ABC, abstractmethod
 from typing import List
 
+from dfastmi.kernel.typehints import Vector
+
 
 class ICelerObject(ABC):
     "Interface or abstract base class to the CelerObject."
@@ -47,7 +49,25 @@ class ICelerObject(ABC):
     def validate(self):
         pass
     
+    @abstractmethod
+    def get_celerity(self, discharges : Vector) -> Vector:
+        """
+        Will create a vector of values each representing the bed celerity for the 
+        period given by the corresponding entry in discharge (Q) [m/s] by the 
+        celerity type (via a discharge or via legacy using properties).
 
+        Arguments
+        ---------
+        discharges : Vector
+            A vector of discharges (Q) included in hydrograph [m3/s].
+        
+        Return
+        ------
+        celerity : Vector
+            A vector of values each representing the bed celerity for the 
+            period given by the corresponding entry in Q [m/s].      
+        """
+        pass
 
 class CelerDischarge(ICelerObject):
     cdisch = tuple[float,float]
@@ -62,6 +82,27 @@ class CelerDischarge(ICelerObject):
             #         )
             return
     
+    def get_celerity(self, discharges : Vector) -> Vector:
+        """
+        Will create a vector of values each representing the bed celerity for the 
+        period given by the corresponding entry in discharge (Q) [m/s] by the 
+        celerity type (via a discharge or via legacy using properties).
+
+        Arguments
+        ---------
+        discharges : Vector
+            A vector of discharges (Q) included in hydrograph [m3/s].
+        
+        Return
+        ------
+        celerity : Vector
+            A vector of values each representing the bed celerity for the 
+            period given by the corresponding entry in Q [m/s].      
+        """
+        
+        
+        celerity = tuple(self.cdisch[0]*pow(discharge,self.cdisch[1]) for discharge in discharges)
+        return celerity
 
 
 class CelerProperties(ICelerObject):
@@ -70,3 +111,37 @@ class CelerProperties(ICelerObject):
 
     def validate(self):
         return super().validate()
+    
+    def get_celerity(self, discharges : Vector) -> Vector:
+        """
+        Will create a vector of values each representing the bed celerity for the 
+        period given by the corresponding entry in discharge (Q) [m/s] by the 
+        celerity type (via a discharge or via legacy using properties).
+
+        Arguments
+        ---------
+        discharges : Vector
+            A vector of discharges (Q) included in hydrograph [m3/s].
+        
+        Return
+        ------
+        celerity : Vector
+            A vector of values each representing the bed celerity for the 
+            period given by the corresponding entry in Q [m/s].      
+        """
+        
+        
+        celerity = tuple(self._get_celerity(discharge, self.prop_q, self.prop_c) for discharge in discharges)
+        return celerity
+
+    def _get_celerity(self, q: float, cel_q: Vector, cel_c: Vector) -> float:
+        for i in range(len(cel_q)):
+            if q < cel_q[i]:
+                if i > 0:
+                    c = cel_c[i - 1] + (cel_c[i] - cel_c[i - 1]) * (q - cel_q[i - 1]) / (cel_q[i] - cel_q[i - 1])
+                else:
+                    c = cel_c[0]
+                break
+        else:
+            c = cel_c[-1]
+        return c

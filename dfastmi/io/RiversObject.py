@@ -42,7 +42,7 @@ from dfastmi.io.ReachLegacy import ReachLegacy
 
 class RiversObject():
     branches: List[IBranch]
-    version: Version # type: ignore
+    version: Version
 
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)

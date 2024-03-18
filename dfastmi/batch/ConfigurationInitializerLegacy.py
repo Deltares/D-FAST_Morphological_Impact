@@ -142,14 +142,14 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
                 q_list[iq] = None
         return q_list
 
-    def _get_q_bankfull_from_config(self, config, q_threshold, q_levels) -> float:
+    def _get_q_bankfull_from_config(self, config:ConfigParser, q_threshold:Optional[float], q_levels:List[float]) -> float:
         """
         Get the simulation discharge at which measure reaches bankfull 
         from configuration in batch mode (no user interaction).
 
         Arguments
         ---------
-        config : configparser.ConfigParser
+        config : ConfigParser
             Configuration of the analysis to be run.
         q_threshold : Optional[float]
             River discharge at which the measure becomes active 
@@ -168,13 +168,13 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
                 q_bankfull = float(q_bankfull)
         return q_bankfull
 
-    def _get_q_threshold_from_config(self, config) -> Optional[float]:
+    def _get_q_threshold_from_config(self, config:ConfigParser) -> Optional[float]:
         """
         Get the simulation discharge threshold from configuration in batch mode (no user interaction).
 
         Arguments
         ---------
-        config : configparser.ConfigParser
+        config : ConfigParser
             Configuration of the analysis to be run.
         
         Results

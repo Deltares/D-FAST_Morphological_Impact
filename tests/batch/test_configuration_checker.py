@@ -107,13 +107,7 @@ class Test_configuration_checker():
             with patch.object(Path, 'exists') as mock_exists:
                 mock_exists.return_value = True
                 assert configuration_checker.check_configuration(rivers, config)
-
-        # def set_valid_general_section(self, config : ConfigParser):
-        #     config.add_section("General")
-        #     config.set("General", "Version", "2.0")
-        #     config.set("General", "Branch", "myBranch")
-        #     config.set("General", "Reach", 'myReach')
-
+        
         def add_c_section(self, config: ConfigParser, name: str, value : str):
             config.add_section(name)
             config.set(name, "Discharge",   value)

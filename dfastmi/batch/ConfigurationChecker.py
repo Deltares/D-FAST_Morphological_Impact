@@ -85,8 +85,6 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                 if success and not return_value:
                     return_value = True
         return return_value
-    
-    
 
     def _check_configuration_cond(self, 
                                  config: configparser.ConfigParser,

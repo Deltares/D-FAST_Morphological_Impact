@@ -127,28 +127,24 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
             A vector of values each representing the bed celerity for the 
             period given by the corresponding entry in Q [m/s].      
         """
-        cform = reach.celer_form
-        celerity = ()
-        if cform == 1:
-            prop_q = reach.celer_object.prop_q
-            prop_c = reach.celer_object.prop_c
-            celerity = tuple(get_celerity(q, prop_q, prop_c) for q in discharges)
-        elif cform == 2:
-            cdisch = reach.celer_object.cdisch
-            celerity = tuple(cdisch[0]*pow(q,cdisch[1]) for q in discharges)
-
-         # set the celerity equal to 0 for discharges less or equal to qstagnant
-        celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.qstagnant] for i in range(len(discharges)))
         
-        # check if all celerities are equal to 0. If so, the impact would be 0.
-        all_zero = True
-        for i, discharge in enumerate(discharges):
-            if celerity[i] < 0.0:
-                raise ValueError(f"Invalid negative celerity {celerity[i]} m/s encountered for discharge {discharge} m3/s!")
-            if celerity[i] > 0.0:
-                all_zero = False
-        if all_zero:
-            raise ValueError("The celerities can't all be equal to zero for a measure to have any impact!")
+        celerity = ()
+        if reach.celer_object :
+            celerity = reach.celer_object.get_celerity(discharges)
+            
+            # set the celerity equal to 0 for discharges less or equal to qstagnant
+            celerity = tuple({False:0.0, True:celerity[i]}[discharges[i]>reach.qstagnant] for i in range(len(discharges)))
+            
+            # check if all celerities are equal to 0. If so, the impact would be 0.
+            all_zero = True
+            for i, discharge in enumerate(discharges):
+                if celerity[i] < 0.0:
+                    raise ValueError(f"Invalid negative celerity {celerity[i]} m/s encountered for discharge {discharge} m3/s!")
+                if celerity[i] > 0.0:
+                    all_zero = False
+            if all_zero:
+                raise ValueError("The celerities can't all be equal to zero for a measure to have any impact!")
+
         return celerity
 
     def _set_fraction_times(self, reach : Reach, q_threshold : float, discharges : Vector) -> None:

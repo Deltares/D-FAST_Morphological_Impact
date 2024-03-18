@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -378,7 +379,7 @@ def analyse_and_report_dflowfm(
                     units="m",
                 )
         
-        projmesh = str(outputdir.joinpath('projected_mesh.nc'))
+        projmesh = str(Path(outputdir).joinpath('projected_mesh.nc'))
         GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
         GridOperations.ugrid_add(
             projmesh,

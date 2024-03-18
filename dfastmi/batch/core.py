@@ -36,7 +36,7 @@ import math
 import numpy
 import shapely
 import matplotlib
-from packaging.version import Version
+from packaging.version import Version, InvalidVersion
 
 from dfastmi.batch.ConfigurationInitializerFactory import ConfigurationInitializerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
@@ -127,7 +127,7 @@ def batch_mode_core(
     report_path = outputdir.joinpath(ApplicationSettingsHelper.get_filename("report.out"))
     
     with report_path.open(mode="w", encoding="utf-8") as report:
-        _core_initialize(report)
+        _log_header(report)
 
         cfg_version = _get_verion(rivers, config)
 
@@ -433,12 +433,17 @@ def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
         Version object extracted from the configuration file.
     """
     cfg_version = config.get("General", "Version", fallback="")
+    try:
+        cfg_version = Version(cfg_version)
+    except InvalidVersion as exception:
+        raise LookupError(f"Wrong version detected in configuration file, when parsing the value got this : {exception}")
+
     if Version(cfg_version) != rivers.version:
         raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
-    cfg_version = Version(cfg_version)
+    
     return cfg_version
 
-def _core_initialize(report: TextIO) -> None:
+def _log_header(report: TextIO) -> None:
     """
     Will log into the report default static header information
     

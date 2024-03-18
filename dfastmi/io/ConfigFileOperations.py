@@ -74,7 +74,7 @@ class ConfigFileOperations:
                     configfile.write(OPTIONLINE.format(o, config[section][o]))
 
     @staticmethod
-    def save_configuration_file(filename: str, config):
+    def save_configuration_file(filename: str, config: ConfigParser) -> None:
         """
         Convert a configuration to relative paths and save to file.
 
