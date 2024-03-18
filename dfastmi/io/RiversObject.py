@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import configparser
 from typing import List, Tuple
 import zlib
-from packaging import version
+from packaging.version import Version
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
@@ -42,7 +42,7 @@ from dfastmi.io.ReachLegacy import ReachLegacy
 
 class RiversObject():
     branches: List[IBranch]
-    version: version # type: ignore
+    version: Version
 
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)
@@ -136,9 +136,9 @@ class RiversObject():
         except:
             raise Exception("No version information in the file {}!".format(filename))
 
-        if version.parse(file_version) == version.parse("1"):
+        if Version(file_version) == Version("1"):
             iversion = 1
-        elif version.parse(file_version) == version.parse("2"):
+        elif Version(file_version) == Version("2"):
             iversion = 2
         else:
             raise Exception("Unsupported version number {} in the file {}!".format(file_version, filename))
@@ -152,7 +152,7 @@ class RiversObject():
         and their associated default parameter settings.
         """
               
-        self.version = version.parse("1.0")
+        self.version = Version("1.0")
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize(river_data, reach)
@@ -184,7 +184,7 @@ class RiversObject():
         filename : str
             The name of the river configuration file (default "rivers.ini").    
         """
-        self.version = version.parse("2.0")
+        self.version = Version("2.0")
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize(river_data, reach)
@@ -201,8 +201,8 @@ class RiversObject():
                 qfit = reach.qfit
                 self._verify_consistency_HydroQ_and_HydroT(hydro_q, hydro_t, auto_time, qfit, branch.name, reach.name)
 
-                use_tide = reach.tide
-                tide_boundary_condition = reach.tide_bc
+                use_tide = reach.use_tide
+                tide_boundary_condition = reach.tide_boundary_condition
                 self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch.name, reach.name)
                 
                 celer_form = reach.celer_form                
@@ -292,9 +292,9 @@ class RiversObject():
         # for AutoTime = False
         reach.hydro_t = river_data.read_key(Tuple[float, ...], "HydroT", reach)
 
-        reach.tide = river_data.read_key(bool, "Tide", reach, False)
+        reach.use_tide = river_data.read_key(bool, "Tide", reach, False)
         # for Tide = True
-        reach.tide_bc = river_data.read_key(Tuple[str, ...], "TideBC", reach)
+        reach.tide_boundary_condition = river_data.read_key(Tuple[str, ...], "TideBC", reach)
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:

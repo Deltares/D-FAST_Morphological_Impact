@@ -28,11 +28,11 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 
-from dfastmi.io.RiversObject import RiversObject
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
+from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.Reach import Reach
+
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 class ConfigurationChecker(AConfigurationCheckerBase):
     """

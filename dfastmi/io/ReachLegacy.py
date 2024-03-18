@@ -32,9 +32,11 @@ Module for Reach implementation
 Classes:
     ReachLegacy
 """
-from dfastmi.io.AReach import AReach
+
 
 from typing import List
+
+from dfastmi.io.AReach import AReach
 
 
 class ReachLegacy(AReach):

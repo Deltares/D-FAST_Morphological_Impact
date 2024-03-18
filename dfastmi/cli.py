@@ -27,7 +27,9 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple, TextIO
+from dfastmi.batch.AnalyserAndReporterWaqua import analyse_and_report_waqua
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ReachLegacy import ReachLegacy
@@ -95,11 +97,11 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             break
 
         tmi = []
-        for i in range(len(applyQ)):
-            if applyQ[i]:
-               tmi.append(T[i])
+        for i, value in enumerate(applyQ):
+            if value:
+                tmi.append(T[i])
             else:
-               tmi.append(0.0)
+                tmi.append(0.0)
         celerity = [celerity_lw, celerity_hg, celerity_hg]
         slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
 
@@ -121,44 +123,25 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                     ucrit = ucritMin
 
             ApplicationSettingsHelper.log_text("", repeat=19)
-            filenames = dfastmi.batch.core.get_filenames(0, False)
-            imode = 0
             display = True
             old_zmin_zmax = True
-            needs_tide = False
-            n_fields = 0
-            tide_bc = []
-            xykm = None
-            kmbounds = [0,1]
-            outputdir = "."
-            plotops = {}
-            Success = dfastmi.batch.core.analyse_and_report(
-                imode,
-                display,
-                report,
-                reduced_output,
-                reach,
-                q_location,
-                q_threshold,
-                tstag,
-                Q,
-                applyQ,
-                T,
-                rsigma,
-                slength,
-                nwidth,
-                ucrit,
-                filenames,
-                xykm,
-                needs_tide,
-                n_fields,
-                tide_bc,
-                old_zmin_zmax,
-                kmbounds,
-                outputdir,
-                plotops,
+            outputdir = Path(".")
+            
+            success = analyse_and_report_waqua(
+            display,
+            report,
+            reduced_output,
+            tstag,
+            Q,
+            applyQ,
+            T,
+            rsigma,
+            ucrit,
+            old_zmin_zmax,
+            outputdir,
             )
-            if Success:
+            
+            if success:
                 if slength > 1:
                     nlength = int(slength)
                 else:
@@ -349,7 +332,7 @@ def interactive_get_discharges(
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
-        Discharge below which the river flow is negligible.
+        A discharge below which the river flow is negligible.
     Q : QRuns
         Tuple of (at most) three characteristic discharges.
     applyQ : Tuple[bool, bool, bool]
@@ -501,11 +484,11 @@ def write_report_nodata(
         Flag indicating whether the program should be closed.
     """
     ApplicationSettingsHelper.log_text("---")
-    nQ = dfastmi.batch.core.countQ(Q)
-    if nQ == 1:
+    number_of_discharges = dfastmi.batch.core.count_discharges(Q)
+    if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
-        ApplicationSettingsHelper.log_text("need_multiple_input", dict={"reach": reach, "numq": nQ})
+        ApplicationSettingsHelper.log_text("need_multiple_input", dict={"reach": reach, "numq": number_of_discharges})
     if not Q[0] is None:
         ApplicationSettingsHelper.log_text("lowwater", dict={"border": q_location, "q": Q[0]})
     if not Q[1] is None:

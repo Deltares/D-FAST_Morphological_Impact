@@ -32,7 +32,7 @@ Module for Reach implementation
 Classes:
     Reach
 """
-from typing import List
+from typing import List, Tuple
 from dfastmi.io.AReach import AReach
 
 from dfastmi.io.CelerObject import ICelerObject
@@ -44,11 +44,11 @@ class Reach(AReach):
     """
     hydro_q : List[float]
     hydro_t : List[float]
-    auto_time : bool
-    qfit : tuple[float,float]
+    auto_time : bool = False
+    qfit : Tuple[float,float]
 
-    use_tide : bool
-    tide_boundary_condition : List[float]
+    use_tide : bool = False
+    tide_boundary_condition : Tuple[str, ...]
 
     celer_form : int
     celer_object : ICelerObject = None

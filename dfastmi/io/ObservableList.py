@@ -51,8 +51,7 @@ class IObserver(Generic[T]):
     def notify(self, element: T) -> None:
         """
         Method called when an element is added to the ObservableList.
-        """
-        pass
+        """        
 
 class ObservableList(Generic[T]):
     """
