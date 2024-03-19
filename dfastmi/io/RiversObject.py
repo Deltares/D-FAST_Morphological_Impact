@@ -189,16 +189,8 @@ class RiversObject():
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize_base(river_data, reach)
-                self._initialize(river_data, reach)                
+                self._initialize(river_data, reach)
                 reach.model_validate(reach)
-                # try:
-                    
-                # except ValidationError as e:
-                #     print("Validation reach failed:", e)
-        
-        #self._verify_reaches()
-        
-    
 
     def _initialize(self, river_data : DFastMIConfigParser, reach : Reach):
         reach.hydro_q = river_data.read_key(Tuple[float, ...], "HydroQ", reach)
@@ -215,14 +207,14 @@ class RiversObject():
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:
-            celerProperties = CelerProperties()
-            celerProperties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
-            celerProperties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
-            reach.celer_object = celerProperties
+            celerity_properties = CelerProperties()
+            celerity_properties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
+            celerity_properties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
+            reach.celer_object = celerity_properties
         elif reach.celer_form == 2:
-            celerDischarge = CelerDischarge()
-            celerDischarge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
-            reach.celer_object = celerDischarge       
+            celerity_discharge = CelerDischarge()
+            celerity_discharge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
+            reach.celer_object = celerity_discharge       
     
     def _verify_checksum_rivers(        
         self, 
