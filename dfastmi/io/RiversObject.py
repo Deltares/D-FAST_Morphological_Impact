@@ -190,10 +190,11 @@ class RiversObject():
             for reach in branch.reaches:
                 self._initialize_base(river_data, reach)
                 self._initialize(river_data, reach)                
-                try:
-                    reach.validate()
-                except ValidationError as e:
-                    print("Validation reach failed:", e)
+                reach.model_validate(reach)
+                # try:
+                    
+                # except ValidationError as e:
+                #     print("Validation reach failed:", e)
         
         #self._verify_reaches()
         

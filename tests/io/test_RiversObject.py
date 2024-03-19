@@ -2,6 +2,7 @@ import os
 import sys
 from contextlib import contextmanager
 from io import StringIO
+from pydantic import ValidationError
 import pytest
 from dfastmi.io.CelerObject import CelerDischarge
 from dfastmi.io.Reach import Reach
@@ -185,17 +186,21 @@ class Test_read_rivers():
         """
         Testing read_rivers, all defaults results in failing CeleryQ
         """
-        with pytest.raises(Exception) as cm:
+        with pytest.raises(ValidationError) as cm:
             RiversObject("tests/files/read_riversv2_test_failing_CelerQ.ini") 
-        assert str(cm.value) == 'The parameter "CelerQ" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 2.'
+        validation_exception = cm.value.errors()[0]
+        assert validation_exception['type'] == 'value_error'
+        assert str(validation_exception['msg']) == 'Value error, The parameter "CelerQ" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 2.'
         
     def given_a_rivers_config_file_with_autotime_set_but_no_qfit_values_when_read_rivers_then_throw_exception_of_missing_Qfit_values(self):
         """
         Testing read_rivers, setting AutoTime true expects QFit to be set
         """
         with pytest.raises(Exception) as cm:
-            RiversObject("tests/files/read_riversv2_test_failing_HydroQ.ini") 
-        assert str(cm.value) == 'The parameter "QFit" must be specified for branch "Branch1", reach "Branch1 R1" since "AutoTime" is set to True.'
+            RiversObject("tests/files/read_riversv2_test_failing_HydroQ.ini")
+        validation_exception = cm.value.errors()[0]
+        assert validation_exception['type'] == 'value_error'
+        assert str(validation_exception['msg']) == 'Value error, The parameter "QFit" must be specified for branch "Branch1", reach "Branch1 R1" since "AutoTime" is set to True.'
     
     def given_a_rivers_config_file_with_autotime_unset_but_no_consistency_between_hydroq_and_hydrot_values_when_read_rivers_then_throw_exception_of_invalid_value_size_of_hydrot_and_hydroq_values(self):
         """
@@ -226,13 +231,17 @@ class Test_read_rivers():
         Testing read_rivers2, with setting AutoTime false & Cform 1 expects PropQ and PropC to be set 
         """
         with pytest.raises(Exception) as cm:
-            RiversObject("tests/files/read_riversv2_test_failing_noPropQC.ini") 
-        assert str(cm.value) == 'The parameters "PropQ" and "PropC" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 1.'
+            RiversObject("tests/files/read_riversv2_test_failing_noPropQC.ini")
+        validation_exception = cm.value.errors()[0]
+        assert validation_exception['type'] == 'value_error'
+        assert str(validation_exception['msg']) == 'Value error, The parameters "PropQ" and "PropC" must be specified for branch "Branch1", reach "Branch1 R1" since "CelerForm" is set to 1.'
     
     def given_a_rivers_config_file_with_autotime_unset_and_cellery_form_is_invalid_when_read_rivers_then_throw_exception_of_invalid_value_of_celerform(self):
         """
         Testing read_rivers2, with setting AutoTime false & Cform 8 exception as this is unsupported
         """
         with pytest.raises(Exception) as cm:
-            RiversObject("tests/files/read_riversv2_test_failing_wrongcform.ini") 
-        assert str(cm.value) == 'Invalid value 8 specified for "CelerForm" for branch "Branch1", reach "Branch1 R1"; only 1 and 2 are supported.'
+            RiversObject("tests/files/read_riversv2_test_failing_wrongcform.ini")
+        validation_exception = cm.value.errors()[0]
+        assert validation_exception['type'] == 'value_error'
+        assert str(validation_exception['msg']) == 'Value error, Invalid value 8 specified for "CelerForm" for branch "Branch1", reach "Branch1 R1"; only 1 and 2 are supported.'

@@ -33,6 +33,8 @@ Classes:
     Reach
 """
 from typing import List, Tuple
+
+from pydantic import model_validator
 from dfastmi.io.AReach import AReach
 
 from dfastmi.io.CelerObject import ICelerObject
@@ -62,22 +64,23 @@ class Reach(AReach):
         self._celer_object = value
         self._celer_object.parent_reach = self
 
-    def validate(self, **kwargs):
+    @model_validator(mode='after')
+    def validate(self) -> 'Reach':
+        if not self.parent_branch:
+            return self
+        
         self._verify_consistency_hydro_q_and_hydro_t()
 
         self._verify_consistency_hydro_q_and_tide_bc()
 
         if self.celer_object:
-            self.celer_object.validate(self.celer_object)
+            self.celer_object.model_validate(self.celer_object)
 
         if self.celer_form not in (1,2):
             raise ValueError(f'Invalid value {self.celer_form} specified for "CelerForm" '
                              f'for branch "{self.parent_branch.name}", reach "{self.name}";'
                              f' only 1 and 2 are supported.')
-
-        # Call the parent class's validate method to perform default validation
-        self.model_validate(self,**kwargs)
-
+        return self
 
     def _verify_consistency_hydro_q_and_tide_bc(self):        
         """
@@ -110,8 +113,5 @@ class Reach(AReach):
     def _check_qfit_on_branch_on_reach_with_auto_time(self):
         if self.qfit == (0.0, 0.0):
             raise ValueError(f'The parameter "QFit" must be specified for branch "{self.parent_branch.name}", '
-                             f'reach "{self.name}" since "AutoTime" is set to True.')               
-    
-    def notify(self, celer_object:ICelerObject) -> None:
-        """When a celer object is set to the reach we want to set the parent reach in the celer object element"""
-        celer_object.parent_reach = self
+                             f'reach "{self.name}" since "AutoTime" is set to True.')
+
