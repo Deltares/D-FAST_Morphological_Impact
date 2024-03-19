@@ -37,20 +37,15 @@ Classes:
     CelerProperties
 
 """
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import List, Tuple
 from pydantic import BaseModel
 from dfastmi.io.AReach import AReach
+from dfastmi.kernel.typehints import Vector
 
 class ICelerObject(ABC, BaseModel):
     "Interface or abstract base class to the CelerObject."
     parent_reach : AReach = None
-   
-    def __init__(self, reach : AReach):
-        super().__init__(parent_reach=reach)
-        self.parent_reach = reach
-
-        """
         
     @abstractmethod
     def get_celerity(self, discharges : Vector) -> Vector:
@@ -84,6 +79,9 @@ class CelerDischarge(ICelerObject):
         if self.cdisch == (0.0, 0.0):
              raise ValueError(f'The parameter "CelerQ" must be specified for branch "{branch_name}", '
                               f'reach "{reach_name}" since "CelerForm" is set to 2.')
+        # Call the parent class's validate method to perform default validation
+        super().model_validate(values)
+
     def get_celerity(self, discharges : Vector) -> Vector:
         """
         Will create a vector of values each representing the bed celerity for the 
@@ -105,10 +103,6 @@ class CelerDischarge(ICelerObject):
         
         celerity = tuple(self.cdisch[0]*pow(discharge,self.cdisch[1]) for discharge in discharges)
         return celerity
-        
-        # Call the parent class's validate method to perform default validation
-        super().model_validate(values)
-
 
 class CelerProperties(ICelerObject):
     """
@@ -117,8 +111,8 @@ class CelerProperties(ICelerObject):
     prop_q : List[float] = []
     prop_c : List[float] = []
 
-    def validate(self):
-        return super().validate()
+    def validate(self, values):        
+        branch_name : str = self.parent_reach.parent_branch.name
         reach_name : str = self.parent_reach.name
         prop_q_length = len(self.prop_q)
         prop_c_length = len(self.prop_c)
@@ -130,6 +124,7 @@ class CelerProperties(ICelerObject):
         if prop_q_length == 0:
             raise ValueError(f'The parameters "PropQ" and "PropC" must be specified for '
                             f'branch "{branch_name}", reach "{reach_name}" since "CelerForm" is set to 1.')
+        super().model_validate(values)
     
     def get_celerity(self, discharges : Vector) -> Vector:
         """
