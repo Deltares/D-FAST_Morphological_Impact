@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 import numpy
 import numpy.ma as ma
 import netCDF4 as nc
@@ -294,15 +294,11 @@ class GridOperations:
         """
         # open source and destination files
         source_dataset = nc.Dataset(self._map_file)
-        
         target_file.unlink(missing_ok=True)
-
         target_dataset = nc.Dataset(target_file, "w", format="NETCDF4")
 
-        # locate source mesh
         mesh_variable = source_dataset.variables[self.mesh2d_name]
 
-        # copy mesh variable
         GridOperations._copy_var(source_dataset, self.mesh2d_name, target_dataset)
         mesh_attrs = [
             "face_node_connectivity",
@@ -313,28 +309,31 @@ class GridOperations:
             "node_coordinates",
         ]
         for mesh_attr in mesh_attrs:
-            try:
-                var_names = mesh_variable.getncattr(mesh_attr).split()
-            except:
-                var_names = []
+            var_names = GridOperations._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
             for var_name in var_names:
                 GridOperations._copy_var(source_dataset, var_name, target_dataset)
 
                 # check if variable has bounds attribute, if so copy those as well
                 variable = source_dataset.variables[var_name]
-                bounds_attrs = ["bounds"]
-                for bounds_attr in bounds_attrs:
-                    try:
-                        bounds_var_names = variable.getncattr(bounds_attr).split()
-                    except:
-                        bounds_var_names = []
-                    for bounds_var_name in bounds_var_names:
-                        GridOperations._copy_var(source_dataset, bounds_var_name, target_dataset)
+                
+                bounds_attr = "bounds"
+                bounds_var_names = GridOperations._get_var_names_from_var_attribute(variable, bounds_attr)
+                for bounds_var_name in bounds_var_names:
+                    GridOperations._copy_var(source_dataset, bounds_var_name, target_dataset)
 
         # close files
         source_dataset.close()
         target_dataset.close()
 
+    @staticmethod
+    def _get_var_names_from_var_attribute(variable: nc.Variable, attr_name: str) -> List[str]:
+        try:
+            var_names = variable.getncattr(attr_name).split()
+        except:
+            var_names = []
+            
+        return var_names
+        
     def add_variable(
         self,
         variable_name: str,
