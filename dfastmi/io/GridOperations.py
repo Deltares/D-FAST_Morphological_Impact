@@ -79,7 +79,7 @@ class GridOperations:
             where each True value indicates a fill value.
         """
         with nc.Dataset(self._map_file) as rootgrp:
-            mesh2d = self._get_mesh2d_variable(rootgrp)
+            mesh2d = rootgrp.variables[self.mesh2d_name]
 
             start_index = 0
             varname = mesh2d.getncattr("face_node_connectivity")
@@ -124,17 +124,13 @@ class GridOperations:
         with nc.Dataset(self._map_file) as rootgrp:
             location = "face"
 
-            # locate 2d mesh variable
-            mesh2d = self._get_mesh2d_variable(rootgrp)
-            meshname = mesh2d.name
-
             # find any other variable by standard_name or long_name
             var = rootgrp.get_variables_by_attributes(
-                standard_name=varname, mesh=meshname, location=location
+                standard_name=varname, mesh=self.mesh2d_name, location=location
             )
             if len(var) == 0:
                 var = rootgrp.get_variables_by_attributes(
-                    long_name=varname, mesh=meshname, location=location
+                    long_name=varname, mesh=self.mesh2d_name, location=location
                 )
             if len(var) != 1:
                 raise Exception(
@@ -193,7 +189,7 @@ class GridOperations:
         """
         if not self._face_dimension_name:
             with nc.Dataset(self._map_file) as rootgrp:
-                mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+                mesh2d = rootgrp.variables[self.mesh2d_name]
                 facenodeconnect_varname = mesh2d.face_node_connectivity
                 fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
                 self._face_dimension_name = fnc.dimensions[0]
@@ -202,7 +198,6 @@ class GridOperations:
     
     @staticmethod
     def _get_mesh2d_variable(dataset: nc.Dataset) -> nc.Variable:
-        # locate 2d mesh variable
         mesh2d = dataset.get_variables_by_attributes(
             cf_role="mesh_topology", topology_dimension=2
         )
@@ -344,7 +339,7 @@ class GridOperations:
     def _get_node_coordinate_data(self, standard_names: List[str]) -> numpy.ndarray:
         # open file
         with nc.Dataset(self._map_file) as rootgrp:
-            mesh2d = self._get_mesh2d_variable(rootgrp)
+            mesh2d = rootgrp.variables[self.mesh2d_name]
     
             crdnames = mesh2d.getncattr("node_coordinates").split()
             for n in crdnames:
