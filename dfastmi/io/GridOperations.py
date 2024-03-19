@@ -294,7 +294,7 @@ class GridOperations:
         dstvar.setncatts(srcvar.__dict__)
         dstvar[:] = srcvar[:]
 
-    def copy_ugrid(self, dstname: str) -> None:
+    def copy_ugrid(self, target_file: Path) -> None:
         """
         Copy UGRID mesh data from one netCDF file to another.
 
@@ -303,15 +303,15 @@ class GridOperations:
 
         Arguments
         ---------
-        dstname : str
-            Name of destination file, or dataset object representing the destination
-            file.
+        target_file : Path
+            Path to the target file.
         """
         # open source and destination files
         src = nc.Dataset(self._map_file)
-        if os.path.exists(dstname):
-            os.remove(dstname)
-        dst = nc.Dataset(dstname, "w", format="NETCDF4")
+        
+        target_file.unlink(missing_ok=True)
+
+        dst = nc.Dataset(target_file, "w", format="NETCDF4")
 
         # locate source mesh
         mesh = src.variables[self.mesh2d_name]

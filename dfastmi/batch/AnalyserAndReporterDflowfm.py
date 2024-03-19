@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -319,7 +320,7 @@ def analyse_and_report_dflowfm(
         map_file = GridOperations(one_fm_filename)
         meshname = map_file.mesh2d_name
         facedim = map_file.face_dimension_name
-        dst = outputdir + os.sep + ApplicationSettingsHelper.get_filename("netcdf.out")
+        dst = Path(outputdir) / ApplicationSettingsHelper.get_filename("netcdf.out")
         map_file.copy_ugrid(dst)
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
@@ -377,7 +378,7 @@ def analyse_and_report_dflowfm(
                     unit="m",
                 )
         
-        projmesh = outputdir + os.sep + 'projected_mesh.nc'
+        projmesh = Path(outputdir) / 'projected_mesh.nc'
         map_file.copy_ugrid(projmesh)
         projmesh_map_file = GridOperations(projmesh)
         projmesh_map_file.add_variable(
@@ -459,7 +460,7 @@ def analyse_and_report_dflowfm(
                     print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
-            projmesh = outputdir + os.sep + 'sedimentation_weights.nc'
+            projmesh = Path(outputdir) / 'sedimentation_weights.nc'
             projmesh_map_file = GridOperations(projmesh)
             map_file.copy_ugrid(projmesh)
             projmesh_map_file.add_variable(

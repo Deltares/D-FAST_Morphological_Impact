@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 import os
 from contextlib import contextmanager
@@ -255,7 +256,7 @@ class Test_copy_var():
 
 
 class Test_copy_ugrid():
-    dst_filename = "test.nc"
+    dst_filename = Path("test.nc")
     
     @pytest.fixture
     def setup_data(self):
@@ -263,14 +264,12 @@ class Test_copy_ugrid():
         Foreach test clean up after test is run
         """        
         yield
-        
-        print("Trying to remove created NetCDF file 'test.nc'.")
-        if os.path.exists(self.dst_filename):            
-            try:
-                os.remove(self.dst_filename)
-                print("NetCDF file 'test.nc' removed successfully.")
-            except Exception as e:
-                print("Failed to remove created NetCDF file 'test.nc'. Exception thrown : "+ str(e))        
+                 
+        try:
+            self.dst_filename.unlink(missing_ok=True)
+            print("NetCDF file 'test.nc' removed successfully.")
+        except Exception as e:
+            print("Failed to remove created NetCDF file 'test.nc'. Exception thrown : "+ str(e))        
 
     def test_copy_ugrid_01(self, setup_data):
         """
