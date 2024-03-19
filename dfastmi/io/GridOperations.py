@@ -220,7 +220,7 @@ class GridOperations:
 
 
     @staticmethod
-    def _copy_var(src: nc.Dataset, varname: str, dst: nc.Dataset) -> None:
+    def _copy_var(source_dataset: nc.Dataset, var_name: str, target_dataset: nc.Dataset) -> None:
         """
         Copy a single variable from one netCDF file to another.
 
@@ -229,30 +229,30 @@ class GridOperations:
 
         Arguments
         ---------
-        src : netCDF4.Dataset
+        source_dataset : netCDF4.Dataset
             Dataset object representing the source file.
-        varname : str
+        var_name : str
             Name of the netCDF variable to be copied from source to destination.
-        dst : netCDF4.Dataset
+        target_dataset : netCDF4.Dataset
             Dataset object representing the destination file.
         """
         # locate the variable to be copied
-        srcvar = src.variables[varname]
+        variable = source_dataset.variables[var_name]
 
         # copy dimensions
-        for name in srcvar.dimensions:
-            dimension = src.dimensions[name]
-            if name not in dst.dimensions.keys():
-                dst.createDimension(
-                    name, (len(dimension) if not dimension.isunlimited() else None)
+        for dim_name in variable.dimensions:
+            dimension = source_dataset.dimensions[dim_name]
+            if dim_name not in target_dataset.dimensions.keys():
+                target_dataset.createDimension(
+                    dim_name, (len(dimension) if not dimension.isunlimited() else None)
                 )
 
         # copy variable
-        dstvar = dst.createVariable(varname, srcvar.datatype, srcvar.dimensions)
+        variable_copy = target_dataset.createVariable(var_name, variable.datatype, variable.dimensions)
 
         # copy variable attributes all at once via dictionary
-        dstvar.setncatts(srcvar.__dict__)
-        dstvar[:] = srcvar[:]
+        variable_copy.setncatts(variable.__dict__)
+        variable_copy[:] = variable[:]
 
     def copy_ugrid(self, target_file: Path) -> None:
         """
