@@ -293,18 +293,18 @@ class GridOperations:
             Path to the target file.
         """
         # open source and destination files
-        src = nc.Dataset(self._map_file)
+        source_dataset = nc.Dataset(self._map_file)
         
         target_file.unlink(missing_ok=True)
 
-        dst = nc.Dataset(target_file, "w", format="NETCDF4")
+        target_dataset = nc.Dataset(target_file, "w", format="NETCDF4")
 
         # locate source mesh
-        mesh = src.variables[self.mesh2d_name]
+        mesh_variable = source_dataset.variables[self.mesh2d_name]
 
         # copy mesh variable
-        GridOperations._copy_var(src, self.mesh2d_name, dst)
-        atts = [
+        GridOperations._copy_var(source_dataset, self.mesh2d_name, target_dataset)
+        mesh_attrs = [
             "face_node_connectivity",
             "edge_node_connectivity",
             "edge_face_connectivity",
@@ -312,28 +312,28 @@ class GridOperations:
             "edge_coordinates",
             "node_coordinates",
         ]
-        for att in atts:
+        for mesh_attr in mesh_attrs:
             try:
-                varlist = mesh.getncattr(att).split()
+                var_names = mesh_variable.getncattr(mesh_attr).split()
             except:
-                varlist = []
-            for varname in varlist:
-                GridOperations._copy_var(src, varname, dst)
+                var_names = []
+            for var_name in var_names:
+                GridOperations._copy_var(source_dataset, var_name, target_dataset)
 
                 # check if variable has bounds attribute, if so copy those as well
-                var = src.variables[varname]
-                atts2 = ["bounds"]
-                for att2 in atts2:
+                variable = source_dataset.variables[var_name]
+                bounds_attrs = ["bounds"]
+                for bounds_attr in bounds_attrs:
                     try:
-                        varlist2 = var.getncattr(att2).split()
+                        bounds_var_names = variable.getncattr(bounds_attr).split()
                     except:
-                        varlist2 = []
-                    for varname2 in varlist2:
-                        GridOperations._copy_var(src, varname2, dst)
+                        bounds_var_names = []
+                    for bounds_var_name in bounds_var_names:
+                        GridOperations._copy_var(source_dataset, bounds_var_name, target_dataset)
 
         # close files
-        src.close()
-        dst.close()
+        source_dataset.close()
+        target_dataset.close()
 
     def add_variable(
         self,
