@@ -78,17 +78,17 @@ class GridOperations:
             If not all the faces have the same number of nodes, a boolean mask is provided with shape (N,M) 
             where each True value indicates a fill value.
         """
-        rootgrp = nc.Dataset(self._map_file)
-        mesh2d = self._get_mesh2d_variable(rootgrp)
+        with nc.Dataset(self._map_file) as rootgrp:
+            mesh2d = self._get_mesh2d_variable(rootgrp)
 
-        start_index = 0
-        varname = mesh2d.getncattr("face_node_connectivity")
-        var = rootgrp.variables[varname]
-        if "start_index" in var.ncattrs():
-            start_index = var.getncattr("start_index")
+            start_index = 0
+            varname = mesh2d.getncattr("face_node_connectivity")
+            var = rootgrp.variables[varname]
+            if "start_index" in var.ncattrs():
+                start_index = var.getncattr("start_index")
 
-        data = var[...] - start_index
-        rootgrp.close()
+            data = var[...] - start_index
+
         return data
     
     def read_face_variable(self, 
@@ -121,48 +121,47 @@ class GridOperations:
             time dependent).
         """
         # open file
-        rootgrp = nc.Dataset(self._map_file)
-        location = "face"
+        with nc.Dataset(self._map_file) as rootgrp:
+            location = "face"
 
-        # locate 2d mesh variable
-        mesh2d = self._get_mesh2d_variable(rootgrp)
-        meshname = mesh2d.name
+            # locate 2d mesh variable
+            mesh2d = self._get_mesh2d_variable(rootgrp)
+            meshname = mesh2d.name
 
-        # find any other variable by standard_name or long_name
-        var = rootgrp.get_variables_by_attributes(
-            standard_name=varname, mesh=meshname, location=location
-        )
-        if len(var) == 0:
+            # find any other variable by standard_name or long_name
             var = rootgrp.get_variables_by_attributes(
-                long_name=varname, mesh=meshname, location=location
+                standard_name=varname, mesh=meshname, location=location
             )
-        if len(var) != 1:
-            raise Exception(
-                'Expected one variable for "{}", but obtained {}.'.format(
-                    varname, len(var)
+            if len(var) == 0:
+                var = rootgrp.get_variables_by_attributes(
+                    long_name=varname, mesh=meshname, location=location
                 )
-            )
-        var = var[0]
-
-        if var.get_dims()[0].isunlimited():
-            # assume that time dimension is unlimited and is the first dimension
-            # slice to obtain last time step or earlier as requested
-            if ifld is None:
-                data = var[-1, :]
-            else:
-                data = var[-1 - ifld, :]
-        else:
-            if not ifld is None:
+            if len(var) != 1:
                 raise Exception(
-                    'Trying to access time-independent variable "{}" with time offset {}.'.format(
-                        varname, -1 - ifld
+                    'Expected one variable for "{}", but obtained {}.'.format(
+                        varname, len(var)
                     )
                 )
+            var = var[0]
 
-            data = var[...]
+            if var.get_dims()[0].isunlimited():
+                # assume that time dimension is unlimited and is the first dimension
+                # slice to obtain last time step or earlier as requested
+                if ifld is None:
+                    data = var[-1, :]
+                else:
+                    data = var[-1 - ifld, :]
+            else:
+                if not ifld is None:
+                    raise Exception(
+                        'Trying to access time-independent variable "{}" with time offset {}.'.format(
+                            varname, -1 - ifld
+                        )
+                    )
 
-        # close file
-        rootgrp.close()
+                data = var[...]
+
+
 
         # return data
         return data
@@ -177,10 +176,9 @@ class GridOperations:
             String containing the name of the mesh2d variable.
         """
         if not self._mesh2d_name:
-            rootgrp = nc.Dataset(self._map_file)
-            mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
-            self._mesh2d_name = mesh2d.name
-            rootgrp.close()     
+            with nc.Dataset(self._map_file) as rootgrp:
+                mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+                self._mesh2d_name = mesh2d.name    
  
         return self._mesh2d_name
 
@@ -194,12 +192,11 @@ class GridOperations:
             String containing the name of the face dimension.
         """
         if not self._face_dimension_name:
-            rootgrp = nc.Dataset(self._map_file)
-            mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
-            facenodeconnect_varname = mesh2d.face_node_connectivity
-            fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
-            self._face_dimension_name = fnc.dimensions[0]
-            rootgrp.close()    
+            with nc.Dataset(self._map_file) as rootgrp:
+                mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+                facenodeconnect_varname = mesh2d.face_node_connectivity
+                fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
+                self._face_dimension_name = fnc.dimensions[0]
             
         return self._face_dimension_name
     
@@ -266,38 +263,35 @@ class GridOperations:
         target_file : Path
             Path to the target file.
         """
-        # open source and destination files
-        source_dataset = nc.Dataset(self._map_file)
         target_file.unlink(missing_ok=True)
-        target_dataset = nc.Dataset(target_file, "w", format="NETCDF4")
+        
+        with nc.Dataset(self._map_file) as source_dataset:
+            with nc.Dataset(target_file, "w", format="NETCDF4") as target_dataset:
 
-        mesh_variable = source_dataset.variables[self.mesh2d_name]
+                mesh_variable = source_dataset.variables[self.mesh2d_name]
 
-        GridOperations._copy_var(source_dataset, self.mesh2d_name, target_dataset)
-        mesh_attrs = [
-            "face_node_connectivity",
-            "edge_node_connectivity",
-            "edge_face_connectivity",
-            "face_coordinates",
-            "edge_coordinates",
-            "node_coordinates",
-        ]
-        for mesh_attr in mesh_attrs:
-            var_names = GridOperations._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
-            for var_name in var_names:
-                GridOperations._copy_var(source_dataset, var_name, target_dataset)
-
-                # check if variable has bounds attribute, if so copy those as well
-                variable = source_dataset.variables[var_name]
+                GridOperations._copy_var(source_dataset, self.mesh2d_name, target_dataset)
                 
-                bounds_attr = "bounds"
-                bounds_var_names = GridOperations._get_var_names_from_var_attribute(variable, bounds_attr)
-                for bounds_var_name in bounds_var_names:
-                    GridOperations._copy_var(source_dataset, bounds_var_name, target_dataset)
+                mesh_attrs = [
+                    "face_node_connectivity",
+                    "edge_node_connectivity",
+                    "edge_face_connectivity",
+                    "face_coordinates",
+                    "edge_coordinates",
+                    "node_coordinates",
+                ]
+                for mesh_attr in mesh_attrs:
+                    var_names = GridOperations._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
+                    for var_name in var_names:
+                        GridOperations._copy_var(source_dataset, var_name, target_dataset)
 
-        # close files
-        source_dataset.close()
-        target_dataset.close()
+                        # check if variable has bounds attribute, if so copy those as well
+                        variable = source_dataset.variables[var_name]
+
+                        bounds_attr = "bounds"
+                        bounds_var_names = GridOperations._get_var_names_from_var_attribute(variable, bounds_attr)
+                        for bounds_var_name in bounds_var_names:
+                            GridOperations._copy_var(source_dataset, bounds_var_name, target_dataset)
 
     @staticmethod
     def _get_var_names_from_var_attribute(variable: nc.Variable, attr_name: str) -> List[str]:
@@ -336,30 +330,29 @@ class GridOperations:
         unit : str
             String indicating the unit ("None" if no unit attribute should be written).
         """
-        dst = nc.Dataset(self._map_file, "a")
+        with nc.Dataset(self._map_file, "a") as dst:
 
-        var = dst.createVariable(variable_name, "f8", (face_dimension_name,))
-        
-        var.mesh = mesh_name
-        var.location = "face"
-        var.long_name = long_name
-        var.units = unit
-        var[:] = data[:]
+            var = dst.createVariable(variable_name, "f8", (face_dimension_name,))
 
-        dst.close()
+            var.mesh = mesh_name
+            var.location = "face"
+            var.long_name = long_name
+            var.units = unit
+            var[:] = data[:]
+
         
     def _get_node_coordinate_data(self, standard_names: List[str]) -> numpy.ndarray:
         # open file
-        rootgrp = nc.Dataset(self._map_file)
-        mesh2d = self._get_mesh2d_variable(rootgrp)
+        with nc.Dataset(self._map_file) as rootgrp:
+            mesh2d = self._get_mesh2d_variable(rootgrp)
+    
+            crdnames = mesh2d.getncattr("node_coordinates").split()
+            for n in crdnames:
+                stdname = rootgrp.variables[n].standard_name
+                if stdname in standard_names:
+                    var = rootgrp.variables[n]
+                    break
+                
+            data = var[...]
 
-        crdnames = mesh2d.getncattr("node_coordinates").split()
-        for n in crdnames:
-            stdname = rootgrp.variables[n].standard_name
-            if stdname in standard_names:
-                var = rootgrp.variables[n]
-                break
-
-        data = var[...]
-        rootgrp.close()
         return data
