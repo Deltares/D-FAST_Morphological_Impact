@@ -638,7 +638,7 @@ def menu_open_manual():
     None
     """
     progloc = get_progloc()
-    filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
+    filename = progloc.joinpath("dfastmi_usermanual.pdf")
     subprocess.Popen(filename, shell=True)
 
 

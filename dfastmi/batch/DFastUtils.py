@@ -26,7 +26,8 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import pathlib
+from pathlib import Path
+import dfastmi
 from typing import List, Tuple
 import math
 import numpy
@@ -134,7 +135,7 @@ def _get_km_bins(km_bin: Tuple[float, float, float], type_characteristic_chainag
 
     return km
 
-def get_progloc() -> str:
+def get_progloc() -> Path:
     """
     Get the location of the program.
 
@@ -142,6 +143,6 @@ def get_progloc() -> str:
     ---------
     None
     """
-    import dfastmi
-    progloc = dfastmi.__path__[0]
+    
+    progloc = Path(dfastmi.__path__[0])
     return progloc

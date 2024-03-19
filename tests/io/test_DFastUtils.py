@@ -6,4 +6,4 @@ class TestGetProgloc():
         """
         Get the location of the program.
         """
-        assert get_progloc().endswith("dfastmi")
+        assert str(get_progloc()).endswith("dfastmi")

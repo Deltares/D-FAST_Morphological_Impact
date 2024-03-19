@@ -67,7 +67,7 @@ def run(
     progloc = get_progloc()
     try:
         ApplicationSettingsHelper.load_program_texts(
-            progloc + os.path.sep + "messages." + language + ".ini"
+            progloc.joinpath("messages." + language + ".ini")
         )
     except:
         if language == "NL":
