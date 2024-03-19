@@ -28,7 +28,7 @@ class Test_data_access_read_variable():
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "sea_floor_depth_below_sea_surface"
         map_file = GridOperations(filename)
-        datac = map_file.read_variable(varname)
+        datac = map_file.read_face_variable(varname)
         dataref = 3.894498393076889
         assert datac[1] == dataref
 
@@ -39,7 +39,7 @@ class Test_data_access_read_variable():
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "Water level"
         map_file = GridOperations(filename)
-        datac = map_file.read_variable(varname)
+        datac = map_file.read_face_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
 
@@ -51,7 +51,7 @@ class Test_data_access_read_variable():
         varname = "water level"
         with pytest.raises(Exception) as cm:
             map_file = GridOperations(filename)
-            datac = map_file.read_variable(varname)
+            datac = map_file.read_face_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
     def test_read_variable_07(self):
@@ -62,7 +62,7 @@ class Test_data_access_read_variable():
         varname = "water level"
         with pytest.raises(Exception) as cm:
             map_file = GridOperations(filename)
-            datac = map_file.read_variable(varname)
+            datac = map_file.read_face_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
 class TestReadGridGeometryFromMapFile():
@@ -168,7 +168,7 @@ class Test_ugrid_add():
         map_file = GridOperations(self.dst_filename)        
         map_file.add_variable(varname, ldata, meshname, facedim, long_name, unit)
         #
-        datac = map_file.read_variable(long_name)
+        datac = map_file.read_face_variable(long_name)
         assert datac[1] == ldata[1]
 
     def test_ugrid_add_02(self, setup_data):
@@ -250,7 +250,7 @@ class Test_copy_var():
         #                
         varname = "sea_surface_height"
         map_file = GridOperations(self.dst_filename)
-        datac = map_file.read_variable(varname)
+        datac = map_file.read_face_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
 

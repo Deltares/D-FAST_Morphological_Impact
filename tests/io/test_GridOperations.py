@@ -32,7 +32,7 @@ class Test_read_variable():
             netCDF4Dataset.get_variables_by_attributes.return_value = ['2dMesh_1', '2dMesh_2']
             with pytest.raises(Exception) as cm:
                 map_file = GridOperations(filename)
-                map_file.read_variable(varname)
+                map_file.read_face_variable(varname)
             assert str(cm.value) == "Currently only one 2D mesh supported ... this file contains 2 2D meshes."
 
     def test_read_variable_mock_2dmesh_unknown_varname_and_multi_attribute_raises_exception(self):
@@ -53,7 +53,7 @@ class Test_read_variable():
                 ]]
             with pytest.raises(Exception) as cm:
                 map_file = GridOperations(filename)
-                map_file.read_variable(varname)
+                map_file.read_face_variable(varname)
             assert str(cm.value) == 'Expected one variable for "naam", but obtained 2.'
 
     def test_read_variable_mock_2dmesh_reading_var_without_unlimited_times_with_custom_offset_raises_exception(self):
@@ -73,7 +73,7 @@ class Test_read_variable():
             var.get_dims.return_value = [dim]
             with pytest.raises(Exception) as cm:
                 map_file = GridOperations(filename)
-                map_file.read_variable(varname, ifld=8)
+                map_file.read_face_variable(varname, ifld=8)
             assert str(cm.value) == 'Trying to access time-independent variable "naam" with time offset -9.'
 
     def test_read_variable_mock_2dmesh_get_double_var(self):
@@ -92,7 +92,7 @@ class Test_read_variable():
             dim.isunlimited.return_value = True
             mock_variable.get_dims.return_value = [dim]
             map_file = GridOperations(filename)
-            data = map_file.read_variable(varname)
+            data = map_file.read_face_variable(varname)
             assert numpy.array_equal(data, numpy.array([801,802]))
 
     def test_read_variable_instantiate_dataset_in_memory_get_last_double_var(self):
@@ -120,7 +120,7 @@ class Test_read_variable():
             with mock.patch('netCDF4.Dataset') as mock_nc_dataset:
                 mock_nc_dataset.return_value = nc_file
                 map_file = GridOperations(map_file="mock.nc")
-                data = map_file.read_variable(varname="discharge")
+                data = map_file.read_face_variable(varname="discharge")
                 assert numpy.array_equal(data, [214,588])
 
     def test_read_variable_instantiate_dataset_in_memory_get_indexed_double_var(self):
@@ -148,7 +148,7 @@ class Test_read_variable():
             with mock.patch('netCDF4.Dataset') as mock_nc_dataset:
                 mock_nc_dataset.return_value = nc_file
                 map_file = GridOperations(map_file="mock.nc")
-                data = map_file.read_variable(varname="discharge", ifld=2)
+                data = map_file.read_face_variable(varname="discharge", ifld=2)
                 assert numpy.array_equal(data, [27,76])
 
     def test_read_variable_from_mocked_dataset_x_coordinates_of_faces_by_projection_x_coordinate(self):

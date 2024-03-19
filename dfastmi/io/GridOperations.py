@@ -26,25 +26,11 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from enum import Enum
 from pathlib import Path
 from typing import Optional
-import os
 import numpy
 import numpy.ma as ma
 import netCDF4 as nc
-
-class Location(str, Enum):
-    """Class defining the various locations of a grid on which data can be defined."""
-    
-    FACE = "face"
-    """Data is defined on the grid's cell faces."""
-    
-    EDGE = "edge"
-    """Data is defined on the grid's cell edges."""
-    
-    NODE = "node"
-    """Data is defined on the grid's cell nodes."""
     
 class GridOperations:
     def __init__(self, map_file: Path):
@@ -131,9 +117,8 @@ class GridOperations:
         rootgrp.close()
         return data
     
-    def read_variable(self, 
+    def read_face_variable(self, 
                       varname: str, 
-                      location: Location = Location.FACE,
                       ifld: Optional[int] = None,
     ) -> numpy.ndarray:
         """
@@ -163,6 +148,7 @@ class GridOperations:
         """
         # open file
         rootgrp = nc.Dataset(self._map_file)
+        location = "face"
 
         # locate 2d mesh variable
         mesh2d = self._get_mesh2d_variable(rootgrp)
