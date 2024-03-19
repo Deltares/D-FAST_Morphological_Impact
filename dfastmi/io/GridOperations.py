@@ -54,20 +54,7 @@ class GridOperations:
         numpy.ndarray
             Array with shape (N,) where N is the number of nodes.
         """
-        # open file
-        rootgrp = nc.Dataset(self._map_file)
-        mesh2d = self._get_mesh2d_variable(rootgrp)
-
-        crdnames = mesh2d.getncattr("node_coordinates").split()
-        for n in crdnames:
-            stdname = rootgrp.variables[n].standard_name
-            if stdname == "projection_x_coordinate" or stdname == "longitude":
-                var = rootgrp.variables[n]
-                break
-
-        data = var[...]
-        rootgrp.close()
-        return data
+        return self._get_node_coordinate_data(["projection_x_coordinate", "longitude"])
     
     @property
     def node_y_coordinates(self) -> numpy.ndarray:
@@ -78,21 +65,8 @@ class GridOperations:
         numpy.ndarray
             Array with shape (N,) where N is the number of nodes.
         """
-        # open file
-        rootgrp = nc.Dataset(self._map_file)
-        mesh2d = self._get_mesh2d_variable(rootgrp)
-
-        crdnames = mesh2d.getncattr("node_coordinates").split()
-        for n in crdnames:
-            stdname = rootgrp.variables[n].standard_name
-            if stdname == "projection_y_coordinate" or stdname == "latitude":
-                var = rootgrp.variables[n]
-                break
-
-        data = var[...]
-        rootgrp.close()
-        return data
-
+        return self._get_node_coordinate_data(["projection_y_coordinate", "latitude"])
+    
     @property
     def face_node_connectivity(self)-> ma.masked_array:
         """Get the face-node connectivity from the 2d mesh.
@@ -373,3 +347,19 @@ class GridOperations:
         var[:] = data[:]
 
         dst.close()
+        
+    def _get_node_coordinate_data(self, standard_names: List[str]) -> numpy.ndarray:
+        # open file
+        rootgrp = nc.Dataset(self._map_file)
+        mesh2d = self._get_mesh2d_variable(rootgrp)
+
+        crdnames = mesh2d.getncattr("node_coordinates").split()
+        for n in crdnames:
+            stdname = rootgrp.variables[n].standard_name
+            if stdname in standard_names:
+                var = rootgrp.variables[n]
+                break
+
+        data = var[...]
+        rootgrp.close()
+        return data
