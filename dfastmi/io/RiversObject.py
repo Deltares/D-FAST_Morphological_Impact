@@ -48,7 +48,7 @@ class RiversObject():
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)
     
-    def get_branch(self, branch_name : str) -> IBranch:
+    def get_branch(self, branch_name : str) -> Branch:
         """
         Return the branch from the read branches list
         Arguments
