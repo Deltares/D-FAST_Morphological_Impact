@@ -142,5 +142,6 @@ def get_progloc() -> str:
     ---------
     None
     """
-    progloc = str(pathlib.Path(__file__).parent.parent.absolute())
+    import dfastmi
+    progloc = dfastmi.__path__[0]
     return progloc
