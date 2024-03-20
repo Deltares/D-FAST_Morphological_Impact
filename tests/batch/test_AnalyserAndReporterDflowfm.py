@@ -59,7 +59,7 @@ class Test_analyse_and_report_dflowfm_mode():
         self.plotops['saveplot'] = True
         self.plotops['saveplot_zoomed'] = True
         self.plotops['figdir'] = tmp_path
-        self.plotops['plot_ext'] = "plot_ext"
+        self.plotops['plot_ext'] = ".png"
         
         random_list: List[Tuple[float, float, float, float]] = [
             (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]

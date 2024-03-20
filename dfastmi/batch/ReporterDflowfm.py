@@ -178,10 +178,10 @@ class ReporterDflowfm():
                 )
 
             if plotops['saveplot']:
-                figbase = plotops['figdir'] / "overview"
+                figbase = Path(plotops['figdir']) / "overview"
                 if plotops['saveplot_zoomed']:
                     zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
-                figfile = figbase / plotops['plot_ext']
+                figfile = figbase.with_suffix(plotops['plot_ext'])
                 savefig(fig, figfile)
 
     def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):
