@@ -27,18 +27,48 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Tuple
+from typing import Dict, Tuple
 
 import numpy
 from dfastmi.batch.report_areas import report_areas
 
-def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, pos_up, plot_n):
+def detect_and_plot_areas(dzgemi : numpy.ndarray,
+                          dzmin : float,
+                          EFCi : numpy.ndarray,
+                          wght_area_tot : numpy.ndarray,
+                          areai : numpy.ndarray,
+                          wbin : numpy.ndarray,
+                          wbin_labels : list[str],
+                          wthresh : numpy.ndarray,
+                          siface : numpy.ndarray,
+                          afrac : numpy.ndarray,
+                          sbin : numpy.ndarray,
+                          sthresh : numpy.ndarray,
+                          kmid : numpy.ndarray,
+                          slength : float,
+                          plotops : Dict,
+                          xyzfil : str,
+                          area_str : str,
+                          total_str : str,
+                          pos_up : bool,
+                          plot_n : int) -> Tuple[numpy.ndarray, numpy.ndarray, list, numpy.ndarray]:
     sbin_length = sthresh[1] - sthresh[0]
-    area, volume, sub_area_list, wght_area_tot = detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
+    area, volume, sub_area_list, wght_area_tot = _detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
     report_areas(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, xyzfil, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list)
     return area, volume, sub_area_list, wght_area_tot
 
-def detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength):
+def _detect_areas(dzgemi : numpy.ndarray,
+                  dzmin : float,
+                  EFCi : numpy.ndarray,
+                  wght_area_tot : numpy.ndarray,
+                  areai : numpy.ndarray,
+                  wbin : numpy.ndarray,
+                  wthresh : numpy.ndarray,
+                  siface : numpy.ndarray,
+                  afrac : numpy.ndarray,
+                  sbin : numpy.ndarray,
+                  sthresh : numpy.ndarray,
+                  slength : float) -> Tuple[numpy.ndarray, numpy.ndarray, list, numpy.ndarray]:
     sbin_length = sthresh[1] - sthresh[0]
     nwidth = wthresh[-1] - wthresh[0]
     sub_areai, n_sub_areas = detect_connected_regions(dzgemi > dzmin, EFCi)
@@ -76,7 +106,7 @@ def comp_sedimentation_volume1(
     wthresh: numpy.ndarray,
     slength: float,
     sbin_length: float,
-) -> float:
+) -> Tuple[float, numpy.ndarray]:
     """
     Compute the initial year sedimentation volume.
     Algorithm 1.
@@ -138,7 +168,7 @@ def comp_sedimentation_volume1_one_width_bin(
     siface: numpy.ndarray,
     sbin_length: float,
     slength: float,
-) -> float:
+) -> Tuple[float, numpy.ndarray]:
     """
     Compute the initial year sedimentation volume.
     Algorithm 1.
@@ -172,7 +202,7 @@ def comp_sedimentation_volume1_tot(
     siface: numpy.ndarray,
     sbin_length: float,
     slength: float,
-) -> float:
+) -> Tuple[float, numpy.ndarray]:
     """
     Compute the initial year sedimentation volume.
     Algorithm 1.
@@ -221,7 +251,7 @@ def comp_sedimentation_volume2(
     area: numpy.ndarray,
     slength: float,
     nwidth: float,
-) -> float:
+) -> Tuple[float, float, float]:
     """
     Compute the initial year sedimentation volume.
     Algorithm 2.

@@ -1,15 +1,34 @@
-from typing import List
+from typing import Dict, List
+import matplotlib
 import numpy
 import os
 from dfastmi.plotting import plot_sedimentation, zoom_x_and_save, savefig
 
 
-def report_areas(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, xyzfil, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list):
-    binvol = comp_binned_volumes(numpy.maximum( dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh)
-    write_xyz_file(wbin_labels, kmid, xyzfil, binvol)
-    plot_data(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list, binvol)
+def report_areas(dzgemi : numpy.ndarray,
+                 areai : numpy.ndarray,
+                 wbin : numpy.ndarray,
+                 wbin_labels : list[str],
+                 wthresh : numpy.ndarray,
+                 siface : numpy.ndarray,
+                 afrac : numpy.ndarray,
+                 sbin : numpy.ndarray,
+                 sthresh : numpy.ndarray,
+                 kmid : numpy.ndarray,
+                 plotops : Dict,
+                 xyzfil : str,
+                 area_str : str,
+                 total_str : str,
+                 pos_up : bool,
+                 plot_n : int,
+                 sbin_length : float,
+                 volume : numpy.ndarray,
+                 sub_area_list : list):
+    binvol = _comp_binned_volumes(numpy.maximum( dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh)
+    _write_xyz_file(wbin_labels, kmid, xyzfil, binvol)
+    _plot_data(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list, binvol)
 
-def write_xyz_file(wbin_labels, kmid, xyzfil, binvol):
+def _write_xyz_file(wbin_labels : list[str], kmid : numpy.ndarray, xyzfil : str, binvol : List[numpy.ndarray]):
     if xyzfil != "":
         # write a table of chainage and volume per width bin to file
         binvol2 = numpy.stack(binvol)
@@ -20,7 +39,25 @@ def write_xyz_file(wbin_labels, kmid, xyzfil, binvol):
                 vol_str = " ".join("{:8.2f}".format(j) for j in binvol2[:,i])
                 file.write("{:8.2f} ".format(kmid[i]) + vol_str + "\n")
     
-def plot_data(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list, binvol):
+def _plot_data(dzgemi : numpy.ndarray,
+               areai : numpy.ndarray,
+               wbin : numpy.ndarray,
+               wbin_labels : list[str],
+               wthresh : numpy.ndarray,
+               siface : numpy.ndarray,
+               afrac : numpy.ndarray,
+               sbin : numpy.ndarray,
+               sthresh : numpy.ndarray,
+               kmid : numpy.ndarray,
+               plotops : Dict,
+               area_str : str,
+               total_str : str,
+               pos_up : bool,
+               plot_n : int,
+               sbin_length : float,
+               volume : numpy.ndarray,
+               sub_area_list : list,
+               binvol : List[numpy.ndarray]):
     if plotops['plotting']:
         fig, ax = plot_sedimentation(
             kmid,
@@ -33,7 +70,7 @@ def plot_data(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, st
         )
 
         figure_base_name = total_str.replace(" ","_")
-        save_figure(plotops, fig, ax, figure_base_name)
+        _save_figure(plotops, fig, ax, figure_base_name)
 
         if plot_n > 0:
             # plot the figures with details for the N areas with largest volumes
@@ -43,24 +80,38 @@ def plot_data(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, st
                 vol_thresh = 0.0
             else:
                 vol_thresh = volume_mean[sorted_list[plot_n]]
-            plot_certain_areas(volume_mean > vol_thresh,  dzgemi, sub_area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops)
+            _plot_certain_areas(volume_mean > vol_thresh,  dzgemi, sub_area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops)
 
-def save_figure(plotops, figure, axes, figure_base_name):
+def _save_figure(plotops : Dict, figure : matplotlib.figure.Figure, axes : matplotlib.axes.Axes, figure_base_name : str):
     if plotops['saveplot']:
             figbase = plotops['figdir'] + os.sep + figure_base_name
             if plotops['saveplot_zoomed']:
                 zoom_x_and_save(figure, axes, figbase, plotops['plot_ext'], plotops['kmzoom'])
             figfile = figbase + plotops['plot_ext']
-            savefig(figure, figfile)     
+            savefig(figure, figfile)
 
-def plot_certain_areas(condition, dzgemi, area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops):
+def _plot_certain_areas(condition : bool,
+                        dzgemi : numpy.ndarray,
+                        area_list : list,
+                        areai : numpy.ndarray,
+                        wbin : numpy.ndarray,
+                        wbin_labels : list[str],
+                        siface : numpy.ndarray,
+                        afrac : numpy.ndarray,
+                        sbin : numpy.ndarray,
+                        wthresh : numpy.ndarray,
+                        sthresh : numpy.ndarray,
+                        kmid : numpy.ndarray,
+                        area_str : str,
+                        pos_up : bool,
+                        plotops : Dict):
     indices = numpy.where(condition)[0]
     sbin_length = sthresh[1] - sthresh[0]
     for ia in indices:
         dzgemi_filtered = dzgemi.copy()
         dzgemi_filtered[numpy.invert(area_list[ia])] = 0.0
         
-        area_binvol = comp_binned_volumes(dzgemi_filtered, areai, wbin, siface, afrac, sbin, wthresh, sthresh)
+        area_binvol = _comp_binned_volumes(dzgemi_filtered, areai, wbin, siface, afrac, sbin, wthresh, sthresh)
         
         fig, ax = plot_sedimentation(
             kmid,
@@ -73,9 +124,9 @@ def plot_certain_areas(condition, dzgemi, area_list, areai, wbin, wbin_labels, s
         )
             
         figure_base_name = area_str.replace(" ","_").format(ia+1) + "_volumes"
-        save_figure(plotops, fig, ax, figure_base_name)
+        _save_figure(plotops, fig, ax, figure_base_name)
         
-def comp_binned_volumes(
+def _comp_binned_volumes(
     dzgem: numpy.ndarray,
     area: numpy.ndarray,
     wbin: numpy.ndarray,
