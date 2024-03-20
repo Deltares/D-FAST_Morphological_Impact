@@ -6,9 +6,7 @@ from dfastmi.plotting import plot_sedimentation, zoom_x_and_save, savefig
 
 def report_areas(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, xyzfil, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list):
     binvol = comp_binned_volumes(numpy.maximum( dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh)
-
     write_xyz_file(wbin_labels, kmid, xyzfil, binvol)
-
     plot_data(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotops, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list, binvol)
 
 def write_xyz_file(wbin_labels, kmid, xyzfil, binvol):
