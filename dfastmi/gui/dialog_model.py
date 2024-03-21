@@ -57,7 +57,12 @@ class DialogModel:
     
         self.section = self.config["General"]
 
-    def run_analysis(self, config: ConfigParser, branch: Branch, reach:AReach) -> bool:
+    def check_configuration(self, branch : Branch, reach: AReach) -> bool :
+        config = self.get_configuration(branch, reach)
+        return check_configuration(self.rivers, config)
+    
+
+    def run_analysis(self) -> bool:
         # Logic to run analysis based on configuration
         """
         Run the D-FAST Morphological Impact analysis based on settings in the GUI.
@@ -66,23 +71,11 @@ class DialogModel:
         ---------
         None
         """
-        config = self.get_configuration(branch, reach)
-        if check_configuration(self.rivers, config):
-            try:
-                success = dfastmi.batch.core.batch_mode_core(self.rivers, False, config)
-            except:
-                success = False
-            report = ApplicationSettingsHelper.get_filename("report.out")
-            if success:
-                #showMessage(gui_text("end_of_analysis", dict={"report": report},))
-                True
-            else:
-                False
-                #showError(gui_text("error_during_analysis", dict={"report": report},))
-        else:
-            False
-            #showError(gui_text("analysis_config_incomplete",))
-
+        try:
+            success = dfastmi.batch.core.batch_mode_core(self.rivers, False, self.config)
+        except:
+            success = False
+        return success
     
     
     def get_configuration(self, branch : Branch, reach: AReach) -> ConfigParser:
@@ -104,13 +97,13 @@ class DialogModel:
         config["General"]["Version"] = "2.0"
         config["General"]["Branch"] = branch.name
         config["General"]["Reach"] = reach.name
-        config["General"]["Qthreshold"] = reach.qstagnant
-        config["General"]["Ucrit"] = reach.ucritical
-        # config["General"]["OutputDir"] = dialog["outputDir"].text()
-        # config["General"]["Plotting"] = str(dialog["makePlotsEdit"].isChecked())
-        # config["General"]["SavePlots"] = str(dialog["savePlotsEdit"].isChecked())
-        # config["General"]["FigureDir"] = dialog["figureDirEdit"].text()
-        # config["General"]["ClosePlots"] = str(dialog["closePlotsEdit"].isChecked())
+        config["General"]["Qthreshold"] = str(reach.qstagnant)
+        config["General"]["Ucrit"] = str(reach.ucritical)
+        config["General"]["OutputDir"] = self.section["OutputDir"] if self.section and self.section["OutputDir"] else ""
+        config["General"]["Plotting"] = self.section["Plotting"] if self.section and self.section["Plotting"] else "False"
+        config["General"]["SavePlots"] = self.section["SavePlots"] if self.section and self.section["SavePlots"] else "False"
+        config["General"]["FigureDir"] = self.section["FigureDir"] if self.section and self.section["FigureDir"] else ""
+        config["General"]["ClosePlots"] = self.section["ClosePlots"] if self.section and self.section["ClosePlots"] else "False"
 
         # loop over conditions cond = "C1", "C2", ...
         hydro_q = reach.hydro_q
@@ -118,6 +111,9 @@ class DialogModel:
             cond = "C{}".format(i+1)
             config.add_section(cond)
             prefix = str(i)+"_"
+            config[cond]["Discharge"] = str(hydro_q[i])
+            config[cond]["Reference"] = ""
+            config[cond]["WithMeasure"] = ""
             #config[cond]["Discharge"] = dialog[prefix+"qval"].text()
             #config[cond]["Reference"] = dialog[prefix+"file1"].text()
             #config[cond]["WithMeasure"] = dialog[prefix+"file2"].text()

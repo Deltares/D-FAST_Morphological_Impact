@@ -265,6 +265,7 @@ class DialogView:
 
         # get the output directory
         self.output_dir = QtWidgets.QLineEdit(win)
+        self.output_dir.textChanged.connect(self.output_dir_text_changed)
         layout.addRow(self.view_model.gui_text("outputDir"), self.openFileLayout(win, self.output_dir, "output_dir"))
 
         # plotting
@@ -286,6 +287,7 @@ class DialogView:
         self.figure_dir.setEnabled(False)
         self.figure_dir_edit = QtWidgets.QLineEdit(win)
         self.figure_dir_edit.setEnabled(False)
+        self.figure_dir_edit.textChanged.connect(self.figure_dir_text_changed)
         layout.addRow(self.figure_dir, self.openFileLayout(win, self.figure_dir_edit, "figure_dir_edit"))
         #dialog["figureDirEditFile"].setEnabled(False)
 
@@ -295,6 +297,14 @@ class DialogView:
         self.close_plots_edit.setToolTip(self.view_model.gui_text("closePlots_tooltip"))
         self.close_plots_edit.setEnabled(False)
         layout.addRow(self.close_plots, self.close_plots_edit)
+    
+    def output_dir_text_changed(self, text):
+        if text != self.view_model.output_dir:
+            self.view_model.output_dir = text
+    
+    def figure_dir_text_changed(self, text):
+        if text != self.view_model.figure_dir:
+            self.view_model.figure_dir = text
 
     def add_condition_tab(self, prefix: str, discharge:str) -> None:
         """
@@ -344,13 +354,24 @@ class DialogView:
         self._layout.addWidget(button_bar)
 
         run = QtWidgets.QPushButton(self.view_model.gui_text("action_run"), self._win)
-        run.clicked.connect(self.view_model.run_analysis)
+        run.clicked.connect(self.run_analysis)
         button_bar_layout.addWidget(run)
 
         done = QtWidgets.QPushButton(self.view_model.gui_text("action_close"), self._win)
         done.clicked.connect(self.close_dialog)
         button_bar_layout.addWidget(done)
     
+    def run_analysis(self) -> None:
+        if self.view_model.check_configuration():
+            success = self.view_model.run_analysis()
+            
+            if success:
+                self.showMessage(self.view_model.gui_text("end_of_analysis", dict={"report": self.view_model.report},))                
+            else:
+                self.showError(self.view_model.gui_text("error_during_analysis", dict={"report": self.view_model.report},))
+        else:
+            self.showError(self.view_model.gui_text("analysis_config_incomplete",))
+
     def close_dialog(self) -> None:
         """
         Close the dialog and program.
@@ -488,8 +509,10 @@ class DialogView:
         if fil[0] != "":
             if key == "figure_dir_edit":
                 self.figure_dir_edit.setText(fil[0])
+                self.view_model.figure_dir = fil[0]
             elif key == "output_dir":
                 self.output_dir.setText(fil[0])
+                self.view_model.output_dir = fil[0]
             else:
                 self.set_folder_in_tabs(key, fil[0])
     

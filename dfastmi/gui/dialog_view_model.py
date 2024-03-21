@@ -48,6 +48,7 @@ class DialogViewModel(QtCore.QObject):
     plot_flag : bool = False
     save_flag : bool = False
     _output_dir : str = ""
+    _figure_dir : str = ""
     _plotting : bool = False
     _save_plots : bool = False
     _close_plots : bool = False
@@ -91,7 +92,16 @@ class DialogViewModel(QtCore.QObject):
     @output_dir.setter
     def output_dir(self, value):
         self._output_dir = value
-        self.model.section.set("OutputDir", value)
+        self.model.section["OutputDir"] = value
+    
+    @property
+    def figure_dir(self):
+        return self._figure_dir
+    
+    @figure_dir.setter
+    def figure_dir(self, value):
+        self._figure_dir = value
+        self.model.section.set("FigureDir", value)
     
     @property
     def plotting(self):
@@ -133,14 +143,18 @@ class DialogViewModel(QtCore.QObject):
     def get_configuration(self) -> ConfigParser:
          return self.model.get_configuration(self._current_branch, self._current_reach)
 
-    def run_analysis(self, config: ConfigParser) -> None:
-        self.model.run_analysis(config, self._current_branch, self._current_reach)
+    def run_analysis(self) -> None:
+        self.model.run_analysis()
     
     @property
     def manual_filename(self) -> str:
         progloc = FileUtils.get_progloc()
         filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
         return filename
+    
+    @property
+    def report(self) -> str:
+        return ApplicationSettingsHelper.get_filename("report.out")
 
 
     def gui_text(self, key: str, prefix: str = "gui_", dict: Dict[str, Any] = {}):
@@ -282,6 +296,9 @@ class DialogViewModel(QtCore.QObject):
         
         return True
     
+    def check_configuration(self) -> bool :
+        return self.model.check_configuration(self.current_branch, self.current_reach)
+        
     def str_to_bool(self, x: str) -> bool:
         """
         Convert a string to a boolean.
