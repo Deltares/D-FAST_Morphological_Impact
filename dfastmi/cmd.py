@@ -26,8 +26,10 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import pathlib
 import sys
 import os
+from dfastmi.batch.DFastUtils import get_progloc
 import dfastmi.cli
 import dfastmi.gui
 import dfastmi.batch.core
@@ -62,10 +64,10 @@ def run(
         interest only (False is default).
     """
 
-    progloc = FileUtils.get_progloc()
+    progloc = get_progloc()
     try:
         ApplicationSettingsHelper.load_program_texts(
-            progloc + os.path.sep + "messages." + language + ".ini"
+            progloc.joinpath("messages." + language + ".ini")
         )
     except:
         if language == "NL":
@@ -77,7 +79,7 @@ def run(
         else:
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
-        abs_rivers_file = FileUtils.absolute_path(progloc, rivers_file)
+        abs_rivers_file = str(pathlib.Path(progloc).absolute().joinpath(rivers_file))
         rivers = RiversObject(abs_rivers_file)
         if runmode == "BATCH":
             dfastmi.batch.core.batch_mode(configfile, rivers, reduced_output)
