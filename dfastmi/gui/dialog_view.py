@@ -296,6 +296,7 @@ class DialogView:
         self.close_plots_edit = QtWidgets.QCheckBox(win)
         self.close_plots_edit.setToolTip(self.view_model.gui_text("closePlots_tooltip"))
         self.close_plots_edit.setEnabled(False)
+        self.close_plots_edit.stateChanged.connect(self.update_plotting)
         layout.addRow(self.close_plots, self.close_plots_edit)
     
     def output_dir_text_changed(self, text):
@@ -564,17 +565,19 @@ class DialogView:
         ---------
         None
         """
-        self.view_model.plot_flag = self.make_plots_edit.isChecked()
-        self.save_plots.setEnabled(self.view_model.plot_flag)
-        self.save_plots_edit.setEnabled(self.view_model.plot_flag)
+        self.view_model.plotting = self.make_plots_edit.isChecked()
 
-        self.view_model.save_flag = self.save_plots_edit.isChecked() and self.view_model.plot_flag
+        self.save_plots.setEnabled(self.view_model.plotting)
+        self.save_plots_edit.setEnabled(self.view_model.plotting)
 
-        self.figure_dir.setEnabled(self.view_model.save_flag)
-        self.figure_dir_edit.setEnabled(self.view_model.save_flag)
+        self.view_model.save_plots = self.save_plots_edit.isChecked() and self.view_model.plotting
 
-        self.close_plots.setEnabled(self.view_model.plot_flag)
-        self.close_plots_edit.setEnabled(self.view_model.plot_flag)
+        self.figure_dir.setEnabled(self.view_model.save_plots)
+        self.figure_dir_edit.setEnabled(self.view_model.save_plots)
+
+        self.view_model.close_plots = self.close_plots_edit.isChecked()
+        self.close_plots.setEnabled(self.view_model.plotting)
+        self.close_plots_edit.setEnabled(self.view_model.plotting)
 
 # Entry point
 def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) -> None:

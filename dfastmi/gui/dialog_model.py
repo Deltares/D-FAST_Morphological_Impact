@@ -26,12 +26,10 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-# Define other methods for interacting with the model data and performing business logic
 from configparser import ConfigParser, SectionProxy
 from typing import List, Optional
 import dfastmi
 from dfastmi.io.AReach import AReach
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
@@ -107,8 +105,8 @@ class DialogModel:
 
         # Ensure both lists have the same length
         num_files = min(len(reference_files), len(measure_files))
-        # loop over conditions cond = "C1", "C2", ...
         
+        # loop over conditions cond = "C1", "C2", ...        
         for i, discharge in enumerate(reach.hydro_q[:num_files]): # Ensure it loops until the minimum length
             cond = f"C{i+1}"
             config.add_section(cond)            
@@ -124,5 +122,5 @@ class DialogModel:
             else:
                 config[cond]["WithMeasure"] = ""  # Default value if index is out of range
 
-        
         return config
+

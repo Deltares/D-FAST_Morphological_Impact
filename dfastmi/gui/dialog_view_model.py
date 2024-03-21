@@ -45,8 +45,6 @@ from PyQt5 import QtCore
 class DialogViewModel(QtCore.QObject):
     branch_changed = QtCore.pyqtSignal(str)
     reach_changed = QtCore.pyqtSignal(str)
-    plot_flag : bool = False
-    save_flag : bool = False
     _output_dir : str = ""
     _figure_dir : str = ""
     _plotting : bool = False
@@ -61,10 +59,7 @@ class DialogViewModel(QtCore.QObject):
         self._current_reach : AReach = self._current_branch.reaches[0]
         self.slength : str = ""
         self.model = model
-
-    # def load_configuration(self, filename: str) -> None:
-    #     self.model.load_configuration(filename)
-        
+         
     @property
     def current_branch(self):
         return self._current_branch
@@ -101,7 +96,7 @@ class DialogViewModel(QtCore.QObject):
     @figure_dir.setter
     def figure_dir(self, value):
         self._figure_dir = value
-        self.model.section.set("FigureDir", value)
+        self.model.section["FigureDir"] = value
     
     @property
     def plotting(self):
@@ -110,7 +105,7 @@ class DialogViewModel(QtCore.QObject):
     @plotting.setter
     def plotting(self, value):
         self._plotting = value
-        self.model.section.set("Plotting", value)
+        self.model.section["Plotting"] = str(value)
     
     @property
     def save_plots(self):
@@ -119,7 +114,7 @@ class DialogViewModel(QtCore.QObject):
     @save_plots.setter
     def save_plots(self, value):
         self._save_plots = value
-        self.model.section.set("SavePlots", value)
+        self.model.section["SavePlots"] = str(value)
     
     @property
     def close_plots(self):
@@ -128,7 +123,7 @@ class DialogViewModel(QtCore.QObject):
     @close_plots.setter
     def close_plots(self, value):
         self._close_plots = value
-        self.model.section.set("ClosePlots", value)
+        self.model.section["ClosePlots"] = str(value)
     
     @property
     def reference_files(self):
@@ -143,8 +138,8 @@ class DialogViewModel(QtCore.QObject):
     def get_configuration(self) -> ConfigParser:
          return self.model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
 
-    def run_analysis(self) -> None:
-        self.model.run_analysis()
+    def run_analysis(self) -> bool:
+        return self.model.run_analysis()
     
     @property
     def manual_filename(self) -> str:
@@ -195,11 +190,6 @@ class DialogViewModel(QtCore.QObject):
         self.current_branch = self.model.rivers.get_branch(branch_name)
         self.current_reach = self._current_branch.reaches[0]
         self.update_qvalues()
-        # reach = dialog["reach"]
-        # reach.clear()    
-        # reach.addItems([reach.name for reach in self.model.rivers.branches[ibranch].reaches])
-
-        # dialog["qloc"].setText(self.model.branches[ibranch].qlocation)
 
 
     def updated_reach(self, reach_name: str) -> None:
@@ -213,10 +203,6 @@ class DialogViewModel(QtCore.QObject):
         """
         if reach_name:
             self.current_reach = self._current_branch.get_reach(reach_name)
-            # q_stagnant = reach.qstagnant
-            # dialog["qthr"].setText(str(q_stagnant))
-            # ucritical = reach.ucritical
-            # dialog["ucrit"].setText(str(ucritical))
             self.update_qvalues()
 
 
@@ -288,8 +274,6 @@ class DialogViewModel(QtCore.QObject):
             else:
                 self._reference_files.append("")
                 self._measure_files.append("")
-            # dialog[prefix+"file1"].setText(file1)
-            # dialog[prefix+"file2"].setText(file2)
         
         self.current_branch = self.model.rivers.get_branch(self.model.section["Branch"])
         self.current_reach = self.current_branch.get_reach(self.model.section["Reach"])
@@ -310,4 +294,3 @@ class DialogViewModel(QtCore.QObject):
         """
         val = x.lower() in ['true', '1', 't', 'y', 'yes']
         return val
-    # Define other methods to prepare data for the View and handle user interactions
