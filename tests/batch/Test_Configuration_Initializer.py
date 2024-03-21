@@ -17,7 +17,7 @@ class Test_Configuration_Initializer():
         mock_reach.name = "myReach"
         mock_reach.hydro_q = (6.7, 8.9, 10.1)
         mock_reach.use_tide = False
-        mock_reach.autotime = True
+        mock_reach.auto_time = True
         mock_reach.qfit = [11.11, 12.12]
         mock_reach.celer_form = 1
         mock_reach.ucritical = 1
@@ -90,7 +90,7 @@ class Test_Configuration_Initializer():
 
     def given_auto_time_false_when_get_levels_v2_then_return_expected_values(self, config : ConfigParser, reach : Reach):
         reach.qstagnant = 4.5
-        reach.autotime = False
+        reach.auto_time = False
         reach.hydro_t = [0.0, 1.0, 0.0]
 
         configuration_initialized = ConfigurationInitializer(reach, config)
@@ -106,7 +106,7 @@ class Test_Configuration_Initializer():
 
     def given_auto_time_false_and_celer_discharge_when_get_levels_v2_then_return_expected_values(self, config : ConfigParser, reach : Reach):
         reach.qstagnant = 4.5
-        reach.autotime = False
+        reach.auto_time = False
         reach.celer_form = 2
         reach.celer_object = CelerDischarge()
         reach.celer_object.cdisch = [1.0, 1.0]
