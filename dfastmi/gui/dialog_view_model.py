@@ -141,7 +141,7 @@ class DialogViewModel(QtCore.QObject):
         
     
     def get_configuration(self) -> ConfigParser:
-         return self.model.get_configuration(self._current_branch, self._current_reach)
+         return self.model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
 
     def run_analysis(self) -> None:
         self.model.run_analysis()
@@ -297,7 +297,7 @@ class DialogViewModel(QtCore.QObject):
         return True
     
     def check_configuration(self) -> bool :
-        return self.model.check_configuration(self.current_branch, self.current_reach)
+        return self.model.check_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
         
     def str_to_bool(self, x: str) -> bool:
         """
