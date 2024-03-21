@@ -129,6 +129,7 @@ class DialogViewModel(QtCore.QObject):
         """
         self.current_branch = self.model.rivers.get_branch(branch_name)
         self.current_reach = self._current_branch.reaches[0]
+        self.update_qvalues()
         # reach = dialog["reach"]
         # reach.clear()    
         # reach.addItems([reach.name for reach in self.model.rivers.branches[ibranch].reaches])
@@ -162,27 +163,6 @@ class DialogViewModel(QtCore.QObject):
         ---------
         None
         """
-        
-        # hydro_q = self._current_reach.hydro_q
-        # tabs = dialog["tabs"]
-        # for j in range(tabs.count()-2,-1,-1):
-        #     if j >= len(hydro_q):
-        #         tabs.removeTab(1+j)
-        #     else:
-        #         prefix = str(j)+"_"
-        #         qval = str(hydro_q[j])
-        #         dialog[prefix+"qloc"].setText(self.model.rivers.branches[ibranch].qlocation)
-        #         dialog[prefix+"qval"].setText(qval)
-        #         tabs.setTabText(1+j,qval+" m3/s")
-        
-        # if len(hydro_q) > tabs.count()-1:
-        #     for j in range(tabs.count()-1, len(hydro_q)):
-        #         prefix = str(j)+"_"
-        #         add_condition_tab(prefix) # deze staat nu in view
-        #         qval = str(hydro_q[j])	
-        #         dialog[prefix+"qloc"].setText(self.model.rivers.branches[ibranch].qlocation)
-        #         dialog[prefix+"qval"].setText(qval)
-        #         tabs.setTabText(1+j,qval+" m3/s")
                 
         try:        
             q_threshold = float(self._current_reach.qstagnant)

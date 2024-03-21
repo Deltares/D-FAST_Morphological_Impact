@@ -84,6 +84,7 @@ class DialogView:
         # Connect the view model's data_changed signal to update_ui slot
         self.view_model.branch_changed.connect(self.update_branch)
         self.view_model.reach_changed.connect(self.update_reach)
+        self.update_qvalues_tabs()
 
     def update_branch(self, data):
         self.branch.setCurrentText(data)
@@ -91,15 +92,29 @@ class DialogView:
         for r in self.view_model.current_branch.reaches:
             self.reach.addItem(r.name)
         self.qloc.setText(self.view_model.current_branch.qlocation)
-        self.qthrtxt.setText(self.view_model.current_reach.qstagnant)
-        self.ucrit.setText(self.view_model.current_reach.ucritical)
+        self.qthr.setText(str(self.view_model.current_reach.qstagnant))
+        self.ucrit.setText(str(self.view_model.current_reach.ucritical))
         self.slength.setText(self.view_model.slength)
         self.reach.setCurrentText(self.view_model.current_reach.name)
+        self.update_qvalues_tabs()
         
     
     def update_reach(self, data):
         self.reach.setCurrentText(data)
         self.slength.setText(self.view_model.slength)
+
+    def update_qvalues_tabs(self):
+        hydro_q = self.view_model.current_reach.hydro_q
+        tabs = self._tabs
+        for j in range(tabs.count()-2,-1,-1):
+            tabs.removeTab(1+j)            
+        
+        if len(hydro_q) > tabs.count()-1:
+            for j in range(tabs.count()-1, len(hydro_q)):
+                prefix = str(j)+"_"
+                qval = str(hydro_q[j])	
+                self.add_condition_tab(prefix, qval)
+                tabs.setTabText(1+j,qval+" m3/s")                
     
     def create_qt_application(self) -> None:
         """
@@ -261,7 +276,7 @@ class DialogView:
         self.close_plots_edit.setEnabled(False)
         layout.addRow(self.close_plots, self.close_plots_edit)
 
-    def add_condition_tab(self, prefix: str) -> None:
+    def add_condition_tab(self, prefix: str, discharge:str) -> None:
         """
         Create the tab for one flow conditions.
 
@@ -275,28 +290,30 @@ class DialogView:
         general_widget = QtWidgets.QWidget()
         layout = QtWidgets.QFormLayout(general_widget)
         self._tabs.addTab(general_widget, prefix+"tab")
-        
+        # Set object name for the last added tab
+        last_tab_index = self._tabs.count() - 1
+        self._tabs.tabBar().setTabData(last_tab_index, prefix)
 
         # show the discharge location
         qloc = QtWidgets.QLabel("", self._win)
         qloc.setToolTip(self.view_model.gui_text("qloc"))
-        #dialog[prefix+"qloc"] = qloc
+        qloc.setText(self.view_model.current_branch.qlocation)
         layout.addRow(self.view_model.gui_text("qloc"), qloc)
 
         # show the discharge value
         qval = QtWidgets.QLabel("", self._win)
         qval.setToolTip(self.view_model.gui_text("qval"))
-        #dialog[prefix+"qval"] = qval
+        qval.setText(discharge)
         layout.addRow(self.view_model.gui_text("qval"), qval)
 
         # get the reference file
         q1file1 = QtWidgets.QLineEdit(self._win)
-        #dialog[prefix+"file1"] = q1file1
+        q1file1.setObjectName(prefix+"file1")
         layout.addRow(self.view_model.gui_text("reference"), self.openFileLayout(self._win, q1file1, prefix+"file1"))
 
         # get the file with measure
         q1file2 = QtWidgets.QLineEdit(self._win)
-        #dialog[prefix+"file2"] = q1file2
+        q1file2.setObjectName(prefix+"file2")
         layout.addRow(self.view_model.gui_text("measure"), self.openFileLayout(self._win, q1file2, prefix+"file2"))
         
     def create_button_bar(self) -> None:
@@ -454,7 +471,15 @@ class DialogView:
                 self.figure_dir_edit.setText(fil[0])
             elif key == "output_dir":
                 self.output_dir.setText(fil[0])
-
+            else:
+                self.set_folder_in_tabs(key, fil[0])
+    
+    def set_folder_in_tabs(self, key: str, file:str):
+        condition_tab_index = key.split('_')[0]
+        if condition_tab_index.isdigit():
+            input_textbox = self._tabs.widget(int(condition_tab_index) +1).findChild(QtWidgets.QLineEdit, key)
+            if input_textbox:
+                input_textbox.setText(file)
 
     def showMessage(self, message: str) -> None:
         """
