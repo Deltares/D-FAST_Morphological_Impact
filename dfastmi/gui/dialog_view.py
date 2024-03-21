@@ -54,14 +54,26 @@ class DialogView:
     _menubar : QtWidgets.QMenuBar = None
     branch : QtWidgets.QComboBox = None
     reach : QtWidgets.QComboBox = None
+    qloc : QtWidgets.QLabel = None
+    qthr : QtWidgets.QLineEdit = None
+    ucrit : QtWidgets.QLineEdit = None
+    slength : QtWidgets.QLabel = None
+
+    output_dir : QtWidgets.QLineEdit = None
+    make_plots_edit : QtWidgets.QCheckBox = None
+    save_plots : QtWidgets.QLabel = None
+    save_plots_edit : QtWidgets.QCheckBox = None
+    figure_dir : QtWidgets.QLabel = None
+    figure_dir_edit : QtWidgets.QLineEdit = None
+
+    close_plots : QtWidgets.QLabel = None
+    close_plots_edit : QtWidgets.QCheckBox = None
 
     def __init__(self, view_model: DialogViewModel):
         self.view_model = view_model
         self.root = tk.Tk()
         self.root.title("D-FAST Morphological Impact")
-        self.dialog: Dict[str, PyQt5.QtCore.QObject] = {}
         
-
         # Initialize GUI components
         self.create_qt_application()
         self.create_dialog()
@@ -77,12 +89,17 @@ class DialogView:
         self.branch.setCurrentText(data)
         self.reach.clear()
         for r in self.view_model.current_branch.reaches:
-            self.reach.addItem(r.name)        
-        self.reach.setCurrentText(self.view_model.current_reach.name)       
+            self.reach.addItem(r.name)
+        self.qloc.setText(self.view_model.current_branch.qlocation)
+        self.qthrtxt.setText(self.view_model.current_reach.qstagnant)
+        self.ucrit.setText(self.view_model.current_reach.ucritical)
+        self.slength.setText(self.view_model.slength)
+        self.reach.setCurrentText(self.view_model.current_reach.name)
         
     
     def update_reach(self, data):
         self.reach.setCurrentText(data)
+        self.slength.setText(self.view_model.slength)
     
     def create_qt_application(self) -> None:
         """
@@ -184,74 +201,65 @@ class DialogView:
         layout.addRow(self.view_model.gui_text("reach"), self.reach)
 
         # show the discharge location
-        qloc = QtWidgets.QLabel("", win)
-        qloc.setToolTip(self.view_model.gui_text("qloc"))
-        qloc.setText(self.view_model.current_branch.qlocation)
-        layout.addRow(self.view_model.gui_text("qloc"), qloc)
+        self.qloc = QtWidgets.QLabel("", win)
+        self.qloc.setToolTip(self.view_model.gui_text("qloc"))
+        self.qloc.setText(self.view_model.current_branch.qlocation)
+        layout.addRow(self.view_model.gui_text("qloc"), self.qloc)
 
         # get minimum flow-carrying discharge
-        qthr = QtWidgets.QLineEdit(win)
-        qthr.setValidator(PyQt5.QtGui.QDoubleValidator())
-        qthr.editingFinished.connect(self.view_model.update_qvalues)
-        qthr.setToolTip(self.view_model.gui_text("qthr_tooltip"))
+        self.qthr = QtWidgets.QLineEdit(win)
+        self.qthr.setValidator(PyQt5.QtGui.QDoubleValidator())
+        self.qthr.editingFinished.connect(self.view_model.update_qvalues)
+        self.qthr.setToolTip(self.view_model.gui_text("qthr_tooltip"))
         qthrtxt = QtWidgets.QLabel(self.view_model.gui_text("qthr"), win)
-        qthrtxt.setText(str(self.view_model.current_reach.qstagnant))
-        layout.addRow(qthrtxt, qthr)
+        self.qthr.setText(str(self.view_model.current_reach.qstagnant))
+        layout.addRow(qthrtxt, self.qthr)
 
         # get critical flow velocity
-        ucrit = QtWidgets.QLineEdit(win)
-        ucrit.setValidator(PyQt5.QtGui.QDoubleValidator())
-        ucrit.setToolTip(self.view_model.gui_text("ucrit_tooltip"))
-        ucrit.setText(str(self.view_model.current_reach.ucritical))
-        layout.addRow(self.view_model.gui_text("ucrit"), ucrit)
+        self.ucrit = QtWidgets.QLineEdit(win)
+        self.ucrit.setValidator(PyQt5.QtGui.QDoubleValidator())
+        self.ucrit.setToolTip(self.view_model.gui_text("ucrit_tooltip"))
+        self.ucrit.setText(str(self.view_model.current_reach.ucritical))
+        layout.addRow(self.view_model.gui_text("ucrit"), self.ucrit)
 
         # show the impact length
-        slength = QtWidgets.QLabel(win)
-        slength.setToolTip(self.view_model.gui_text("length_tooltip"))
-        slength.setText(self.view_model.slength)
-        layout.addRow(self.view_model.gui_text("length"), slength)
+        self.slength = QtWidgets.QLabel(win)
+        self.slength.setToolTip(self.view_model.gui_text("length_tooltip"))
+        self.slength.setText(self.view_model.slength)
+        layout.addRow(self.view_model.gui_text("length"), self.slength)
 
         # get the output directory
-        output_dir = QtWidgets.QLineEdit(win)
-        #dialog["outputDir"] = output_dir
-        layout.addRow(self.view_model.gui_text("outputDir"), self.openFileLayout(win, output_dir, "outputDir"))
+        self.output_dir = QtWidgets.QLineEdit(win)
+        layout.addRow(self.view_model.gui_text("outputDir"), self.openFileLayout(win, self.output_dir, "output_dir"))
 
         # plotting
         make_plots = QtWidgets.QLabel(self.view_model.gui_text("makePlots"), win)
-        make_plots_edit = QtWidgets.QCheckBox(win)
-        make_plots_edit.setToolTip(self.view_model.gui_text("makePlots_tooltip"))
-        #make_plots_edit.stateChanged.connect(self.view_model.update_plotting)
-        #dialog["makePlots"] = make_plots
-        #dialog["makePlotsEdit"] = make_plots_edit
-        layout.addRow(make_plots, make_plots_edit)
+        self.make_plots_edit = QtWidgets.QCheckBox(win)
+        self.make_plots_edit.setToolTip(self.view_model.gui_text("makePlots_tooltip"))
+        self.make_plots_edit.stateChanged.connect(self.update_plotting)
+        layout.addRow(make_plots, self.make_plots_edit)
 
-        save_plots = QtWidgets.QLabel(self.view_model.gui_text("savePlots"), win)
-        save_plots.setEnabled(False)
-        save_plots_edit = QtWidgets.QCheckBox(win)
-        save_plots_edit.setToolTip(self.view_model.gui_text("savePlots_tooltip"))
-        #save_plots_edit.stateChanged.connect(self.view_model.update_plotting)
-        save_plots_edit.setEnabled(False)
-        #dialog["savePlots"] = save_plots
-        #dialog["savePlotsEdit"] = save_plots_edit
-        layout.addRow(save_plots, save_plots_edit)
+        self.save_plots = QtWidgets.QLabel(self.view_model.gui_text("savePlots"), win)
+        self.save_plots.setEnabled(False)
+        self.save_plots_edit = QtWidgets.QCheckBox(win)
+        self.save_plots_edit.setToolTip(self.view_model.gui_text("savePlots_tooltip"))
+        self.save_plots_edit.stateChanged.connect(self.update_plotting)
+        self.save_plots_edit.setEnabled(False)
+        layout.addRow(self.save_plots, self.save_plots_edit)
 
-        figure_dir = QtWidgets.QLabel(self.view_model.gui_text("figureDir"), win)
-        figure_dir.setEnabled(False)
-        figure_dir_edit = QtWidgets.QLineEdit(win)
-        figure_dir_edit.setEnabled(False)
-        #dialog["figureDir"] = figure_dir
-        #dialog["figureDirEdit"] = figure_dir_edit
-        layout.addRow(figure_dir, self.openFileLayout(win, figure_dir_edit, "figureDirEdit"))
+        self.figure_dir = QtWidgets.QLabel(self.view_model.gui_text("figureDir"), win)
+        self.figure_dir.setEnabled(False)
+        self.figure_dir_edit = QtWidgets.QLineEdit(win)
+        self.figure_dir_edit.setEnabled(False)
+        layout.addRow(self.figure_dir, self.openFileLayout(win, self.figure_dir_edit, "figure_dir_edit"))
         #dialog["figureDirEditFile"].setEnabled(False)
 
-        close_plots = QtWidgets.QLabel(self.view_model.gui_text("closePlots"), win)
-        close_plots.setEnabled(False)
-        close_plots_edit = QtWidgets.QCheckBox(win)
-        close_plots_edit.setToolTip(self.view_model.gui_text("closePlots_tooltip"))
-        close_plots_edit.setEnabled(False)
-        #dialog["closePlots"] = close_plots
-        #dialog["closePlotsEdit"] = close_plots_edit
-        layout.addRow(close_plots, close_plots_edit)
+        self.close_plots = QtWidgets.QLabel(self.view_model.gui_text("closePlots"), win)
+        self.close_plots.setEnabled(False)
+        self.close_plots_edit = QtWidgets.QCheckBox(win)
+        self.close_plots_edit.setToolTip(self.view_model.gui_text("closePlots_tooltip"))
+        self.close_plots_edit.setEnabled(False)
+        layout.addRow(self.close_plots, self.close_plots_edit)
 
     def add_condition_tab(self, prefix: str) -> None:
         """
@@ -442,7 +450,10 @@ class DialogView:
             caption=self.view_model.gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
         )
         if fil[0] != "":
-            self.view_model.model.dialog[key].setText(fil[0])
+            if key == "figure_dir_edit":
+                self.figure_dir_edit.setText(fil[0])
+            elif key == "output_dir":
+                self.output_dir.setText(fil[0])
 
 
     def showMessage(self, message: str) -> None:
@@ -477,6 +488,26 @@ class DialogView:
         msg.setWindowTitle("Error")
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg.exec_()
+
+    def update_plotting(self) -> None:
+        """
+        Update the plotting flags.
+        
+        Arguments
+        ---------
+        None
+        """
+        self.view_model.plot_flag = self.make_plots_edit.isChecked()
+        self.save_plots.setEnabled(self.view_model.plot_flag)
+        self.save_plots_edit.setEnabled(self.view_model.plot_flag)
+
+        self.view_model.save_flag = self.save_plots_edit.isChecked() and self.view_model.plot_flag
+
+        self.figure_dir.setEnabled(self.view_model.save_flag)
+        self.figure_dir_edit.setEnabled(self.view_model.save_flag)
+
+        self.close_plots.setEnabled(self.view_model.plot_flag)
+        self.close_plots_edit.setEnabled(self.view_model.plot_flag)
 
 # Entry point
 def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) -> None:

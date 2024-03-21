@@ -45,6 +45,8 @@ from PyQt5 import QtCore
 class DialogViewModel(QtCore.QObject):
     branch_changed = QtCore.pyqtSignal(str)
     reach_changed = QtCore.pyqtSignal(str)
+    plot_flag : bool = False
+    save_flag : bool = False
 
     def __init__(self, model: DialogModel):
         super().__init__()        
