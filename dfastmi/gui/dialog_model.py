@@ -27,17 +27,19 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 # Define other methods for interacting with the model data and performing business logic
-from configparser import ConfigParser
+from configparser import ConfigParser, SectionProxy
 from typing import Optional
 import dfastmi
 from dfastmi.io.AReach import AReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.io.ConfigFileOperations import check_configuration
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 
 
 class DialogModel:
+    config : ConfigParser = None
+    section : SectionProxy = None
     def __init__(self, rivers_configuration: RiversObject, config_file: Optional[str] = None):
         self.rivers = rivers_configuration
         
@@ -46,8 +48,14 @@ class DialogModel:
 
 
     def load_configuration(self, filename: str) -> None:
-        # Logic to load configuration from file
-        pass
+        try:
+            self.config = ConfigFileOperations.load_configuration_file(filename)
+        except:
+            if filename != "dfastmi.cfg":
+                return False                
+            return True
+    
+        self.section = self.config["General"]
 
     def run_analysis(self, config: ConfigParser, branch: Branch, reach:AReach) -> bool:
         # Logic to run analysis based on configuration
@@ -75,17 +83,7 @@ class DialogModel:
             False
             #showError(gui_text("analysis_config_incomplete",))
 
-    def str_to_bool(self, x: str) -> bool:
-        """
-        Convert a string to a boolean.
-
-        Arguments
-        ---------
-        x : str
-            String to be interpreted.
-        """
-        val = x.lower() in ['true', '1', 't', 'y', 'yes']
-        return val
+    
     
     def get_configuration(self, branch : Branch, reach: AReach) -> ConfigParser:
         """

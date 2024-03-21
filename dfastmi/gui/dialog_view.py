@@ -31,7 +31,7 @@ from pathlib import Path
 import subprocess
 from functools import partial
 import sys
-from typing import Dict, Optional
+from typing import Optional
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
@@ -39,9 +39,6 @@ from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.RiversObject import RiversObject
 import dfastmi.kernel.core
-
-        
-
 
 # View
 import tkinter as tk
@@ -97,12 +94,35 @@ class DialogView:
         self.slength.setText(self.view_model.slength)
         self.reach.setCurrentText(self.view_model.current_reach.name)
         self.update_qvalues_tabs()
-        
+        self.output_dir.setText(self.view_model.output_dir)
+        self.make_plots_edit.setChecked(self.view_model.plotting)
+        self.save_plots_edit.setChecked(self.view_model.save_plots)
+        self.close_plots_edit.setChecked(self.view_model.close_plots)
+        self.update_condition_files()
     
     def update_reach(self, data):
         self.reach.setCurrentText(data)
         self.slength.setText(self.view_model.slength)
-
+    
+    def update_condition_files(self):
+        for condition_tab_index, reference_file in enumerate(self.view_model.reference_files):
+            tab = self._tabs.widget(condition_tab_index +1)
+            if tab:
+                prefix = str(condition_tab_index)+"_"
+                key = prefix +"file1"
+                input_textbox = tab.findChild(QtWidgets.QLineEdit, key)
+                if input_textbox:
+                    input_textbox.setText(reference_file)
+        
+        for condition_tab_index, measure_file in enumerate(self.view_model.measure_files):
+            tab = self._tabs.widget(condition_tab_index +1)
+            if tab:
+                prefix = str(condition_tab_index)+"_"
+                key = prefix +"file2"
+                input_textbox = tab.findChild(QtWidgets.QLineEdit, key)
+                if input_textbox:
+                    input_textbox.setText(measure_file)
+    
     def update_qvalues_tabs(self):
         hydro_q = self.view_model.current_reach.hydro_q
         tabs = self._tabs
@@ -448,7 +468,6 @@ class DialogView:
             PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
         )
         openFile.clicked.connect(partial(self.selectFile, key))
-        #dialog[key + "File"] = openFile
         gridly.addWidget(openFile, 0, 2)
 
         return parent

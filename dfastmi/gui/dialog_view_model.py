@@ -47,6 +47,12 @@ class DialogViewModel(QtCore.QObject):
     reach_changed = QtCore.pyqtSignal(str)
     plot_flag : bool = False
     save_flag : bool = False
+    _output_dir : str = ""
+    _plotting : bool = False
+    _save_plots : bool = False
+    _close_plots : bool = False
+    _reference_files = []
+    _measure_files = []
 
     def __init__(self, model: DialogModel):
         super().__init__()        
@@ -78,6 +84,51 @@ class DialogViewModel(QtCore.QObject):
         # Notify the view of the change
         self.reach_changed.emit(self._current_reach.name)
     
+    @property
+    def output_dir(self):
+        return self._output_dir
+    
+    @output_dir.setter
+    def output_dir(self, value):
+        self._output_dir = value
+        self.model.section.set("OutputDir", value)
+    
+    @property
+    def plotting(self):
+        return self._plotting
+    
+    @plotting.setter
+    def plotting(self, value):
+        self._plotting = value
+        self.model.section.set("Plotting", value)
+    
+    @property
+    def save_plots(self):
+        return self._save_plots
+    
+    @save_plots.setter
+    def save_plots(self, value):
+        self._save_plots = value
+        self.model.section.set("SavePlots", value)
+    
+    @property
+    def close_plots(self):
+        return self._close_plots
+    
+    @close_plots.setter
+    def close_plots(self, value):
+        self._close_plots = value
+        self.model.section.set("ClosePlots", value)
+    
+    @property
+    def reference_files(self):
+        return self._reference_files
+    
+    @property
+    def measure_files(self):
+        return self._measure_files
+    
+        
     
     def get_configuration(self) -> ConfigParser:
          return self.model.get_configuration(self._current_branch, self._current_reach)
@@ -170,7 +221,6 @@ class DialogViewModel(QtCore.QObject):
             time_mi = ConfigurationInitializer.calculate_time_mi(q_threshold, self._current_reach.hydro_q, time_fractions_of_the_year)
             celerity = ConfigurationInitializer.get_bed_celerity(self._current_reach, self._current_reach.hydro_q)
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
-            #dialog["slength"].setText("{:.0f}".format(slength))
             self.slength = "{:.0f}".format(slength)
         except:
             self.slength = "---"
@@ -203,61 +253,44 @@ class DialogViewModel(QtCore.QObject):
         filename : str
             Name of the configuration file to be opened.
         """
-        try:
-            config = ConfigFileOperations.load_configuration_file(filename)
-        except:
-            if filename != "dfastmi.cfg":
-                return False                
-            return True
-    
-        section = config["General"]
-        self._current_branch = self.model.rivers.get_branch(section["Branch"])
-        #dialog["branch"].setCurrentText(section["Branch"])
-        #ibranch = dialog["branch"].currentIndex()
-        #dialog["reach"].setCurrentText(section["Reach"])
-        #ireach = dialog["reach"].currentIndex()
-        #reach = rivers.branches[ibranch].reaches[ireach]
-        self._current_reach = self._current_branch.get_reach(section["Reach"])
-
-        # dialog["qthr"].setText(
-        #     section.get("Qthreshold", str(reach.qstagnant))
-        # )
-
-        # dialog["ucrit"].setText(
-        #     section.get("Ucrit", str(reach.ucritical))
-        # )
+        self.model.load_configuration(filename)
         
-        # dialog["outputDir"].setText(
-        #     section.get("OutputDir", "output")
-        # )
-        # dialog["makePlotsEdit"].setChecked(
-        #     str_to_bool(section.get("Plotting", "false"))
-        # )
-        # dialog["savePlotsEdit"].setChecked(
-        #     str_to_bool(section.get("SavePlots", "false"))
-        # )
-        # dialog["figureDirEdit"].setText(
-        #     section.get("FigureDir", "figure")
-        # )
-        # dialog["closePlotsEdit"].setChecked(
-        #     str_to_bool(section.get("ClosePlots", "false"))
-        # )
+        self._output_dir = self.model.section.get("OutputDir", "output")
+        self._plotting = self.str_to_bool(self.model.section.get("Plotting", "false"))
+        self._save_plots = self.str_to_bool(self.model.section.get("SavePlots", "false"))
+        self._close_plots = self.str_to_bool(self.model.section.get("ClosePlots", "false"))
+
+        
         self.update_qvalues()
         
         hydro_q = self._current_reach.hydro_q
         for i in range(len(hydro_q)):
             prefix = str(i)+"_"
             cond = "C{}".format(i+1)
-            if cond in config.keys():
-                cond_section = config[cond]
-                file1 = cond_section.get("Reference", "")
-                file2 = cond_section.get("WithMeasure", "")
+            if cond in self.model.config.keys():
+                cond_section = self.model.config[cond]
+                self._reference_files.append(cond_section.get("Reference", ""))
+                self._measure_files.append(cond_section.get("WithMeasure", ""))
             else:
-                file1 = ""
-                file2 = ""
+                self._reference_files.append("")
+                self._measure_files.append("")
             # dialog[prefix+"file1"].setText(file1)
             # dialog[prefix+"file2"].setText(file2)
         
+        self.current_branch = self.model.rivers.get_branch(self.model.section["Branch"])
+        self.current_reach = self.current_branch.get_reach(self.model.section["Reach"])
+        
         return True
     
+    def str_to_bool(self, x: str) -> bool:
+        """
+        Convert a string to a boolean.
+
+        Arguments
+        ---------
+        x : str
+            String to be interpreted.
+        """
+        val = x.lower() in ['true', '1', 't', 'y', 'yes']
+        return val
     # Define other methods to prepare data for the View and handle user interactions
