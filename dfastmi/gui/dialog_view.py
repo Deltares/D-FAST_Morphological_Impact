@@ -439,7 +439,7 @@ class DialogView:
         msg = QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Information)
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
-        msg.setInformativeText("Copyright (c) 2020 Deltares.")
+        msg.setInformativeText("Copyright (c) 2024 Deltares.")
         msg.setDetailedText(self.view_model.gui_text("license"))
         msg.setWindowTitle(self.view_model.gui_text("about"))
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
