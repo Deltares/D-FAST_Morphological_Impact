@@ -36,7 +36,6 @@ import dfastmi.batch.core
 
 from dfastmi.gui.dialog_view import main
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 

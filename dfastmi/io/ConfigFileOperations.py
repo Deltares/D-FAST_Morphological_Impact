@@ -33,7 +33,7 @@ from pathlib import Path
 from packaging.version import Version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 
-from dfastmi.io.FileUtils import FileUtils
+
 from dfastmi.io.RiversObject import RiversObject
 
 class ConfigFileOperations:
@@ -233,7 +233,7 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         relative_path = config.get(section, key, fallback="")
-        relative_path_converted_to_absolute_path = str(Path(relative_path).relative_to(rootdir).absolute())
+        relative_path_converted_to_absolute_path = str(Path(rootdir).joinpath(Path(relative_path)))
         config.set(section, key, relative_path_converted_to_absolute_path)
 
 

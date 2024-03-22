@@ -37,7 +37,6 @@ from dfastmi.io.AReach import AReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
-from dfastmi.io.FileUtils import FileUtils
 from PyQt5 import QtCore
 
 
