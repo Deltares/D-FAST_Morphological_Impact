@@ -22,7 +22,6 @@ START /B /WAIT poetry run nuitka ^
  --include-module=geopandas ^
  --include-package-data=geopandas.datasets ^
  --include-module=fiona ^
- --include-module=tkinter ^
  --company-name=Deltares ^
  --file-version=3.0.0 ^
  --product-version=2024.01 ^
