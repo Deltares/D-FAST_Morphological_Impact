@@ -32,6 +32,7 @@ import os
 from typing import Any, Dict
 import dfastmi
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
+from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.AReach import AReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -142,7 +143,7 @@ class DialogViewModel(QtCore.QObject):
     
     @property
     def manual_filename(self) -> str:
-        progloc = FileUtils.get_progloc()
+        progloc = get_progloc()
         filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
         return filename
     
