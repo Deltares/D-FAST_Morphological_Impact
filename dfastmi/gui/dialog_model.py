@@ -45,7 +45,7 @@ class DialogModel:
             self.load_configuration(config_file)
 
 
-    def load_configuration(self, filename: str) -> None:
+    def load_configuration(self, filename: str) -> bool:
         try:
             self.config = ConfigFileOperations.load_configuration_file(filename)
         except:
@@ -54,6 +54,7 @@ class DialogModel:
             return True
     
         self.section = self.config["General"]
+        return True
 
     def check_configuration(self, branch : Branch, reach: AReach, reference_files: List, measure_files : List) -> bool :
         config = self.get_configuration(branch, reach, reference_files, measure_files)
@@ -68,6 +69,13 @@ class DialogModel:
         Arguments
         ---------
         None
+
+        Return
+        ---------
+        succes : bool
+            If the analysis could be run successfully. 
+            We call batch_mode_core which can throw and log an exception. 
+            If thrown, analysis has failed.
         """
         try:
             success = dfastmi.batch.core.batch_mode_core(self.rivers, False, self.config)
@@ -97,12 +105,19 @@ class DialogModel:
         config["General"]["Reach"] = reach.name
         config["General"]["Qthreshold"] = str(reach.qstagnant)
         config["General"]["Ucrit"] = str(reach.ucritical)
+        self._get_application_configuration(config)
+
+        self._get_condition_configuration(config, reach, reference_files, measure_files)
+        return config
+
+    def _get_application_configuration(self, config : ConfigParser) -> None:
         config["General"]["OutputDir"] = self.section["OutputDir"] if self.config and self.section and self.config.has_option("General", "OutputDir") and self.section["OutputDir"] else ""
         config["General"]["Plotting"] = self.section["Plotting"] if self.config and self.section and self.config.has_option("General", "Plotting") and self.section["Plotting"] else "False"
         config["General"]["SavePlots"] = self.section["SavePlots"] if self.config and self.section and self.config.has_option("General", "SavePlots") and self.section["SavePlots"] else "False"
         config["General"]["FigureDir"] = self.section["FigureDir"] if self.config and self.section and self.config.has_option("General", "FigureDir") and self.section["FigureDir"] else ""
         config["General"]["ClosePlots"] = self.section["ClosePlots"] if self.config and self.section and self.config.has_option("General", "ClosePlots") and self.section["ClosePlots"] else "False"
-
+    
+    def _get_condition_configuration(self, config : ConfigParser, reach : AReach, reference_files:List, measure_files:List) -> None:
         # Ensure both lists have the same length
         num_files = min(len(reference_files), len(measure_files))
         
@@ -121,6 +136,3 @@ class DialogModel:
                 config[cond]["WithMeasure"] = measure_files[i]
             else:
                 config[cond]["WithMeasure"] = ""  # Default value if index is out of range
-
-        return config
-
