@@ -41,7 +41,6 @@ from dfastmi.io.RiversObject import RiversObject
 import dfastmi.kernel.core
 
 # View
-import tkinter as tk
 
 class DialogView:
     _app : QtWidgets.QApplication = None
@@ -68,8 +67,6 @@ class DialogView:
 
     def __init__(self, view_model: DialogViewModel):
         self.view_model = view_model
-        self.root = tk.Tk()
-        self.root.title("D-FAST Morphological Impact")
         
         # Initialize GUI components
         self.create_qt_application()
