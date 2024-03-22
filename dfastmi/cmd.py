@@ -28,7 +28,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import pathlib
 import sys
-import os
 from dfastmi.batch.DFastUtils import get_progloc
 import dfastmi.cli
 
