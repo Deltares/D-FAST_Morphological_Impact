@@ -31,9 +31,10 @@ import sys
 import os
 from dfastmi.batch.DFastUtils import get_progloc
 import dfastmi.cli
-import dfastmi.gui
+
 import dfastmi.batch.core
 
+from dfastmi.gui.dialog_view import main
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -88,7 +89,7 @@ def run(
                 ApplicationSettingsHelper.log_text("ignoring_config")
             dfastmi.cli.interactive_mode(sys.stdin, rivers, reduced_output)
         elif runmode == "GUI":
-            dfastmi.gui.main(rivers, configfile)
+            main(rivers, configfile)
         else:
             raise Exception(
                 'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(
