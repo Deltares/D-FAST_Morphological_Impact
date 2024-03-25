@@ -44,12 +44,13 @@ class AReach(IReach):
     _name : str
     _config_key_index : int
 
-    normal_width : float
-    ucritical : float
-    qstagnant : float
-    parent_branch : IBranch
+    normal_width : float = 0.0
+    ucritical : float = 0.0
+    qstagnant : float = 0.0
+    parent_branch : IBranch = None
 
     def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
+        super().__init__(_name=reach_name, _config_key_index = reach_config_key_index)
         self._name = reach_name
         self._config_key_index = reach_config_key_index
 
@@ -62,4 +63,3 @@ class AReach(IReach):
     def config_key_index(self) -> int:
         """Index of the Reach in the branch"""
         return self._config_key_index
-    

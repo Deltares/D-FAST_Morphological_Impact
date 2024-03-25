@@ -41,12 +41,12 @@ from dfastmi.io.AReach import AReach
 
 class Branch(IBranch, IObserver[AReach]):
     """Class for storing branch information"""
-    _name : str
-    _qlocation : str
+    _name: str
+    _qlocation: str
     _reaches: ObservableList[AReach]  # Specify the type parameter AReach for ObservableList
 
 
-    def __init__(self, branch_name : str = "Branch"):
+    def __init__(self, branch_name: str = "Branch"):
         """
         Create Branch based on name. 
         Initialize the reaches
@@ -54,7 +54,7 @@ class Branch(IBranch, IObserver[AReach]):
         Args:
             branch_name(str) : name of the branch, can only be set in the constructor
         """
-
+        super().__init__(_name=branch_name)
         self._name = branch_name
         self._reaches: ObservableList[AReach] = ObservableList[AReach]()
         self._reaches.add_observer(self)
