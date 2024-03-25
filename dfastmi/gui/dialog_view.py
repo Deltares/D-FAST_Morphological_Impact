@@ -56,6 +56,8 @@ class DialogView:
     ucrit : QtWidgets.QLineEdit = None
     slength : QtWidgets.QLabel = None
 
+    general_widget : QtWidgets.QWidget = None
+    grid_layout : QtWidgets.QGridLayout = None
     output_dir : QtWidgets.QLineEdit = None
     make_plots_edit : QtWidgets.QCheckBox = None
     save_plots : QtWidgets.QLabel = None
@@ -103,37 +105,49 @@ class DialogView:
         self.slength.setText(self.view_model.slength)
     
     def update_condition_files(self):
-        for condition_tab_index, reference_file in enumerate(self.view_model.reference_files):
-            tab = self._tabs.widget(condition_tab_index +1)
-            if tab:
-                prefix = str(condition_tab_index)+"_"
-                key = prefix +"file1"
-                input_textbox = tab.findChild(QtWidgets.QLineEdit, key)
-                if input_textbox:
-                    input_textbox.setText(reference_file)
+        for condition_tab_index, reference_file in enumerate(self.view_model.reference_files):            
+            prefix = str(condition_tab_index)+"_"
+            key = prefix +"file1"
+            input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
+            if input_textbox:
+                input_textbox.setText(reference_file)
         
-        for condition_tab_index, measure_file in enumerate(self.view_model.measure_files):
-            tab = self._tabs.widget(condition_tab_index +1)
-            if tab:
-                prefix = str(condition_tab_index)+"_"
-                key = prefix +"file2"
-                input_textbox = tab.findChild(QtWidgets.QLineEdit, key)
-                if input_textbox:
-                    input_textbox.setText(measure_file)
+        for condition_tab_index, measure_file in enumerate(self.view_model.measure_files):            
+            prefix = str(condition_tab_index)+"_"
+            key = prefix +"file2"
+            input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
+            if input_textbox:
+                input_textbox.setText(measure_file)
     
     def update_qvalues_tabs(self):
-        hydro_q = self.view_model.current_reach.hydro_q
-        tabs = self._tabs
-        for j in range(tabs.count()-2,-1,-1):
-            tabs.removeTab(1+j)            
+        self._clear_conditions()
+        for condition_index, discharge in enumerate(self.view_model.current_reach.hydro_q):
+            prefix = str(condition_index) + "_"
+            qval = str(discharge) + " m3/s"
+            self.add_condition_line(prefix, qval)
+
+    def _clear_conditions(self):
+        for row in range(self.grid_layout.rowCount()):
+            if row > 1:        
+                for col in range(self.grid_layout.columnCount()):
+                    # Remove widgets from the specified row
+                    item = self.grid_layout.itemAtPosition(row, col)
+                    if item:
+                        widget = item.widget()
+                        if widget:
+                            widget.setParent(None)
+                            widget.deleteLater()
+                        else:
+                            layout = item.layout()
+                            if layout:
+                                while layout.count():
+                                    layout_item = layout.takeAt(0)
+                                    if layout_item:
+                                        layout_widget = layout_item.widget()
+                                        if layout_widget:
+                                            layout_widget.setParent(None)
+                                            layout_widget.deleteLater()
         
-        if len(hydro_q) > tabs.count()-1:
-            for j in range(tabs.count()-1, len(hydro_q)):
-                prefix = str(j)+"_"
-                qval = str(hydro_q[j])	
-                self.add_condition_tab(prefix, qval)
-                tabs.setTabText(1+j,qval+" m3/s")                
-    
     def create_qt_application(self) -> None:
         """
         Construct the QT application where the dialog will run in.
@@ -212,9 +226,9 @@ class DialogView:
         win : PyQt5.QtWidgets.QMainWindow
             Windows in which the tab item is located.
         """
-        general_widget = QtWidgets.QWidget()
-        layout = QtWidgets.QFormLayout(general_widget)
-        tabs.addTab(general_widget, "General")
+        self.general_widget = QtWidgets.QWidget()
+        layout = QtWidgets.QFormLayout(self.general_widget)
+        tabs.addTab(self.general_widget, "General")
 
         # get the branch
         self.branch = QtWidgets.QComboBox(win)
@@ -261,6 +275,51 @@ class DialogView:
         self.slength.setToolTip(self.view_model.gui_text("length_tooltip"))
         self.slength.setText(self.view_model.slength)
         layout.addRow(self.view_model.gui_text("length"), self.slength)
+
+        # show the conditions group
+
+         # Create a group box
+        group_box = QtWidgets.QGroupBox("Output of Reference Simulations")
+        group_box_layout = QtWidgets.QVBoxLayout(group_box)
+
+        # Add widgets to the group box
+        
+        # Create a grid layout
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.grid_layout.setObjectName("discharge_conditions_grid")
+        #self.grid_layout.setSpacing(10)  # Set spacing between widgets
+
+
+        self.grid_layout.addWidget(QtWidgets.QLabel(self.view_model.gui_text("qloc")), 0, 0)
+        self.grid_layout.addWidget(self.qloc, 0, 1)
+        
+        
+        # Add widgets to the form layout
+        discharge_label = QtWidgets.QLabel("Discharge")        
+        reference_label = QtWidgets.QLabel(self.view_model.gui_text("reference"))
+        reference_label.setContentsMargins(5, 0, 0, 0)
+        measure_label = QtWidgets.QLabel(self.view_model.gui_text("measure"))
+        measure_label.setContentsMargins(5, 0, 0, 0)
+        
+
+        # Add widgets to the form layout with labels
+        self.grid_layout.addWidget(discharge_label, 1, 0)
+        self.grid_layout.addWidget(reference_label, 1, 1)
+        self.grid_layout.addWidget(measure_label, 1, 2)
+
+        # Add vertical spacers to create lines between widgets
+        # for col in range(3):
+        #     if col > 0:  # Skip first column
+        #         line = QtWidgets.QFrame()
+        #         line.setFrameShape(QtWidgets.QFrame.VLine)
+        #         line.setFrameShadow(QtWidgets.QFrame.Raised)
+                
+        #         self.grid_layout.addWidget(line, 1, col, 3, 1)
+
+        group_box_layout.addLayout(self.grid_layout)
+
+        # Add group box to the main layout
+        layout.addRow(group_box)        
 
         # get the output directory
         self.output_dir = QtWidgets.QLineEdit(win)
@@ -345,6 +404,32 @@ class DialogView:
         q1file2 = QtWidgets.QLineEdit(self._win)
         q1file2.setObjectName(prefix+"file2")
         layout.addRow(self.view_model.gui_text("measure"), self.openFileLayout(self._win, q1file2, prefix+"file2"))
+    
+    def add_condition_line(self, prefix: str, discharge:str) -> None:
+        """
+        Create the tab for one flow conditions.
+
+        Arguments
+        ---------
+        prefix : str
+            Prefix for all dialog dictionary entries of this tab.
+        q : float
+            Discharge [m3/s]
+        """
+
+        # get the reference file
+        q1file1 = QtWidgets.QLineEdit(self._win)
+        q1file1.setObjectName(prefix+"file1")
+
+        # get the file with measure
+        q1file2 = QtWidgets.QLineEdit(self._win)
+        q1file2.setObjectName(prefix+"file2")
+        
+        discharge_value_label = QtWidgets.QLabel(discharge)
+        row_count = self.grid_layout.rowCount()
+        self.grid_layout.addWidget(discharge_value_label, row_count, 0)
+        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file1, prefix+"file1"), row_count, 1)
+        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file2, prefix+"file2"), row_count, 2)
         
     def create_button_bar(self) -> None:
         # Logic to create button bar
@@ -486,7 +571,7 @@ class DialogView:
         """
         parent = QtWidgets.QWidget()
         gridly = QtWidgets.QGridLayout(parent)
-        gridly.setContentsMargins(0, 0, 0, 0)
+        gridly.setContentsMargins(5, 0, 0, 0)
         gridly.addWidget(myWidget, 0, 0)
 
         progloc = str(Path(__file__).parent.absolute())
@@ -522,11 +607,9 @@ class DialogView:
                 self.set_folder_in_tabs(key, fil[0])
     
     def set_folder_in_tabs(self, key: str, file:str):
-        condition_tab_index = key.split('_')[0]
-        if condition_tab_index.isdigit():
-            input_textbox = self._tabs.widget(int(condition_tab_index) +1).findChild(QtWidgets.QLineEdit, key)
-            if input_textbox:
-                input_textbox.setText(file)
+        input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
+        if input_textbox:
+            input_textbox.setText(file)
 
     def showMessage(self, message: str) -> None:
         """
