@@ -216,7 +216,7 @@ class AnalyserDflowfm():
                 return filenames[i][0]
         return None
     
-    def _get_first_fm_data_filename_based_on_conditions_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> str:
+    def _get_first_fm_data_filename_based_on_conditions_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> Optional[str]:
         key: Union[Tuple[float, int], float]
         self._missing_data = False
         for i in range(len(self._discharges)):
