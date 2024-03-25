@@ -31,29 +31,20 @@ from pathlib import Path
 from typing import Dict, Any, Tuple, TextIO
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
-from dfastmi.kernel.typehints import Vector, BoolVector
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 
 import shapely
 
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
-    q_threshold: float,
-    tstag: float,
-    discharges: Vector,
-    fraction_of_year: Vector,
-    rsigma: Vector,
-    slength: float,
     nwidth: float,
-    ucrit: float,
     filenames: Dict[Any, Tuple[str,str]],
     xykm: shapely.geometry.linestring.LineString,
-    needs_tide: bool,
-    n_fields: int,
-    tide_bc: Tuple[str, ...],
     old_zmin_zmax: bool,
     outputdir: Path,
     plotops: Dict,
+    initialized_config : AConfigurationInitializerBase
 ) -> bool:
     """
     Perform analysis based on D-Flow FM data.
@@ -67,20 +58,8 @@ def analyse_and_report_dflowfm(
         Flag indicating text output to stdout.
     report : TextIO
         Text stream for log file.
-    q_threshold : float
-        Threshold discharge above which the measure is active.
-    tstag : float
-        Fraction of year that the river is stagnant.
-    discharges : Vector
-        Array of discharges; one for each forcing condition. (Q list of discharges)
-    fraction_of_year : Vector
-        Fraction of year represented by each forcing condition. (T list of fraction of year)
-    rsigma : Vector
-        Array of relaxation factors; one per forcing condition.
-    slength : float
-        The expected yearly impacted sedimentation length.
-    ucrit : float
-        Critical flow velocity [m/s].
+    nwidth : float
+        normal width of the reach.
     filenames : Dict[Any, Tuple[str,str]]
         Dictionary of the names of the data file containing the simulation
         results to be processed. The conditions (discharge, wave conditions,
@@ -88,28 +67,34 @@ def analyse_and_report_dflowfm(
         names is given: a reference file and a file with measure.
     xykm : shapely.geometry.linestring.LineString
         Original river chainage line.
-    needs_tide : bool
-        Specifies whether the tidal boundary is needed.
-    nwidth : float
-        normal width of the reach.
-    n_fields : int
-        Number of fields to process (e.g. to cover a tidal period).
-    tide_bc : Tuple[str, ...]
-        Array of tidal boundary condition; one per forcing condition.
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
     outputdir : Path
         Path of output directory.
     plotops : Dict
         Dictionary of plot settings
+    initialized_config : AConfigurationInitializerBase
+        DTO with discharges, times, etc. for analysis
 
     Returns
     -------
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    analyser = AnalyserDflowfm(display, report, needs_tide, old_zmin_zmax, outputdir)
-    missing_data, report_data = analyser.analyse(q_threshold, tstag, discharges, fraction_of_year, rsigma, slength, nwidth, ucrit, filenames, xykm, n_fields, tide_bc, plotops)
+    analyser = AnalyserDflowfm(display, report, initialized_config.needs_tide, old_zmin_zmax, outputdir)
+    missing_data, report_data = analyser.analyse(initialized_config.q_threshold,
+                                                 initialized_config.tstag,
+                                                 initialized_config.discharges,
+                                                 initialized_config.time_fractions_of_the_year,
+                                                 initialized_config.rsigma, 
+                                                 initialized_config.slength, 
+                                                 nwidth, 
+                                                 initialized_config.ucrit, 
+                                                 filenames, 
+                                                 xykm, 
+                                                 initialized_config.n_fields, 
+                                                 initialized_config.tide_bc, 
+                                                 plotops)
     
     if missing_data:
         return missing_data

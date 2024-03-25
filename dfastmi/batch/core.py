@@ -643,22 +643,13 @@ def _analyse_and_report(
         success = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
-            initialized_config.q_threshold,
-            initialized_config.tstag,
-            initialized_config.discharges,
-            initialized_config.time_fractions_of_the_year,
-            initialized_config.rsigma,
-            initialized_config.slength,
             reach.normal_width,
-            initialized_config.ucrit,
             filenames,
             plotops['xykm'],
-            initialized_config.needs_tide,
-            initialized_config.n_fields,
-            initialized_config.tide_bc,
             old_zmin_zmax,
             outputdir,
             plotops,
+            initialized_config
         )
 
     _log_length_estimate(report, initialized_config.slength)

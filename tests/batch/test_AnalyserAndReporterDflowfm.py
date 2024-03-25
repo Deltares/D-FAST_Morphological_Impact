@@ -4,10 +4,12 @@ import random
 from typing import Any, Dict, TextIO, Tuple
 from unittest.mock import patch
 from matplotlib import pyplot as plt
+from mock import Mock
 import numpy
 import pytest
 import shapely
 from dfastmi.batch import AnalyserAndReporterDflowfm
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
@@ -16,38 +18,31 @@ from dfastmi.kernel.typehints import Vector
 class Test_analyse_and_report_dflowfm_mode():
 
     report: TextIO
-    q_threshold: float
-    tstag: float
-    discharges: Vector
-    fraction_of_year: Vector
-    rsigma: Vector
-    slength: float
     nwidth: float
-    ucrit: float
     filenames: Dict[Any, Tuple[str,str]]
     xykm: shapely.geometry.linestring.LineString
-    n_fields: int
-    tide_bc: Tuple[str, ...]
-    kmbounds: Tuple[float, float]
     plotops: Dict
+    initialized_config : AConfigurationInitializerBase
     
     @pytest.fixture
     def setup(self):
         self.report = None
-        self.q_threshold = 1.0
-        self.slength = 1.0
         self.nwidth = 1.0
         self.filenames = {}
         self.xykm = None
-        self.n_fields = 3
-        self.tide_bc: Tuple[str, ...] = ("name1", "name2")
-        self.kmbounds : Tuple[float, float] = (1.0, 2.0)
         self.plotops = {}
-        self.tstag = 1.0
-        self.discharges = [1.0, 2.0, 3.0]
-        self.fraction_of_year = [1.0, 2.0, 3.0]
-        self.rsigma = [0.1, 0.2, 0.3]
-        self.ucrit = 0.3
+        
+        initialized_config = Mock(spec=AConfigurationInitializerBase)
+        initialized_config.q_threshold = 1.0
+        initialized_config.tstag = 1.0
+        initialized_config.discharges = [1.0, 2.0, 3.0]
+        initialized_config.time_fractions_of_the_year = [1.0, 2.0, 3.0]
+        initialized_config.rsigma = [0.1, 0.2, 0.3]
+        initialized_config.slength = 1.0
+        initialized_config.n_fields = 3
+        initialized_config.tide_bc: Tuple[str, ...] = ("name1", "name2")
+        initialized_config.ucrit = 0.3
+        self.initialized_config = initialized_config
         
     def set_file_names(self):
         self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
@@ -83,27 +78,19 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true
         """
+        self.initialized_config.needs_tide = needs_tide
         outputdir = tmp_path
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                 display,
                 self.report,
-                self.q_threshold,
-                self.tstag,
-                self.discharges,
-                self.fraction_of_year,
-                self.rsigma,
-                self.slength,
                 self.nwidth,
-                self.ucrit,
                 self.filenames,
                 self.xykm,
-                needs_tide,
-                self.n_fields,
-                self.tide_bc,
                 old_zmin_zmax,
                 outputdir,
-                self.plotops)
+                self.plotops,
+                self.initialized_config)
 
         assert succes
         
@@ -123,6 +110,7 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true
         """
+        self.initialized_config.needs_tide = needs_tide
         outputdir = tmp_path
         
         self.filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
@@ -132,22 +120,13 @@ class Test_analyse_and_report_dflowfm_mode():
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                 display,
                 self.report,
-                self.q_threshold,
-                self.tstag,
-                self.discharges,
-                self.fraction_of_year,
-                self.rsigma,
-                self.slength,
                 self.nwidth,
-                self.ucrit,
                 self.filenames,
                 self.xykm,
-                needs_tide,
-                self.n_fields,
-                self.tide_bc,
                 old_zmin_zmax,
                 outputdir,
-                self.plotops)
+                self.plotops,
+                self.initialized_config)
 
         assert succes
 
@@ -164,11 +143,10 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true and expect eleven grids added and plotting not called
         """
-        needs_tide = False
+        self.initialized_config.needs_tide = False
+        self.initialized_config.n_fields = 1
         
         outputdir = tmp_path
-        
-        self.n_fields = 1
         
         self.plotops['plotting'] = False
         
@@ -190,22 +168,13 @@ class Test_analyse_and_report_dflowfm_mode():
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display,
                     self.report,
-                    self.q_threshold,
-                    self.tstag,
-                    self.discharges,
-                    self.fraction_of_year,
-                    self.rsigma,
-                    self.slength,
                     self.nwidth,
-                    self.ucrit,
                     self.filenames,
                     self.xykm,
-                    needs_tide,
-                    self.n_fields,
-                    self.tide_bc,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops)
+                    self.plotops,
+                    self.initialized_config)
             finally:
                 os.chdir(cwd)
         
@@ -227,11 +196,10 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true and expect zero grids added and plotting not called
         """
-        needs_tide = True
+        self.initialized_config.needs_tide = True
+        self.initialized_config.n_fields = 1
         
-        outputdir = tmp_path
-        
-        self.n_fields = 1
+        outputdir = tmp_path        
         
         self.plotops['plotting'] = False
         
@@ -253,22 +221,13 @@ class Test_analyse_and_report_dflowfm_mode():
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display,
                     self.report,
-                    self.q_threshold,
-                    self.tstag,
-                    self.discharges,
-                    self.fraction_of_year,
-                    self.rsigma,
-                    self.slength,
                     self.nwidth,
-                    self.ucrit,
                     self.filenames,
                     self.xykm,
-                    needs_tide,
-                    self.n_fields,
-                    self.tide_bc,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops)
+                    self.plotops,
+                    self.initialized_config)
             finally:
                 os.chdir(cwd)
         
@@ -290,11 +249,10 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true and expect eleven grids added and plotting called
         """
-        needs_tide = False
+        self.initialized_config.needs_tide = False
+        self.initialized_config.n_fields = 1
         
         outputdir = tmp_path
-        
-        self.n_fields = 1
         
         self.set_plotting_on(tmp_path)
         
@@ -316,22 +274,13 @@ class Test_analyse_and_report_dflowfm_mode():
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display,
                     self.report,
-                    self.q_threshold,
-                    self.tstag,
-                    self.discharges,
-                    self.fraction_of_year,
-                    self.rsigma,
-                    self.slength,
                     self.nwidth,
-                    self.ucrit,
                     self.filenames,
                     self.xykm,
-                    needs_tide,
-                    self.n_fields,
-                    self.tide_bc,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops)
+                    self.plotops,
+                    self.initialized_config)
             finally:
                 os.chdir(cwd)
         
@@ -353,11 +302,10 @@ class Test_analyse_and_report_dflowfm_mode():
         when  : analyse and report dflowfm
         then  : return true and expect zero grids added and plotting not called
         """
-        needs_tide = True
+        self.initialized_config.needs_tide = True
+        self.initialized_config.n_fields = 1
         
         outputdir = tmp_path
-        
-        self.n_fields = 1
         
         self.set_plotting_on(tmp_path)
         
@@ -379,22 +327,13 @@ class Test_analyse_and_report_dflowfm_mode():
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display,
                     self.report,
-                    self.q_threshold,
-                    self.tstag,
-                    self.discharges,
-                    self.fraction_of_year,
-                    self.rsigma,
-                    self.slength,
                     self.nwidth,
-                    self.ucrit,
                     self.filenames,
                     self.xykm,
-                    needs_tide,
-                    self.n_fields,
-                    self.tide_bc,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops)
+                    self.plotops,
+                    self.initialized_config)
             finally:
                 os.chdir(cwd)
         
@@ -419,7 +358,8 @@ class Test_analyse_and_report_dflowfm_mode():
         """
         outputdir = tmp_path
         
-        self.n_fields = 1
+        self.initialized_config.n_fields = 1
+        self.initialized_config.needs_tide = needs_tide
         
         self.set_plotting_on(tmp_path)
         
@@ -448,22 +388,13 @@ class Test_analyse_and_report_dflowfm_mode():
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     False,
                     self.report,
-                    self.q_threshold,
-                    self.tstag,
-                    self.discharges,
-                    self.fraction_of_year,
-                    self.rsigma,
-                    self.slength,
                     self.nwidth,
-                    self.ucrit,
                     self.filenames,
                     self.xykm,
-                    needs_tide,
-                    self.n_fields,
-                    self.tide_bc,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops)
+                    self.plotops,
+                    self.initialized_config)
             finally:
                 os.chdir(cwd)
         
