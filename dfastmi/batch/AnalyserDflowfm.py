@@ -11,7 +11,7 @@ from shapely.geometry.linestring import LineString
 
 import numpy
 import os
-from typing import Any, Dict, Optional, TextIO, Tuple, Union
+from typing import Any, Dict, List, Optional, TextIO, Tuple, Union
 
 class AnalyserDflowfm():
     """
@@ -120,21 +120,16 @@ class AnalyserDflowfm():
             # main_computation now returns new pointwise zmin and zmax
             dzgemi, dzmaxi, dzmini, dzbi = main_computation(dzq, time_fraction_of_year, rsigma)
 
-            if self._old_zmin_zmax:
-                # get old zmax and zmin
-                dzmaxi = dzbi[0]
-                zmax_str = "maximum bed level change after flood without dredging"
-                dzmini = dzbi[1]
-                zmin_str = "minimum bed level change after low flow without dredging"
-            else:
-                zmax_str = "maximum value of bed level change without dredging"
-                zmin_str = "minimum value of bed level change without dredging"
+            minimum_bedlevel_value = self._get_minimum_bedlevel_value(dzmini, dzbi)
+            maximum_bedlevel_value = self._get_maximum_bedlevel_value(dzmaxi, dzbi)
+            maximum_bedlevel_messsage = self._get_maximum_bedlevel_message()
+            minimum_bedlevel_message = self._get_minimum_bedlevel_message()
 
         sedimentation_data = None
         if xykm is not None:
             sedimentation_data = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, self._slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
 
-        return OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
+        return OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, maximum_bedlevel_value, minimum_bedlevel_value, dzbi, maximum_bedlevel_messsage, minimum_bedlevel_message, xykm_data, sedimentation_data)
 
     def _determine_dzq(self, dzq : numpy.ndarray) -> numpy.ndarray:
         if self._tstag > 0:
@@ -150,6 +145,26 @@ class AnalyserDflowfm():
         if self._tstag > 0:
             return (self._rsigma[0], 1.0, self._rsigma[1], self._rsigma[2])
         return self._rsigma
+    
+    def _get_maximum_bedlevel_value(self, dzmaxi : numpy.ndarray, dzbi : List[numpy.ndarray]) -> numpy.ndarray:
+        if self._old_zmin_zmax:
+            return dzbi[0]
+        return dzmaxi
+
+    def _get_minimum_bedlevel_value(self, dzmini : numpy.ndarray, dzbi : List[numpy.ndarray]) -> numpy.ndarray:
+        if self._old_zmin_zmax:
+            return dzbi[1]
+        return dzmini
+
+    def _get_maximum_bedlevel_message(self) -> str:
+        if self._old_zmin_zmax:
+            return "maximum bed level change after flood without dredging"
+        return "maximum value of bed level change without dredging"
+        
+    def _get_minimum_bedlevel_message(self) -> str:
+        if self._old_zmin_zmax:
+            return "minimum bed level change after low flow without dredging"
+        return "minimum value of bed level change without dredging"
 
     def _get_first_fm_data_filename(self, filenames: Dict[Any, Tuple[str,str]]) -> str:
         self._missing_data = False
