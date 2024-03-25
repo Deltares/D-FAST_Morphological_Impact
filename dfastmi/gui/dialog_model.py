@@ -103,8 +103,8 @@ class DialogModel:
         config["General"]["Version"] = "2.0"
         config["General"]["Branch"] = branch.name
         config["General"]["Reach"] = reach.name
-        config["General"]["Qthreshold"] = str(reach.qstagnant)
-        config["General"]["Ucrit"] = str(reach.ucritical)
+        config["General"]["Qthreshold"] = self.section["Qthreshold"]
+        config["General"]["Ucrit"] = self.section["Ucrit"]
         self._get_application_configuration(config)
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
@@ -122,17 +122,21 @@ class DialogModel:
         num_files = min(len(reference_files), len(measure_files))
         
         # loop over conditions cond = "C1", "C2", ...        
-        for i, discharge in enumerate(reach.hydro_q[:num_files]): # Ensure it loops until the minimum length
-            cond = f"C{i+1}"
-            config.add_section(cond)            
-            config[cond]["Discharge"] = str(discharge)
-             # Check if the index is within the bounds of the lists
-            if i < len(reference_files):
-                config[cond]["Reference"] = reference_files[i]
-            else:
-                config[cond]["Reference"] = ""  # Default value if index is out of range
+        i = 0
+        for discharge in enumerate(reach.hydro_q[:num_files]): # Ensure it loops until the minimum length
+            if discharge in reference_files.keys():
+                i +=1
+                cond = f"C{i}"
 
-            if i < len(measure_files):
-                config[cond]["WithMeasure"] = measure_files[i]
-            else:
-                config[cond]["WithMeasure"] = ""  # Default value if index is out of range
+                config.add_section(cond)            
+                config[cond]["Discharge"] = str(discharge)
+                # Check if the index is within the bounds of the lists
+                if i < len(reference_files) :
+                    config[cond]["Reference"] = reference_files[discharge]
+                else:
+                    config[cond]["Reference"] = ""  # Default value if index is out of range
+
+                if i < len(measure_files) :
+                    config[cond]["WithMeasure"] = measure_files[discharge]
+                else:
+                    config[cond]["WithMeasure"] = ""  # Default value if index is out of range

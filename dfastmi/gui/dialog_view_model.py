@@ -45,20 +45,28 @@ from PyQt5 import QtCore
 class DialogViewModel(QtCore.QObject):
     branch_changed = QtCore.pyqtSignal(str)
     reach_changed = QtCore.pyqtSignal(str)
+    qthreshold_changed = QtCore.pyqtSignal(float)
+    ucrit_changed = QtCore.pyqtSignal(float)
+
+    _qthreshold : float = 0.0
+    _ucritical : float = 0.0
     _output_dir : str = ""
     _figure_dir : str = ""
     _plotting : bool = False
     _save_plots : bool = False
     _close_plots : bool = False
-    _reference_files = []
-    _measure_files = []
+    _reference_files = {}
+    _measure_files = {}
 
     def __init__(self, model: DialogModel):
-        super().__init__()        
+        super().__init__()
         self._current_branch : Branch = model.rivers.branches[0]
         self._current_reach : AReach = self._current_branch.reaches[0]
         self.slength : str = ""
         self.model = model
+        self._initialize_qthreshold()
+        self._initialize_ucritical()
+        
          
     @property
     def current_branch(self):
@@ -71,7 +79,7 @@ class DialogViewModel(QtCore.QObject):
         self.branch_changed.emit(self._current_branch.name)
     
     @property
-    def current_reach(self):
+    def current_reach(self) -> AReach:
         return self._current_reach
 
     @current_reach.setter
@@ -87,7 +95,8 @@ class DialogViewModel(QtCore.QObject):
     @output_dir.setter
     def output_dir(self, value):
         self._output_dir = value
-        self.model.section["OutputDir"] = value
+        if self.model and self.model.section :
+            self.model.section["OutputDir"] = value
     
     @property
     def figure_dir(self):
@@ -96,7 +105,8 @@ class DialogViewModel(QtCore.QObject):
     @figure_dir.setter
     def figure_dir(self, value):
         self._figure_dir = value
-        self.model.section["FigureDir"] = value
+        if self.model and self.model.section :
+            self.model.section["FigureDir"] = value
     
     @property
     def plotting(self):
@@ -105,7 +115,8 @@ class DialogViewModel(QtCore.QObject):
     @plotting.setter
     def plotting(self, value):
         self._plotting = value
-        self.model.section["Plotting"] = str(value)
+        if self.model and self.model.section :
+            self.model.section["Plotting"] = str(value)
     
     @property
     def save_plots(self):
@@ -114,7 +125,8 @@ class DialogViewModel(QtCore.QObject):
     @save_plots.setter
     def save_plots(self, value):
         self._save_plots = value
-        self.model.section["SavePlots"] = str(value)
+        if self.model and self.model.section :
+            self.model.section["SavePlots"] = str(value)
     
     @property
     def close_plots(self):
@@ -123,7 +135,8 @@ class DialogViewModel(QtCore.QObject):
     @close_plots.setter
     def close_plots(self, value):
         self._close_plots = value
-        self.model.section["ClosePlots"] = str(value)
+        if self.model and self.model.section :
+            self.model.section["ClosePlots"] = str(value)
     
     @property
     def reference_files(self):
@@ -132,8 +145,26 @@ class DialogViewModel(QtCore.QObject):
     @property
     def measure_files(self):
         return self._measure_files
+
+    @property
+    def qthreshold(self) -> float:
+        return self._qthreshold
     
-        
+    @qthreshold.setter
+    def qthreshold(self, value):
+        self._qthreshold = value
+        if self.model and self.model.section :
+            self.model.section['Qthreshold'] = str(value)
+    
+    @property
+    def ucritical(self) -> float:
+        return self._ucritical
+    
+    @ucritical.setter
+    def ucritical(self, value):
+        self._ucritical = value
+        if self.model and self.model.section :
+            self.model.section['Ucrit'] = str(value)
     
     def get_configuration(self) -> ConfigParser:
          return self.model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
@@ -187,9 +218,34 @@ class DialogViewModel(QtCore.QObject):
         branch_name : str
             Newly selected branch.
         """
+        self._initialize_qthreshold()
+
+        self._initialize_ucritical()
+        
         self.current_branch = self.model.rivers.get_branch(branch_name)
         self.current_reach = self._current_branch.reaches[0]
+        
         self.update_qvalues()
+
+    def _initialize_ucritical(self):
+        if self.model is not None and self.model.config is not None and self.model.config.has_section ("General") and self.model.config.has_option("General", "Ucrit") :
+            ucritical = self.model.section.getfloat("Ucrit", self._current_reach.ucritical)
+            if ucritical > self._current_reach.ucritical :
+                self.ucritical = ucritical
+            elif self.ucritical != ucritical:
+                self.ucritical = self._current_reach.ucritical
+        else:
+            self.ucritical = self._current_reach.ucritical
+
+    def _initialize_qthreshold(self):
+        if self.model is not None and self.model.config is not None and self.model.config.has_section ("General") and self.model.config.has_option("General", "Qthreshold") :
+            qthreshold = self.model.section.getfloat("Qthreshold", self._current_reach.qstagnant)
+            if qthreshold > self.qthreshold :
+                self.qthreshold = qthreshold
+            elif self.qthreshold != qthreshold:
+                self.qthreshold = self._current_reach.qstagnant
+        else:
+            self.qthreshold = self._current_reach.qstagnant
 
 
     def updated_reach(self, reach_name: str) -> None:
@@ -215,10 +271,9 @@ class DialogViewModel(QtCore.QObject):
         None
         """
                 
-        try:        
-            q_threshold = float(self._current_reach.qstagnant)
+        try:                    
             time_fractions_of_the_year = ConfigurationInitializer.get_time_fractions_of_the_year(self._current_reach.hydro_t)
-            time_mi = ConfigurationInitializer.calculate_time_mi(q_threshold, self._current_reach.hydro_q, time_fractions_of_the_year)
+            time_mi = ConfigurationInitializer.calculate_time_mi(self.qthreshold, self._current_reach.hydro_q, time_fractions_of_the_year)
             celerity = ConfigurationInitializer.get_bed_celerity(self._current_reach, self._current_reach.hydro_q)
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
             self.slength = "{:.0f}".format(slength)
@@ -260,20 +315,18 @@ class DialogViewModel(QtCore.QObject):
         self._save_plots = self.str_to_bool(self.model.section.get("SavePlots", "false"))
         self._close_plots = self.str_to_bool(self.model.section.get("ClosePlots", "false"))
 
-        
+        self._initialize_qthreshold()
+        self._initialize_ucritical()        
         self.update_qvalues()
         
-        hydro_q = self._current_reach.hydro_q
-        for i in range(len(hydro_q)):
-            prefix = str(i)+"_"
-            cond = "C{}".format(i+1)
-            if cond in self.model.config.keys():
-                cond_section = self.model.config[cond]
-                self._reference_files.append(cond_section.get("Reference", ""))
-                self._measure_files.append(cond_section.get("WithMeasure", ""))
-            else:
-                self._reference_files.append("")
-                self._measure_files.append("")
+        self._reference_files = {}
+        self._measure_files = {}
+        for section_name in self.model.config.sections():
+            if section_name.lower().startswith('c') :
+                section = self.model.config[section_name]
+                cond_discharge = section.getfloat("Discharge", 0.0)
+                self._reference_files[cond_discharge] = section.get("Reference", "")
+                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
         
         self.current_branch = self.model.rivers.get_branch(self.model.section["Branch"])
         self.current_reach = self.current_branch.get_reach(self.model.section["Reach"])

@@ -89,8 +89,8 @@ class DialogView:
         for r in self.view_model.current_branch.reaches:
             self.reach.addItem(r.name)
         self.qloc.setText(self.view_model.current_branch.qlocation)
-        self.qthr.setText(str(self.view_model.current_reach.qstagnant))
-        self.ucrit.setText(str(self.view_model.current_reach.ucritical))
+        self.qthr.setText(str(self.view_model.qthreshold))
+        self.ucrit.setText(str(self.view_model.ucritical))
         self.slength.setText(self.view_model.slength)
         self.reach.setCurrentText(self.view_model.current_reach.name)
         self.update_qvalues_tabs()
@@ -105,15 +105,15 @@ class DialogView:
         self.slength.setText(self.view_model.slength)
     
     def update_condition_files(self):
-        for condition_tab_index, reference_file in enumerate(self.view_model.reference_files):            
-            prefix = str(condition_tab_index)+"_"
+        for condition_discharge, reference_file in self.view_model.reference_files.items():
+            prefix = str(condition_discharge)+"_"
             key = prefix +"file1"
             input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
             if input_textbox:
                 input_textbox.setText(reference_file)
         
-        for condition_tab_index, measure_file in enumerate(self.view_model.measure_files):            
-            prefix = str(condition_tab_index)+"_"
+        for condition_discharge, measure_file in self.view_model.measure_files.items():        
+            prefix = str(condition_discharge)+"_"
             key = prefix +"file2"
             input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
             if input_textbox:
@@ -121,10 +121,10 @@ class DialogView:
     
     def update_qvalues_tabs(self):
         self._clear_conditions()
-        for condition_index, discharge in enumerate(self.view_model.current_reach.hydro_q):
-            prefix = str(condition_index) + "_"
+        for discharge in self.view_model.current_reach.hydro_q:
+            prefix = str(discharge) + "_"
             qval = str(discharge) + " m3/s"
-            self.add_condition_line(prefix, qval)
+            self.add_condition_line(prefix, discharge, qval)
 
     def _clear_conditions(self):
         for row in range(self.grid_layout.rowCount()):
@@ -257,17 +257,19 @@ class DialogView:
         # get minimum flow-carrying discharge
         self.qthr = QtWidgets.QLineEdit(win)
         self.qthr.setValidator(PyQt5.QtGui.QDoubleValidator())
-        self.qthr.editingFinished.connect(self.view_model.update_qvalues)
+        self.qthr.editingFinished.connect(self.update_qthreshold)
+        print("Signal connected:", self.qthr.signalsBlocked())
         self.qthr.setToolTip(self.view_model.gui_text("qthr_tooltip"))
         qthrtxt = QtWidgets.QLabel(self.view_model.gui_text("qthr"), win)
-        self.qthr.setText(str(self.view_model.current_reach.qstagnant))
+        self.qthr.setText(str(self.view_model.qthreshold))
         layout.addRow(qthrtxt, self.qthr)
 
         # get critical flow velocity
         self.ucrit = QtWidgets.QLineEdit(win)
         self.ucrit.setValidator(PyQt5.QtGui.QDoubleValidator())
         self.ucrit.setToolTip(self.view_model.gui_text("ucrit_tooltip"))
-        self.ucrit.setText(str(self.view_model.current_reach.ucritical))
+        self.ucrit.editingFinished.connect(self.update_ucritical)
+        self.ucrit.setText(str(self.view_model.ucritical))
         layout.addRow(self.view_model.gui_text("ucrit"), self.ucrit)
 
         # show the impact length
@@ -307,15 +309,6 @@ class DialogView:
         self.grid_layout.addWidget(reference_label, 1, 1)
         self.grid_layout.addWidget(measure_label, 1, 2)
 
-        # Add vertical spacers to create lines between widgets
-        # for col in range(3):
-        #     if col > 0:  # Skip first column
-        #         line = QtWidgets.QFrame()
-        #         line.setFrameShape(QtWidgets.QFrame.VLine)
-        #         line.setFrameShadow(QtWidgets.QFrame.Raised)
-                
-        #         self.grid_layout.addWidget(line, 1, col, 3, 1)
-
         group_box_layout.addLayout(self.grid_layout)
 
         # Add group box to the main layout
@@ -323,8 +316,8 @@ class DialogView:
 
         # get the output directory
         self.output_dir = QtWidgets.QLineEdit(win)
-        self.output_dir.textChanged.connect(self.output_dir_text_changed)
-        layout.addRow(self.view_model.gui_text("outputDir"), self.openFileLayout(win, self.output_dir, "output_dir"))
+        self.output_dir.editingFinished.connect(self.output_dir_text_changed)
+        layout.addRow(self.view_model.gui_text("outputDir"), self.openFileLayout(win, self.output_dir, "output_dir", True))
 
         # plotting
         make_plots = QtWidgets.QLabel(self.view_model.gui_text("makePlots"), win)
@@ -345,10 +338,9 @@ class DialogView:
         self.figure_dir.setEnabled(False)
         self.figure_dir_edit = QtWidgets.QLineEdit(win)
         self.figure_dir_edit.setEnabled(False)
-        self.figure_dir_edit.textChanged.connect(self.figure_dir_text_changed)
-        layout.addRow(self.figure_dir, self.openFileLayout(win, self.figure_dir_edit, "figure_dir_edit"))
-        #dialog["figureDirEditFile"].setEnabled(False)
-
+        self.figure_dir_edit.editingFinished.connect(self.figure_dir_text_changed)
+        layout.addRow(self.figure_dir, self.openFileLayout(win, self.figure_dir_edit, "figure_dir_edit", True))
+        
         self.close_plots = QtWidgets.QLabel(self.view_model.gui_text("closePlots"), win)
         self.close_plots.setEnabled(False)
         self.close_plots_edit = QtWidgets.QCheckBox(win)
@@ -356,16 +348,35 @@ class DialogView:
         self.close_plots_edit.setEnabled(False)
         self.close_plots_edit.stateChanged.connect(self.update_plotting)
         layout.addRow(self.close_plots, self.close_plots_edit)
+
+    def update_qthreshold(self):
+        if self.qthr.hasAcceptableInput():
+            self.view_model.qthreshold = float(self.qthr.text())
+            self.update_qvalues_tabs()
+        else: 
+            self.showMessage("Please input valid values for qthreshold")
+
     
-    def output_dir_text_changed(self, text):
+    def update_ucritical(self):
+        if self.ucrit.hasAcceptableInput():
+            self.view_model.ucritical = float(self.ucrit.text())
+            self.update_qvalues_tabs()
+        else: 
+            self.showMessage("Please input valid values for ucritical")
+    
+    
+    def output_dir_text_changed(self):
+        text = self.output_dir.text()
         if text != self.view_model.output_dir:
             self.view_model.output_dir = text
+     
     
-    def figure_dir_text_changed(self, text):
+    def figure_dir_text_changed(self):
+        text = self.figure_dir_edit.text()
         if text != self.view_model.figure_dir:
             self.view_model.figure_dir = text
 
-    def add_condition_tab(self, prefix: str, discharge:str) -> None:
+    def add_condition_line(self, prefix: str, discharge : float, discharge_name:str) -> None:
         """
         Create the tab for one flow conditions.
 
@@ -376,60 +387,24 @@ class DialogView:
         q : float
             Discharge [m3/s]
         """
-        general_widget = QtWidgets.QWidget()
-        layout = QtWidgets.QFormLayout(general_widget)
-        self._tabs.addTab(general_widget, prefix+"tab")
-        # Set object name for the last added tab
-        last_tab_index = self._tabs.count() - 1
-        self._tabs.tabBar().setTabData(last_tab_index, prefix)
-
-        # show the discharge location
-        qloc = QtWidgets.QLabel("", self._win)
-        qloc.setToolTip(self.view_model.gui_text("qloc"))
-        qloc.setText(self.view_model.current_branch.qlocation)
-        layout.addRow(self.view_model.gui_text("qloc"), qloc)
-
-        # show the discharge value
-        qval = QtWidgets.QLabel("", self._win)
-        qval.setToolTip(self.view_model.gui_text("qval"))
-        qval.setText(discharge)
-        layout.addRow(self.view_model.gui_text("qval"), qval)
+        enabled = self.view_model.qthreshold < discharge
 
         # get the reference file
         q1file1 = QtWidgets.QLineEdit(self._win)
-        q1file1.setObjectName(prefix+"file1")
-        layout.addRow(self.view_model.gui_text("reference"), self.openFileLayout(self._win, q1file1, prefix+"file1"))
-
-        # get the file with measure
-        q1file2 = QtWidgets.QLineEdit(self._win)
-        q1file2.setObjectName(prefix+"file2")
-        layout.addRow(self.view_model.gui_text("measure"), self.openFileLayout(self._win, q1file2, prefix+"file2"))
-    
-    def add_condition_line(self, prefix: str, discharge:str) -> None:
-        """
-        Create the tab for one flow conditions.
-
-        Arguments
-        ---------
-        prefix : str
-            Prefix for all dialog dictionary entries of this tab.
-        q : float
-            Discharge [m3/s]
-        """
-
-        # get the reference file
-        q1file1 = QtWidgets.QLineEdit(self._win)
+        q1file1.setEnabled(enabled)
         q1file1.setObjectName(prefix+"file1")
 
         # get the file with measure
         q1file2 = QtWidgets.QLineEdit(self._win)
+        q1file2.setEnabled(enabled)
         q1file2.setObjectName(prefix+"file2")
         
-        discharge_value_label = QtWidgets.QLabel(discharge)
+        discharge_value_label = QtWidgets.QLabel(discharge_name)
+        discharge_value_label.setEnabled(enabled)
         row_count = self.grid_layout.rowCount()
         self.grid_layout.addWidget(discharge_value_label, row_count, 0)
-        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file1, prefix+"file1"), row_count, 1)
-        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file2, prefix+"file2"), row_count, 2)
+        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file1, prefix+"file1", enabled), row_count, 1)
+        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file2, prefix+"file2", enabled), row_count, 2)
         
     def create_button_bar(self) -> None:
         # Logic to create button bar
@@ -556,7 +531,7 @@ class DialogView:
         """        
         subprocess.Popen(self.view_model.manual_filename, shell=True)
     
-    def openFileLayout(self, win, myWidget, key: str):
+    def openFileLayout(self, win, myWidget, key: str, enabled: bool):
         """
         Add an open line to the dialog.
 
@@ -571,14 +546,15 @@ class DialogView:
         """
         parent = QtWidgets.QWidget()
         gridly = QtWidgets.QGridLayout(parent)
-        gridly.setContentsMargins(5, 0, 0, 0)
+        gridly.setContentsMargins(0, 0, 0, 0)
         gridly.addWidget(myWidget, 0, 0)
 
-        progloc = str(Path(__file__).parent.absolute())
+        progloc = str(Path(__file__).parent.parent.absolute())
         openFile = QtWidgets.QPushButton(
             PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
         )
         openFile.clicked.connect(partial(self.selectFile, key))
+        openFile.setEnabled(enabled)
         gridly.addWidget(openFile, 0, 2)
 
         return parent
