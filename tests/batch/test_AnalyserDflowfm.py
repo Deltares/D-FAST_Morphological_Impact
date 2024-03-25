@@ -81,11 +81,11 @@ class Test_AnalyserDflowfm():
                 
         return dzgemi,dzmaxi,dzmini,dzbi
     
-    def assert_report_data(self, dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str):
+    def assert_report_data(self, dzgemi, dzmaxi, dzmini, dzbi, face_node_connectivity, read_fm_map, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str):
         assert report_data.rsigma == (0.1, 1.0, 0.2, 0.3)
         assert report_data.one_fm_filename == "file2.extension"
-        assert report_data.xn is xn_yn_fnc[0]
-        assert report_data.face_node_connectivity is xn_yn_fnc[2]
+        assert report_data.xn is read_fm_map
+        assert report_data.face_node_connectivity is face_node_connectivity
         assert report_data.dzq
         assert report_data.dzgemi is dzgemi
         assert report_data.dzmaxi is dzmaxi
@@ -127,10 +127,10 @@ class Test_AnalyserDflowfm():
         outputdir = str(tmp_path)
         self._set_file_name_based_on_number()
         
-        xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
+        face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         
-        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_xynode_connect', return_value=xn_yn_fnc),\
+        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
              patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])):
@@ -152,15 +152,16 @@ class Test_AnalyserDflowfm():
         dzgemi, dzmaxi, dzmini, dzbi = self._get_dz_mock_data()
         zmax_str="maximum value of bed level change without dredging"
         zmin_str = "minimum value of bed level change without dredging"
-        xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
+        face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
+        read_fm_map = numpy.array([0, 1, 2, 3, 4])
         
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         sedimentation_data = None
         
-        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_xynode_connect', return_value=xn_yn_fnc),\
+        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])),\
+             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=read_fm_map),\
              patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
              patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation:
             
@@ -171,7 +172,7 @@ class Test_AnalyserDflowfm():
             
             assert analyser.missing_data == False
             
-            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
+            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, face_node_connectivity, read_fm_map, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
             assert main_computation.call_count == 1
             
@@ -188,15 +189,16 @@ class Test_AnalyserDflowfm():
         zmax_str = "maximum bed level change after flood without dredging"
         dzmini = dzbi[1]
         zmin_str = "minimum bed level change after low flow without dredging"
-        xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
+        face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
+        read_fm_map = numpy.array([0, 1, 2, 3, 4])
         
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         sedimentation_data = None
         
-        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_xynode_connect', return_value=xn_yn_fnc),\
+        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])),\
+             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=read_fm_map),\
              patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
              patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation:
             
@@ -207,7 +209,7 @@ class Test_AnalyserDflowfm():
             
             assert analyser.missing_data == False
             
-            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
+            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, face_node_connectivity, read_fm_map, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
             assert main_computation.call_count == 1
     
@@ -228,16 +230,17 @@ class Test_AnalyserDflowfm():
         dzgemi, dzmaxi, dzmini, dzbi = self._get_dz_mock_data()
         zmax_str="maximum value of bed level change without dredging"
         zmin_str = "minimum value of bed level change without dredging"
-        xn_yn_fnc = (numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]), numpy.array([0, 1, 2, 3, 4]))
+        face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
+        read_fm_map = numpy.array([0, 1, 2, 3, 4])
         
         self.xykm = Mock(spec=LineString)
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         sedimentation_data = Mock(spec=SedimentationData)
         
-        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_xynode_connect', return_value=xn_yn_fnc),\
+        with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])),\
+             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=read_fm_map),\
              patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
              patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation,\
              patch('dfastmi.batch.AnalyserDflowfm.comp_sedimentation_volume', return_value=sedimentation_data):
@@ -249,6 +252,6 @@ class Test_AnalyserDflowfm():
             
             assert analyser.missing_data == False
             
-            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
+            self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, face_node_connectivity, read_fm_map, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
             assert main_computation.call_count == 1

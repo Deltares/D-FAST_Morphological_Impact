@@ -128,7 +128,9 @@ class AnalyserDflowfm():
             return None
 
         self._logger.log_load_mesh()
-        xn, yn, face_node_connectivity = self._get_xynode_connect(one_fm_filename)
+        xn = GridOperations.read_fm_map(one_fm_filename, "x", location="node")
+        yn = GridOperations.read_fm_map(one_fm_filename, "y", location="node")
+        face_node_connectivity = self._get_face_node_connectivity(one_fm_filename)
 
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
@@ -400,10 +402,9 @@ class AnalyserDflowfm():
 
         return dzq
 
-    def _get_xynode_connect(self, filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-        xn = GridOperations.read_fm_map(filename, "x", location="node")
-        yn = GridOperations.read_fm_map(filename, "y", location="node")
+    def _get_face_node_connectivity(self, filename: str) -> numpy.ndarray:
         face_node_connectivity = GridOperations.read_fm_map(filename, "face_node_connectivity")
+        
         if face_node_connectivity.mask.shape == ():
             # all faces have the same number of nodes; empty mask
             face_node_connectivity.mask = face_node_connectivity<0
@@ -411,4 +412,4 @@ class AnalyserDflowfm():
             # varying number of nodes
             face_node_connectivity.mask = numpy.logical_or(face_node_connectivity.mask,face_node_connectivity<0)
 
-        return xn, yn, face_node_connectivity
+        return face_node_connectivity
