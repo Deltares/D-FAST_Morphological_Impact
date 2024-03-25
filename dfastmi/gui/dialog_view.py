@@ -34,6 +34,7 @@ import sys
 from typing import Optional
 
 from PyQt5 import QtWidgets
+import PyQt5.QtCore
 import PyQt5.QtGui
 from PyQt5.QtGui import QIcon
 from dfastmi.gui.dialog_view_model import DialogViewModel
@@ -256,7 +257,9 @@ class DialogView:
 
         # get minimum flow-carrying discharge
         self.qthr = QtWidgets.QLineEdit(win)
-        self.qthr.setValidator(PyQt5.QtGui.QDoubleValidator())
+        double_validator = PyQt5.QtGui.QDoubleValidator()
+        double_validator.setLocale(PyQt5.QtCore.QLocale(PyQt5.QtCore.QLocale.C))
+        self.qthr.setValidator(double_validator)
         self.qthr.editingFinished.connect(self.update_qthreshold)
         print("Signal connected:", self.qthr.signalsBlocked())
         self.qthr.setToolTip(self.view_model.gui_text("qthr_tooltip"))
@@ -266,7 +269,7 @@ class DialogView:
 
         # get critical flow velocity
         self.ucrit = QtWidgets.QLineEdit(win)
-        self.ucrit.setValidator(PyQt5.QtGui.QDoubleValidator())
+        self.ucrit.setValidator(double_validator)
         self.ucrit.setToolTip(self.view_model.gui_text("ucrit_tooltip"))
         self.ucrit.editingFinished.connect(self.update_ucritical)
         self.ucrit.setText(str(self.view_model.ucritical))
@@ -316,6 +319,10 @@ class DialogView:
 
         # get the output directory
         self.output_dir = QtWidgets.QLineEdit(win)
+        # Create a file validator to check if the file exists
+        file_validator = FileExistValidator()
+        self.output_dir.setValidator(file_validator)
+        #self.output_dir.editingFinished.connect
         self.output_dir.editingFinished.connect(self.output_dir_text_changed)
         layout.addRow(self.view_model.gui_text("outputDir"), self.openFileLayout(win, self.output_dir, "output_dir", True))
 
@@ -366,6 +373,12 @@ class DialogView:
     
     
     def output_dir_text_changed(self):
+        state = self.output_dir.validator().validate(self.output_dir.text(), 0)[0]
+        if state == PyQt5.QtGui.QValidator.Acceptable:
+            self.showMessage("File exists!")
+        else:
+            self.showError("File does not exist!")
+        
         text = self.output_dir.text()
         if text != self.view_model.output_dir:
             self.view_model.output_dir = text
@@ -660,3 +673,9 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
     # Initialize the user interface and run the program
     view.activate_dialog()
 
+class FileExistValidator(PyQt5.QtGui.QValidator):
+    def validate(self, input_text, pos):
+        if os.path.isfile(input_text):
+            return (PyQt5.QtGui.QValidator.Acceptable, input_text, pos)
+        else:
+            return (PyQt5.QtGui.QValidator.Invalid, input_text, pos)
