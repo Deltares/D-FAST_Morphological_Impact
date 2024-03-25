@@ -111,9 +111,9 @@ class Test_AnalyserDflowfm():
         self.initialized_config.needs_tide = needs_tide
         
         analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
-        missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
+        report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
         
-        assert missing_data
+        assert analyser.missing_data
         assert report_data == None
         
     @pytest.mark.parametrize("display, old_zmin_zmax", [
@@ -136,9 +136,9 @@ class Test_AnalyserDflowfm():
              patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])):
                  
             analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
-            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
+            report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
-            assert missing_data
+            assert analyser.missing_data
             assert report_data == None        
 
     @pytest.mark.parametrize("display", [True, False])
@@ -167,9 +167,9 @@ class Test_AnalyserDflowfm():
             main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
         
             analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
-            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
+            report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
-            assert missing_data == False
+            assert analyser.missing_data == False
             
             self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
@@ -203,9 +203,9 @@ class Test_AnalyserDflowfm():
             main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
         
             analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
-            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
+            report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
-            assert missing_data == False
+            assert analyser.missing_data == False
             
             self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3
@@ -245,9 +245,9 @@ class Test_AnalyserDflowfm():
             main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
         
             analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
-            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
+            report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
-            assert missing_data == False
+            assert analyser.missing_data == False
             
             self.assert_report_data(dzgemi, dzmaxi, dzmini, dzbi, xn_yn_fnc, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str)
             assert dzq_from_du_and_h.call_count == 3

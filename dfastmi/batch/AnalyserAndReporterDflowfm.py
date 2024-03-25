@@ -82,12 +82,12 @@ def analyse_and_report_dflowfm(
         Flag indicating whether analysis could be carried out.
     """
     analyser = AnalyserDflowfm(display, report, old_zmin_zmax, outputdir, initialized_config)
-    missing_data, report_data = analyser.analyse(nwidth, filenames, xykm, plotops)
+    report_data = analyser.analyse(nwidth, filenames, xykm, plotops)
     
-    if missing_data:
-        return missing_data
+    if analyser.missing_data:
+        return True
     
     reporter = ReporterDflowfm(display)
     reporter.report(outputdir, plotops, report_data)
 
-    return not missing_data
+    return not analyser.missing_data

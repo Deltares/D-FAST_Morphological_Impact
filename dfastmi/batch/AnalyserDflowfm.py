@@ -18,6 +18,13 @@ class AnalyserDflowfm():
     Class that analyses the Dflowfm data.
     """
     
+    @property
+    def missing_data(self) -> bool:
+        """
+        Flag indicating whether data was missing after analysis.
+        """
+        return self._missing_data
+    
     _logger : AnalyserDflowfmLogger
     
     def __init__(self, display : bool, report : TextIO, old_zmin_zmax : bool, outputdir : Path, config : AConfigurationInitializerBase):
@@ -52,13 +59,15 @@ class AnalyserDflowfm():
         
         self._old_zmin_zmax = old_zmin_zmax
         self._outputdir = outputdir
+        
+        self._missing_data = False
     
     def analyse(self, 
                 nwidth : float,
                 filenames : Dict[Any, Tuple[str,str]],
                 xykm : LineString,
                 plotops : Dict
-                ) -> Tuple[bool, OutputDataDflowfm]:
+                ) -> OutputDataDflowfm:
         """
         Perform analysis based on D-Flow FM data.
         Read data from D-Flow FM output files and perform analysis.
@@ -79,16 +88,15 @@ class AnalyserDflowfm():
 
         Returns
         -------
-        success : bool
-            Flag indicating whether analysis could be carried out.
         Output data : OutputDataDflowfm
             DTO with the data which is needed to create a report.
+            None will be returned if data is missing.
         """
         rsigma = self._rsigma
-        one_fm_filename, missing_data = self._get_first_fm_data_filename(filenames)
+        one_fm_filename = self._get_first_fm_data_filename(filenames)
 
-        if missing_data:
-            return missing_data, None
+        if self._missing_data:
+            return None
 
         self._logger.log_load_mesh()
         xn, yn, face_node_connectivity = self._get_xynode_connect(one_fm_filename)
@@ -97,11 +105,12 @@ class AnalyserDflowfm():
 
         if xykm is None and self._needs_tide:
             self._logger.print_riverkm_needed_for_tidal()
-            return True, None
+            self._missing_data = True
+            return None
 
-        missing_data, dzq = self._get_dzq(filenames, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+        dzq = self._get_dzq(filenames, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
-        if not missing_data:
+        if not self._missing_data:
             self._logger.log_char_bed_changes()
             
             dzq = self._determine_dzq(dzq)
@@ -125,7 +134,7 @@ class AnalyserDflowfm():
         if xykm is not None:
             sedimentation_data = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, self._slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
 
-        return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
+        return OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
     def _determine_dzq(self, dzq : numpy.ndarray) -> numpy.ndarray:
         if self._tstag > 0:
@@ -142,20 +151,20 @@ class AnalyserDflowfm():
             return (self._rsigma[0], 1.0, self._rsigma[1], self._rsigma[2])
         return self._rsigma
 
-    def _get_first_fm_data_filename(self, filenames: Dict[Any, Tuple[str,str]]) -> Tuple[str, bool]:
-        missing_data = False
+    def _get_first_fm_data_filename(self, filenames: Dict[Any, Tuple[str,str]]) -> str:
+        self._missing_data = False
         one_fm_filename: Union[None, str] = None
         # determine the name of the first FM data file that will be used
         if 0 in filenames.keys(): # the keys are 0,1,2
             one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(filenames)
         else: # the keys are the conditions
-            one_fm_filename, missing_data = self._get_first_fm_data_filename_based_on_conditions_keys(filenames)
+            one_fm_filename = self._get_first_fm_data_filename_based_on_conditions_keys(filenames)
 
         if one_fm_filename is None:
             self._logger.print_measure_not_active_for_checked_conditions()
-            missing_data = True
+            self._missing_data = True
 
-        return one_fm_filename, missing_data
+        return one_fm_filename
     
     def _get_first_fm_data_filename_based_on_numbered_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> Optional[str]:
         for i in range(3):
@@ -163,21 +172,21 @@ class AnalyserDflowfm():
                 return filenames[i][0]
         return None
     
-    def _get_first_fm_data_filename_based_on_conditions_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> Tuple[str, bool]:
+    def _get_first_fm_data_filename_based_on_conditions_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> str:
         key: Union[Tuple[float, int], float]
-        missing_data = False
+        self._missing_data = False
         for i in range(len(self._discharges)):
-            if not missing_data and self._discharges[i] is not None:
+            if not self._missing_data and self._discharges[i] is not None:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
                 if self._rsigma[i] == 1 or self._discharges[i] <= self._q_threshold:
                     # no celerity or measure not active, so ignore field
                     pass
                 elif key in filenames:
-                    return filenames[key][0], missing_data
+                    return filenames[key][0]
                 else:
                     self._logger.report_missing_calculation_values(self._needs_tide, q, t)
-                    missing_data = True
-        return None, missing_data
+                    self._missing_data = True
+        return None
 
     def _get_xykm_data(self, xykm : LineString, xn : numpy.ndarray, yn : numpy.ndarray, face_node_connectivity : numpy.ndarray) -> XykmData:
         xykm_data = XykmData(self._logger.xykm_data_logger)
@@ -186,43 +195,40 @@ class AnalyserDflowfm():
 
     def _get_dzq(self,
                  filenames: Dict[Any, Tuple[str,str]],
-                 missing_data : bool,
                  iface : numpy.ndarray,
                  dxi : numpy.ndarray,
                  dyi : numpy.ndarray
-                 ) -> Tuple[bool, numpy.ndarray]:
+                 ) -> numpy.ndarray:
         if 0 in filenames.keys(): # the keys are 0,1,2
-            return self._get_dzq_based_on_numbered_keys(missing_data, filenames, dxi, dyi, iface)
+            return self._get_dzq_based_on_numbered_keys(filenames, dxi, dyi, iface)
         else: # the keys are the conditions
-            return self._get_dzq_based_on_conditions_keys(missing_data, filenames, dxi, dyi, iface)
+            return self._get_dzq_based_on_conditions_keys(filenames, dxi, dyi, iface)
     
     def _get_dzq_based_on_numbered_keys(self,
-                                        missing_data : bool,
                                         filenames: Dict[Any, Tuple[str,str]],
                                         dxi : numpy.ndarray,
                                         dyi : numpy.ndarray,
                                         iface : numpy.ndarray
-                                        ) -> Tuple[bool, numpy.ndarray]:
+                                        ) -> numpy.ndarray:
         dzq = [None] * len(self._discharges)
         for i in range(3):
-                if not missing_data and self._discharges[i] is not None:
+                if not self._missing_data and self._discharges[i] is not None:
                     dzq[i] = self._get_values_fm(self._discharges[i], filenames[i], self._n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
-                        missing_data = True
+                        self._missing_data = True
                 else:
                     dzq[i] = 0
-        return missing_data, dzq
+        return dzq
     
     def _get_dzq_based_on_conditions_keys(self,
-                                          missing_data : bool,
                                           filenames : Dict[Any, Tuple[str,str]],
                                           dxi : numpy.ndarray,
                                           dyi : numpy.ndarray,
                                           iface : numpy.ndarray
-                                          ) -> Tuple[bool, numpy.ndarray]:
+                                          ) -> numpy.ndarray:
         dzq = [None] * len(self._discharges)
         for i in range(len(self._discharges)):
-            if not missing_data and self._discharges[i] is not None:
+            if not self._missing_data and self._discharges[i] is not None:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
                 if self._rsigma[i] == 1:
                     # no celerity, so ignore field
@@ -235,10 +241,10 @@ class AnalyserDflowfm():
                     dzq[i] = self._get_values_fm(q, filenames[key], n_fields_request, dxi, dyi, iface)
                 else:
                     self._logger.report_missing_calculation_dzq_values(q, t)
-                    missing_data = True
+                    self._missing_data = True
             else:
                 dzq[i] = 0
-        return missing_data, dzq
+        return dzq
     
     def _get_condition_key(self, discharges : Vector, tide_bc : Tuple[str, ...], i : int):
         q = discharges[i]
