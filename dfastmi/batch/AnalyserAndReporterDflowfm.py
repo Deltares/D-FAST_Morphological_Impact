@@ -81,20 +81,8 @@ def analyse_and_report_dflowfm(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    analyser = AnalyserDflowfm(display, report, initialized_config.needs_tide, old_zmin_zmax, outputdir)
-    missing_data, report_data = analyser.analyse(initialized_config.q_threshold,
-                                                 initialized_config.tstag,
-                                                 initialized_config.discharges,
-                                                 initialized_config.time_fractions_of_the_year,
-                                                 initialized_config.rsigma, 
-                                                 initialized_config.slength, 
-                                                 nwidth, 
-                                                 initialized_config.ucrit, 
-                                                 filenames, 
-                                                 xykm, 
-                                                 initialized_config.n_fields, 
-                                                 initialized_config.tide_bc, 
-                                                 plotops)
+    analyser = AnalyserDflowfm(display, report, old_zmin_zmax, outputdir, initialized_config)
+    missing_data, report_data = analyser.analyse(nwidth, filenames, xykm, plotops)
     
     if missing_data:
         return missing_data

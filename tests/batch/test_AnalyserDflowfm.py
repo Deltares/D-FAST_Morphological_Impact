@@ -1,5 +1,6 @@
 from typing import Any, Dict, TextIO, Tuple
 from mock import Mock, patch
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from shapely.geometry.linestring import LineString
 from dfastmi.batch.SedimentationData import SedimentationData
@@ -13,37 +14,30 @@ import pytest
 class Test_AnalyserDflowfm():
     
     report: TextIO
-    q_threshold: float
-    tstag: float
-    discharges: Vector
-    fraction_of_year: Vector
-    rsigma: Vector
-    slength: float
     nwidth: float
-    ucrit: float
     filenames: Dict[Any, Tuple[str,str]]
     xykm: shapely.geometry.linestring.LineString
-    n_fields: int
-    tide_bc: Tuple[str, ...]
-    kmbounds: Tuple[float, float]
     plotops: Dict
     
     @pytest.fixture
     def setup(self):
         self.report = None
-        self.q_threshold = 1.0
-        self.slength = 1.0
         self.nwidth = 1.0
         self.filenames = {}
         self.xykm = None
-        self.n_fields = 1
-        self.tide_bc: Tuple[str, ...] = ("name1", "name2")
-        self.tstag = 1.0
-        self.discharges = [1.0, 2.0, 3.0]
-        self.fraction_of_year = [1.0, 2.0, 3.0]
-        self.rsigma = [0.1, 0.2, 0.3]
-        self.ucrit = 0.3
         self.plotops = None
+        
+        initialized_config = Mock(spec=AConfigurationInitializerBase)
+        initialized_config.q_threshold = 1.0
+        initialized_config.tstag = 1.0
+        initialized_config.discharges = [1.0, 2.0, 3.0]
+        initialized_config.time_fractions_of_the_year = [1.0, 2.0, 3.0]
+        initialized_config.rsigma = [0.1, 0.2, 0.3]
+        initialized_config.slength = 1.0
+        initialized_config.n_fields = 1
+        initialized_config.tide_bc: Tuple[str, ...] = ("name1", "name2")
+        initialized_config.ucrit = 0.3
+        self.initialized_config = initialized_config
     
     def _get_mocked_xykm_data(self, xykm):
         xykm_data = Mock(spec=XykmData)
@@ -72,9 +66,9 @@ class Test_AnalyserDflowfm():
         self.filenames[2] = ("file3.extension", "file3.extension2")
         
     def _set_file_name_based_on_discharge(self):
-        self.filenames[self.discharges[0]] = ("file1.extension", "file1.extension2")
-        self.filenames[self.discharges[1]] = ("file2.extension", "file2.extension2")
-        self.filenames[self.discharges[2]] = ("file3.extension", "file3.extension2")
+        self.filenames[self.initialized_config.discharges[0]] = ("file1.extension", "file1.extension2")
+        self.filenames[self.initialized_config.discharges[1]] = ("file2.extension", "file2.extension2")
+        self.filenames[self.initialized_config.discharges[2]] = ("file3.extension", "file3.extension2")
         
     def _get_dz_mock_data(self):
         dzgemi = numpy.array([5, 10, 20, 1., 0.])
@@ -114,9 +108,10 @@ class Test_AnalyserDflowfm():
     ])
     def test_analyser_early_return_when_filenames_missing(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):       
         outputdir = str(tmp_path)
+        self.initialized_config.needs_tide = needs_tide
         
-        analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
-        missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
+        analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+        missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
         
         assert missing_data
         assert report_data == None
@@ -128,7 +123,7 @@ class Test_AnalyserDflowfm():
         (False, True),
     ])
     def test_analyser_early_return_when_xykm_missing(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):
-        needs_tide = True    
+        self.initialized_config.needs_tide = True
         outputdir = str(tmp_path)
         self._set_file_name_based_on_number()
         
@@ -140,15 +135,15 @@ class Test_AnalyserDflowfm():
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
              patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])):
                  
-            analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
-            missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
+            analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
             assert missing_data
             assert report_data == None        
 
     @pytest.mark.parametrize("display", [True, False])
     def test_analyse_without_xykm_and_with_old_zmin_zmax(self, tmp_path, display : bool, setup):
-        needs_tide = False
+        self.initialized_config.needs_tide = False
         old_zmin_zmax = False
         
         outputdir = str(tmp_path)
@@ -171,8 +166,8 @@ class Test_AnalyserDflowfm():
             
             main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
         
-            analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
-            missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
+            analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
             assert missing_data == False
             
@@ -182,7 +177,7 @@ class Test_AnalyserDflowfm():
             
     @pytest.mark.parametrize("display", [True, False])
     def test_analyse_with_xykm_and_with_old_zmin_zmax(self, tmp_path, display : bool, setup):
-        needs_tide = False
+        self.initialized_config.needs_tide = False
         old_zmin_zmax = True
         
         outputdir = str(tmp_path)
@@ -207,8 +202,8 @@ class Test_AnalyserDflowfm():
             
             main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
         
-            analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
-            missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
+            analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
             assert missing_data == False
             
@@ -224,7 +219,7 @@ class Test_AnalyserDflowfm():
     ])        
     def test_analyse_with_xykm(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):
         display = True
-        needs_tide = False
+        self.initialized_config.needs_tide = False
         old_zmin_zmax = False
         
         outputdir = str(tmp_path)
@@ -249,8 +244,8 @@ class Test_AnalyserDflowfm():
             
             main_computation.return_value = (dzgemi, dzmaxi, dzmini, dzbi)
         
-            analyser = AnalyserDflowfm(display, self.report, needs_tide, old_zmin_zmax, outputdir)
-            missing_data, report_data = analyser.analyse(self.q_threshold, self.tstag, self.discharges, self.fraction_of_year, self.rsigma, self.slength, self.nwidth, self.ucrit, self.filenames, self.xykm, self.n_fields, self.tide_bc, self.plotops)
+            analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+            missing_data, report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
             assert missing_data == False
             

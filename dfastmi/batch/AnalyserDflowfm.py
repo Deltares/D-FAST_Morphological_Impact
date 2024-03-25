@@ -1,4 +1,5 @@
 from pathlib import Path
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
 from dfastmi.kernel.core import main_computation, dzq_from_du_and_h
 from dfastmi.batch.DflowfmLoggers import AnalyserDflowfmLogger
@@ -19,7 +20,7 @@ class AnalyserDflowfm():
     
     _logger : AnalyserDflowfmLogger
     
-    def __init__(self, display : bool, report : TextIO, needs_tide : bool, old_zmin_zmax : bool, outputdir : Path):
+    def __init__(self, display : bool, report : TextIO, old_zmin_zmax : bool, outputdir : Path, config : AConfigurationInitializerBase):
         """
         Arguments
         ---------
@@ -33,25 +34,29 @@ class AnalyserDflowfm():
             Specifies the minimum and maximum should follow old or new definition.
         outputdir : Path
             Path of output directory.
+        config : AConfigurationInitializerBase
+            DTO with discharges, times, etc. for analysis
         """
         self._logger = AnalyserDflowfmLogger(display, report)
-        self._needs_tide = needs_tide
+        
+        self._needs_tide = config.needs_tide
+        self._q_threshold = config.q_threshold
+        self._tstag = config.tstag
+        self._discharges = config.discharges
+        self._time_fractions_of_the_year = config.time_fractions_of_the_year
+        self._rsigma = config.rsigma
+        self._slength = config.slength
+        self._ucrit = config.ucrit
+        self._n_fields = config.n_fields
+        self._tide_bc = config.tide_bc
+        
         self._old_zmin_zmax = old_zmin_zmax
         self._outputdir = outputdir
     
     def analyse(self, 
-                q_threshold : float,
-                tstag : float,
-                discharges : Vector,
-                fraction_of_year : Vector,
-                rsigma : Vector,
-                slength : float,
                 nwidth : float,
-                ucrit : float,
                 filenames : Dict[Any, Tuple[str,str]],
                 xykm : LineString,
-                n_fields : int,
-                tide_bc : Tuple[str, ...],
                 plotops : Dict
                 ) -> Tuple[bool, OutputDataDflowfm]:
         """
@@ -60,22 +65,8 @@ class AnalyserDflowfm():
 
         Arguments
         ---------
-        q_threshold : float
-            Threshold discharge above which the measure is active.
-        tstag : float
-            Fraction of year that the river is stagnant.
-        discharges : Vector
-            Array of discharges; one for each forcing condition. (Q list of discharges)
-        fraction_of_year : Vector
-            Fraction of year represented by each forcing condition. (T list of fraction of year)
-        rsigma : Vector
-            Array of relaxation factors; one per forcing condition.
-        slength : float
-            The expected yearly impacted sedimentation length.
         nwidth : float
             normal width of the reach.
-        ucrit : float
-            Critical flow velocity [m/s].
         filenames : Dict[Any, Tuple[str,str]]
             Dictionary of the names of the data file containing the simulation
             results to be processed. The conditions (discharge, wave conditions,
@@ -83,10 +74,6 @@ class AnalyserDflowfm():
             names is given: a reference file and a file with measure.
         xykm : shapely.geometry.linestring.LineString
             Original river chainage line.
-        n_fields : int
-            Number of fields to process (e.g. to cover a tidal period).
-        tide_bc : Tuple[str, ...]
-            Array of tidal boundary condition; one per forcing condition.
         plotops : Dict
             Dictionary of plot settings
 
@@ -97,7 +84,8 @@ class AnalyserDflowfm():
         Output data : OutputDataDflowfm
             DTO with the data which is needed to create a report.
         """
-        one_fm_filename, missing_data = self._get_first_fm_data_filename(q_threshold, discharges, rsigma, filenames, tide_bc)
+        rsigma = self._rsigma
+        one_fm_filename, missing_data = self._get_first_fm_data_filename(filenames)
 
         if missing_data:
             return missing_data, None
@@ -111,18 +99,17 @@ class AnalyserDflowfm():
             self._logger.print_riverkm_needed_for_tidal()
             return True, None
 
-        missing_data, dzq = self._get_dzq(discharges, rsigma, ucrit, filenames, n_fields, tide_bc, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
+        missing_data, dzq = self._get_dzq(filenames, missing_data, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
         if not missing_data:
             self._logger.log_char_bed_changes()
-
-            if tstag > 0:
-                dzq = (dzq[0], dzq[0], dzq[1], dzq[2])
-                fraction_of_year = (fraction_of_year[0], tstag, fraction_of_year[1], fraction_of_year[2])
-                rsigma = (rsigma[0], 1.0, rsigma[1], rsigma[2])
-
+            
+            dzq = self._determine_dzq(dzq)
+            time_fraction_of_year = self._get_time_fractions_of_the_year()
+            rsigma = self._get_rsigma()
+            
             # main_computation now returns new pointwise zmin and zmax
-            dzgemi, dzmaxi, dzmini, dzbi = main_computation(dzq, fraction_of_year, rsigma)
+            dzgemi, dzmaxi, dzmini, dzbi = main_computation(dzq, time_fraction_of_year, rsigma)
 
             if self._old_zmin_zmax:
                 # get old zmax and zmin
@@ -136,18 +123,33 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedimentation_data = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
+            sedimentation_data = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, self._slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
 
         return missing_data, OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, dzmaxi, dzmini, dzbi, zmax_str, zmin_str, xykm_data, sedimentation_data)
 
-    def _get_first_fm_data_filename(self,q_threshold: float, discharges: Vector, rsigma: Vector, filenames: Dict[Any, Tuple[str,str]], tide_bc: Tuple[str, ...]) -> Tuple[str, bool]:
+    def _determine_dzq(self, dzq : numpy.ndarray) -> numpy.ndarray:
+        if self._tstag > 0:
+            return (dzq[0], dzq[0], dzq[1], dzq[2])
+        return dzq
+    
+    def _get_time_fractions_of_the_year(self) -> Vector:
+        if self._tstag > 0:
+            return (self._time_fractions_of_the_year[0], self._tstag, self._time_fractions_of_the_year[1], self._time_fractions_of_the_year[2])
+        return self._time_fractions_of_the_year
+            
+    def _get_rsigma(self) -> Vector:
+        if self._tstag > 0:
+            return (self._rsigma[0], 1.0, self._rsigma[1], self._rsigma[2])
+        return self._rsigma
+
+    def _get_first_fm_data_filename(self, filenames: Dict[Any, Tuple[str,str]]) -> Tuple[str, bool]:
         missing_data = False
         one_fm_filename: Union[None, str] = None
         # determine the name of the first FM data file that will be used
         if 0 in filenames.keys(): # the keys are 0,1,2
-            one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(discharges, filenames)
+            one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(filenames)
         else: # the keys are the conditions
-            one_fm_filename, missing_data = self._get_first_fm_data_filename_based_on_conditions_keys(discharges, filenames, tide_bc, rsigma, q_threshold)
+            one_fm_filename, missing_data = self._get_first_fm_data_filename_based_on_conditions_keys(filenames)
 
         if one_fm_filename is None:
             self._logger.print_measure_not_active_for_checked_conditions()
@@ -155,19 +157,19 @@ class AnalyserDflowfm():
 
         return one_fm_filename, missing_data
     
-    def _get_first_fm_data_filename_based_on_numbered_keys(self, discharges : Vector, filenames : Dict[Any, Tuple[str,str]]) -> Optional[str]:
+    def _get_first_fm_data_filename_based_on_numbered_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> Optional[str]:
         for i in range(3):
-            if discharges[i] is not None:
+            if self._discharges[i] is not None:
                 return filenames[i][0]
         return None
     
-    def _get_first_fm_data_filename_based_on_conditions_keys(self, discharges : Vector, filenames : Dict[Any, Tuple[str,str]], tide_bc : Tuple[str, ...], rsigma : Vector, q_threshold : float) -> Tuple[str, bool]:
+    def _get_first_fm_data_filename_based_on_conditions_keys(self, filenames : Dict[Any, Tuple[str,str]]) -> Tuple[str, bool]:
         key: Union[Tuple[float, int], float]
         missing_data = False
-        for i in range(len(discharges)):
-            if not missing_data and discharges[i] is not None:
-                key, q, t = self._get_condition_key(discharges, tide_bc, i)
-                if rsigma[i] == 1 or discharges[i] <= q_threshold:
+        for i in range(len(self._discharges)):
+            if not missing_data and self._discharges[i] is not None:
+                key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
+                if self._rsigma[i] == 1 or self._discharges[i] <= self._q_threshold:
                     # no celerity or measure not active, so ignore field
                     pass
                 elif key in filenames:
@@ -183,36 +185,28 @@ class AnalyserDflowfm():
         return xykm_data
 
     def _get_dzq(self,
-                 discharges : Vector,
-                 rsigma : Vector,
-                 ucrit : float,
                  filenames: Dict[Any, Tuple[str,str]],
-                 n_fields : int,
-                 tide_bc : float,
                  missing_data : bool,
                  iface : numpy.ndarray,
                  dxi : numpy.ndarray,
                  dyi : numpy.ndarray
                  ) -> Tuple[bool, numpy.ndarray]:
         if 0 in filenames.keys(): # the keys are 0,1,2
-            return self._get_dzq_based_on_numbered_keys(missing_data, discharges, filenames, ucrit, n_fields, dxi, dyi, iface)
+            return self._get_dzq_based_on_numbered_keys(missing_data, filenames, dxi, dyi, iface)
         else: # the keys are the conditions
-            return self._get_dzq_based_on_conditions_keys(missing_data,discharges, filenames, tide_bc, rsigma, ucrit, n_fields, dxi, dyi, iface)
+            return self._get_dzq_based_on_conditions_keys(missing_data, filenames, dxi, dyi, iface)
     
     def _get_dzq_based_on_numbered_keys(self,
                                         missing_data : bool,
-                                        discharges: Vector,
                                         filenames: Dict[Any, Tuple[str,str]],
-                                        ucrit : float,
-                                        n_fields : int,
                                         dxi : numpy.ndarray,
                                         dyi : numpy.ndarray,
                                         iface : numpy.ndarray
                                         ) -> Tuple[bool, numpy.ndarray]:
-        dzq = [None] * len(discharges)
+        dzq = [None] * len(self._discharges)
         for i in range(3):
-                if not missing_data and discharges[i] is not None:
-                    dzq[i] = self._get_values_fm(discharges[i], ucrit, filenames[i], n_fields, dxi, dyi, iface)
+                if not missing_data and self._discharges[i] is not None:
+                    dzq[i] = self._get_values_fm(self._discharges[i], filenames[i], self._n_fields, dxi, dyi, iface)
                     if dzq[i] is None:
                         missing_data = True
                 else:
@@ -221,29 +215,24 @@ class AnalyserDflowfm():
     
     def _get_dzq_based_on_conditions_keys(self,
                                           missing_data : bool,
-                                          discharges : Vector,
                                           filenames : Dict[Any, Tuple[str,str]],
-                                          tide_bc : Tuple[str, ...],
-                                          rsigma : Vector,
-                                          ucrit : float,
-                                          n_fields : int,
                                           dxi : numpy.ndarray,
                                           dyi : numpy.ndarray,
                                           iface : numpy.ndarray
                                           ) -> Tuple[bool, numpy.ndarray]:
-        dzq = [None] * len(discharges)
-        for i in range(len(discharges)):
-            if not missing_data and discharges[i] is not None:
-                key, q, t = self._get_condition_key(discharges, tide_bc, i)
-                if rsigma[i] == 1:
+        dzq = [None] * len(self._discharges)
+        for i in range(len(self._discharges)):
+            if not missing_data and self._discharges[i] is not None:
+                key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
+                if self._rsigma[i] == 1:
                     # no celerity, so ignore field
                     dzq[i] = 0
                 elif key in filenames.keys():
                     if t:
-                        n_fields_request = n_fields
+                        n_fields_request = self._n_fields
                     else:
                         n_fields_request = 1
-                    dzq[i] = self._get_values_fm(q, ucrit, filenames[key], n_fields_request, dxi, dyi, iface)
+                    dzq[i] = self._get_values_fm(q, filenames[key], n_fields_request, dxi, dyi, iface)
                 else:
                     self._logger.report_missing_calculation_dzq_values(q, t)
                     missing_data = True
@@ -264,7 +253,6 @@ class AnalyserDflowfm():
     def _get_values_fm(
         self,
         q: float,
-        ucrit: float,
         filenames: Tuple[str, str],
         n_fields: int,
         dx: numpy.ndarray,
@@ -334,7 +322,7 @@ class AnalyserDflowfm():
             v1 = GridOperations.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
             umag1 = numpy.sqrt(u1**2 + v1**2)
 
-            dzq1 = dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
+            dzq1 = dzq_from_du_and_h(umag0, h0, umag1, self._ucrit, default=0.0)
 
             if n_fields > 1:
                 ustream = u0*dx + v0*dy
