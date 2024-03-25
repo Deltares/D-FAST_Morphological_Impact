@@ -127,7 +127,7 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedimentation_data = comp_sedimentation_volume(xykm_data.xni, xykm_data.yni, xykm_data.sni, xykm_data.nni, xykm_data.face_node_connectivity_index, dzgemi, self._slength, nwidth, xykm_data.xykline, self._outputdir, plotops)
+            sedimentation_data = comp_sedimentation_volume(xykm_data, dzgemi, self._slength, nwidth, self._outputdir, plotops)
 
         return OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, maximum_bedlevel_value, minimum_bedlevel_value, dzbi, maximum_bedlevel_messsage, minimum_bedlevel_message, xykm_data, sedimentation_data)
 

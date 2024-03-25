@@ -6,6 +6,7 @@ from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
 from dfastmi.batch.DetectAndPlot import detect_and_plot_areas
 from dfastmi.batch.SedimentationData import SedimentationData
+from dfastmi.batch.XykmData import XykmData
 from typing import Dict, Tuple
 
 def stream_bins(min_s, max_s, ds):
@@ -165,15 +166,10 @@ def min_max_s(s, face_node_connectivity):
     return min_s, max_s
 
 def comp_sedimentation_volume(
-    xni: numpy.ndarray,
-    yni: numpy.ndarray,
-    sni: numpy.ndarray,
-    dni: numpy.ndarray,
-    face_node_connectivity_index: numpy.ndarray,
+    xykm_data : XykmData,
     dzgemi: numpy.ndarray,
     slength: float,
     nwidth: float,
-    xykline: numpy.ndarray,
     outputdir: Path,
     plotops: Dict,
 ):
@@ -202,26 +198,26 @@ def comp_sedimentation_volume(
     nwbins = 10
     sbin_length = 10.0
 
-    areai = xynode_2_area(xni, yni, face_node_connectivity_index)
+    areai = xynode_2_area(xykm_data.xni, xykm_data.yni, xykm_data.face_node_connectivity_index)
 
     print("bin cells in across-stream direction")
     # determine the mean normal distance dfi per cell
-    dfi = face_mean(dni, face_node_connectivity_index)
+    dfi = face_mean(xykm_data.nni, xykm_data.face_node_connectivity_index)
     # distribute the cells over nwbins bins over the channel width
     wbini, wthresh = width_bins(dfi, nwidth, nwbins)
     print("bin cells in along-stream direction")
     # determine the minimum and maximum along line distance of each cell
-    min_sfi, max_sfi = min_max_s(sni, face_node_connectivity_index)
+    min_sfi, max_sfi = min_max_s(xykm_data.sni, xykm_data.face_node_connectivity_index)
     # determine the weighted mapping of cells to chainage bins
     siface, afrac, sbin, sthresh = stream_bins(min_sfi, max_sfi, sbin_length)
     wbin = wbini[siface]
     print("determine chainage per bin")
     # determine chainage values of at the midpoints
     smid = (sthresh[1:] + sthresh[:-1])/2
-    sline = distance_along_line(xykline[:,:2])
-    kmid = distance_to_chainage(sline, xykline[:,2], smid)
+    sline = distance_along_line(xykm_data.xykline[:,:2])
+    kmid = distance_to_chainage(sline, xykm_data.xykline[:,2], smid)
 
-    edgeface_index = facenode_to_edgeface(face_node_connectivity_index)
+    edgeface_index = facenode_to_edgeface(xykm_data.face_node_connectivity_index)
     wght_area_tot = numpy.zeros(dzgemi.shape)
     wbin_labels = ["between {w1} and {w2} m".format(w1 = wthresh[iw], w2 = wthresh[iw+1]) for iw in range(nwbins)]
     plot_n = 3
