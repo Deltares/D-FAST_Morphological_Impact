@@ -38,6 +38,7 @@ import PyQt5.QtGui
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.resources import DFAST_LOGO
 import dfastmi.kernel.core
 
 # View
@@ -156,6 +157,7 @@ class DialogView:
         self._win = QtWidgets.QMainWindow()
         self._win.setGeometry(200, 200, 600, 300)
         self._win.setWindowTitle("D-FAST Morphological Impact")
+        self._win.setWindowIcon(PyQt5.QtGui.QIcon(str(DFAST_LOGO)))
     
     def create_menus(self) -> None:
         # Logic to create menus
@@ -434,12 +436,16 @@ class DialogView:
         None
         """
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Information)
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
         msg.setInformativeText("Copyright (c) 2024 Deltares.")
         msg.setDetailedText(self.view_model.gui_text("license"))
         msg.setWindowTitle(self.view_model.gui_text("about"))
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        
+        logo_size = msg.heightMM() * 0.9
+        pixmap = PyQt5.QtGui.QPixmap(str(DFAST_LOGO))
+        msg.setIconPixmap(pixmap.scaled(logo_size, logo_size))
+        
         msg.exec_()
 
 
