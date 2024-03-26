@@ -123,22 +123,19 @@ class DialogView():
     
     def _update_condition_files(self):
         for condition_discharge, reference_file in self._view_model.reference_files.items():
-            prefix = str(condition_discharge)+"_"
-            key = prefix +"reference"
-            input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
-            if input_textbox:
-                input_textbox.setText(reference_file)
-                state = input_textbox.validator.validate(input_textbox.text(), 0)[0]
-                input_textbox.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
-        
-        for condition_discharge, measure_file in self._view_model.measure_files.items():        
-            prefix = str(condition_discharge)+"_"
-            key = prefix +"with_measure"
-            input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
-            if input_textbox:
-                input_textbox.setText(measure_file)
-                state = input_textbox.validator.validate(input_textbox.text(), 0)[0]
-                input_textbox.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
+            self._update_condition_file_field("reference", condition_discharge, reference_file)
+
+        for condition_discharge, measure_file in self._view_model.measure_files.items():
+            self._update_condition_file_field("with_measure", condition_discharge, measure_file)            
+
+    def _update_condition_file_field(self, field_postfix: str, condition_discharge, reference_file):
+        prefix = str(condition_discharge)+"_"
+        key = prefix + field_postfix
+        input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
+        if input_textbox:
+            input_textbox.setText(reference_file)
+            state = input_textbox.validator.validate(input_textbox.text(), 0)[0]
+            input_textbox.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
     
     def _update_qvalues_table(self):
         self._clear_conditions()
