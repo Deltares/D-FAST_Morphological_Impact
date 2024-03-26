@@ -108,7 +108,7 @@ class MapFile:
 
         Raises
         ------
-        Exception
+        ValueError
             If the data file doesn't include a 2D mesh.
             If it cannot uniquely identify the variable to be read.
 
