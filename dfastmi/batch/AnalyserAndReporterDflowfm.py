@@ -595,7 +595,7 @@ def get_values_fm(
 
     map_file1 = GridOperations(filenames[0])
     map_file2 = GridOperations(filenames[1])
-    ref = map_file1.read_face_variable("sea_water_x_velocity", ifld=0)
+    ref = map_file1.read_face_variable("sea_water_x_velocity", time_index_from_last=0)
     
     for ifld in range(n_fields):
         # if last time step is needed, pass None to allow for files without time specification
@@ -603,14 +603,14 @@ def get_values_fm(
             ifld = None
 
         # reference data
-        u0 = map_file1.read_face_variable("sea_water_x_velocity", ifld=ifld)[iface]
-        v0 = map_file1.read_face_variable("sea_water_y_velocity", ifld=ifld)[iface]
+        u0 = map_file1.read_face_variable("sea_water_x_velocity", time_index_from_last=ifld)[iface]
+        v0 = map_file1.read_face_variable("sea_water_y_velocity", time_index_from_last=ifld)[iface]
         umag0 = numpy.sqrt(u0 ** 2 + v0 ** 2)
-        h0 = map_file1.read_face_variable("sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
+        h0 = map_file1.read_face_variable("sea_floor_depth_below_sea_surface", time_index_from_last=ifld)[iface]
 
         # data with measure
-        u1 = map_file2.read_face_variable("sea_water_x_velocity", ifld=ifld)[iface]
-        v1 = map_file2.read_face_variable("sea_water_y_velocity", ifld=ifld)[iface]
+        u1 = map_file2.read_face_variable("sea_water_x_velocity", time_index_from_last=ifld)[iface]
+        v1 = map_file2.read_face_variable("sea_water_y_velocity", time_index_from_last=ifld)[iface]
         umag1 = numpy.sqrt(u1**2 + v1**2)
 
         dzq1 = dfastmi.kernel.core.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)

@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from pathlib import Path
 from typing import List, Optional
-import numpy
+import numpy as np
 import numpy.ma as ma
 import netCDF4 as nc
     
@@ -46,7 +46,7 @@ class GridOperations:
         self._face_dimension_name = None
     
     @property
-    def node_x_coordinates(self) -> numpy.ndarray:
+    def node_x_coordinates(self) -> np.ndarray:
         """Get the x-coordinates of the nodes.
 
         Returns
@@ -57,7 +57,7 @@ class GridOperations:
         return self._get_node_coordinate_data(["projection_x_coordinate", "longitude"])
     
     @property
-    def node_y_coordinates(self) -> numpy.ndarray:
+    def node_y_coordinates(self) -> np.ndarray:
         """Get the y-coordinates of the nodes.
 
         Returns
@@ -68,7 +68,7 @@ class GridOperations:
         return self._get_node_coordinate_data(["projection_y_coordinate", "latitude"])
     
     @property
-    def face_node_connectivity(self)-> ma.masked_array:
+    def face_node_connectivity(self) -> ma.masked_array:
         """Get the face-node connectivity from the 2d mesh.
 
         Returns
@@ -80,21 +80,22 @@ class GridOperations:
         """
         with nc.Dataset(self._map_file) as rootgrp:
             mesh2d = rootgrp.variables[self.mesh2d_name]
-
-            start_index = 0
-            varname = mesh2d.getncattr("face_node_connectivity")
-            var = rootgrp.variables[varname]
-            if "start_index" in var.ncattrs():
-                start_index = var.getncattr("start_index")
-
-            data = var[...] - start_index
+            var_name = mesh2d.getncattr("face_node_connectivity")
+            var = rootgrp.variables[var_name]
+            data = var[...] - GridOperations._get_start_index(var)
 
         return data
+
+    @staticmethod
+    def _get_start_index(var) -> int:
+        if "start_index" in var.ncattrs():
+            return var.getncattr("start_index")
+        return 0
     
     def read_face_variable(self, 
                       varname: str, 
-                      ifld: Optional[int] = None,
-    ) -> numpy.ndarray:
+                      time_index_from_last: Optional[int] = None,
+    ) -> np.ndarray:
         """
         Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
 
@@ -102,10 +103,7 @@ class GridOperations:
         ---------
         varname : str
             Name of the netCDF variable to be read.
-        location : Location
-            The stagger location at which the data should be located
-            (default is "face")
-        ifld : Optional[int]
+        time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
 
         Raises
@@ -116,9 +114,9 @@ class GridOperations:
 
         Returns
         -------
-        data
-            Data of the requested variable (for the last time step only if the variable is
-            time dependent).
+        numpy.ndarray
+            1D data of the requested variable. If the variable is time-dependent, 
+            the time_index_from_last is used.
         """
         # open file
         with nc.Dataset(self._map_file) as rootgrp:
@@ -143,23 +141,20 @@ class GridOperations:
             if var.get_dims()[0].isunlimited():
                 # assume that time dimension is unlimited and is the first dimension
                 # slice to obtain last time step or earlier as requested
-                if ifld is None:
-                    data = var[-1, :]
-                else:
-                    data = var[-1 - ifld, :]
+                if time_index_from_last is None:
+                    time_index_from_last = 0
+                data = var[-1 - time_index_from_last, :]
+                
             else:
-                if not ifld is None:
+                if not time_index_from_last is None:
                     raise Exception(
                         'Trying to access time-independent variable "{}" with time offset {}.'.format(
-                            varname, -1 - ifld
+                            varname, -1 - time_index_from_last
                         )
                     )
 
                 data = var[...]
 
-
-
-        # return data
         return data
 
     @property
@@ -300,7 +295,7 @@ class GridOperations:
     def add_variable(
         self,
         variable_name: str,
-        data: numpy.array,
+        data: np.array,
         mesh_name: str,
         face_dimension_name: str,
         long_name: str,
@@ -336,16 +331,15 @@ class GridOperations:
             var[:] = data[:]
 
         
-    def _get_node_coordinate_data(self, standard_names: List[str]) -> numpy.ndarray:
-        # open file
+    def _get_node_coordinate_data(self, standard_names: List[str]) -> np.ndarray:
         with nc.Dataset(self._map_file) as rootgrp:
             mesh2d = rootgrp.variables[self.mesh2d_name]
     
-            crdnames = mesh2d.getncattr("node_coordinates").split()
-            for n in crdnames:
-                stdname = rootgrp.variables[n].standard_name
-                if stdname in standard_names:
-                    var = rootgrp.variables[n]
+            coord_var_names = mesh2d.getncattr("node_coordinates").split()
+            for coord_var_name in coord_var_names:
+                standard_name = rootgrp.variables[coord_var_name].standard_name
+                if standard_name in standard_names:
+                    var = rootgrp.variables[coord_var_name]
                     break
                 
             data = var[...]
