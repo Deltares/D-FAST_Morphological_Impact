@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from pathlib import Path
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
 from dfastmi.kernel.core import main_computation, dzq_from_du_and_h
 from dfastmi.batch.DflowfmLoggers import AnalyserDflowfmLogger
@@ -95,7 +96,7 @@ class AnalyserDflowfm():
                 nwidth : float,
                 filenames : Dict[Any, Tuple[str,str]],
                 xykm : LineString,
-                plotops : Dict
+                plotting_options : PlotOptions
                 ) -> OutputDataDflowfm:
         """
         Perform analysis based on D-Flow FM data.
@@ -112,8 +113,8 @@ class AnalyserDflowfm():
             names is given: a reference file and a file with measure.
         xykm : shapely.geometry.linestring.LineString
             Original river chainage line.
-        plotops : Dict
-            Dictionary of plot settings
+        plotting_options : PlotOptions
+            Class containing the plot options.
 
         Returns
         -------
@@ -158,7 +159,7 @@ class AnalyserDflowfm():
 
         sedimentation_data = None
         if xykm is not None:
-            sedimentation_data = comp_sedimentation_volume(xykm_data, dzgemi, self._slength, nwidth, self._outputdir, plotops)
+            sedimentation_data = comp_sedimentation_volume(xykm_data, dzgemi, self._slength, nwidth, self._outputdir, plotting_options)
 
         return OutputDataDflowfm(rsigma, one_fm_filename, xn, face_node_connectivity, dzq, dzgemi, maximum_bedlevel_value, minimum_bedlevel_value, dzbi, maximum_bedlevel_messsage, minimum_bedlevel_message, xykm_data, sedimentation_data)
 

@@ -30,6 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from pathlib import Path
 from typing import Dict
 from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.plotting import plot_overview, zoom_xy_and_save, savefig
 from dfastmi.batch.SedimentationData import SedimentationData
@@ -53,7 +54,7 @@ class ReporterDflowfm():
         """
         self._logger = ReporterDflowfmLogger(display)
     
-    def report(self, outputdir : Path, plotops : Dict, report_data : OutputDataDflowfm):
+    def report(self, outputdir : Path, plotting_options : PlotOptions, report_data : OutputDataDflowfm):
         """
         write report data to a netCDF UGRID file similar to D-Flow FM.
 
@@ -61,8 +62,8 @@ class ReporterDflowfm():
         ---------
         outputdir : Path
             Path of output directory.
-        plotops : Dict
-            Dictionary of plot settings
+        plotting_options : PlotOptions
+            Class containing the plot options.
         report_data  : OutputDataDflowfm
             DTO with the data which is needed to create a report.
         """
@@ -78,7 +79,7 @@ class ReporterDflowfm():
         if report_data.xykm_data.xykm is not None:
             self._replace_coordinates_in_destination_file(report_data, report_data.xykm_data, meshname, nc_fill, projmesh)
 
-        self._plot_data(plotops, report_data.xykm_data, report_data.dzgemi)
+        self._plot_data(plotting_options, report_data.xykm_data, report_data.dzgemi)
 
         self._logger.log_compute_initial_year_dredging()
 
@@ -183,8 +184,8 @@ class ReporterDflowfm():
         dst.variables[node_y][:] = nn[:]
         dst.close()
 
-    def _plot_data(self, plotops : Dict, xykm_data : XykmData, dzgemi : numpy.ndarray):
-        if plotops['plotting']:
+    def _plot_data(self, plotting_options : PlotOptions, xykm_data : XykmData, dzgemi : numpy.ndarray):
+        if plotting_options.plotting:
             if xykm_data.face_node_connectivity_index.mask.shape == ():
                     # all faces have the same number of nodes
                 nnodes = numpy.ones(xykm_data.face_node_connectivity_index.data.shape[0], dtype=numpy.int64) * xykm_data.face_node_connectivity_index.data.shape[1]
@@ -203,14 +204,14 @@ class ReporterDflowfm():
                     "y-coordinate [km]",
                     "change to year-averaged equilibrium",
                     "erosion and sedimentation [m]",
-                    plotops['xyzoom'],
+                    plotting_options.xyzoom,
                 )
 
-            if plotops['saveplot']:
-                figbase = Path(plotops['figdir']) / "overview"
-                if plotops['saveplot_zoomed']:
-                    zoom_xy_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['xyzoom'], scale=1000)
-                figfile = figbase.with_suffix(plotops['plot_ext'])
+            if plotting_options.saveplot:
+                figbase = Path(plotting_options.figure_save_directory) / "overview"
+                if plotting_options.saveplot_zoomed:
+                    zoom_xy_and_save(fig, ax, figbase, plotting_options.plot_extension, plotting_options.xyzoom, scale=1000)
+                figfile = figbase.with_suffix(plotting_options.plot_extension)
                 savefig(fig, figfile)
 
     def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):

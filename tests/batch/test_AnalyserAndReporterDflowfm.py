@@ -10,6 +10,7 @@ import pytest
 import shapely
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
@@ -21,7 +22,7 @@ class Test_analyse_and_report_dflowfm_mode():
     nwidth: float
     filenames: Dict[Any, Tuple[str,str]]
     xykm: shapely.geometry.linestring.LineString
-    plotops: Dict
+    plotting_options: PlotOptions
     initialized_config : AConfigurationInitializerBase
     
     @pytest.fixture
@@ -30,7 +31,7 @@ class Test_analyse_and_report_dflowfm_mode():
         self.nwidth = 1.0
         self.filenames = {}
         self.xykm = None
-        self.plotops = {}
+        self.plotting_options = Mock(spec=PlotOptions)
         
         initialized_config = Mock(spec=AConfigurationInitializerBase)
         initialized_config.q_threshold = 1.0
@@ -50,17 +51,19 @@ class Test_analyse_and_report_dflowfm_mode():
         self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
         
     def set_plotting_on(self, tmp_path):
-        self.plotops['plotting'] = True
-        self.plotops['saveplot'] = True
-        self.plotops['saveplot_zoomed'] = True
-        self.plotops['figdir'] = tmp_path
-        self.plotops['plot_ext'] = ".png"
+        self.plotting_options.plotting = True
+        self.plotting_options.saveplot = True
+        self.plotting_options.saveplot_zoomed = True
+        self.plotting_options.figure_save_directory = tmp_path
+        self.plotting_options.plot_extension = ".png"
         
         random_list: List[Tuple[float, float, float, float]] = [
             (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
         
-        self.plotops['xyzoom'] = random_list
+        self.plotting_options.xyzoom = random_list
         
+    def set_plotting_off(self):
+        self.plotting_options.plotting = False
     
     @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
         (False, False, False),
@@ -89,7 +92,7 @@ class Test_analyse_and_report_dflowfm_mode():
                 self.xykm,
                 old_zmin_zmax,
                 outputdir,
-                self.plotops,
+                self.plotting_options,
                 self.initialized_config)
 
         assert succes
@@ -125,7 +128,7 @@ class Test_analyse_and_report_dflowfm_mode():
                 self.xykm,
                 old_zmin_zmax,
                 outputdir,
-                self.plotops,
+                self.plotting_options,
                 self.initialized_config)
 
         assert succes
@@ -148,7 +151,7 @@ class Test_analyse_and_report_dflowfm_mode():
         
         outputdir = tmp_path
         
-        self.plotops['plotting'] = False
+        self.set_plotting_off()
         
         self.set_file_names()
         
@@ -173,7 +176,7 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.xykm,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops,
+                    self.plotting_options,
                     self.initialized_config)
             finally:
                 os.chdir(cwd)
@@ -201,7 +204,7 @@ class Test_analyse_and_report_dflowfm_mode():
         
         outputdir = tmp_path        
         
-        self.plotops['plotting'] = False
+        self.set_plotting_off()
         
         self.set_file_names()
         
@@ -226,7 +229,7 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.xykm,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops,
+                    self.plotting_options,
                     self.initialized_config)
             finally:
                 os.chdir(cwd)
@@ -279,7 +282,7 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.xykm,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops,
+                    self.plotting_options,
                     self.initialized_config)
             finally:
                 os.chdir(cwd)
@@ -332,7 +335,7 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.xykm,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops,
+                    self.plotting_options,
                     self.initialized_config)
             finally:
                 os.chdir(cwd)
@@ -393,7 +396,7 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.xykm,
                     old_zmin_zmax,
                     outputdir,
-                    self.plotops,
+                    self.plotting_options,
                     self.initialized_config)
             finally:
                 os.chdir(cwd)

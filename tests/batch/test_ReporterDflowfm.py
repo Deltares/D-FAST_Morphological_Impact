@@ -6,6 +6,7 @@ import numpy
 import pytest
 from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
@@ -13,24 +14,24 @@ from shapely.geometry.linestring import LineString
 
 class Test_ReporterDflowfm_Report():
     
-    def set_plotting_on(self, tmp_path) -> Dict:
-        plotops = {}
-        plotops['plotting'] = True
-        plotops['saveplot'] = True
-        plotops['saveplot_zoomed'] = True
-        plotops['figdir'] = tmp_path
-        plotops['plot_ext'] = ".png"
+    def set_plotting_on(self, tmp_path) -> PlotOptions:
+        plotting_options = Mock(spec=PlotOptions)
+        plotting_options.plotting = True
+        plotting_options.saveplot = True
+        plotting_options.saveplot_zoomed = True
+        plotting_options.figure_save_directory = tmp_path
+        plotting_options.plot_extension = ".png"
         
         random_list: List[Tuple[float, float, float, float]] = [
             (random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0), random.uniform(0.0, 100.0))]
         
-        plotops['xyzoom'] = random_list
-        return plotops
+        plotting_options.xyzoom = random_list
+        return plotting_options
     
-    def set_plotting_off(self) -> Dict:
-        plotops = {}
-        plotops['plotting'] = False
-        return plotops
+    def set_plotting_off(self) -> PlotOptions:
+        plotting_options = Mock(spec=PlotOptions)
+        plotting_options.plotting = False
+        return plotting_options
 
     def set_report_data_without_xykm(self, tmp_path):
         return self._get_report_data(tmp_path, False)
@@ -100,7 +101,7 @@ class Test_ReporterDflowfm_Report():
     
     @pytest.mark.parametrize("display", [True, False])
     def test_report_without_xykm_without_plotting(self, tmp_path, display):
-        plotops = self.set_plotting_off()
+        plotting_options = self.set_plotting_off()
         report_data = self.set_report_data_without_xykm(tmp_path)
         
         with patch('dfastmi.batch.ReporterDflowfm.GridOperations.get_mesh_and_facedim_names', return_value=("filename1.ext", "filename2.ext")), \
@@ -111,7 +112,7 @@ class Test_ReporterDflowfm_Report():
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
         
             reporter = ReporterDflowfm(display)
-            reporter.report(tmp_path, plotops, report_data)
+            reporter.report(tmp_path, plotting_options, report_data)
                 
             assert mocked_ugrid_add.call_count == 10
             assert mocked_plotting_plot_overview.call_count == 0
@@ -120,7 +121,7 @@ class Test_ReporterDflowfm_Report():
         
     @pytest.mark.parametrize("display", [True, False])
     def test_report_without_xykm_with_plotting(self, tmp_path, display):
-        plotops = self.set_plotting_on(tmp_path)
+        plotting_options = self.set_plotting_on(tmp_path)
         report_data = self.set_report_data_without_xykm(tmp_path)
         
         with patch('dfastmi.batch.ReporterDflowfm.GridOperations.get_mesh_and_facedim_names', return_value=("filename1.ext", "filename2.ext")), \
@@ -133,7 +134,7 @@ class Test_ReporterDflowfm_Report():
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
         
             reporter = ReporterDflowfm(display)
-            reporter.report(tmp_path, plotops, report_data)
+            reporter.report(tmp_path, plotting_options, report_data)
                 
             assert mocked_ugrid_add.call_count == 10
             assert mocked_plotting_plot_overview.call_count == 1
@@ -142,7 +143,7 @@ class Test_ReporterDflowfm_Report():
     
     @pytest.mark.parametrize("display", [True, False])
     def test_report_with_xykm_without_plotting(self, tmp_path, display):
-        plotops = self.set_plotting_off()
+        plotting_options = self.set_plotting_off()
         report_data = self.set_report_data_with_xykm(tmp_path)
         
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
@@ -156,7 +157,7 @@ class Test_ReporterDflowfm_Report():
         
             reporter = ReporterDflowfm(display)
             reporter._logger = Mock(spec=ReporterDflowfmLogger)
-            reporter.report(tmp_path, plotops, report_data)
+            reporter.report(tmp_path, plotting_options, report_data)
                 
             assert mocked_ugrid_add.call_count == 15
             assert mocked_plotting_plot_overview.call_count == 0
@@ -165,7 +166,7 @@ class Test_ReporterDflowfm_Report():
             
     @pytest.mark.parametrize("display", [True, False])
     def test_report_with_xykm_with_plotting(self, tmp_path, display):
-        plotops = self.set_plotting_on(tmp_path)
+        plotting_options = self.set_plotting_on(tmp_path)
         report_data = self.set_report_data_with_xykm(tmp_path)
         
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
@@ -181,7 +182,7 @@ class Test_ReporterDflowfm_Report():
             
             reporter = ReporterDflowfm(display)
             reporter._logger = Mock(spec=ReporterDflowfmLogger)
-            reporter.report(tmp_path, plotops, report_data)
+            reporter.report(tmp_path, plotting_options, report_data)
                 
             assert mocked_ugrid_add.call_count == 15
             assert mocked_plotting_plot_overview.call_count == 1

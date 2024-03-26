@@ -30,6 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from pathlib import Path
 from typing import Dict, Any, Tuple, TextIO
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 
@@ -43,7 +44,7 @@ def analyse_and_report_dflowfm(
     xykm: shapely.geometry.linestring.LineString,
     old_zmin_zmax: bool,
     outputdir: Path,
-    plotops: Dict,
+    plotting_options: PlotOptions,
     initialized_config : AConfigurationInitializerBase
 ) -> bool:
     """
@@ -71,8 +72,8 @@ def analyse_and_report_dflowfm(
         Specifies the minimum and maximum should follow old or new definition.
     outputdir : Path
         Path of output directory.
-    plotops : Dict
-        Dictionary of plot settings
+    plotting_options : PlotOptions
+        Class containing the plot options.
     initialized_config : AConfigurationInitializerBase
         DTO with discharges, times, etc. for analysis
 
@@ -82,12 +83,12 @@ def analyse_and_report_dflowfm(
         Flag indicating whether analysis could be carried out.
     """
     analyser = AnalyserDflowfm(display, report, old_zmin_zmax, outputdir, initialized_config)
-    report_data = analyser.analyse(nwidth, filenames, xykm, plotops)
+    report_data = analyser.analyse(nwidth, filenames, xykm, plotting_options)
     
     if analyser.missing_data:
         return True
     
     reporter = ReporterDflowfm(display)
-    reporter.report(outputdir, plotops, report_data)
+    reporter.report(outputdir, plotting_options, report_data)
 
     return not analyser.missing_data

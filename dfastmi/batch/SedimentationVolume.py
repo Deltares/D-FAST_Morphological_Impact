@@ -34,6 +34,7 @@ import numpy
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
 from dfastmi.batch.DetectAndPlot import detect_and_plot_areas
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from typing import Dict, Tuple
@@ -200,7 +201,7 @@ def comp_sedimentation_volume(
     slength: float,
     nwidth: float,
     outputdir: Path,
-    plotops: Dict,
+    plotting_options: PlotOptions,
 ):
     """
     Compute the yearly dredging volume.
@@ -218,6 +219,8 @@ def comp_sedimentation_volume(
         Name of simulation file.
     outputdir : Path
         Path of output directory.
+    plotting_options : PlotOptions
+        Class containing the plot options.
     Returns
     -------
     dvol : float
@@ -255,11 +258,11 @@ def comp_sedimentation_volume(
     xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
-    sedarea, sedvol, sed_area_list, wght_area_tot = detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
+    sedarea, sedvol, sed_area_list, wght_area_tot = detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotting_options, xyzfil, area_str, total_str, True, plot_n)
     
     print("-- detecting separate erosion areas")
     xyzfil = ""
     area_str = "erosion area {}"
     total_str = "total erosion volume"
-    eroarea, erovol, ero_area_list, wght_area_tot = detect_and_plot_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, False, plot_n)
+    eroarea, erovol, ero_area_list, wght_area_tot = detect_and_plot_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotting_options, xyzfil, area_str, total_str, False, plot_n)
     return SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini)
