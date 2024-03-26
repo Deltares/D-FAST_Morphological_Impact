@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.GridOperations import GridOperations
+from dfastmi.io.map_file import MapFile
 
 from dfastmi.batch import DetectAndPlot
 
@@ -317,7 +317,7 @@ def analyse_and_report_dflowfm(
         if display:
             ApplicationSettingsHelper.log_text('writing_output')
         
-        map_file = GridOperations(one_fm_filename)
+        map_file = MapFile(one_fm_filename)
         meshname = map_file.mesh2d_name
         facedim = map_file.face_dimension_name
         dst = Path(outputdir) / ApplicationSettingsHelper.get_filename("netcdf.out")
@@ -325,7 +325,7 @@ def analyse_and_report_dflowfm(
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
         dzgem[iface]=dzgemi
-        dst_map_file = GridOperations(dst)
+        dst_map_file = MapFile(dst)
         dst_map_file.add_variable(
             "avgdzb",
             dzgem,
@@ -380,7 +380,7 @@ def analyse_and_report_dflowfm(
         
         projmesh = Path(outputdir) / 'projected_mesh.nc'
         map_file.copy_ugrid(projmesh)
-        projmesh_map_file = GridOperations(projmesh)
+        projmesh_map_file = MapFile(projmesh)
         projmesh_map_file.add_variable(
             "avgdzb",
             dzgem,
@@ -461,7 +461,7 @@ def analyse_and_report_dflowfm(
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
             projmesh = Path(outputdir) / 'sedimentation_weights.nc'
-            projmesh_map_file = GridOperations(projmesh)
+            projmesh_map_file = MapFile(projmesh)
             map_file.copy_ugrid(projmesh)
             projmesh_map_file.add_variable(
                 "interest_region",
@@ -593,8 +593,8 @@ def get_values_fm(
         wght_pos = numpy.zeros(dx.shape)
         wght_neg = numpy.zeros(dx.shape)
 
-    map_file1 = GridOperations(filenames[0])
-    map_file2 = GridOperations(filenames[1])
+    map_file1 = MapFile(filenames[0])
+    map_file2 = MapFile(filenames[1])
     ref = map_file1.read_face_variable("sea_water_x_velocity", time_index_from_last=0)
     
     for ifld in range(n_fields):
@@ -841,7 +841,7 @@ def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndar
     return jbin, wthresh
     
 def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-    map_file = GridOperations(filename)
+    map_file = MapFile(filename)
     xn = map_file.node_x_coordinates
     yn = map_file.node_y_coordinates
     FNC = map_file.face_node_connectivity

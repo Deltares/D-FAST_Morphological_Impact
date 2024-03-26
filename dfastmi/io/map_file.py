@@ -32,9 +32,9 @@ import numpy as np
 import numpy.ma as ma
 import netCDF4 as nc
     
-class GridOperations:
+class MapFile:
     def __init__(self, map_file: Path):
-        """Initializes a new instance of the 'GridOperations' class for the provided map file.
+        """Initializes a new instance of the 'MapFile' class for the provided map file.
 
         Arguments
         ---------
@@ -82,7 +82,7 @@ class GridOperations:
             mesh2d = rootgrp.variables[self.mesh2d_name]
             var_name = mesh2d.getncattr("face_node_connectivity")
             var = rootgrp.variables[var_name]
-            data = var[...] - GridOperations._get_start_index(var)
+            data = var[...] - MapFile._get_start_index(var)
 
         return data
 
@@ -168,7 +168,7 @@ class GridOperations:
         """
         if not self._mesh2d_name:
             with nc.Dataset(self._map_file) as rootgrp:
-                mesh2d = GridOperations._get_mesh2d_variable(rootgrp)
+                mesh2d = MapFile._get_mesh2d_variable(rootgrp)
                 self._mesh2d_name = mesh2d.name    
  
         return self._mesh2d_name
@@ -260,7 +260,7 @@ class GridOperations:
 
                 mesh_variable = source_dataset.variables[self.mesh2d_name]
 
-                GridOperations._copy_var(source_dataset, self.mesh2d_name, target_dataset)
+                MapFile._copy_var(source_dataset, self.mesh2d_name, target_dataset)
                 
                 mesh_attrs = [
                     "face_node_connectivity",
@@ -271,17 +271,17 @@ class GridOperations:
                     "node_coordinates",
                 ]
                 for mesh_attr in mesh_attrs:
-                    var_names = GridOperations._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
+                    var_names = MapFile._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
                     for var_name in var_names:
-                        GridOperations._copy_var(source_dataset, var_name, target_dataset)
+                        MapFile._copy_var(source_dataset, var_name, target_dataset)
 
                         # check if variable has bounds attribute, if so copy those as well
                         variable = source_dataset.variables[var_name]
 
                         bounds_attr = "bounds"
-                        bounds_var_names = GridOperations._get_var_names_from_var_attribute(variable, bounds_attr)
+                        bounds_var_names = MapFile._get_var_names_from_var_attribute(variable, bounds_attr)
                         for bounds_var_name in bounds_var_names:
-                            GridOperations._copy_var(source_dataset, bounds_var_name, target_dataset)
+                            MapFile._copy_var(source_dataset, bounds_var_name, target_dataset)
 
     @staticmethod
     def _get_var_names_from_var_attribute(variable: nc.Variable, attr_name: str) -> List[str]:

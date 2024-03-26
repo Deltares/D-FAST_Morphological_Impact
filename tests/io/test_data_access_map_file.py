@@ -7,7 +7,7 @@ import netCDF4
 import numpy
 import pytest
 
-from dfastmi.io.GridOperations import GridOperations
+from dfastmi.io.map_file import MapFile
 
 @contextmanager
 def captured_output():
@@ -20,55 +20,55 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class Test_data_access_read_variable():
-    def test_read_variable_04(self):
+class Test_data_access_read_face_variable():
+    def test_read_face_variable_04(self):
         """
-        Testing read_variable: variable by standard name.
+        Testing read_face_variable: variable by standard name.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "sea_floor_depth_below_sea_surface"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
         datac = map_file.read_face_variable(varname)
         dataref = 3.894498393076889
         assert datac[1] == dataref
 
-    def test_read_variable_05(self):
+    def test_read_face_variable_05(self):
         """
-        Testing read_variable: variable by long name.
+        Testing read_face_variable: variable by long name.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "Water level"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
         datac = map_file.read_face_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
 
-    def test_read_variable_06(self):
+    def test_read_face_variable_06(self):
         """
-        Testing read_variable: variable by long name.
+        Testing read_face_variable: variable by long name.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            map_file = GridOperations(filename)
+            map_file = MapFile(filename)
             datac = map_file.read_face_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
-    def test_read_variable_07(self):
+    def test_read_face_variable_07(self):
         """
-        Testing read_variable: multiple mesh2dids.
+        Testing read_face_variable: multiple mesh2dids.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            map_file = GridOperations(filename)
+            map_file = MapFile(filename)
             datac = map_file.read_face_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
 class TestReadGridGeometryFromMapFile():
     def test_get_node_x_coordinates(self):
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
         
         node_x_coordinates = map_file.node_x_coordinates
         
@@ -79,7 +79,7 @@ class TestReadGridGeometryFromMapFile():
         
     def test_get_node_y_coordinates(self):
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
 
         node_y_coordinates = map_file.node_y_coordinates
         
@@ -90,7 +90,7 @@ class TestReadGridGeometryFromMapFile():
      
     def test_get_face_node_connectivity(self):
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
 
         face_node_connectivity = map_file.face_node_connectivity
         
@@ -106,7 +106,7 @@ class Test_data_access_get_mesh_and_facedim_names():
         Testing mesh2d_name property.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
         mesh2d_name = map_file.mesh2d_name
         assert mesh2d_name == "mesh2d"
 
@@ -115,7 +115,7 @@ class Test_data_access_get_mesh_and_facedim_names():
         Testing face_dimension_name property.
         """
         filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = GridOperations(filename)
+        map_file = MapFile(filename)
         face_dimension_name = map_file.face_dimension_name
         assert face_dimension_name == "mesh2d_nFaces"
 
@@ -165,7 +165,7 @@ class Test_ugrid_add():
         long_name = "added_variable"
         unit = "some_unit"
         #
-        map_file = GridOperations(self.dst_filename)        
+        map_file = MapFile(self.dst_filename)        
         map_file.add_variable(varname, ldata, meshname, facedim, long_name, unit)
         #
         datac = map_file.read_face_variable(long_name)
@@ -185,7 +185,7 @@ class Test_ugrid_add():
         units = "kmh"
         #
         
-        map_file = GridOperations(self.dst_filename)
+        map_file = MapFile(self.dst_filename)
         map_file.add_variable(varname, ldata, meshname, facedim, long_name, units)
         rootgrp = netCDF4.Dataset(self.dst_filename)
         var = rootgrp.get_variables_by_attributes(
@@ -244,12 +244,12 @@ class Test_copy_var():
         
         src = netCDF4.Dataset(src_filename)
         dst = netCDF4.Dataset(self.dst_filename, "a")
-        GridOperations._copy_var(src, "mesh2d_s1", dst)
+        MapFile._copy_var(src, "mesh2d_s1", dst)
         src.close()
         dst.close()
         #                
         varname = "sea_surface_height"
-        map_file = GridOperations(self.dst_filename)
+        map_file = MapFile(self.dst_filename)
         datac = map_file.read_face_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
@@ -277,10 +277,10 @@ class Test_copy_ugrid():
         """
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         
-        map_file = GridOperations(src_filename)
+        map_file = MapFile(src_filename)
         map_file.copy_ugrid(self.dst_filename)
         #
-        map_file = GridOperations(self.dst_filename)
+        map_file = MapFile(self.dst_filename)
         datac = map_file.face_node_connectivity
         dataref = 2352
         assert datac[-1][1] == dataref
