@@ -131,7 +131,7 @@ class MapFile:
                     long_name=varname, mesh=self.mesh2d_name, location=location
                 )
             if len(var) != 1:
-                raise Exception(
+                raise ValueError(
                     'Expected one variable for "{}", but obtained {}.'.format(
                         varname, len(var)
                     )
@@ -146,8 +146,8 @@ class MapFile:
                 data = var[-1 - time_index_from_last, :]
                 
             else:
-                if not time_index_from_last is None:
-                    raise Exception(
+                if time_index_from_last is not None:
+                    raise ValueError(
                         'Trying to access time-independent variable "{}" with time offset {}.'.format(
                             varname, -1 - time_index_from_last
                         )
@@ -197,7 +197,7 @@ class MapFile:
             cf_role="mesh_topology", topology_dimension=2
         )
         if len(mesh2d) != 1:
-            raise Exception(
+            raise ValueError(
                 "Currently only one 2D mesh supported ... this file contains {} 2D meshes.".format(
                     len(mesh2d)
                 )
@@ -287,7 +287,7 @@ class MapFile:
     def _get_var_names_from_var_attribute(variable: nc.Variable, attr_name: str) -> List[str]:
         try:
             var_names = variable.getncattr(attr_name).split()
-        except:
+        except AttributeError:
             var_names = []
             
         return var_names
