@@ -124,19 +124,19 @@ class DialogModel:
         # loop over conditions cond = "C1", "C2", ...        
         i = 0
         for discharge in enumerate(reach.hydro_q[:num_files]): # Ensure it loops until the minimum length
-            if discharge in reference_files.keys():
+            if discharge[1] in reference_files.keys():
                 i +=1
                 cond = f"C{i}"
 
                 config.add_section(cond)            
-                config[cond]["Discharge"] = str(discharge)
+                config[cond]["Discharge"] = str(discharge[1])
                 # Check if the index is within the bounds of the lists
                 if i < len(reference_files) :
-                    config[cond]["Reference"] = reference_files[discharge]
+                    config[cond]["Reference"] = reference_files[discharge[1]]
                 else:
                     config[cond]["Reference"] = ""  # Default value if index is out of range
 
                 if i < len(measure_files) :
-                    config[cond]["WithMeasure"] = measure_files[discharge]
+                    config[cond]["WithMeasure"] = measure_files[discharge[1]]
                 else:
                     config[cond]["WithMeasure"] = ""  # Default value if index is out of range

@@ -108,17 +108,21 @@ class DialogView():
     def update_condition_files(self):
         for condition_discharge, reference_file in self.view_model.reference_files.items():
             prefix = str(condition_discharge)+"_"
-            key = prefix +"file1"
-            input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
+            key = prefix +"reference"
+            input_textbox = self.general_widget.findChild(ValidatingLineEdit, key)
             if input_textbox:
                 input_textbox.setText(reference_file)
+                state = input_textbox.validator.validate(input_textbox.text(), 0)[0]
+                input_textbox.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
         
         for condition_discharge, measure_file in self.view_model.measure_files.items():        
             prefix = str(condition_discharge)+"_"
-            key = prefix +"file2"
-            input_textbox = self.general_widget.findChild(QtWidgets.QLineEdit, key)
+            key = prefix +"with_measure"
+            input_textbox = self.general_widget.findChild(ValidatingLineEdit, key)
             if input_textbox:
                 input_textbox.setText(measure_file)
+                state = input_textbox.validator.validate(input_textbox.text(), 0)[0]
+                input_textbox.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
     
     def update_qvalues_table(self):
         self._clear_conditions()
@@ -276,7 +280,7 @@ class DialogView():
         self.figure_dir.setEnabled(False)
         self.figure_dir_edit = ValidatingLineEdit(FolderExistsValidator(),self._win)
         self.figure_dir_edit.setEnabled(False)
-        self.figure_dir_edit.textChanged.connect(self.update_validation2)
+        self.figure_dir_edit.textChanged.connect(partial(self.update_validation, self.figure_dir))
         layout.addRow(self.figure_dir, self.openFolderLayout(self._win, self.figure_dir_edit, "figure_dir_edit", False))
 
     def _create_save_plots_input_checkbox(self, layout):
@@ -298,16 +302,16 @@ class DialogView():
     def _creat_output_directory_input(self, layout):
         self.output_dir = ValidatingLineEdit(FolderExistsValidator(), self._win)
         self.output_dir.setPlaceholderText("Enter file path")
-        self.output_dir.textChanged.connect(self.update_validation)
+        self.output_dir.textChanged.connect(partial(self.update_validation, line_edit=self.output_dir))
         layout.addRow(self.view_model.gui_text("outputDir"), self.openFolderLayout(self._win, self.output_dir, "output_dir", True))
     
-    def update_validation(self):
-        state =self.output_dir.validator.validate(self.output_dir.text(), 0)[0]
-        self.output_dir.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
+    def update_validation(self,line_edit):
+        state=line_edit.validator.validate(line_edit.text(), 0)[0]
+        line_edit.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
     
-    def update_validation2(self):
-        state =self.figure_dir_edit.validator.validate(self.figure_dir_edit.text(), 0)[0]
-        self.figure_dir_edit.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
+    # def update_validation2(self):
+    #     state =self.figure_dir_edit.validator.validate(self.figure_dir_edit.text(), 0)[0]
+    #     self.figure_dir_edit.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
 
     
 
@@ -410,6 +414,7 @@ class DialogView():
         if self.qthr.hasAcceptableInput():
             self.view_model.qthreshold = float(self.qthr.text())
             self.update_qvalues_table()
+            self.update_condition_files()
         else: 
             self.showMessage("Please input valid values for qthreshold")
 
@@ -418,9 +423,9 @@ class DialogView():
         if self.ucrit.hasAcceptableInput():
             self.view_model.ucritical = float(self.ucrit.text())
             self.update_qvalues_table()
+            self.update_condition_files()
         else: 
-            self.showMessage("Please input valid values for ucritical")
-    
+            self.showMessage("Please input valid values for ucritical")    
     
     def output_dir_text_changed(self):
         state = self.output_dir.validator().validate(self.output_dir.text(), 0)[0]
@@ -455,21 +460,25 @@ class DialogView():
         enabled = self.view_model.qthreshold < discharge
 
         # get the reference file
-        q1file1 = ValidatingLineEdit(self._win)
-        q1file1.setEnabled(enabled)
-        q1file1.setObjectName(prefix+"file1")
+        q1_reference = ValidatingLineEdit(FileExistValidator(),self._win)
+        q1_reference.setPlaceholderText("Enter reference file path")
+        q1_reference.setEnabled(enabled)
+        q1_reference.textChanged.connect(partial(self.update_validation, q1_reference))
+        q1_reference.setObjectName(prefix+"reference")
 
         # get the file with measure
-        q1file2 = ValidatingLineEdit(self._win)
-        q1file2.setEnabled(enabled)
-        q1file2.setObjectName(prefix+"file2")
+        q1_with_measure = ValidatingLineEdit(FileExistValidator(),self._win)
+        q1_with_measure.setPlaceholderText("Enter with measure file path")
+        q1_with_measure.setEnabled(enabled)
+        q1_with_measure.textChanged.connect(partial(self.update_validation, q1_with_measure))
+        q1_with_measure.setObjectName(prefix+"with_measure")
         
         discharge_value_label = QtWidgets.QLabel(discharge_name)
         discharge_value_label.setEnabled(enabled)
         row_count = self.grid_layout.rowCount()
         self.grid_layout.addWidget(discharge_value_label, row_count, 0)
-        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file1, prefix+"file1", enabled), row_count, 1)
-        self.grid_layout.addWidget(self.openFileLayout(self._win, q1file2, prefix+"file2", enabled), row_count, 2)
+        self.grid_layout.addWidget(self.openFileLayout(self._win, q1_reference, prefix+"reference", enabled), row_count, 1)
+        self.grid_layout.addWidget(self.openFileLayout(self._win, q1_with_measure, prefix+"with_measure", enabled), row_count, 2)
         
     def create_button_bar(self) -> None:
         # Logic to create button bar
