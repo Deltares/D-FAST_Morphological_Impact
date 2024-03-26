@@ -37,7 +37,7 @@ from dfastmi.batch.DetectAndPlot import detect_and_plot_areas
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
-from typing import Dict, Tuple
+from typing import Tuple
 
 def stream_bins(min_s, max_s, ds):
     """

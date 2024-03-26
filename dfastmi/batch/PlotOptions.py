@@ -1,6 +1,6 @@
 import math
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import List, Tuple
 import numpy
 from shapely.geometry.linestring import LineString
 from pydantic import BaseModel, ConfigDict
@@ -10,32 +10,20 @@ from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.batch.DFastUtils import get_zoom_extends
 
-#class PlotOptions(BaseModel):
-class PlotOptions():
+class PlotOptions(BaseModel):
     
-    plotting : bool
-    saveplot : bool
-    saveplot_zoomed : bool
-    closeplot : bool
-    figure_save_directory : Path
-    plot_extension : str
-    xykm : LineString
-    kmbounds : Tuple[float,float]
-    kmzoom : List[Tuple[float, float]]
-    xyzoom : List[Tuple[float, float, float, float]]
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     
-    def __init__(self, *args, **kwargs):
-        #super().__init__(*args, **kwargs)
-        self.plotting = False
-        self.saveplot = False
-        self.saveplot_zoomed = False
-        self.closeplot = False
-        self.figure_save_directory = None
-        self.plot_extension = ""
-        self.xykm = None
-        self.kmbounds = (0,0)
-        self.kmzoom = []
-        self.xyzoom = []
+    plotting : bool = False
+    saveplot : bool = False
+    saveplot_zoomed : bool = False
+    closeplot : bool = False
+    figure_save_directory : Path = None
+    plot_extension : str = ""
+    xykm : LineString = None
+    kmbounds : Tuple[float,float] = (0,0)
+    kmzoom : List[Tuple[float, float]] =[]
+    xyzoom : List[Tuple[float, float, float, float]] = []
         
     def set_plotting_flags(self, rootdir : str, display : bool, data : DFastMIConfigParser):
         """
@@ -57,7 +45,6 @@ class PlotOptions():
         xykline = self._get_riverkm_coordinates(kmfile, self.xykm)
         self.kmbounds = self._get_riverkm_boundaries(display, data, len(kmfile)>0, xykline)
         
-
         self.plotting = data.config_get(bool, "General", "Plotting", False)
         if self.plotting:
             self.saveplot = data.config_get(bool, "General", "SavePlots", True)
