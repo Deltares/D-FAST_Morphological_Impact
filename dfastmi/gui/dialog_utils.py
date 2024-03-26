@@ -1,14 +1,39 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2024 Stichting Deltares.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation version 2.1.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+contact: delft3d.support@deltares.nl
+Stichting Deltares
+P.O. Box 177
+2600 MH Delft, The Netherlands
+
+All indications and logos of, and references to, "Delft3D" and "Deltares"
+are registered trademarks of Stichting Deltares, and remain the property of
+Stichting Deltares. All rights reserved.
+
+INFORMATION
+This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
+"""
+from pathlib import Path
 import PyQt5.QtCore
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
 
-
-import os
-
-
 class FileExistValidator(PyQt5.QtGui.QValidator):
     def validate(self, input_text, pos):
-        if os.path.isfile(input_text):
+        if Path(input_text).is_file():
             return (PyQt5.QtGui.QValidator.Acceptable, input_text, pos)
         else:
             return (PyQt5.QtGui.QValidator.Invalid, input_text, pos)
@@ -16,7 +41,7 @@ class FileExistValidator(PyQt5.QtGui.QValidator):
 
 class FolderExistsValidator(PyQt5.QtGui.QValidator):
     def validate(self, input_str, pos):
-        if os.path.isdir(input_str):
+        if Path(input_str).is_dir():
             return (PyQt5.QtGui.QValidator.Acceptable, input_str, pos)
         else:
             return (PyQt5.QtGui.QValidator.Invalid, input_str, pos)
