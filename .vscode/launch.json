@@ -17,7 +17,7 @@
                 "--config",
                 "dfastmi.cfg",
                 "--rivers",
-                "Dutch_rivers_v2.ini"
+                "..\\tests\\c01 - GendtseWaardNevengeul\\rivers_Q4000_v2.ini"
             ],
         }, 
         {   

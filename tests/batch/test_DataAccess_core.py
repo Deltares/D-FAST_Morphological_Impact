@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 import pytest
 from dfastmi.batch.ConfigurationCheckerLegacy import WAQUA_EXPORT, DFLOWFM_MAP
-import dfastmi.batch.core
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 
 from dfastmi.io.RiversObject import RiversObject
 from configparser import ConfigParser
@@ -24,10 +24,10 @@ class Test_batch_save_configuration_file():
         file_path = tmp_path / "test_file.cfg"
         config = self.sample_config(tmp_path)
         
-        dfastmi.batch.core.save_configuration_file(file_path, config)
+        ConfigFileOperations.save_configuration_file(file_path, config)
         
         assert os.path.exists(file_path)
-        with open(file_path, 'r') as file:
+        with Path(file_path).open('r', encoding="utf-8") as file:
             file_lines = file.readlines()
             
         assert len(file_lines) == len(expected_lines)
@@ -56,13 +56,13 @@ class Test_batch_check_configuration():
         return  ConfigParser()
     
     def given_version_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):       
-        assert not dfastmi.batch.core.check_configuration(rivers, config)
+        assert not check_configuration(rivers, config)
         
     def given_version_with_no_matching_version_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):       
         config.add_section("General")
         config.set("General", "Version", "0.0")
         
-        assert not dfastmi.batch.core.check_configuration(rivers, config)
+        assert not check_configuration(rivers, config)
     
     class Test_check_configuration_legacy():
         @pytest.fixture
@@ -74,50 +74,50 @@ class Test_batch_check_configuration():
             return  ConfigParser()
                     
         def given_version_1_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_general_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config)
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_general_section_with_qthreshold_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section(config)
             config.set("General", "Qthreshold", "100")
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_general_section_with_qthreshold_and_qbankfull_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config)
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_q_sections_with_discharge_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):           
             self.set_valid_general_section_with_q_values(config)
             self.add_q_section_waqua(config)
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_mode_specific_test_with_discharge_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config)
             self.add_q_section_fm(config)
             config.set("General", "mode", "test")
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
         
         def given_mode_WAQUA_EXPORT_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config)
             self.add_q_section_waqua(config)
             config.set("General", "mode", WAQUA_EXPORT)
             
-            assert dfastmi.batch.core.check_configuration(rivers, config)
+            assert check_configuration(rivers, config)
             
         def given_mode_DFLOWFM_MAP_with_discharge_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
             self.set_valid_general_section_with_q_values(config)
             self.add_q_section_fm(config)
             config.set("General", "mode", DFLOWFM_MAP)
             
-            assert dfastmi.batch.core.check_configuration(rivers, config)
+            assert check_configuration(rivers, config)
             
         def set_valid_general_section(self, config : ConfigParser):
             config.add_section("General")
@@ -164,28 +164,28 @@ class Test_batch_check_configuration():
             return  config
         
         def given_version_2_when_check_configuration_then_return_false(self, rivers : RiversObject):
-            assert not dfastmi.batch.core.check_configuration(rivers, ConfigParser())
+            assert not check_configuration(rivers, ConfigParser())
         
         def given_general_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):           
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_general_section_and_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             config.add_section("C1")
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_only_discharge_in_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             config.add_section("C1")
             config.set("C1", "Discharge", "1300.0")
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
             
         def given_partial_c_section_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             config.add_section("C1")
             config.set("C1", "Discharge", "1300.0")
             config.set("C1", "Reference", "1300.0")
             
-            assert not dfastmi.batch.core.check_configuration(rivers, config)
+            assert not check_configuration(rivers, config)
 
         def given_c_sections_with_incorrect_values_when_check_configuration_then_return_false(self, rivers : RiversObject, config : ConfigParser):
             self.add_c_section(config, "C1", "1300.0")
@@ -195,7 +195,7 @@ class Test_batch_check_configuration():
             self.add_c_section(config, "C5", "1300.0")
             self.add_c_section(config, "C6", "1300.0")
                 
-            assert not dfastmi.batch.core.check_configuration(rivers, config)     
+            assert not check_configuration(rivers, config)     
                 
         def given_correct_c_sections_when_check_configuration_then_return_true(self, rivers : RiversObject, config : ConfigParser):
             self.add_c_section(config, "C1", "1300.0")
@@ -207,7 +207,7 @@ class Test_batch_check_configuration():
             
             with patch.object(Path, 'exists') as mock_exists:
                 mock_exists.return_value = True
-                assert dfastmi.batch.core.check_configuration(rivers, config)
+                assert check_configuration(rivers, config)
         
         def set_valid_general_section(self, config : ConfigParser):
             config.add_section("General")

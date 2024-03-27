@@ -316,7 +316,6 @@ def analyse_and_report_dflowfm(
         
         if display:
             ApplicationSettingsHelper.log_text('writing_output')
-        
         map_file = MapFile(one_fm_filename)
         meshname = map_file.mesh2d_name
         facedim = map_file.face_dimension_name
@@ -710,7 +709,7 @@ def comp_sedimentation_volume(
     plot_n = 3
 
     print("-- detecting separate sedimentation areas")
-    xyzfil = outputdir + os.sep + "sedimentation_volumes.xyz"
+    xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
     sedarea, sedvol, sed_area_list, wght_area_tot = DetectAndPlot.detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, True, plot_n)
