@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import os
 from pathlib import Path
+import re
 import subprocess
 from functools import partial
 import sys
@@ -691,8 +692,18 @@ class DialogView():
         
     def _set_file_in_condition_table(self, key: str, file:str):
         input_textbox = self._general_widget.findChild(QLineEdit, key)
-        if input_textbox:
+        if input_textbox and input_textbox.hasAcceptableInput():
             input_textbox.setText(file)
+            
+            if "_reference" in key:
+                key_without_suffix = key.replace("_reference", "")
+                self._view_model.reference_files[key_without_suffix] = file
+            
+            if "_with_measure" in key:
+                key_without_suffix = key.replace("_with_measure", "")
+                self._view_model.measure_files[key_without_suffix] = file
+            
+
 
     def _showMessage(self, message: str) -> None:
         """

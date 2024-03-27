@@ -1,6 +1,6 @@
 import os
 import pytest
-from PyQt5.QtWidgets import QApplication, QPushButton, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QApplication, QPushButton, QMessageBox, QFileDialog, QLineEdit
 from unittest.mock import MagicMock
 import dfastmi
 from dfastmi.batch.DFastUtils import get_progloc
@@ -257,7 +257,7 @@ class Test_popup:
         # Assert that subprocess.Popen was called with the expected arguments
         mock_popen.assert_called_once_with(dialog_view._view_model.manual_filename, shell=True)
 
-class Test_selectFolder:
+class Test_select:
     def test_selectFolder_output_dir_edit(self, dialog_view, monkeypatch):
         # Create a mock QFileDialog.getExistingDirectory function
         mock_getExistingDirectory = MagicMock(return_value="/path/to/folder")
@@ -281,6 +281,36 @@ class Test_selectFolder:
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         assert dialog_view._figure_dir_edit.text() == "/path/to/folder"
         assert dialog_view._view_model.figure_dir == "/path/to/folder"
+    
+    def test_selectFile_reference_edit(self, dialog_view, monkeypatch):
+        # Create a mock QFileDialog.getExistingDirectory function
+        mock_getOpenFileName = MagicMock(return_value=["/path/to/file"])
+        monkeypatch.setattr(QFileDialog, "getOpenFileName", mock_getOpenFileName)
+
+        # Call the method with the desired key
+        key = "3000.0_reference"
+        dialog_view._selectFile(key)
+
+        # Assert that the appropriate setText and view_model attribute assignment calls were made
+        
+        input_box = dialog_view._general_widget.findChild(QLineEdit, key)
+        assert input_box.text() == "/path/to/file"
+        assert dialog_view._view_model.reference_files["3000.0"] == "/path/to/file"
+    
+    def test_selectFile_with_measure_edit(self, dialog_view, monkeypatch):
+        # Create a mock QFileDialog.getExistingDirectory function
+        mock_getOpenFileName = MagicMock(return_value=["/path/to/file_with_measure"])
+        monkeypatch.setattr(QFileDialog, "getOpenFileName", mock_getOpenFileName)
+
+        # Call the method with the desired key
+        key = "4000.0_with_measure"
+        dialog_view._selectFile(key)
+
+        # Assert that the appropriate setText and view_model attribute assignment calls were made
+        
+        input_box = dialog_view._general_widget.findChild(QLineEdit, key)
+        assert input_box.text() == "/path/to/file_with_measure"
+        assert dialog_view._view_model.measure_files["4000.0"] == "/path/to/file_with_measure"
 
 class Test_view_model_updates:
     def test_update_branch(self, dialog_view, mocker):
@@ -310,4 +340,24 @@ class Test_view_model_updates:
         # Assertions
         assert dialog_view._reach.currentText() == "Boven-Waal                   km  868-886"
         assert dialog_view._slength.text() == dialog_view._view_model.slength
+    
+def test_update_condition_files(dialog_view):
+    # Mock the reference files and measure files
+    reference_files = {3000.0: 'reference_file_10.txt', 4000.0: 'reference_file_20.txt'}
+    measure_files = {3000.0: 'measure_file_10.txt', 4000.0: 'measure_file_20.txt'}
+    
+    # Set the mocked data
+    dialog_view._view_model._reference_files = reference_files
+    dialog_view._view_model._measure_files = measure_files
+
+    # Trigger the method to be tested
+    dialog_view._update_condition_files()
+
+    # Assertions
+    # Assuming your UI components are correctly updated, you can assert their properties
+    # For example, assert that the QLineEdit objects representing the file paths have been updated
+    assert dialog_view._general_widget.findChild(QLineEdit, '3000.0_reference').text() == 'reference_file_10.txt'
+    assert dialog_view._general_widget.findChild(QLineEdit, '3000.0_with_measure').text() == 'measure_file_10.txt'
+    assert dialog_view._general_widget.findChild(QLineEdit, '4000.0_reference').text() == 'reference_file_20.txt'
+    assert dialog_view._general_widget.findChild(QLineEdit, '4000.0_with_measure').text() == 'measure_file_20.txt'
         
