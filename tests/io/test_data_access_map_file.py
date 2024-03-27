@@ -9,6 +9,11 @@ import pytest
 
 from dfastmi.io.map_file import MapFile
 
+@pytest.fixture
+def map_file() -> MapFile:
+    filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+    return MapFile(filename)
+
 @contextmanager
 def captured_output():
     new_out, new_err = StringIO(), StringIO()
@@ -21,55 +26,45 @@ def captured_output():
 
 
 class Test_data_access_read_face_variable():
-    def test_read_face_variable_04(self):
+    def test_read_face_variable_04(self, map_file: MapFile):
         """
         Testing read_face_variable: variable by standard name.
         """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "sea_floor_depth_below_sea_surface"
-        map_file = MapFile(filename)
         datac = map_file.read_face_variable(varname)
         dataref = 3.894498393076889
         assert datac[1] == dataref
 
-    def test_read_face_variable_05(self):
+    def test_read_face_variable_05(self, map_file: MapFile):
         """
         Testing read_face_variable: variable by long name.
         """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "Water level"
-        map_file = MapFile(filename)
         datac = map_file.read_face_variable(varname)
         dataref = 3.8871328177527262
         assert datac[1] == dataref
 
-    def test_read_face_variable_06(self):
+    def test_read_face_variable_06(self, map_file: MapFile):
         """
         Testing read_face_variable: variable by long name.
         """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            map_file = MapFile(filename)
             datac = map_file.read_face_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
-    def test_read_face_variable_07(self):
+    def test_read_face_variable_07(self, map_file: MapFile):
         """
         Testing read_face_variable: multiple mesh2dids.
         """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            map_file = MapFile(filename)
             datac = map_file.read_face_variable(varname)
         assert str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
 
 class TestReadGridGeometryFromMapFile():
-    def test_get_node_x_coordinates(self):
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = MapFile(filename)
-        
+ 
+    def test_get_node_x_coordinates(self, map_file: MapFile):
         node_x_coordinates = map_file.node_x_coordinates
         
         assert node_x_coordinates.shape == (2363,)
@@ -77,10 +72,7 @@ class TestReadGridGeometryFromMapFile():
         assert node_x_coordinates[1181] == pytest.approx(6750)
         assert node_x_coordinates[2362] == pytest.approx(0.0)
         
-    def test_get_node_y_coordinates(self):
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = MapFile(filename)
-
+    def test_get_node_y_coordinates(self, map_file: MapFile):
         node_y_coordinates = map_file.node_y_coordinates
         
         assert node_y_coordinates.shape == (2363,)
@@ -88,10 +80,7 @@ class TestReadGridGeometryFromMapFile():
         assert node_y_coordinates[1181] == pytest.approx(7200.542889)
         assert node_y_coordinates[2362] == pytest.approx(7500)
      
-    def test_get_face_node_connectivity(self):
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = MapFile(filename)
-
+    def test_get_face_node_connectivity(self, map_file: MapFile):
         face_node_connectivity = map_file.face_node_connectivity
         
         assert face_node_connectivity.shape == (4132, 3)
@@ -101,21 +90,17 @@ class TestReadGridGeometryFromMapFile():
           
 
 class Test_data_access_get_mesh_and_facedim_names():
-    def test_get_mesh2d_name(self):
+    def test_get_mesh2d_name(self, map_file: MapFile):
         """
         Testing mesh2d_name property.
         """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = MapFile(filename)
         mesh2d_name = map_file.mesh2d_name
         assert mesh2d_name == "mesh2d"
 
-    def test_get_face_dimension_name(self):
+    def test_get_face_dimension_name(self, map_file: MapFile):
         """
         Testing face_dimension_name property.
         """
-        filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        map_file = MapFile(filename)
         face_dimension_name = map_file.face_dimension_name
         assert face_dimension_name == "mesh2d_nFaces"
 
