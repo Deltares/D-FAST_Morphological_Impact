@@ -78,10 +78,10 @@ class MapFile:
             If not all the faces have the same number of nodes, a boolean mask is provided with shape (N,M) 
             where each True value indicates a fill value.
         """
-        with nc.Dataset(self._map_file) as rootgrp:
-            mesh2d = rootgrp.variables[self.mesh2d_name]
+        with nc.Dataset(self._map_file) as dataset:
+            mesh2d = dataset.variables[self.mesh2d_name]
             var_name = mesh2d.getncattr("face_node_connectivity")
-            var = rootgrp.variables[var_name]
+            var = dataset.variables[var_name]
             data = var[...] - MapFile._get_start_index(var)
 
         return data
@@ -119,15 +119,15 @@ class MapFile:
             the time_index_from_last is used.
         """
         # open file
-        with nc.Dataset(self._map_file) as rootgrp:
+        with nc.Dataset(self._map_file) as dataset:
             location = "face"
 
             # find any other variable by standard_name or long_name
-            var = rootgrp.get_variables_by_attributes(
+            var = dataset.get_variables_by_attributes(
                 standard_name=varname, mesh=self.mesh2d_name, location=location
             )
             if len(var) == 0:
-                var = rootgrp.get_variables_by_attributes(
+                var = dataset.get_variables_by_attributes(
                     long_name=varname, mesh=self.mesh2d_name, location=location
                 )
             if len(var) != 1:
@@ -167,8 +167,8 @@ class MapFile:
             String containing the name of the mesh2d variable.
         """
         if not self._mesh2d_name:
-            with nc.Dataset(self._map_file) as rootgrp:
-                mesh2d = MapFile._get_mesh2d_variable(rootgrp)
+            with nc.Dataset(self._map_file) as dataset:
+                mesh2d = MapFile._get_mesh2d_variable(dataset)
                 self._mesh2d_name = mesh2d.name    
  
         return self._mesh2d_name
@@ -183,10 +183,10 @@ class MapFile:
             String containing the name of the face dimension.
         """
         if not self._face_dimension_name:
-            with nc.Dataset(self._map_file) as rootgrp:
-                mesh2d = rootgrp.variables[self.mesh2d_name]
+            with nc.Dataset(self._map_file) as dataset:
+                mesh2d = dataset.variables[self.mesh2d_name]
                 facenodeconnect_varname = mesh2d.face_node_connectivity
-                fnc = rootgrp.get_variables_by_attributes(name=facenodeconnect_varname)[0]
+                fnc = dataset.get_variables_by_attributes(name=facenodeconnect_varname)[0]
                 self._face_dimension_name = fnc.dimensions[0]
             
         return self._face_dimension_name
@@ -332,14 +332,14 @@ class MapFile:
 
         
     def _get_node_coordinate_data(self, standard_names: List[str]) -> np.ndarray:
-        with nc.Dataset(self._map_file) as rootgrp:
-            mesh2d = rootgrp.variables[self.mesh2d_name]
+        with nc.Dataset(self._map_file) as dataset:
+            mesh2d = dataset.variables[self.mesh2d_name]
     
             coord_var_names = mesh2d.getncattr("node_coordinates").split()
             for coord_var_name in coord_var_names:
-                standard_name = rootgrp.variables[coord_var_name].standard_name
+                standard_name = dataset.variables[coord_var_name].standard_name
                 if standard_name in standard_names:
-                    var = rootgrp.variables[coord_var_name]
+                    var = dataset.variables[coord_var_name]
                     break
                 
             data = var[...]
