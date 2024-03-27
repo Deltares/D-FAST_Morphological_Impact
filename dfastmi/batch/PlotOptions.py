@@ -1,6 +1,6 @@
 import math
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import numpy
 from shapely.geometry.linestring import LineString
 from pydantic import BaseModel, ConfigDict
@@ -18,7 +18,7 @@ class PlotOptions(BaseModel):
     saveplot : bool = False
     saveplot_zoomed : bool = False
     closeplot : bool = False
-    figure_save_directory : Path = None
+    figure_save_directory : Optional[Path] = None
     plot_extension : str = ""
     xykm : LineString = None
     kmbounds : Tuple[float,float] = (0,0)
@@ -154,7 +154,7 @@ class PlotOptions(BaseModel):
                 ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
         return kmbounds
     
-    def _set_output_figure_dir(self, rootdir : str, display : bool, data : DFastMIConfigParser, saveplot : bool) -> Path:
+    def _set_output_figure_dir(self, rootdir : str, display : bool, data : DFastMIConfigParser, saveplot : bool) -> Optional[Path]:
         """
         Read from the dfast mi configuration the output directory
         create when it doesn't exist or feedback that the content 

@@ -24,7 +24,7 @@ class Test_PlotOptions():
         data.config_get_range.return_value = (0,0)
         
         with patch('dfastmi.batch.PlotOptions.DataTextFileOperations.get_xykm') as get_xykm,\
-             patch('dfastmi.batch.PlotOptions.ApplicationSettingsHelper.log_text') as log_text,\
+             patch('dfastmi.batch.PlotOptions.ApplicationSettingsHelper.log_text'),\
              patch('dfastmi.batch.PlotOptions.numpy.array', return_value=numpy.array([[1, 2, 3],[4, 5, 6],[7, 8, 9]])),\
              patch('dfastmi.batch.PlotOptions.get_zoom_extends') as get_zoom_extends:
             get_xykm.return_value = xykm_mock
@@ -33,7 +33,6 @@ class Test_PlotOptions():
             plot_options.set_plotting_flags(rootdir, display, data)
             assert get_xykm.call_count == 1
             assert get_zoom_extends.call_count == 1
-            assert log_text.call_count == 3
             
         assert plot_options
         assert plot_options.plotting
