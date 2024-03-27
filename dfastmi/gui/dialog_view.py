@@ -611,8 +611,8 @@ class DialogView():
 
         progloc = str(Path(__file__).parent.parent.absolute())
         open_file = QPushButton(
-            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png")), "", win
-        ))
+            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", win
+        )
         open_file.clicked.connect(partial(self._select_file, key))
         open_file.setObjectName(key+"_button")
         open_file.setEnabled(enabled)
@@ -657,8 +657,8 @@ class DialogView():
 
         progloc = str(Path(__file__).parent.parent.absolute())
         open_folder = QPushButton(
-            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png")), "", win
-        ))
+            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", win
+        )
         open_folder.clicked.connect(partial(self._select_folder, key))
         open_folder.setObjectName(key+"_button")
         open_folder.setEnabled(enabled)
