@@ -303,14 +303,11 @@ class Test_view_model_updates:
         dialog_view._update_qvalues_table.assert_called_once()
         dialog_view._update_condition_files.assert_called_once()
     
-    def test_update_reach(self, dialog_view, mocker):
-        # Mocking necessary components and methods
-        #mocker.patch.object(dialog_view, '_clear_conditions')
-       
+    def test_update_reach(self, dialog_view):
         # Call the method to be tested
         dialog_view._update_reach("Boven-Waal                   km  868-886")  # Pass the reach name to simulate the update
 
         # Assertions
         assert dialog_view._reach.currentText() == "Boven-Waal                   km  868-886"
         assert dialog_view._slength.text() == dialog_view._view_model.slength
-        #dialog_view._clear_conditions.assert_called_once()
+        
