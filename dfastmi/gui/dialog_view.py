@@ -179,7 +179,7 @@ class DialogView():
         self._app.setStyle("fusion")
         
         # Set the application-wide font
-        preferred_font = "Lucida Console" #"Consolas"
+        preferred_font = "Lucida Console"
         fallback_font = "Courier New"
         font = get_available_font(self._app.font(), preferred_font, fallback_font)
         self._app.setFont(font)
