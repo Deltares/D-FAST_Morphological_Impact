@@ -29,6 +29,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 # ViewModel
 from configparser import ConfigParser
 from typing import Any, Dict
+
+from pydantic import BaseModel
 import dfastmi
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
 from dfastmi.batch.DFastUtils import get_progloc
@@ -39,36 +41,36 @@ from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from PyQt5 import QtCore
 
+from dfastmi.io.IBranch import IBranch
 
-
-class DialogViewModel(QtCore.QObject):
+class DialogViewModel(QtCore.QObject, BaseModel):
     branch_changed = QtCore.pyqtSignal(str)
     reach_changed = QtCore.pyqtSignal(str)
-    qthreshold_changed = QtCore.pyqtSignal(float)
-    ucrit_changed = QtCore.pyqtSignal(float)
+    #qthreshold_changed = QtCore.pyqtSignal(float)
+    #ucrit_changed = QtCore.pyqtSignal(float)
 
-    _qthreshold : float = 0.0
-    _ucritical : float = 0.0
-    _output_dir : str = ""
-    _figure_dir : str = ""
-    _plotting : bool = False
-    _save_plots : bool = False
-    _close_plots : bool = False
-    _reference_files = {}
-    _measure_files = {}
+    #_qthreshold : float = 0.0
+    #_ucritical : float = 0.0
+    #_output_dir : str = ""
+    #_figure_dir : str = ""
+    #_plotting : bool = False
+    #_save_plots : bool = False
+    #_close_plots : bool = False
+    _reference_files : dict[float,str] = {}
+    _measure_files : dict[float,str] = {}
+    slength : str = ""
 
     def __init__(self, model: DialogModel):
         super().__init__()
         self._current_branch : Branch = model.rivers.branches[0]
         self._current_reach : AReach = self._current_branch.reaches[0]
-        self.slength : str = ""
         self.model = model
         self._initialize_qthreshold()
         self._initialize_ucritical()
         
          
     @property
-    def current_branch(self):
+    def current_branch(self) -> IBranch:
         return self._current_branch
 
     @current_branch.setter
@@ -88,83 +90,69 @@ class DialogViewModel(QtCore.QObject):
         self.reach_changed.emit(self._current_reach.name)
     
     @property
-    def output_dir(self):
-        return self._output_dir
-    
-    @output_dir.setter
-    def output_dir(self, value):
-        self._output_dir = value
-        if self.model and self.model.section :
-            self.model.section["OutputDir"] = value
-    
-    @property
-    def figure_dir(self):
-        return self._figure_dir
-    
-    @figure_dir.setter
-    def figure_dir(self, value):
-        self._figure_dir = value
-        if self.model and self.model.section :
-            self.model.section["FigureDir"] = value
-    
-    @property
-    def plotting(self):
-        return self._plotting
-    
-    @plotting.setter
-    def plotting(self, value):
-        self._plotting = value
-        if self.model and self.model.section :
-            self.model.section["Plotting"] = str(value)
-    
-    @property
-    def save_plots(self):
-        return self._save_plots
-    
-    @save_plots.setter
-    def save_plots(self, value):
-        self._save_plots = value
-        if self.model and self.model.section :
-            self.model.section["SavePlots"] = str(value)
-    
-    @property
-    def close_plots(self):
-        return self._close_plots
-    
-    @close_plots.setter
-    def close_plots(self, value):
-        self._close_plots = value
-        if self.model and self.model.section :
-            self.model.section["ClosePlots"] = str(value)
-    
-    @property
-    def reference_files(self):
-        return self._reference_files
-    
-    @property
-    def measure_files(self):
-        return self._measure_files
-
-    @property
     def qthreshold(self) -> float:
-        return self._qthreshold
+        return self.model.qthreshold
     
     @qthreshold.setter
     def qthreshold(self, value):
-        self._qthreshold = value
-        if self.model and self.model.section :
-            self.model.section['Qthreshold'] = str(value)
-    
+        self.model.qthreshold = value
+        
     @property
     def ucritical(self) -> float:
-        return self._ucritical
+        return self.model.ucritical
     
     @ucritical.setter
     def ucritical(self, value):
-        self._ucritical = value
-        if self.model and self.model.section :
-            self.model.section['Ucrit'] = str(value)
+        self.model.ucritical = value        
+
+    @property
+    def output_dir(self) -> str:
+        return self.model.output_dir
     
+    @output_dir.setter
+    def output_dir(self, value):
+        self.model.output_dir = value        
+    
+    @property
+    def figure_dir(self) -> str:
+        return self.model.figure_dir
+    
+    @figure_dir.setter
+    def figure_dir(self, value):
+        self.model.figure_dir = value
+        
+    @property
+    def plotting(self) -> bool:
+        return self.model.plotting
+    
+    @plotting.setter
+    def plotting(self, value):
+        self.model.plotting = value
+        
+    @property
+    def save_plots(self) -> bool:
+        return self.model.save_plots
+    
+    @save_plots.setter
+    def save_plots(self, value):
+        self.model.save_plots = value
+        
+    @property
+    def close_plots(self) -> bool:
+        return self.model.close_plots
+    
+    @close_plots.setter
+    def close_plots(self, value):
+        self.model.close_plots = value
+        
+    @property
+    def reference_files(self) -> dict[float, str]:
+        return self._reference_files
+    
+    @property
+    def measure_files(self) -> dict[float, str]:
+        return self._measure_files
+
     def get_configuration(self) -> ConfigParser:
          return self.model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
 
@@ -224,29 +212,17 @@ class DialogViewModel(QtCore.QObject):
         self.current_branch = self.model.rivers.get_branch(branch_name)
         self.current_reach = self._current_branch.reaches[0]
         
-        self.update_qvalues()
+        self._update_qvalues()
 
     def _initialize_ucritical(self):
-        if self.model is not None and self.model.config is not None and self.model.config.has_section ("General") and self.model.config.has_option("General", "Ucrit") :
-            ucritical = self.model.section.getfloat("Ucrit", self._current_reach.ucritical)
-            if ucritical > self._current_reach.ucritical :
-                self.ucritical = ucritical
-            elif self.ucritical != ucritical:
-                self.ucritical = self._current_reach.ucritical
-        else:
+        if self.ucritical < self._current_reach.ucritical:
             self.ucritical = self._current_reach.ucritical
 
     def _initialize_qthreshold(self):
-        if self.model is not None and self.model.config is not None and self.model.config.has_section ("General") and self.model.config.has_option("General", "Qthreshold") :
-            qthreshold = self.model.section.getfloat("Qthreshold", self._current_reach.qstagnant)
-            if qthreshold > self.qthreshold :
-                self.qthreshold = qthreshold
-            elif self.qthreshold != qthreshold:
-                self.qthreshold = self._current_reach.qstagnant
-        else:
+        if self.qthreshold < self._current_reach.qstagnant:
             self.qthreshold = self._current_reach.qstagnant
 
-
+        
     def updated_reach(self, reach_name: str) -> None:
         """
         Adjust the GUI for updated reach selection.
@@ -258,10 +234,9 @@ class DialogViewModel(QtCore.QObject):
         """
         if reach_name:
             self.current_reach = self._current_branch.get_reach(reach_name)
-            self.update_qvalues()
+            self._update_qvalues()
 
-
-    def update_qvalues(self) -> None:
+    def _update_qvalues(self) -> None:
         """
         Adjust the GUI for updated characteristic discharges.
 
@@ -308,15 +283,10 @@ class DialogViewModel(QtCore.QObject):
             Name of the configuration file to be opened.
         """
         self.model.load_configuration(filename)
-        
-        self._output_dir = self.model.section.get("OutputDir", "output")
-        self._plotting = self.str_to_bool(self.model.section.get("Plotting", "false"))
-        self._save_plots = self.str_to_bool(self.model.section.get("SavePlots", "false"))
-        self._close_plots = self.str_to_bool(self.model.section.get("ClosePlots", "false"))
-
+                
         self._initialize_qthreshold()
-        self._initialize_ucritical()        
-        self.update_qvalues()
+        self._initialize_ucritical()
+        self._update_qvalues()
         
         self._reference_files = {}
         self._measure_files = {}
@@ -335,14 +305,4 @@ class DialogViewModel(QtCore.QObject):
     def check_configuration(self) -> bool :
         return self.model.check_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
         
-    def str_to_bool(self, x: str) -> bool:
-        """
-        Convert a string to a boolean.
-
-        Arguments
-        ---------
-        x : str
-            String to be interpreted.
-        """
-        val = x.lower() in ['true', '1', 't', 'y', 'yes']
-        return val
+    

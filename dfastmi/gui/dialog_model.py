@@ -28,14 +28,32 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from configparser import ConfigParser, SectionProxy
 from typing import List, Optional
+
+from pydantic import BaseModel
 import dfastmi
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 
+class GeneralConfig(BaseModel):
+    Version: str = "2.0"
+    Branch: str = ""
+    Reach: str = ""
+    Qthreshold: float = 0.0
+    Ucrit: float = 0.3
+    OutputDir: str = ""
+    Plotting: bool = False
+    SavePlots: bool = False
+    FigureDir: str = ""
+    ClosePlots: bool = False
 
-class DialogModel:
+class ConditionConfig(BaseModel):
+    Discharge: float
+    Reference: str
+    WithMeasure: str
+    
+class DialogModel():
     config : ConfigParser = None
     section : SectionProxy = None
     def __init__(self, rivers_configuration: RiversObject, config_file: Optional[str] = None):
@@ -43,7 +61,82 @@ class DialogModel:
         
         if config_file:
             self.load_configuration(config_file)
-
+        else:
+            self.create_configuration()
+        
+        BOOLEAN_STATES = {  '1': True,  'yes': True,  'true' : True,  'on' : True,  't':True,  'y':True,
+                            '0': False, 'no' : False, 'false': False, 'off': False, 'f':False, 'n':False}
+        self.config.BOOLEAN_STATES = BOOLEAN_STATES
+    
+    @property
+    def qthreshold(self) -> float:
+        return self.section.getfloat('Qthreshold', 0.0)
+    
+    @qthreshold.setter
+    def qthreshold(self, value):
+        self.section['Qthreshold'] = str(value)
+    
+    @property
+    def ucritical(self) -> float:
+        return self.section.getfloat('Ucrit', 0.3)
+    
+    @ucritical.setter
+    def ucritical(self, value):
+        self.section['Ucrit'] = str(value)
+    
+    @property
+    def output_dir(self):
+        return self.section['OutputDir']
+    
+    @output_dir.setter
+    def output_dir(self, value):
+        self.section['OutputDir'] = value
+    
+    @property
+    def figure_dir(self):
+        return self.section["FigureDir"]
+    
+    @figure_dir.setter
+    def figure_dir(self, value):
+        self.section['FigureDir'] = value
+    
+    @property
+    def plotting(self):
+        return self.section.getboolean('Plotting')
+    
+    @plotting.setter
+    def plotting(self, value):
+        self.section['Plotting'] = str(value)
+    
+    @property
+    def save_plots(self) -> bool:
+        return self.section.getboolean('SavePlots')
+    
+    @save_plots.setter
+    def save_plots(self, value):
+       self.section["SavePlots"] = str(value)
+    
+    @property
+    def close_plots(self) -> bool:
+        return self.section.getboolean('ClosePlots')
+    
+    @close_plots.setter
+    def close_plots(self, value):
+        self.section["ClosePlots"] = str(value)
+    
+    def create_configuration(self) -> bool:
+        self.config = ConfigParser()
+        self.config['General'] = {  'Branch'        : '',
+                                    'Reach'         : '',
+                                    'Qthreshold'    : 0.0,
+                                    'Ucrit'         : 0.3,
+                                    'OutputDir'     : '',
+                                    'Plotting'      : 'False',
+                                    'SavePlots'     : 'False',
+                                    'FigureDir'     : '',
+                                    'ClosePlots'    : 'False',
+                                  }
+        self.section = self.config['General']
 
     def load_configuration(self, filename: str) -> bool:
         try:
@@ -103,8 +196,8 @@ class DialogModel:
         config["General"]["Version"] = "2.0"
         config["General"]["Branch"] = branch.name
         config["General"]["Reach"] = reach.name
-        config["General"]["Qthreshold"] = self.section["Qthreshold"]
-        config["General"]["Ucrit"] = self.section["Ucrit"]
+        config["General"]["Qthreshold"] = self.qthreshold
+        config["General"]["Ucrit"] = self.ucritical
         self._get_application_configuration(config)
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
