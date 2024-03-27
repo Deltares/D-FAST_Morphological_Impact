@@ -28,7 +28,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 # ViewModel
 from configparser import ConfigParser
-import os
 from typing import Any, Dict
 import dfastmi
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer

@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import pytest
 from PyQt5.QtWidgets import QApplication, QPushButton, QMessageBox, QFileDialog, QLineEdit
 from unittest.mock import MagicMock
@@ -42,7 +42,9 @@ class Test_dialog_inputs:
         initial_value = view._output_dir.text()
 
         # Test valid directory path
-        valid_dir = os.path.join(os.getcwd(), "output")
+        valid_dir = Path.cwd().joinpath("output")
+        if not valid_dir.exists():
+            valid_dir.mkdir()
         view._output_dir.setText(valid_dir)
         view._output_dir.editingFinished.emit()
 
@@ -70,7 +72,9 @@ class Test_dialog_inputs:
         initial_value = view._figure_dir_edit.text()
 
         # Test valid directory path
-        valid_dir = os.path.join(os.getcwd(), "output")
+        valid_dir = Path.cwd().joinpath("output")
+        if not valid_dir.exists():
+            valid_dir.mkdir()
         view._figure_dir_edit.setText(valid_dir)
         view._figure_dir_edit.editingFinished.emit()
         assert view._figure_dir_edit.text() == valid_dir

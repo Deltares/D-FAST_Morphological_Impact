@@ -26,9 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import os
 from pathlib import Path
-import re
 import subprocess
 from functools import partial
 import sys
@@ -615,8 +613,8 @@ class DialogView():
 
         progloc = str(Path(__file__).parent.parent.absolute())
         openFile = QPushButton(
-            PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
-        )
+            PyQt5.QtGui.QIcon(Path(progloc).joinpath("open.png"), "", win
+        ))
         openFile.clicked.connect(partial(self._selectFile, key))
         openFile.setObjectName(key+"_button")
         openFile.setEnabled(enabled)
@@ -661,8 +659,8 @@ class DialogView():
 
         progloc = str(Path(__file__).parent.parent.absolute())
         openFolder = QPushButton(
-            PyQt5.QtGui.QIcon(progloc + os.path.sep + "open.png"), "", win
-        )
+            PyQt5.QtGui.QIcon(Path(progloc).joinpath("open.png"), "", win
+        ))
         openFolder.clicked.connect(partial(self._selectFolder, key))
         openFolder.setObjectName(key+"_button")
         openFolder.setEnabled(enabled)
