@@ -27,9 +27,12 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 from pathlib import Path
+from typing import Any, Dict, Optional
 import PyQt5.QtCore
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
+
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 class FileExistValidator(PyQt5.QtGui.QValidator):
     def validate(self, input_text, pos):
@@ -95,3 +98,32 @@ def get_available_font(currrent_font : PyQt5.QtGui.QFont, preferred_font, fallba
         else:
             # If neither font is available, return the default font
             return currrent_font
+
+def gui_text(key: str, prefix: str = "gui_", placeholder_dictionary: Optional[Dict[str, Any]] = None):
+        """
+        Query the global dictionary of texts for a single string in the GUI.
+
+        This routine concatenates the prefix and the key to query the global
+        dictionary of texts. It selects the first line of the text obtained and
+        expands and placeholders in the string using the optional dictionary
+        provided.
+
+        Arguments
+        ---------
+        key : str
+            The key string used to query the dictionary (extended with prefix).
+        prefix : str
+            The prefix used in combination with the key (default "gui_").
+        dict : Dict[str, Any]
+            A dictionary used for placeholder expansions (default empty).
+
+        Returns
+        -------
+            The first line of the text in the dictionary expanded with the keys.
+        """
+        if placeholder_dictionary is None:
+            placeholder_dictionary = {}  # If dict is None, initialize it as an empty dictionary
+
+        cstr = ApplicationSettingsHelper.get_text(prefix + key)
+        application_setting = cstr[0].format(**placeholder_dictionary)
+        return application_setting

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import dfastmi
 from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_model import DialogModel
+from dfastmi.gui.dialog_utils import gui_text
 from dfastmi.gui.dialog_view import DialogView
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.io.RiversObject import RiversObject
@@ -28,11 +29,11 @@ def test_constructor(dialog_view):
     view = dialog_view
 
     # Test if the constructor initializes view components with the correct initial state
-    assert view._output_dir.text() == view._view_model.output_dir
-    assert view._figure_dir_edit.text() == view._view_model.figure_dir
-    assert view._make_plots_edit.isChecked() == view._view_model.plotting
-    assert view._save_plots_edit.isChecked() == view._view_model.save_plots
-    assert view._close_plots_edit.isChecked() == view._view_model.close_plots
+    assert view._output_dir.text() == view._view_model.model.output_dir
+    assert view._figure_dir_edit.text() == view._view_model.model.figure_dir
+    assert view._make_plots_edit.isChecked() == view._view_model.model.plotting
+    assert view._save_plots_edit.isChecked() == view._view_model.model.save_plots
+    assert view._close_plots_edit.isChecked() == view._view_model.model.close_plots
 
 class Test_dialog_inputs:    
     def test_output_dir_update(self, dialog_view):
@@ -113,7 +114,7 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(invalid_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == invalid_value                
-        assert dialog_view._view_model.qthreshold == float(new_value)  # Input should not change
+        assert dialog_view._view_model.model.qthreshold == float(new_value)  # Input should not change
         dialog_view._show_message.assert_called_once_with("Please input valid values for qthreshold")
 
         # Test edge case: empty input
@@ -122,7 +123,7 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(empty_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == empty_value  
-        assert dialog_view._view_model.qthreshold == float(new_value)  # Input should not change
+        assert dialog_view._view_model.model.qthreshold == float(new_value)  # Input should not change
         dialog_view._show_message.assert_called_once_with("Please input valid values for qthreshold")
         
 
@@ -142,7 +143,7 @@ class Test_dialog_inputs:
         dialog_view._ucrit.setText(invalid_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == invalid_value
-        assert dialog_view._view_model.ucritical == float(new_value)
+        assert dialog_view._view_model.model.ucritical == float(new_value)
         dialog_view._show_message.assert_called_once_with("Please input valid values for ucritical")
 
         # Test edge case: empty input
@@ -151,7 +152,7 @@ class Test_dialog_inputs:
         dialog_view._ucrit.setText(empty_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
-        assert dialog_view._view_model.ucritical == float(new_value)
+        assert dialog_view._view_model.model.ucritical == float(new_value)
         dialog_view._show_message.assert_called_once_with("Please input valid values for ucritical")
 
 
@@ -249,7 +250,7 @@ class Test_popup:
             m.setattr(QMessageBox, 'setText', MagicMock())        
             m.setattr(QMessageBox, 'setWindowTitle', MagicMock())        
             dialog_view._menu_about_self()
-            QMessageBox.setWindowTitle.assert_called_once_with(dialog_view._view_model.gui_text("about"))
+            QMessageBox.setWindowTitle.assert_called_once_with(gui_text("about"))
             QMessageBox.setText.assert_called_once_with("D-FAST Morphological Impact " + dfastmi.__version__)
             QMessageBox.exec_.assert_called_once()
 
@@ -274,7 +275,7 @@ class Test_select:
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         assert dialog_view._output_dir.text() == "/path/to/folder"
-        assert dialog_view._view_model.output_dir == "/path/to/folder"
+        assert dialog_view._view_model.model.output_dir == "/path/to/folder"
 
     def test_selectFolder_figure_dir_edit(self, dialog_view, monkeypatch):
         # Create a mock QFileDialog.getExistingDirectory function
@@ -286,7 +287,7 @@ class Test_select:
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         assert dialog_view._figure_dir_edit.text() == "/path/to/folder"
-        assert dialog_view._view_model.figure_dir == "/path/to/folder"
+        assert dialog_view._view_model.model.figure_dir == "/path/to/folder"
     
     def test_selectFile_reference_edit(self, dialog_view, monkeypatch):
         # Create a mock QFileDialog.getExistingDirectory function
@@ -329,13 +330,13 @@ class Test_view_model_updates:
         assert dialog_view._branch.currentText() == "Bovenrijn & Waal"
         assert dialog_view._reach.count() == len(dialog_view._view_model.current_branch.reaches)
         assert dialog_view._qloc.text() == dialog_view._view_model.current_branch.qlocation
-        assert dialog_view._qthr.text() == str(dialog_view._view_model.qthreshold)
-        assert dialog_view._ucrit.text() == str(dialog_view._view_model.ucritical)
+        assert dialog_view._qthr.text() == str(dialog_view._view_model.model.qthreshold)
+        assert dialog_view._ucrit.text() == str(dialog_view._view_model.model.ucritical)
         assert dialog_view._slength.text() == dialog_view._view_model.slength
-        assert dialog_view._output_dir.text() == dialog_view._view_model.output_dir
-        assert dialog_view._make_plots_edit.isChecked() == dialog_view._view_model.plotting
-        assert dialog_view._save_plots_edit.isChecked() == dialog_view._view_model.save_plots
-        assert dialog_view._close_plots_edit.isChecked() == dialog_view._view_model.close_plots
+        assert dialog_view._output_dir.text() == dialog_view._view_model.model.output_dir
+        assert dialog_view._make_plots_edit.isChecked() == dialog_view._view_model.model.plotting
+        assert dialog_view._save_plots_edit.isChecked() == dialog_view._view_model.model.save_plots
+        assert dialog_view._close_plots_edit.isChecked() == dialog_view._view_model.model.close_plots
         dialog_view._update_qvalues_table.assert_called_once()
         dialog_view._update_condition_files.assert_called_once()
     

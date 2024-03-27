@@ -34,7 +34,7 @@ from typing import Optional
 
 import PyQt5.QtCore
 import PyQt5.QtGui
-from dfastmi.gui.dialog_utils import FileExistValidator, FolderExistsValidator, ValidatingLineEdit, get_available_font
+from dfastmi.gui.dialog_utils import FileExistValidator, FolderExistsValidator, ValidatingLineEdit, get_available_font, gui_text
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.RiversObject import RiversObject
@@ -105,15 +105,15 @@ class DialogView():
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        self._qthr.setText(str(self._view_model.qthreshold))
-        self._ucrit.setText(str(self._view_model.ucritical))
+        self._qthr.setText(str(self._view_model.model.qthreshold))
+        self._ucrit.setText(str(self._view_model.model.ucritical))
         self._slength.setText(self._view_model.slength)
         self._reach.setCurrentText(self._view_model.current_reach.name)
         self._update_qvalues_table()
-        self._output_dir.setText(self._view_model.output_dir)
-        self._make_plots_edit.setChecked(self._view_model.plotting)
-        self._save_plots_edit.setChecked(self._view_model.save_plots)
-        self._close_plots_edit.setChecked(self._view_model.close_plots)
+        self._output_dir.setText(self._view_model.model.output_dir)
+        self._make_plots_edit.setChecked(self._view_model.model.plotting)
+        self._save_plots_edit.setChecked(self._view_model.model.save_plots)
+        self._close_plots_edit.setChecked(self._view_model.model.close_plots)
         self._update_condition_files()
     
     def _update_reach(self, data):
@@ -209,22 +209,22 @@ class DialogView():
         """
         menubar = self._win.menuBar()
         
-        menu = menubar.addMenu(self._view_model.gui_text("File"))
-        item = menu.addAction(self._view_model.gui_text("Load"))
+        menu = menubar.addMenu(gui_text("File"))
+        item = menu.addAction(gui_text("Load"))
         item.triggered.connect(self._menu_load_configuration)
-        item = menu.addAction(self._view_model.gui_text("Save"))
+        item = menu.addAction(gui_text("Save"))
         item.triggered.connect(self._menu_save_configuration)
         menu.addSeparator()
-        item = menu.addAction(self._view_model.gui_text("Close"))
+        item = menu.addAction(gui_text("Close"))
         item.triggered.connect(self._close_dialog)
 
-        menu = menubar.addMenu(self._view_model.gui_text("Help"))
-        item = menu.addAction(self._view_model.gui_text("Manual"))
+        menu = menubar.addMenu(gui_text("Help"))
+        item = menu.addAction(gui_text("Manual"))
         item.triggered.connect(self._menu_open_manual)
         menu.addSeparator()
-        item = menu.addAction(self._view_model.gui_text("Version"))
+        item = menu.addAction(gui_text("Version"))
         item.triggered.connect(self._menu_about_self)
-        item = menu.addAction(self._view_model.gui_text("AboutQt"))
+        item = menu.addAction(gui_text("AboutQt"))
         item.triggered.connect(self._menu_about_qt)
 
     def _create_central_widget(self) -> None:
@@ -277,16 +277,16 @@ class DialogView():
         self._layout.addWidget(self._general_widget)
 
     def _create_close_plots_input_checkbox(self, layout):
-        self._close_plots = QLabel(self._view_model.gui_text("closePlots"), self._win)
+        self._close_plots = QLabel(gui_text("closePlots"), self._win)
         self._close_plots.setEnabled(False)
         self._close_plots_edit = QCheckBox(self._win)
-        self._close_plots_edit.setToolTip(self._view_model.gui_text("closePlots_tooltip"))
+        self._close_plots_edit.setToolTip(gui_text("closePlots_tooltip"))
         self._close_plots_edit.setEnabled(False)
         self._close_plots_edit.stateChanged.connect(self._update_plotting)
         layout.addRow(self._close_plots, self._close_plots_edit)
 
     def _create_output_figure_plots_directory_input(self, layout):
-        self._figure_dir = QLabel(self._view_model.gui_text("figureDir"), self._win)
+        self._figure_dir = QLabel(gui_text("figureDir"), self._win)
         self._figure_dir.setEnabled(False)
         self._figure_dir_edit = ValidatingLineEdit(FolderExistsValidator(),self._win)
         self._figure_dir_edit.setEnabled(False)
@@ -295,18 +295,18 @@ class DialogView():
         layout.addRow(self._figure_dir, self._open_folder_layout(self._win, self._figure_dir_edit, "figure_dir_edit", False))
 
     def _create_save_plots_input_checkbox(self, layout):
-        self._save_plots = QLabel(self._view_model.gui_text("savePlots"), self._win)
+        self._save_plots = QLabel(gui_text("savePlots"), self._win)
         self._save_plots.setEnabled(False)
         self._save_plots_edit = QCheckBox(self._win)
-        self._save_plots_edit.setToolTip(self._view_model.gui_text("savePlots_tooltip"))
+        self._save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
         self._save_plots_edit.stateChanged.connect(self._update_plotting)
         self._save_plots_edit.setEnabled(False)
         layout.addRow(self._save_plots, self._save_plots_edit)
 
     def _create_make_plots_input_checkbox(self, layout):
-        make_plots = QLabel(self._view_model.gui_text("makePlots"), self._win)
+        make_plots = QLabel(gui_text("makePlots"), self._win)
         self._make_plots_edit = QCheckBox(self._win)
-        self._make_plots_edit.setToolTip(self._view_model.gui_text("makePlots_tooltip"))
+        self._make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
         self._make_plots_edit.stateChanged.connect(self._update_plotting)
         layout.addRow(make_plots, self._make_plots_edit)
 
@@ -315,7 +315,7 @@ class DialogView():
         self._output_dir.setPlaceholderText("Enter file path")
         self._output_dir.textChanged.connect(partial(self._update_file_or_folder_validation, line_edit=self._output_dir))
         self._output_dir.editingFinished.connect(partial(self._update_view_model, view_model_variable="output_dir", value=lambda : self._output_dir.text(), invalid=lambda: self._output_dir.invalid))
-        layout.addRow(self._view_model.gui_text("outputDir"), self._open_folder_layout(self._win, self._output_dir, "output_dir", True))
+        layout.addRow(gui_text("outputDir"), self._open_folder_layout(self._win, self._output_dir, "output_dir", True))
     
     def _update_view_model(self, view_model_variable, value, invalid):
         if not invalid():
@@ -326,7 +326,7 @@ class DialogView():
         line_edit.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
 
     def _create_conditions_group_input(self, layout):
-        group_box = QGroupBox(self._view_model.gui_text("condition_group_name"))
+        group_box = QGroupBox(gui_text("condition_group_name"))
         group_box_layout = QVBoxLayout(group_box)
         group_box.setStyleSheet("""
             QGroupBox {
@@ -346,7 +346,7 @@ class DialogView():
         self._grid_layout = QGridLayout()
         self._grid_layout.setObjectName("discharge_conditions_grid")
         
-        self._grid_layout.addWidget(QLabel(self._view_model.gui_text("qloc")), 0, 0)
+        self._grid_layout.addWidget(QLabel(gui_text("qloc")), 0, 0)
         # Create a new instance of the widget
         copied_qloc = QLabel()
 
@@ -356,9 +356,9 @@ class DialogView():
         
         
         # Add widgets to the form layout
-        discharge_label = QLabel(self._view_model.gui_text("qval"))
-        reference_label = QLabel(self._view_model.gui_text("reference"))
-        measure_label = QLabel(self._view_model.gui_text("measure"))
+        discharge_label = QLabel(gui_text("qval"))
+        reference_label = QLabel(gui_text("reference"))
+        measure_label = QLabel(gui_text("measure"))
         
         # Add widgets to the form layout with labels
         self._grid_layout.addWidget(discharge_label, 1, 0)
@@ -372,56 +372,56 @@ class DialogView():
 
     def _show_impacted_length(self, layout):
         self._slength = QLabel(self._win)
-        self._slength.setToolTip(self._view_model.gui_text("length_tooltip"))
+        self._slength.setToolTip(gui_text("length_tooltip"))
         self._slength.setText(self._view_model.slength)
-        layout.addRow(self._view_model.gui_text("length"), self._slength)
+        layout.addRow(gui_text("length"), self._slength)
 
     def _create_ucritical_input(self, layout, double_validator):
         self._ucrit = QLineEdit(self._win)
         self._ucrit.setValidator(double_validator)
-        self._ucrit.setToolTip(self._view_model.gui_text("ucrit_tooltip"))
+        self._ucrit.setToolTip(gui_text("ucrit_tooltip"))
         self._ucrit.editingFinished.connect(self._update_ucritical)
-        self._ucrit.setText(str(self._view_model.ucritical))
-        layout.addRow(self._view_model.gui_text("ucrit"), self._ucrit)
+        self._ucrit.setText(str(self._view_model.model.ucritical))
+        layout.addRow(gui_text("ucrit"), self._ucrit)
 
     def _create_qthreshhold_input(self, layout, double_validator : PyQt5.QtGui.QDoubleValidator):
         self._qthr = QLineEdit(self._win)
         self._qthr.setValidator(double_validator)
         self._qthr.editingFinished.connect(self._update_qthreshold)        
-        self._qthr.setToolTip(self._view_model.gui_text("qthr_tooltip"))
-        qthrtxt = QLabel(self._view_model.gui_text("qthr"), self._win)
-        self._qthr.setText(str(self._view_model.qthreshold))
+        self._qthr.setToolTip(gui_text("qthr_tooltip"))
+        qthrtxt = QLabel(gui_text("qthr"), self._win)
+        self._qthr.setText(str(self._view_model.model.qthreshold))
         layout.addRow(qthrtxt, self._qthr)        
 
     def _show_discharge_location(self, layout):
         self._qloc = QLabel("", self._win)
-        self._qloc.setToolTip(self._view_model.gui_text("qloc"))
+        self._qloc.setToolTip(gui_text("qloc"))
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        layout.addRow(self._view_model.gui_text("qloc"), self._qloc)
+        layout.addRow(gui_text("qloc"), self._qloc)
 
     def _create_reach_input(self, layout):
         # get the reach
         self._reach = QComboBox(self._win)
         self._reach.currentTextChanged.connect(self._view_model.updated_reach)
-        self._reach.setToolTip(self._view_model.gui_text("reach_tooltip"))
+        self._reach.setToolTip(gui_text("reach_tooltip"))
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
         self._reach.setCurrentText(self._view_model.current_reach.name)
-        layout.addRow(self._view_model.gui_text("reach"), self._reach)
+        layout.addRow(gui_text("reach"), self._reach)
     
     def _create_branch_input(self, layout:QFormLayout):
         # get the branch
         self._branch = QComboBox(self._win)
         self._branch.currentTextChanged.connect(self._view_model.updated_branch)
-        self._branch.setToolTip(self._view_model.gui_text("branch_tooltip"))
-        for b in self._view_model._model.rivers.branches:
+        self._branch.setToolTip(gui_text("branch_tooltip"))
+        for b in self._view_model.model.rivers.branches:
             self._branch.addItem(b.name)
         self._branch.setCurrentText(self._view_model.current_branch.name)
-        layout.addRow(self._view_model.gui_text("branch"), self._branch)
+        layout.addRow(gui_text("branch"), self._branch)
 
     def _update_qthreshold(self):
         if self._qthr.hasAcceptableInput():
-            self._view_model.qthreshold = float(self._qthr.text())
+            self._view_model.model.qthreshold = float(self._qthr.text())
             self._update_qvalues_table()
             self._update_condition_files()
         else: 
@@ -429,7 +429,7 @@ class DialogView():
 
     def _update_ucritical(self):
         if self._ucrit.hasAcceptableInput():
-            self._view_model.ucritical = float(self._ucrit.text())
+            self._view_model.model.ucritical = float(self._ucrit.text())
             self._update_qvalues_table()
             self._update_condition_files()
         else: 
@@ -448,7 +448,7 @@ class DialogView():
         discharge_name : str
             Discharge value with unit [m3/s]
         """
-        enabled = self._view_model.qthreshold < discharge
+        enabled = self._view_model.model.qthreshold < discharge
 
         # get the reference file
         q1_reference = ValidatingLineEdit(FileExistValidator(),self._win)
@@ -478,11 +478,11 @@ class DialogView():
         button_bar_layout.setContentsMargins(0, 0, 0, 0)
         self._layout.addWidget(button_bar)
 
-        run = QPushButton(self._view_model.gui_text("action_run"), self._win)
+        run = QPushButton(gui_text("action_run"), self._win)
         run.clicked.connect(self._run_analysis)
         button_bar_layout.addWidget(run)
 
-        done = QPushButton(self._view_model.gui_text("action_close"), self._win)
+        done = QPushButton(gui_text("action_close"), self._win)
         done.clicked.connect(self._close_dialog)
         button_bar_layout.addWidget(done)
     
@@ -491,11 +491,11 @@ class DialogView():
             success = self._view_model.run_analysis()
             
             if success:
-                self._show_message(self._view_model.gui_text("end_of_analysis", dict={"report": self._view_model.report},))                
+                self._show_message(gui_text("end_of_analysis", placeholder_dictionary={"report": self._view_model.report},))                
             else:
-                self._show_error(self._view_model.gui_text("error_during_analysis", dict={"report": self._view_model.report},))
+                self._show_error(gui_text("error_during_analysis", placeholder_dictionary={"report": self._view_model.report},))
         else:
-            self._show_error(self._view_model.gui_text("analysis_config_incomplete",))
+            self._show_error(gui_text("analysis_config_incomplete",))
 
     def _close_dialog(self) -> None:
         """
@@ -527,11 +527,11 @@ class DialogView():
         None
         """
         fil = QFileDialog.getOpenFileName(
-            caption=self._view_model.gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
+            caption=gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
         )
         filename = fil[0]
         if filename != "" and not self._view_model.load_configuration(filename):
-            self._show_error(self._view_model.gui_text("file_not_found", prefix="", dict={"name": filename}))
+            self._show_error(gui_text("file_not_found", prefix="", placeholder_dictionary={"name": filename}))
 
     def _menu_save_configuration(self) -> None:
         """
@@ -542,7 +542,7 @@ class DialogView():
         None
         """
         fil = QFileDialog.getSaveFileName(
-            caption=self._view_model.gui_text("save_cfg_as"), filter="Config Files (*.cfg)"
+            caption=gui_text("save_cfg_as"), filter="Config Files (*.cfg)"
         )
         filename = fil[0]
         if filename != "":
@@ -559,8 +559,8 @@ class DialogView():
         msg = QMessageBox()
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
         msg.setInformativeText("Copyright (c) 2024 Deltares.")
-        msg.setDetailedText(self._view_model.gui_text("license"))
-        msg.setWindowTitle(self._view_model.gui_text("about"))
+        msg.setDetailedText(gui_text("license"))
+        msg.setWindowTitle(gui_text("about"))
         msg.setStandardButtons(QMessageBox.Ok)
         
         logo_size = msg.heightMM() * 0.9
@@ -630,7 +630,7 @@ class DialogView():
             Name of the field for which to select the file.
         """
         fil = QFileDialog.getOpenFileName(
-            caption=self._view_model.gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
+            caption=gui_text("select_map_file"), filter="D-Flow FM Map Files (*map.nc)"
         )
         if fil[0] != "":
             self._set_file_in_condition_table(key, fil[0])
@@ -676,15 +676,15 @@ class DialogView():
             Name of the field for which to select the file.
         """
         folder = QFileDialog.getExistingDirectory(
-            caption=self._view_model.gui_text("select_directory")
+            caption=gui_text("select_directory")
         )
         
         if key == "figure_dir_edit":
             self._figure_dir_edit.setText(folder)
-            self._view_model.figure_dir = folder
+            self._view_model.model.figure_dir = folder
         elif key == "output_dir":
             self._output_dir.setText(folder)
-            self._view_model.output_dir = folder
+            self._view_model.model.output_dir = folder
         
     def _set_file_in_condition_table(self, key: str, file:str):
         input_textbox = self._general_widget.findChild(QLineEdit, key)
@@ -741,21 +741,21 @@ class DialogView():
         ---------
         None
         """
-        self._view_model.plotting = self._make_plots_edit.isChecked()
+        self._view_model.model.plotting = self._make_plots_edit.isChecked()
 
-        self._save_plots.setEnabled(self._view_model.plotting)
-        self._save_plots_edit.setEnabled(self._view_model.plotting)
+        self._save_plots.setEnabled(self._view_model.model.plotting)
+        self._save_plots_edit.setEnabled(self._view_model.model.plotting)
 
-        self._view_model.save_plots = self._save_plots_edit.isChecked() and self._view_model.plotting
+        self._view_model.model.save_plots = self._save_plots_edit.isChecked() and self._view_model.model.plotting
 
-        self._figure_dir.setEnabled(self._view_model.save_plots)
-        self._figure_dir_edit.setEnabled(self._view_model.save_plots)
+        self._figure_dir.setEnabled(self._view_model.model.save_plots)
+        self._figure_dir_edit.setEnabled(self._view_model.model.save_plots)
         figure_dir_button = self._general_widget.findChild(QPushButton, "figure_dir_edit_button")
-        figure_dir_button.setEnabled(self._view_model.save_plots)
+        figure_dir_button.setEnabled(self._view_model.model.save_plots)
 
-        self._view_model.close_plots = self._close_plots_edit.isChecked()
-        self._close_plots.setEnabled(self._view_model.plotting)
-        self._close_plots_edit.setEnabled(self._view_model.plotting)
+        self._view_model.model.close_plots = self._close_plots_edit.isChecked()
+        self._close_plots.setEnabled(self._view_model.model.plotting)
+        self._close_plots_edit.setEnabled(self._view_model.model.plotting)
 
     @staticmethod
     def _get_dfast_icon() -> QIcon:
