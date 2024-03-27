@@ -30,7 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from dfastmi.batch.Distance import get_direction
 from dfastmi.batch.Projection import project_xy_point_onto_line
 from dfastmi.batch.Face import filter_faces_by_node_condition, face_mean
-from dfastmi.batch.DflowfmLoggers import XykmDataLogger
+from dfastmi.batch.DflowfmReporters import XykmDataReporter
 from shapely.geometry.linestring import LineString
 
 import numpy
@@ -41,9 +41,9 @@ class XykmData():
     Class that initializes and keeps Xykm related data.
     """
     
-    _logger : XykmDataLogger
+    _reporter : XykmDataReporter
     
-    def __init__(self, logger : XykmDataLogger):
+    def __init__(self, logger : XykmDataReporter):
         """
         Arguments
         ---------
@@ -67,7 +67,7 @@ class XykmData():
         self._sni : numpy.ndarray = None
         self._nni : numpy.ndarray = None
 
-        self._logger = logger
+        self._reporter = logger
         
     @property
     def xykm(self) -> LineString:
@@ -208,25 +208,25 @@ class XykmData():
             self._ymax = yn.max()
         else:
             dnmax = 3000.0
-            self._logger.log_identify_region_of_interest()
-            self._logger.print_buffer()
+            self._reporter.report_identify_region_of_interest()
+            self._reporter.print_buffer()
             xybuffer = xykm.buffer(dnmax)
             bbox = xybuffer.envelope.exterior
-            self._logger.print_prepare()
+            self._reporter.print_prepare()
             xybprep = shapely.prepared.prep(xybuffer)
 
-            self._logger.print_prepare_filter(1)
+            self._reporter.print_prepare_filter(1)
             self._xmin = bbox.coords[0][0]
             self._xmax = bbox.coords[1][0]
             self._ymin = bbox.coords[0][1]
             self._ymax = bbox.coords[2][1]
             keep = (xn > self._xmin) & (xn < self._xmax) & (yn > self._ymin) & (yn < self._ymax)
-            self._logger.print_prepare_filter(2)
+            self._reporter.print_prepare_filter(2)
             for i in range(xn.size):
                 if keep[i] and not xybprep.contains(shapely.geometry.Point((xn[i], yn[i]))):
                     keep[i] = False
 
-            self._logger.print_apply_filter()
+            self._reporter.print_apply_filter()
             self._xni, self._yni, self._face_node_connectivity_index, self._iface, self._inode = filter_faces_by_node_condition(xn, yn, face_node_connectivity, keep)
             self._interest_region = numpy.zeros(face_node_connectivity.shape[0], dtype=numpy.int64)
             self._interest_region[self._iface] = 1
@@ -239,15 +239,15 @@ class XykmData():
 
             # project all nodes onto the line, obtain the distance along (sfi) and normal (nfi) the line
             # note: we use distance along line here instead of chainage since the latter may locally not be a linear function of the distance
-            self._logger.log_project()
+            self._reporter.report_project()
             self._sni, self._nni = project_xy_point_onto_line(self._xni, self._yni, xyline)
             sfi = face_mean(self._sni, self._face_node_connectivity_index)
 
             # determine chainage values of each cell
-            self._logger.log_chainage()
+            self._reporter.report_chainage()
 
             # determine line direction for each cell
-            self._logger.log_direction()
+            self._reporter.report_direction()
             self._dxi, self._dyi = get_direction(xyline, sfi)
 
-            self._logger.log_done()
+            self._reporter.report_done()

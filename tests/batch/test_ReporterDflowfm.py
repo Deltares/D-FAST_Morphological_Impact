@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from mock import Mock, patch
 import numpy
 import pytest
-from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
+from dfastmi.batch.DflowfmReporters import ReporterDflowfmReporter
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
@@ -156,7 +156,7 @@ class Test_ReporterDflowfm_Report():
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
         
             reporter = ReporterDflowfm(display)
-            reporter._logger = Mock(spec=ReporterDflowfmLogger)
+            reporter._reporter = Mock(spec=ReporterDflowfmReporter)
             reporter.report(tmp_path, plotting_options, report_data)
                 
             assert mocked_ugrid_add.call_count == 15
@@ -181,7 +181,7 @@ class Test_ReporterDflowfm_Report():
             mocked_plotting_plot_overview.return_value = ((plt.figure(figsize=(8, 6)) ,plt.axes()))
             
             reporter = ReporterDflowfm(display)
-            reporter._logger = Mock(spec=ReporterDflowfmLogger)
+            reporter._reporter = Mock(spec=ReporterDflowfmReporter)
             reporter.report(tmp_path, plotting_options, report_data)
                 
             assert mocked_ugrid_add.call_count == 15

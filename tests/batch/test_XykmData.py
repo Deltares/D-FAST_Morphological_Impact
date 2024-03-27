@@ -17,9 +17,9 @@ class Test_XykmData_initialize_data():
         iface = numpy.array([10,11,12])
         inode = numpy.array([13,14,15])
         
-        with patch('dfastmi.batch.DflowfmLoggers.XykmDataLogger', autospec=True) as xykm_data_logger, \
+        with patch('dfastmi.batch.DflowfmReporters.XykmDataReporter', autospec=True) as xykm_data_reporter, \
              patch('dfastmi.batch.XykmData.filter_faces_by_node_condition') as filter_faces_by_node_condition:
-                 xykm_data = XykmData(xykm_data_logger)
+                 xykm_data = XykmData(xykm_data_reporter)
                  filter_faces_by_node_condition.return_value = (xni, yni, face_node_connectivity_index, iface, inode)
                  xykm_data.initialize_data(xykm,xn,yn,face_node_connectivity)
                  
@@ -40,7 +40,7 @@ class Test_XykmData_initialize_data():
                  assert xykm_data.sni == None
                  assert xykm_data.nni == None
                  
-                 assert len(xykm_data_logger.mock_calls) == 0
+                 assert len(xykm_data_reporter.mock_calls) == 0
                  
     def test_determine_xykm_data(self):
         xn = numpy.array([10,20,30])
@@ -64,12 +64,12 @@ class Test_XykmData_initialize_data():
         xykline = numpy.array(xykm.coords)
         interest_region = numpy.array([1,1,1])
         
-        with patch('dfastmi.batch.DflowfmLoggers.XykmDataLogger', autospec=True) as xykm_data_logger, \
+        with patch('dfastmi.batch.DflowfmReporters.XykmDataReporter', autospec=True) as xykm_data_reporter, \
              patch('dfastmi.batch.XykmData.project_xy_point_onto_line') as project_xy_point_onto_line,\
              patch('dfastmi.batch.XykmData.face_mean'),\
              patch('dfastmi.batch.XykmData.get_direction') as get_direction,\
              patch('dfastmi.batch.XykmData.filter_faces_by_node_condition') as filter_faces_by_node_condition:
-                 xykm_data = XykmData(xykm_data_logger)
+                 xykm_data = XykmData(xykm_data_reporter)
                  
                  filter_faces_by_node_condition.return_value = (xni, yni, face_node_connectivity_index, iface, inode)
                  project_xy_point_onto_line.return_value = (sni, nni)
@@ -94,4 +94,4 @@ class Test_XykmData_initialize_data():
                  numpy.testing.assert_array_equal(xykm_data.sni, sni)
                  numpy.testing.assert_array_equal(xykm_data.nni, nni)
                  
-                 assert len(xykm_data_logger.mock_calls) == 10
+                 assert len(xykm_data_reporter.mock_calls) == 10

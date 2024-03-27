@@ -32,7 +32,7 @@ from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitialize
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
 from dfastmi.kernel.core import main_computation, dzq_from_du_and_h
-from dfastmi.batch.DflowfmLoggers import AnalyserDflowfmLogger
+from dfastmi.batch.DflowfmReporters import AnalyserDflowfmReporter
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.io.GridOperations import GridOperations
@@ -55,7 +55,7 @@ class AnalyserDflowfm():
         """
         return self._missing_data
     
-    _logger : AnalyserDflowfmLogger
+    _reporter : AnalyserDflowfmReporter
     
     def __init__(self, display : bool, report : TextIO, old_zmin_zmax : bool, outputdir : Path, config : AConfigurationInitializerBase):
         """
@@ -74,7 +74,7 @@ class AnalyserDflowfm():
         config : AConfigurationInitializerBase
             DTO with discharges, times, etc. for analysis
         """
-        self._logger = AnalyserDflowfmLogger(display, report)
+        self._reporter = AnalyserDflowfmReporter(display, report)
         
         self._needs_tide = config.needs_tide
         self._q_threshold = config.q_threshold
@@ -128,7 +128,7 @@ class AnalyserDflowfm():
         if self._missing_data:
             return None
 
-        self._logger.log_load_mesh()
+        self._reporter.report_load_mesh()
         xn = GridOperations.read_fm_map(one_fm_filename, "x", location="node")
         yn = GridOperations.read_fm_map(one_fm_filename, "y", location="node")
         face_node_connectivity = self._get_face_node_connectivity(one_fm_filename)
@@ -136,14 +136,14 @@ class AnalyserDflowfm():
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
         if xykm is None and self._needs_tide:
-            self._logger.print_riverkm_needed_for_tidal()
+            self._reporter.print_riverkm_needed_for_tidal()
             self._missing_data = True
             return None
 
         dzq = self._get_dzq(filenames, xykm_data.iface, xykm_data.dxi, xykm_data.dyi)
 
         if not self._missing_data:
-            self._logger.log_char_bed_changes()
+            self._reporter.report_char_bed_changes()
             
             dzq = self._determine_dzq(dzq)
             time_fraction_of_year = self._get_time_fractions_of_the_year()
@@ -208,7 +208,7 @@ class AnalyserDflowfm():
             one_fm_filename = self._get_first_fm_data_filename_based_on_conditions_keys(filenames)
 
         if one_fm_filename is None:
-            self._logger.print_measure_not_active_for_checked_conditions()
+            self._reporter.print_measure_not_active_for_checked_conditions()
             self._missing_data = True
 
         return one_fm_filename
@@ -231,12 +231,12 @@ class AnalyserDflowfm():
                 elif key in filenames:
                     return filenames[key][0]
                 else:
-                    self._logger.report_missing_calculation_values(self._needs_tide, q, t)
+                    self._reporter.report_missing_calculation_values(self._needs_tide, q, t)
                     self._missing_data = True
         return None
 
     def _get_xykm_data(self, xykm : LineString, xn : numpy.ndarray, yn : numpy.ndarray, face_node_connectivity : numpy.ndarray) -> XykmData:
-        xykm_data = XykmData(self._logger.xykm_data_logger)
+        xykm_data = XykmData(self._reporter.xykm_data_logger)
         xykm_data.initialize_data(xykm, xn, yn, face_node_connectivity)
         return xykm_data
 
@@ -287,7 +287,7 @@ class AnalyserDflowfm():
                         n_fields_request = 1
                     dzq[i] = self._get_values_fm(q, filenames[key], n_fields_request, dxi, dyi, iface)
                 else:
-                    self._logger.report_missing_calculation_dzq_values(q, t)
+                    self._reporter.report_missing_calculation_dzq_values(q, t)
                     self._missing_data = True
             else:
                 dzq[i] = 0
@@ -339,15 +339,15 @@ class AnalyserDflowfm():
         """
         # reference file
         if filenames[0] == "":
-            self._logger.report_file_not_specified(q)
+            self._reporter.report_file_not_specified(q)
             return None
         elif not os.path.isfile(filenames[0]):
-            self._logger.report_file_not_found(filenames[0])
+            self._reporter.report_file_not_found(filenames[0])
             return None
 
         # file with measure implemented
         if not os.path.isfile(filenames[1]):
-            self._logger.report_file_not_found(filenames[1])
+            self._reporter.report_file_not_found(filenames[1])
             return None
 
         ifld: Optional[int]

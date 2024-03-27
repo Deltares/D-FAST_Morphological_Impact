@@ -31,8 +31,16 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 from typing import TextIO
 
-class XykmDataLogger():
+class XykmDataReporter():
+    "This reporter reports events occuring in the XykmData class."
+    
     def __init__(self, display : bool):
+        """
+        Arguments
+        ---------
+        display : bool
+            Flag indicating text output to stdout.
+        """
         self.display = display
     
     def print_apply_filter(self):
@@ -47,44 +55,53 @@ class XykmDataLogger():
     def print_buffer(self):
         print("buffer")
         
-    def log_done(self):
+    def report_done(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- done')
 
-    def log_direction(self):
+    def report_direction(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- direction')
 
-    def log_chainage(self):
+    def report_chainage(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- chainage')
 
-    def log_project(self):
+    def report_project(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- project')
 
-    def log_identify_region_of_interest(self):
+    def report_identify_region_of_interest(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- identify region of interest')
 
-class AnalyserDflowfmLogger():
+class AnalyserDflowfmReporter():
+    "This reporter reports events occuring in the AnalyserDflowfm class."
     
-    xykm_data_logger : XykmDataLogger
+    xykm_data_logger : XykmDataReporter
     
     def __init__(self, display : bool, report : TextIO):
+        """
+        Arguments
+        ---------
+        display : bool
+            Flag indicating text output to stdout.
+        report : TextIO
+            TextIO to report to.
+        """
         self.display = display
         self.report = report
-        self.xykm_data_logger = XykmDataLogger(display)
+        self.xykm_data_logger = XykmDataReporter(display)
 
-    def log_char_bed_changes(self):
+    def report_char_bed_changes(self):
         if self.display:
             ApplicationSettingsHelper.log_text("char_bed_changes")
 
-    def log_load_mesh(self):
+    def report_load_mesh(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- load mesh')
 
-    def log_identify_region_of_interest(self):
+    def report_identify_region_of_interest(self):
         if self.display:
             ApplicationSettingsHelper.log_text('-- identify region of interest')
 
@@ -117,15 +134,23 @@ class AnalyserDflowfmLogger():
         print("The measure is not active for any of the checked conditions.")
 
 
-class ReporterDflowfmLogger():
+class ReporterDflowfmReporter():
+    "This reporter reports events occuring in the ReporterDflowfm class."
+    
     def __init__(self, display : bool):
+        """
+        Arguments
+        ---------
+        display : bool
+            Flag indicating text output to stdout.
+        """
         self.display = display
 
-    def log_compute_initial_year_dredging(self):
+    def report_compute_initial_year_dredging(self):
         if self.display:
             ApplicationSettingsHelper.log_text('compute_initial_year_dredging')
 
-    def log_writing_output(self):
+    def report_writing_output(self):
         if self.display:
             ApplicationSettingsHelper.log_text('writing_output')
 

@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from pathlib import Path
 from typing import Dict
-from dfastmi.batch.DflowfmLoggers import ReporterDflowfmLogger
+from dfastmi.batch.DflowfmReporters import ReporterDflowfmReporter
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.plotting import plot_overview, zoom_xy_and_save, savefig
@@ -43,7 +43,7 @@ import numpy
 
 class ReporterDflowfm():
     
-    _logger : ReporterDflowfmLogger
+    _reporter : ReporterDflowfmReporter
     
     def __init__(self, display : bool):
         """
@@ -52,7 +52,7 @@ class ReporterDflowfm():
         display : bool
             Flag indicating text output to stdout.
         """
-        self._logger = ReporterDflowfmLogger(display)
+        self._reporter = ReporterDflowfmReporter(display)
     
     def report(self, outputdir : Path, plotting_options : PlotOptions, report_data : OutputDataDflowfm):
         """
@@ -67,7 +67,7 @@ class ReporterDflowfm():
         report_data  : OutputDataDflowfm
             DTO with the data which is needed to create a report.
         """
-        self._logger.log_writing_output()
+        self._reporter.report_writing_output()
         meshname, facedim = GridOperations.get_mesh_and_facedim_names(report_data.one_fm_filename)
         dst = str(outputdir.joinpath(ApplicationSettingsHelper.get_filename("netcdf.out")))
         GridOperations.copy_ugrid(report_data.one_fm_filename, meshname, dst)
@@ -81,7 +81,7 @@ class ReporterDflowfm():
 
         self._plot_data(plotting_options, report_data.xykm_data, report_data.dzgemi)
 
-        self._logger.log_compute_initial_year_dredging()
+        self._reporter.report_compute_initial_year_dredging()
 
         if report_data.xykm_data.xykm is not None:
             self._grid_update_xykm(outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, meshname, facedim, nc_fill, report_data.sedimentation_data, report_data.xykm_data)
@@ -170,7 +170,7 @@ class ReporterDflowfm():
             )
 
     def _replace_coordinates_in_destination_file(self, report_data : OutputDataDflowfm, xykm_data : XykmData, meshname : str, nc_fill : float, projmesh : str):
-        self._logger.print_replacing_coordinates()
+        self._reporter.print_replacing_coordinates()
         sn = numpy.repeat(nc_fill, report_data.xn.shape[0])
         sn[xykm_data.inode]=xykm_data.sni
         nn = numpy.repeat(nc_fill, report_data.xn.shape[0])
@@ -215,7 +215,7 @@ class ReporterDflowfm():
                 savefig(fig, figfile)
 
     def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):
-        self._logger.print_sedimentation_and_erosion(sedimentation_data)
+        self._reporter.print_sedimentation_and_erosion(sedimentation_data)
 
         projmesh = str(outputdir.joinpath('sedimentation_weights.nc'))
         GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
