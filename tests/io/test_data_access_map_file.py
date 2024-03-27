@@ -158,16 +158,16 @@ class Test_ugrid_add():
         """
         meshname = "mesh2d"
         facedim = "face"
-        #
+        
         varname = "xxx"
         ldata = numpy.zeros((4132))
         ldata[1] = 3.14159
         long_name = "added_variable"
         unit = "some_unit"
-        #
+        
         map_file = MapFile(self.dst_filename)        
         map_file.add_variable(varname, ldata, meshname, facedim, long_name, unit)
-        #
+        
         datac = map_file.read_face_variable(long_name)
         assert datac[1] == ldata[1]
 
@@ -177,13 +177,12 @@ class Test_ugrid_add():
         """
         meshname = "mesh2d"
         facedim = "face"
-        #
+        
         varname = "new_xxx"
         ldata = numpy.zeros((4132))
         ldata[1] = 3.14159
         long_name = "new_added_variable"
         units = "kmh"
-        #
         
         map_file = MapFile(self.dst_filename)
         map_file.add_variable(varname, ldata, meshname, facedim, long_name, units)
@@ -191,7 +190,7 @@ class Test_ugrid_add():
         var = rootgrp.get_variables_by_attributes(
                 long_name=long_name, mesh=meshname, location="face"
             )
-        #
+        
         new_added_units = var[0].units
         rootgrp.close()
         assert new_added_units == units
@@ -240,14 +239,13 @@ class Test_copy_var():
         Testing copy_var.
         """
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-        #
         
         src = netCDF4.Dataset(src_filename)
         dst = netCDF4.Dataset(self.dst_filename, "a")
         MapFile._copy_var(src, "mesh2d_s1", dst)
         src.close()
         dst.close()
-        #                
+        
         varname = "sea_surface_height"
         map_file = MapFile(self.dst_filename)
         datac = map_file.read_face_variable(varname)
@@ -279,7 +277,7 @@ class Test_copy_ugrid():
         
         map_file = MapFile(src_filename)
         map_file.copy_ugrid(self.dst_filename)
-        #
+        
         map_file = MapFile(self.dst_filename)
         datac = map_file.face_node_connectivity
         dataref = 2352
