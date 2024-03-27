@@ -617,8 +617,6 @@ def _analyse_and_report(
     
     old_zmin_zmax = False
 
-    # set plotting flags
-    plotops = _set_plotting_flags(rootdir, display, data)
     plotting_options = PlotOptions()
     plotting_options.set_plotting_flags(rootdir, display, data)
 
