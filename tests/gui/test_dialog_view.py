@@ -45,6 +45,7 @@ class Test_dialog_inputs:
         valid_dir = Path.cwd().joinpath("output")
         if not valid_dir.exists():
             valid_dir.mkdir()
+        valid_dir = str(valid_dir)
         view._output_dir.setText(valid_dir)
         view._output_dir.editingFinished.emit()
 
@@ -75,6 +76,7 @@ class Test_dialog_inputs:
         valid_dir = Path.cwd().joinpath("output")
         if not valid_dir.exists():
             valid_dir.mkdir()
+        valid_dir = str(valid_dir)
         view._figure_dir_edit.setText(valid_dir)
         view._figure_dir_edit.editingFinished.emit()
         assert view._figure_dir_edit.text() == valid_dir
@@ -106,22 +108,22 @@ class Test_dialog_inputs:
         assert dialog_view._qthr.text() == new_value
 
         # Test invalid input
-        mocker.patch.object(dialog_view, "_showMessage")
+        mocker.patch.object(dialog_view, "_show_message")
         invalid_value = "abc"
         dialog_view._qthr.setText(invalid_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == invalid_value                
         assert dialog_view._view_model.qthreshold == float(new_value)  # Input should not change
-        dialog_view._showMessage.assert_called_once_with("Please input valid values for qthreshold")
+        dialog_view._show_message.assert_called_once_with("Please input valid values for qthreshold")
 
         # Test edge case: empty input
-        mocker.patch.object(dialog_view, "_showMessage")
+        mocker.patch.object(dialog_view, "_show_message")
         empty_value = ""
         dialog_view._qthr.setText(empty_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == empty_value  
         assert dialog_view._view_model.qthreshold == float(new_value)  # Input should not change
-        dialog_view._showMessage.assert_called_once_with("Please input valid values for qthreshold")
+        dialog_view._show_message.assert_called_once_with("Please input valid values for qthreshold")
         
 
     def test_ucritical_update(self, dialog_view, mocker):
@@ -135,22 +137,22 @@ class Test_dialog_inputs:
         assert dialog_view._ucrit.text() == new_value
 
         # Test invalid input
-        mocker.patch.object(dialog_view, "_showMessage")
+        mocker.patch.object(dialog_view, "_show_message")
         invalid_value = "xyz"
         dialog_view._ucrit.setText(invalid_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == invalid_value
         assert dialog_view._view_model.ucritical == float(new_value)
-        dialog_view._showMessage.assert_called_once_with("Please input valid values for ucritical")
+        dialog_view._show_message.assert_called_once_with("Please input valid values for ucritical")
 
         # Test edge case: empty input
-        mocker.patch.object(dialog_view, "_showMessage")
+        mocker.patch.object(dialog_view, "_show_message")
         empty_value = ""
         dialog_view._ucrit.setText(empty_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
         assert dialog_view._view_model.ucritical == float(new_value)
-        dialog_view._showMessage.assert_called_once_with("Please input valid values for ucritical")
+        dialog_view._show_message.assert_called_once_with("Please input valid values for ucritical")
 
 
     def test_branch_and_reach_selection(self, dialog_view):
@@ -219,24 +221,24 @@ class Test_update_plotting():
         assert view._close_plots_edit.isEnabled() == True
 
 class Test_popup:    
-    def test_showError(self, dialog_view, monkeypatch):
+    def test_show_error(self, dialog_view, monkeypatch):
         error_message = "This is an error message"
         with monkeypatch.context() as m:
             m.setattr(QMessageBox, 'exec_', MagicMock())        
             m.setattr(QMessageBox, 'setText', MagicMock())
             m.setattr(QMessageBox, 'setWindowTitle', MagicMock()) 
-            dialog_view._showError(error_message)
+            dialog_view._show_error(error_message)
             QMessageBox.setWindowTitle.assert_called_once_with("Error")
             QMessageBox.setText.assert_called_once_with(error_message)
             QMessageBox.exec_.assert_called_once()
 
-    def test_showMessage(self, dialog_view, monkeypatch):
+    def test_show_message(self, dialog_view, monkeypatch):
         message = "This is a message"
         with monkeypatch.context() as m:
             m.setattr(QMessageBox, 'exec_', MagicMock())        
             m.setattr(QMessageBox, 'setText', MagicMock())        
             m.setattr(QMessageBox, 'setWindowTitle', MagicMock())        
-            dialog_view._showMessage(message)
+            dialog_view._show_message(message)
             QMessageBox.setWindowTitle.assert_called_once_with("Information")
             QMessageBox.setText.assert_called_once_with(message)
             QMessageBox.exec_.assert_called_once()
@@ -268,7 +270,7 @@ class Test_select:
         monkeypatch.setattr(QFileDialog, "getExistingDirectory", mock_getExistingDirectory)
 
         # Call the method with the desired key
-        dialog_view._selectFolder("output_dir")
+        dialog_view._select_folder("output_dir")
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         assert dialog_view._output_dir.text() == "/path/to/folder"
@@ -280,7 +282,7 @@ class Test_select:
         monkeypatch.setattr(QFileDialog, "getExistingDirectory", mock_getExistingDirectory)
 
         # Call the method with the desired key
-        dialog_view._selectFolder("figure_dir_edit")
+        dialog_view._select_folder("figure_dir_edit")
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         assert dialog_view._figure_dir_edit.text() == "/path/to/folder"
@@ -293,7 +295,7 @@ class Test_select:
 
         # Call the method with the desired key
         key = "3000.0_reference"
-        dialog_view._selectFile(key)
+        dialog_view._select_file(key)
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         
@@ -308,7 +310,7 @@ class Test_select:
 
         # Call the method with the desired key
         key = "4000.0_with_measure"
-        dialog_view._selectFile(key)
+        dialog_view._select_file(key)
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         
