@@ -179,7 +179,6 @@ class DialogView():
         self._app.setStyle("fusion")
         
         # Set the application-wide font
-        font = self._app.font()
         preferred_font = "Lucida Console" #"Consolas"
         fallback_font = "Courier New"
         font = get_available_font(self._app.font(), preferred_font, fallback_font)
@@ -293,7 +292,7 @@ class DialogView():
         self._figure_dir_edit.setEnabled(False)
         self._figure_dir_edit.textChanged.connect(partial(self._update_file_or_folder_validation, self._figure_dir_edit))
         self._figure_dir_edit.editingFinished.connect(partial(self._update_view_model, view_model_variable="figure_dir", value=lambda : self._figure_dir_edit.text(), invalid=lambda: self._figure_dir_edit.invalid))
-        layout.addRow(self._figure_dir, self._openFolderLayout(self._win, self._figure_dir_edit, "figure_dir_edit", False))
+        layout.addRow(self._figure_dir, self._open_folder_layout(self._win, self._figure_dir_edit, "figure_dir_edit", False))
 
     def _create_save_plots_input_checkbox(self, layout):
         self._save_plots = QLabel(self._view_model.gui_text("savePlots"), self._win)
@@ -316,7 +315,7 @@ class DialogView():
         self._output_dir.setPlaceholderText("Enter file path")
         self._output_dir.textChanged.connect(partial(self._update_file_or_folder_validation, line_edit=self._output_dir))
         self._output_dir.editingFinished.connect(partial(self._update_view_model, view_model_variable="output_dir", value=lambda : self._output_dir.text(), invalid=lambda: self._output_dir.invalid))
-        layout.addRow(self._view_model.gui_text("outputDir"), self._openFolderLayout(self._win, self._output_dir, "output_dir", True))
+        layout.addRow(self._view_model.gui_text("outputDir"), self._open_folder_layout(self._win, self._output_dir, "output_dir", True))
     
     def _update_view_model(self, view_model_variable, value, invalid):
         if not invalid():
@@ -426,7 +425,7 @@ class DialogView():
             self._update_qvalues_table()
             self._update_condition_files()
         else: 
-            self._showMessage("Please input valid values for qthreshold")
+            self._show_message("Please input valid values for qthreshold")
 
     def _update_ucritical(self):
         if self._ucrit.hasAcceptableInput():
@@ -434,7 +433,7 @@ class DialogView():
             self._update_qvalues_table()
             self._update_condition_files()
         else: 
-            self._showMessage("Please input valid values for ucritical")    
+            self._show_message("Please input valid values for ucritical")    
     
     def _add_condition_line(self, prefix: str, discharge : float, discharge_name:str) -> None:
         """
@@ -469,8 +468,8 @@ class DialogView():
         discharge_value_label.setEnabled(enabled)
         row_count = self._grid_layout.rowCount()
         self._grid_layout.addWidget(discharge_value_label, row_count, 0)
-        self._grid_layout.addWidget(self._openFileLayout(self._win, q1_reference, prefix+"reference", enabled), row_count, 1)
-        self._grid_layout.addWidget(self._openFileLayout(self._win, q1_with_measure, prefix+"with_measure", enabled), row_count, 2)
+        self._grid_layout.addWidget(self._open_file_layout(self._win, q1_reference, prefix+"reference", enabled), row_count, 1)
+        self._grid_layout.addWidget(self._open_file_layout(self._win, q1_with_measure, prefix+"with_measure", enabled), row_count, 2)
         
     def _create_button_bar(self) -> None:
         # Logic to create button bar
@@ -492,11 +491,11 @@ class DialogView():
             success = self._view_model.run_analysis()
             
             if success:
-                self._showMessage(self._view_model.gui_text("end_of_analysis", dict={"report": self._view_model.report},))                
+                self._show_message(self._view_model.gui_text("end_of_analysis", dict={"report": self._view_model.report},))                
             else:
-                self._showError(self._view_model.gui_text("error_during_analysis", dict={"report": self._view_model.report},))
+                self._show_error(self._view_model.gui_text("error_during_analysis", dict={"report": self._view_model.report},))
         else:
-            self._showError(self._view_model.gui_text("analysis_config_incomplete",))
+            self._show_error(self._view_model.gui_text("analysis_config_incomplete",))
 
     def _close_dialog(self) -> None:
         """
@@ -531,9 +530,8 @@ class DialogView():
             caption=self._view_model.gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
         )
         filename = fil[0]
-        if filename != "":
-            if not self._view_model.load_configuration(filename):
-                self._showError(self._view_model.gui_text("file_not_found", prefix="", dict={"name": filename}))
+        if filename != "" and not self._view_model.load_configuration(filename):
+            self._show_error(self._view_model.gui_text("file_not_found", prefix="", dict={"name": filename}))
 
     def _menu_save_configuration(self) -> None:
         """
@@ -591,7 +589,7 @@ class DialogView():
         """        
         subprocess.Popen(self._view_model.manual_filename, shell=True)
     
-    def _openFileLayout(self, win, myWidget, key: str, enabled: bool):
+    def _open_file_layout(self, win, my_widget, key: str, enabled: bool):
         """
         Add an open line to the dialog.
 
@@ -599,7 +597,7 @@ class DialogView():
         ---------
         win
             Main window of the dialog.
-        myWidget
+        my_widget
             Line edit widget to display the file name.
         key : str
             Base name of the Widgets on this file.
@@ -609,20 +607,20 @@ class DialogView():
         parent = QWidget()
         gridly = QGridLayout(parent)
         gridly.setContentsMargins(0, 0, 0, 0)
-        gridly.addWidget(myWidget, 0, 0)
+        gridly.addWidget(my_widget, 0, 0)
 
         progloc = str(Path(__file__).parent.parent.absolute())
-        openFile = QPushButton(
+        open_file = QPushButton(
             PyQt5.QtGui.QIcon(Path(progloc).joinpath("open.png"), "", win
         ))
-        openFile.clicked.connect(partial(self._selectFile, key))
-        openFile.setObjectName(key+"_button")
-        openFile.setEnabled(enabled)
-        gridly.addWidget(openFile, 0, 2)
+        open_file.clicked.connect(partial(self._select_file, key))
+        open_file.setObjectName(key+"_button")
+        open_file.setEnabled(enabled)
+        gridly.addWidget(open_file, 0, 2)
 
         return parent
 
-    def _selectFile(self, key: str) -> None:
+    def _select_file(self, key: str) -> None:
         """
         Select a D-Flow FM Map file and show in the GUI.
 
@@ -637,7 +635,7 @@ class DialogView():
         if fil[0] != "":
             self._set_file_in_condition_table(key, fil[0])
     
-    def _openFolderLayout(self, win, myWidget, key: str, enabled: bool):
+    def _open_folder_layout(self, win, my_widget, key: str, enabled: bool):
         """
         Add an open line to the dialog.
 
@@ -645,7 +643,7 @@ class DialogView():
         ---------
         win
             Main window of the dialog.
-        myWidget
+        my_widget
             Line edit widget to display the folder name.
         key : str
             Base name of the Widgets on this folder.
@@ -655,20 +653,20 @@ class DialogView():
         parent = QWidget()
         gridly = QGridLayout(parent)
         gridly.setContentsMargins(0, 0, 0, 0)
-        gridly.addWidget(myWidget, 0, 0)
+        gridly.addWidget(my_widget, 0, 0)
 
         progloc = str(Path(__file__).parent.parent.absolute())
-        openFolder = QPushButton(
+        open_folder = QPushButton(
             PyQt5.QtGui.QIcon(Path(progloc).joinpath("open.png"), "", win
         ))
-        openFolder.clicked.connect(partial(self._selectFolder, key))
-        openFolder.setObjectName(key+"_button")
-        openFolder.setEnabled(enabled)
-        gridly.addWidget(openFolder, 0, 2)
+        open_folder.clicked.connect(partial(self._select_folder, key))
+        open_folder.setObjectName(key+"_button")
+        open_folder.setEnabled(enabled)
+        gridly.addWidget(open_folder, 0, 2)
 
         return parent
 
-    def _selectFolder(self, key: str) -> None:
+    def _select_folder(self, key: str) -> None:
         """
         Select a folder and show in the GUI.
 
@@ -703,7 +701,7 @@ class DialogView():
             
 
 
-    def _showMessage(self, message: str) -> None:
+    def _show_message(self, message: str) -> None:
         """
         Display an information message box with specified string.
 
@@ -719,7 +717,7 @@ class DialogView():
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
-    def _showError(self, message: str) -> None:
+    def _show_error(self, message: str) -> None:
         """
         Display an error message box with specified string.
 
