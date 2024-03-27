@@ -5,7 +5,8 @@ from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from shapely.geometry.linestring import LineString
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
-from dfastmi.kernel.typehints import Vector
+from tests.batch.Helper_AnalyserAndReporterDflowfm import TestCase_display_needs_tide_old_zmin_zmax, TestCase_display_old_zmin_zmax # needed for fixture
+from tests.batch.Helper_AnalyserAndReporterDflowfm import display_needs_tide_old_zmin_zmax, display_old_zmin_zmax # needed for fixture
 
 import numpy
 import shapely
@@ -96,33 +97,17 @@ class Test_AnalyserDflowfm():
         assert report_data.xykm_data is xykm_data
         assert report_data.sedimentation_data is sedimentation_data
     
-    @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
-        (False, False, False),
-        (True, False, False),
-        (True, True, False),
-        (True, True, True),
-        (False, True, False),
-        (False, True, True),
-        (False, False, True),
-        (True, False, True),
-    ])
-    def test_analyser_early_return_when_filenames_missing(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):       
+    def test_analyser_early_return_when_filenames_missing(self, tmp_path, display_needs_tide_old_zmin_zmax : TestCase_display_needs_tide_old_zmin_zmax, setup):       
         outputdir = str(tmp_path)
-        self.initialized_config.needs_tide = needs_tide
+        self.initialized_config.needs_tide = display_needs_tide_old_zmin_zmax.needs_tide
         
-        analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+        analyser = AnalyserDflowfm(display_needs_tide_old_zmin_zmax.display, self.report, display_needs_tide_old_zmin_zmax.old_zmin_zmax, outputdir, self.initialized_config)
         report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
         
         assert analyser.missing_data
         assert report_data == None
         
-    @pytest.mark.parametrize("display, old_zmin_zmax", [
-        (False, False),
-        (True,False),
-        (True,True),
-        (False, True),
-    ])
-    def test_analyser_early_return_when_xykm_missing(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):
+    def test_analyser_early_return_when_xykm_missing(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):
         self.initialized_config.needs_tide = True
         outputdir = str(tmp_path)
         self._set_file_name_based_on_number()
@@ -135,7 +120,7 @@ class Test_AnalyserDflowfm():
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
              patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])):
                  
-            analyser = AnalyserDflowfm(display, self.report, old_zmin_zmax, outputdir, self.initialized_config)
+            analyser = AnalyserDflowfm(display_old_zmin_zmax.display, self.report, display_old_zmin_zmax.old_zmin_zmax, outputdir, self.initialized_config)
             report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
             assert analyser.missing_data
@@ -213,14 +198,8 @@ class Test_AnalyserDflowfm():
             assert dzq_from_du_and_h.call_count == 3
             assert main_computation.call_count == 1
     
-    @pytest.mark.parametrize("display, old_zmin_zmax", [
-        (False, False),
-        (True,False),
-        (True,True),
-        (False, True),
-    ])        
-    def test_analyse_with_xykm(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):
-        display = True
+    @pytest.mark.parametrize("display", [True, False])        
+    def test_analyse_with_xykm(self, tmp_path, display : bool, setup):
         self.initialized_config.needs_tide = False
         old_zmin_zmax = False
         

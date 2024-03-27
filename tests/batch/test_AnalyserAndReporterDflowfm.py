@@ -1,5 +1,4 @@
 from ast import List
-from collections import namedtuple
 import os
 import random
 from typing import Any, Dict, TextIO, Tuple
@@ -16,6 +15,8 @@ from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.kernel.typehints import Vector
+from tests.batch.Helper_AnalyserAndReporterDflowfm import TestCase_display_needs_tide_old_zmin_zmax, TestCase_display_old_zmin_zmax, TestCase_needs_tide_old_zmin_zmax # needed for fixture
+from tests.batch.Helper_AnalyserAndReporterDflowfm import display_needs_tide_old_zmin_zmax, display_old_zmin_zmax, needs_tide_old_zmin_zmax # needed for fixture
 
 class Test_analyse_and_report_dflowfm_mode():
 
@@ -65,45 +66,6 @@ class Test_analyse_and_report_dflowfm_mode():
         
     def set_plotting_off(self):
         self.plotting_options.plotting = False
-        
-    # Define a named tuple to represent test cases
-    TestCase_display_needs_tide_old_zmin_zmax = namedtuple("TestCase", ["display", "needs_tide", "old_zmin_zmax"])
-    TestCase_display_old_zmin_zmax = namedtuple("TestCase", ["display", "old_zmin_zmax"])
-    TestCase_needs_tide_old_zmin_zmax = namedtuple("TestCase", ["needs_tide", "old_zmin_zmax"])
-
-    @pytest.fixture(params=[
-            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=False, old_zmin_zmax=False),
-            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=False, old_zmin_zmax=False),
-            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=True, old_zmin_zmax=False),
-            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=True, old_zmin_zmax=True),
-            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=True, old_zmin_zmax=False),
-            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=True, old_zmin_zmax=True),
-            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=False, old_zmin_zmax=True),
-            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=False, old_zmin_zmax=True),        
-        ], ids=lambda tc: f"display={tc.display}, needs_tide={tc.needs_tide}, old_zmin_zmax={tc.old_zmin_zmax}"
-        )
-    def display_needs_tide_old_zmin_zmax(self, request):
-        return request.param   
-
-    @pytest.fixture(params=[
-            TestCase_display_old_zmin_zmax(display=False, old_zmin_zmax=False),
-            TestCase_display_old_zmin_zmax(display=True, old_zmin_zmax=False),
-            TestCase_display_old_zmin_zmax(display=True, old_zmin_zmax=True),
-            TestCase_display_old_zmin_zmax(display=False, old_zmin_zmax=True),
-        ], ids=lambda tc: f"display={tc.display}, old_zmin_zmax={tc.old_zmin_zmax}"
-        )
-    def display_old_zmin_zmax(self, request):
-        return request.param
-
-    @pytest.fixture(params=[
-            TestCase_needs_tide_old_zmin_zmax(needs_tide=False, old_zmin_zmax=False),
-            TestCase_needs_tide_old_zmin_zmax(needs_tide=True, old_zmin_zmax=False),
-            TestCase_needs_tide_old_zmin_zmax(needs_tide=True, old_zmin_zmax=True),
-            TestCase_needs_tide_old_zmin_zmax(needs_tide=False, old_zmin_zmax=True),
-        ], ids=lambda tc: f"needs_tide={tc.needs_tide}, old_zmin_zmax={tc.old_zmin_zmax}"
-        )
-    def needs_tide_old_zmin_zmax(self, request):
-        return request.param
     
     def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display_needs_tide_old_zmin_zmax : TestCase_display_needs_tide_old_zmin_zmax , setup):
         """
