@@ -121,42 +121,46 @@ class MapFile:
             the time_index_from_last is used.
         """
         with nc.Dataset(self._map_file) as dataset:
-            vars = self._get_face_vars_by_standard_name(dataset, varname)
-            if len(vars) == 0:
-                vars = self._get_face_vars_by_long_name(dataset, varname)
-            if len(vars) != 1:
-                raise ValueError(
+            var = self._get_face_var_by_name(varname, dataset)
+            data = self._get_var_data(var, time_index_from_last)
+
+        return data
+
+    def _get_var_data(self, var: nc.Variable, time_index_from_last: Optional[int]):
+        if var.get_dims()[0].isunlimited():
+                # assume that time dimension is unlimited and is the first dimension
+                # slice to obtain last time step or earlier as requested
+            if time_index_from_last is None:
+                time_index_from_last = 0
+            return var[-1 - time_index_from_last, :]
+                
+        if time_index_from_last is not None:
+            raise ValueError(
+                'Trying to access time-independent variable "{}" with time offset {}.'.format(
+                            var.name, -1 - time_index_from_last
+                )
+            )
+
+        return var[...]
+
+    def _get_face_var_by_name(self, varname: str, dataset: nc.Dataset) -> nc.Variable:
+        vars = self._get_face_vars_by_standard_name(dataset, varname)
+        if len(vars) == 0:
+            vars = self._get_face_vars_by_long_name(dataset, varname)
+        if len(vars) != 1:
+            raise ValueError(
                     'Expected one variable for "{}", but obtained {}.'.format(
                         varname, len(vars)
                     )
                 )
-            var = vars[0]
+        return vars[0]
 
-            if var.get_dims()[0].isunlimited():
-                # assume that time dimension is unlimited and is the first dimension
-                # slice to obtain last time step or earlier as requested
-                if time_index_from_last is None:
-                    time_index_from_last = 0
-                data = var[-1 - time_index_from_last, :]
-                
-            else:
-                if time_index_from_last is not None:
-                    raise ValueError(
-                        'Trying to access time-independent variable "{}" with time offset {}.'.format(
-                            varname, -1 - time_index_from_last
-                        )
-                    )
-
-                data = var[...]
-
-        return data
-
-    def _get_face_vars_by_standard_name(self, dataset: nc.Dataset, standard_name: str):
+    def _get_face_vars_by_standard_name(self, dataset: nc.Dataset, standard_name: str) -> List[nc.Variable]:
         return dataset.get_variables_by_attributes(
             standard_name=standard_name, mesh=self.mesh2d_name, location=FACE_LOCATION
         )
 
-    def _get_face_vars_by_long_name(self, dataset: nc.Dataset, long_name: str):
+    def _get_face_vars_by_long_name(self, dataset: nc.Dataset, long_name: str) -> List[nc.Variable]:
         return dataset.get_variables_by_attributes(
             long_name=long_name, mesh=self.mesh2d_name, location=FACE_LOCATION
         )        
