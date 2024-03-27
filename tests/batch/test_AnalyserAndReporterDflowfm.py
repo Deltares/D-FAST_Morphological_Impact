@@ -1,4 +1,5 @@
 from ast import List
+from collections import namedtuple
 import os
 import random
 from typing import Any, Dict, TextIO, Tuple
@@ -64,56 +65,75 @@ class Test_analyse_and_report_dflowfm_mode():
         
     def set_plotting_off(self):
         self.plotting_options.plotting = False
+        
+    # Define a named tuple to represent test cases
+    TestCase_display_needs_tide_old_zmin_zmax = namedtuple("TestCase", ["display", "needs_tide", "old_zmin_zmax"])
+    TestCase_display_old_zmin_zmax = namedtuple("TestCase", ["display", "old_zmin_zmax"])
+    TestCase_needs_tide_old_zmin_zmax = namedtuple("TestCase", ["needs_tide", "old_zmin_zmax"])
+
+    @pytest.fixture(params=[
+            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=False, old_zmin_zmax=False),
+            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=False, old_zmin_zmax=False),
+            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=True, old_zmin_zmax=False),
+            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=True, old_zmin_zmax=True),
+            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=True, old_zmin_zmax=False),
+            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=True, old_zmin_zmax=True),
+            TestCase_display_needs_tide_old_zmin_zmax(display=False, needs_tide=False, old_zmin_zmax=True),
+            TestCase_display_needs_tide_old_zmin_zmax(display=True, needs_tide=False, old_zmin_zmax=True),        
+        ], ids=lambda tc: f"display={tc.display}, needs_tide={tc.needs_tide}, old_zmin_zmax={tc.old_zmin_zmax}"
+        )
+    def display_needs_tide_old_zmin_zmax(self, request):
+        return request.param   
+
+    @pytest.fixture(params=[
+            TestCase_display_old_zmin_zmax(display=False, old_zmin_zmax=False),
+            TestCase_display_old_zmin_zmax(display=True, old_zmin_zmax=False),
+            TestCase_display_old_zmin_zmax(display=True, old_zmin_zmax=True),
+            TestCase_display_old_zmin_zmax(display=False, old_zmin_zmax=True),
+        ], ids=lambda tc: f"display={tc.display}, old_zmin_zmax={tc.old_zmin_zmax}"
+        )
+    def display_old_zmin_zmax(self, request):
+        return request.param
+
+    @pytest.fixture(params=[
+            TestCase_needs_tide_old_zmin_zmax(needs_tide=False, old_zmin_zmax=False),
+            TestCase_needs_tide_old_zmin_zmax(needs_tide=True, old_zmin_zmax=False),
+            TestCase_needs_tide_old_zmin_zmax(needs_tide=True, old_zmin_zmax=True),
+            TestCase_needs_tide_old_zmin_zmax(needs_tide=False, old_zmin_zmax=True),
+        ], ids=lambda tc: f"needs_tide={tc.needs_tide}, old_zmin_zmax={tc.old_zmin_zmax}"
+        )
+    def needs_tide_old_zmin_zmax(self, request):
+        return request.param
     
-    @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
-        (False, False, False),
-        (True, False, False),
-        (True, True, False),
-        (True, True, True),
-        (False, True, False),
-        (False, True, True),
-        (False, False, True),
-        (True, False, True),
-    ])   
-    def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):
+    def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display_needs_tide_old_zmin_zmax : TestCase_display_needs_tide_old_zmin_zmax , setup):
         """
         given : no file names
         when  : analyse and report dflowfm
         then  : return true
         """
-        self.initialized_config.needs_tide = needs_tide
+        self.initialized_config.needs_tide = display_needs_tide_old_zmin_zmax.needs_tide
         outputdir = tmp_path
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
-                display,
+                display_needs_tide_old_zmin_zmax.display,
                 self.report,
                 self.nwidth,
                 self.filenames,
                 self.xykm,
-                old_zmin_zmax,
+                display_needs_tide_old_zmin_zmax.old_zmin_zmax,
                 outputdir,
                 self.plotting_options,
                 self.initialized_config)
 
         assert succes
         
-    @pytest.mark.parametrize("display, needs_tide, old_zmin_zmax", [
-        (False, False, False),
-        (True, False, False),
-        (True, True, False),
-        (True, True, True),
-        (False, True, False),
-        (False, True, True),
-        (False, False, True),
-        (True, False, True),
-    ])   
-    def given_file_names_based_on_string_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display : bool, needs_tide : bool, old_zmin_zmax : bool, setup):
+    def given_file_names_based_on_string_when_analyse_and_report_dflowfm_then_return_true(self, tmp_path, display_needs_tide_old_zmin_zmax : TestCase_display_needs_tide_old_zmin_zmax, setup):
         """
         given : file names based on string
         when  : analyse and report dflowfm
         then  : return true
         """
-        self.initialized_config.needs_tide = needs_tide
+        self.initialized_config.needs_tide = display_needs_tide_old_zmin_zmax.needs_tide
         outputdir = tmp_path
         
         self.filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
@@ -121,26 +141,19 @@ class Test_analyse_and_report_dflowfm_mode():
         self.filenames["2"] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
-                display,
+                display_needs_tide_old_zmin_zmax.display,
                 self.report,
                 self.nwidth,
                 self.filenames,
                 self.xykm,
-                old_zmin_zmax,
+                display_needs_tide_old_zmin_zmax.old_zmin_zmax,
                 outputdir,
                 self.plotting_options,
                 self.initialized_config)
 
         assert succes
 
-        
-    @pytest.mark.parametrize("display, old_zmin_zmax", [
-        (False, False),
-        (True,False),
-        (True,True),
-        (False, True),
-    ])   
-    def given_file_names_based_on_numbers_with_plotting_off_and_needs_tide_false_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_not_called(self, tmp_path, display : bool, old_zmin_zmax : bool , setup):        
+    def given_file_names_based_on_numbers_with_plotting_off_and_needs_tide_false_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_not_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax , setup):        
         """
         given : file names based on numbers with plotting off and needs tide false
         when  : analyse and report dflowfm
@@ -169,12 +182,12 @@ class Test_analyse_and_report_dflowfm_mode():
             try:
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
-                    display,
+                    display_old_zmin_zmax.display,
                     self.report,
                     self.nwidth,
                     self.filenames,
                     self.xykm,
-                    old_zmin_zmax,
+                    display_old_zmin_zmax.old_zmin_zmax,
                     outputdir,
                     self.plotting_options,
                     self.initialized_config)
@@ -187,13 +200,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_savefig.call_count == 0
         assert mocked_ugrid_add.call_count == 11
 
-    @pytest.mark.parametrize("display, old_zmin_zmax", [
-        (False, False),
-        (True,False),
-        (True,True),
-        (False, True),
-    ])   
-    def given_file_names_based_on_numbers_with_plotting_off_and_needs_tide_true_when_analyse_and_report_dflowfm_then_return_true_and_expect_zero_grids_added_and_plotting_not_called(self, tmp_path, display : bool, old_zmin_zmax : bool , setup):        
+    def given_file_names_based_on_numbers_with_plotting_off_and_needs_tide_true_when_analyse_and_report_dflowfm_then_return_true_and_expect_zero_grids_added_and_plotting_not_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):        
         """
         given : file names based on numbers with plotting off and needs tide true
         when  : analyse and report dflowfm
@@ -222,12 +229,12 @@ class Test_analyse_and_report_dflowfm_mode():
             try:
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
-                    display,
+                    display_old_zmin_zmax.display,
                     self.report,
                     self.nwidth,
                     self.filenames,
                     self.xykm,
-                    old_zmin_zmax,
+                    display_old_zmin_zmax.old_zmin_zmax,
                     outputdir,
                     self.plotting_options,
                     self.initialized_config)
@@ -240,13 +247,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_savefig.call_count == 0
         assert mocked_ugrid_add.call_count == 0
         
-    @pytest.mark.parametrize("display, old_zmin_zmax", [
-        (False, False),
-        (True,False),
-        (True,True),
-        (False, True),
-    ])
-    def given_file_names_with_plotting_on_and_needs_tide_false_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_called(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):        
+    def given_file_names_with_plotting_on_and_needs_tide_false_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):        
         """
         given : file names with plotting on and needs tide false
         when  : analyse and report dflowfm
@@ -275,12 +276,12 @@ class Test_analyse_and_report_dflowfm_mode():
             try:
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
-                    display,
+                    display_old_zmin_zmax.display,
                     self.report,
                     self.nwidth,
                     self.filenames,
                     self.xykm,
-                    old_zmin_zmax,
+                    display_old_zmin_zmax.old_zmin_zmax,
                     outputdir,
                     self.plotting_options,
                     self.initialized_config)
@@ -293,13 +294,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_savefig.call_count == 1
         assert mocked_ugrid_add.call_count == 11
         
-    @pytest.mark.parametrize("display, old_zmin_zmax", [
-        (False, False),
-        (True,False),
-        (True,True),
-        (False, True),
-    ])
-    def given_file_names_with_plotting_on_and_needs_tide_true_when_analyse_and_report_dflowfm_then_return_true_and_expect_zero_grids_added_and_plotting_not_called(self, tmp_path, display : bool, old_zmin_zmax : bool, setup):        
+    def given_file_names_with_plotting_on_and_needs_tide_true_when_analyse_and_report_dflowfm_then_return_true_and_expect_zero_grids_added_and_plotting_not_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):        
         """
         given : file names with plotting on and needs tide false
         when  : analyse and report dflowfm
@@ -328,12 +323,12 @@ class Test_analyse_and_report_dflowfm_mode():
             try:
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
-                    display,
+                    display_old_zmin_zmax.display,
                     self.report,
                     self.nwidth,
                     self.filenames,
                     self.xykm,
-                    old_zmin_zmax,
+                    display_old_zmin_zmax.old_zmin_zmax,
                     outputdir,
                     self.plotting_options,
                     self.initialized_config)
@@ -346,14 +341,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_savefig.call_count == 0
         assert mocked_ugrid_add.call_count == 0
         
-        
-    @pytest.mark.parametrize("needs_tide, old_zmin_zmax", [
-        (False, False),
-        (True, False),
-        (True, True),
-        (False, True),
-    ])
-    def given_xykm_and_no_display_when_analyse_and_report_dflowfm_then_return_true_and_expect_sixteen_grids_added_and_plotting_called(self, tmp_path, needs_tide : bool, old_zmin_zmax : bool, setup):
+    def given_xykm_and_no_display_when_analyse_and_report_dflowfm_then_return_true_and_expect_sixteen_grids_added_and_plotting_called(self, tmp_path, needs_tide_old_zmin_zmax : TestCase_needs_tide_old_zmin_zmax, setup):
         """
         given : xykm and no display
         when  : analyse and report dflowfm
@@ -362,7 +350,7 @@ class Test_analyse_and_report_dflowfm_mode():
         outputdir = tmp_path
         
         self.initialized_config.n_fields = 1
-        self.initialized_config.needs_tide = needs_tide
+        self.initialized_config.needs_tide = needs_tide_old_zmin_zmax.needs_tide
         
         self.set_plotting_on(tmp_path)
         
@@ -394,7 +382,7 @@ class Test_analyse_and_report_dflowfm_mode():
                     self.nwidth,
                     self.filenames,
                     self.xykm,
-                    old_zmin_zmax,
+                    needs_tide_old_zmin_zmax.old_zmin_zmax,
                     outputdir,
                     self.plotting_options,
                     self.initialized_config)
