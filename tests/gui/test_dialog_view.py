@@ -281,4 +281,36 @@ class Test_selectFolder:
         # Assert that the appropriate setText and view_model attribute assignment calls were made
         assert dialog_view._figure_dir_edit.text() == "/path/to/folder"
         assert dialog_view._view_model.figure_dir == "/path/to/folder"
-    # Perform additional assertions if needed
+
+class Test_view_model_updates:
+    def test_update_branch(self, dialog_view, mocker):
+        mocker.patch.object(dialog_view, "_update_qvalues_table")
+        mocker.patch.object(dialog_view, "_update_condition_files")
+        # Call the method to be tested
+        dialog_view._update_branch("Bovenrijn & Waal")  # Pass the branch name to simulate the update
+
+        # Assertions
+        assert dialog_view._branch.currentText() == "Bovenrijn & Waal"
+        assert dialog_view._reach.count() == len(dialog_view._view_model.current_branch.reaches)
+        assert dialog_view._qloc.text() == dialog_view._view_model.current_branch.qlocation
+        assert dialog_view._qthr.text() == str(dialog_view._view_model.qthreshold)
+        assert dialog_view._ucrit.text() == str(dialog_view._view_model.ucritical)
+        assert dialog_view._slength.text() == dialog_view._view_model.slength
+        assert dialog_view._output_dir.text() == dialog_view._view_model.output_dir
+        assert dialog_view._make_plots_edit.isChecked() == dialog_view._view_model.plotting
+        assert dialog_view._save_plots_edit.isChecked() == dialog_view._view_model.save_plots
+        assert dialog_view._close_plots_edit.isChecked() == dialog_view._view_model.close_plots
+        dialog_view._update_qvalues_table.assert_called_once()
+        dialog_view._update_condition_files.assert_called_once()
+    
+    def test_update_reach(self, dialog_view, mocker):
+        # Mocking necessary components and methods
+        #mocker.patch.object(dialog_view, '_clear_conditions')
+       
+        # Call the method to be tested
+        dialog_view._update_reach("Boven-Waal                   km  868-886")  # Pass the reach name to simulate the update
+
+        # Assertions
+        assert dialog_view._reach.currentText() == "Boven-Waal                   km  868-886"
+        assert dialog_view._slength.text() == dialog_view._view_model.slength
+        #dialog_view._clear_conditions.assert_called_once()
