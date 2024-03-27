@@ -414,7 +414,7 @@ class DialogView():
         self._branch = QComboBox(self._win)
         self._branch.currentTextChanged.connect(self._view_model.updated_branch)
         self._branch.setToolTip(self._view_model.gui_text("branch_tooltip"))
-        for b in self._view_model.model.rivers.branches:
+        for b in self._view_model._model.rivers.branches:
             self._branch.addItem(b.name)
         self._branch.setCurrentText(self._view_model.current_branch.name)
         layout.addRow(self._view_model.gui_text("branch"), self._branch)

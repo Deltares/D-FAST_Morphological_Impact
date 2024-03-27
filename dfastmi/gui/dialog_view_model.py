@@ -43,28 +43,20 @@ from PyQt5 import QtCore
 
 from dfastmi.io.IBranch import IBranch
 
-class DialogViewModel(QtCore.QObject, BaseModel):
+class DialogViewModel(QtCore.QObject):
     branch_changed = QtCore.pyqtSignal(str)
     reach_changed = QtCore.pyqtSignal(str)
-    #qthreshold_changed = QtCore.pyqtSignal(float)
-    #ucrit_changed = QtCore.pyqtSignal(float)
-
-    #_qthreshold : float = 0.0
-    #_ucritical : float = 0.0
-    #_output_dir : str = ""
-    #_figure_dir : str = ""
-    #_plotting : bool = False
-    #_save_plots : bool = False
-    #_close_plots : bool = False
-    _reference_files : dict[float,str] = {}
-    _measure_files : dict[float,str] = {}
+    _reference_files : Dict[float,str] = {}
+    _measure_files : Dict[float,str] = {}
+    _model : DialogModel
     slength : str = ""
+
 
     def __init__(self, model: DialogModel):
         super().__init__()
         self._current_branch : Branch = model.rivers.branches[0]
         self._current_reach : AReach = self._current_branch.reaches[0]
-        self.model = model
+        self._model = model
         self._initialize_qthreshold()
         self._initialize_ucritical()
         
@@ -91,73 +83,73 @@ class DialogViewModel(QtCore.QObject, BaseModel):
     
     @property
     def qthreshold(self) -> float:
-        return self.model.qthreshold
+        return self._model.qthreshold
     
     @qthreshold.setter
     def qthreshold(self, value):
-        self.model.qthreshold = value
+        self._model.qthreshold = value
         
     @property
     def ucritical(self) -> float:
-        return self.model.ucritical
+        return self._model.ucritical
     
     @ucritical.setter
     def ucritical(self, value):
-        self.model.ucritical = value        
+        self._model.ucritical = value        
 
     @property
     def output_dir(self) -> str:
-        return self.model.output_dir
+        return self._model.output_dir
     
     @output_dir.setter
     def output_dir(self, value):
-        self.model.output_dir = value        
+        self._model.output_dir = value        
     
     @property
     def figure_dir(self) -> str:
-        return self.model.figure_dir
+        return self._model.figure_dir
     
     @figure_dir.setter
     def figure_dir(self, value):
-        self.model.figure_dir = value
+        self._model.figure_dir = value
         
     @property
     def plotting(self) -> bool:
-        return self.model.plotting
+        return self._model.plotting
     
     @plotting.setter
     def plotting(self, value):
-        self.model.plotting = value
+        self._model.plotting = value
         
     @property
     def save_plots(self) -> bool:
-        return self.model.save_plots
+        return self._model.save_plots
     
     @save_plots.setter
     def save_plots(self, value):
-        self.model.save_plots = value
+        self._model.save_plots = value
         
     @property
     def close_plots(self) -> bool:
-        return self.model.close_plots
+        return self._model.close_plots
     
     @close_plots.setter
     def close_plots(self, value):
-        self.model.close_plots = value
+        self._model.close_plots = value
         
     @property
-    def reference_files(self) -> dict[float, str]:
+    def reference_files(self) -> Dict[float, str]:
         return self._reference_files
     
     @property
-    def measure_files(self) -> dict[float, str]:
+    def measure_files(self) -> Dict[float, str]:
         return self._measure_files
 
     def get_configuration(self) -> ConfigParser:
-         return self.model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
+         return self._model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
 
     def run_analysis(self) -> bool:
-        return self.model.run_analysis()
+        return self._model.run_analysis()
     
     @property
     def manual_filename(self) -> str:
@@ -208,11 +200,10 @@ class DialogViewModel(QtCore.QObject, BaseModel):
         self._initialize_qthreshold()
 
         self._initialize_ucritical()
-        
-        self.current_branch = self.model.rivers.get_branch(branch_name)
-        self.current_reach = self._current_branch.reaches[0]
-        
         self._update_qvalues()
+
+        self.current_branch = self._model.rivers.get_branch(branch_name)
+        self.current_reach = self._current_branch.reaches[0]
 
     def _initialize_ucritical(self):
         if self.ucritical < self._current_reach.ucritical:
@@ -233,8 +224,9 @@ class DialogViewModel(QtCore.QObject, BaseModel):
             Newly selected reach.
         """
         if reach_name:
-            self.current_reach = self._current_branch.get_reach(reach_name)
             self._update_qvalues()
+            self.current_reach = self._current_branch.get_reach(reach_name)
+            
 
     def _update_qvalues(self) -> None:
         """
@@ -267,7 +259,7 @@ class DialogViewModel(QtCore.QObject, BaseModel):
             Name of the configuration file to be saved.
             
         """
-        config = self.model.get_configuration()
+        config = self._model.get_configuration()
         ConfigFileOperations.save_configuration_file(filename, config)
 
     def load_configuration(self, filename: str) -> bool:
@@ -282,7 +274,7 @@ class DialogViewModel(QtCore.QObject, BaseModel):
         filename : str
             Name of the configuration file to be opened.
         """
-        self.model.load_configuration(filename)
+        self._model.load_configuration(filename)
                 
         self._initialize_qthreshold()
         self._initialize_ucritical()
@@ -290,19 +282,19 @@ class DialogViewModel(QtCore.QObject, BaseModel):
         
         self._reference_files = {}
         self._measure_files = {}
-        for section_name in self.model.config.sections():
+        for section_name in self._model.config.sections():
             if section_name.lower().startswith('c') :
-                section = self.model.config[section_name]
+                section = self._model.config[section_name]
                 cond_discharge = section.getfloat("Discharge", 0.0)
                 self._reference_files[cond_discharge] = section.get("Reference", "")
                 self._measure_files[cond_discharge] = section.get("WithMeasure", "")
         
-        self.current_branch = self.model.rivers.get_branch(self.model.section["Branch"])
-        self.current_reach = self.current_branch.get_reach(self.model.section["Reach"])
+        self.current_branch = self._model.rivers.get_branch(self._model.branch_name)
+        self.current_reach = self.current_branch.get_reach(self._model.reach_name)
         
         return True
     
     def check_configuration(self) -> bool :
-        return self.model.check_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
+        return self._model.check_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
         
     
