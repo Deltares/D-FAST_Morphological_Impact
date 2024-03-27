@@ -175,8 +175,8 @@ class DialogViewModel(QtCore.QObject):
     @property
     def manual_filename(self) -> str:
         progloc = get_progloc()
-        filename = progloc + os.path.sep + "dfastmi_usermanual.pdf"
-        return filename
+        filename = progloc.joinpath("dfastmi_usermanual.pdf")
+        return str(filename)
     
     @property
     def report(self) -> str:

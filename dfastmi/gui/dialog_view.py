@@ -292,7 +292,8 @@ class DialogView():
         self._figure_dir.setEnabled(False)
         self._figure_dir_edit = ValidatingLineEdit(FolderExistsValidator(),self._win)
         self._figure_dir_edit.setEnabled(False)
-        self._figure_dir_edit.textChanged.connect(partial(self._update_file_or_folder_validation, self._figure_dir))
+        self._figure_dir_edit.textChanged.connect(partial(self._update_file_or_folder_validation, self._figure_dir_edit))
+        self._figure_dir_edit.editingFinished.connect(partial(self._update_view_model, view_model_variable="figure_dir", value=lambda : self._figure_dir_edit.text(), invalid=lambda: self._figure_dir_edit.invalid))
         layout.addRow(self._figure_dir, self._openFolderLayout(self._win, self._figure_dir_edit, "figure_dir_edit", False))
 
     def _create_save_plots_input_checkbox(self, layout):
@@ -315,7 +316,12 @@ class DialogView():
         self._output_dir = ValidatingLineEdit(FolderExistsValidator(), self._win)
         self._output_dir.setPlaceholderText("Enter file path")
         self._output_dir.textChanged.connect(partial(self._update_file_or_folder_validation, line_edit=self._output_dir))
+        self._output_dir.editingFinished.connect(partial(self._update_view_model, view_model_variable="output_dir", value=lambda : self._output_dir.text(), invalid=lambda: self._output_dir.invalid))
         layout.addRow(self._view_model.gui_text("outputDir"), self._openFolderLayout(self._win, self._output_dir, "output_dir", True))
+    
+    def _update_view_model(self, view_model_variable, value, invalid):
+        if not invalid():
+            setattr(self._view_model, view_model_variable, value())
     
     def _update_file_or_folder_validation(self,line_edit):
         state=line_edit.validator.validate(line_edit.text(), 0)[0]
@@ -383,8 +389,7 @@ class DialogView():
     def _create_qthreshhold_input(self, layout, double_validator : PyQt5.QtGui.QDoubleValidator):
         self._qthr = QLineEdit(self._win)
         self._qthr.setValidator(double_validator)
-        self._qthr.editingFinished.connect(self._update_qthreshold)
-        print("Signal connected:", self._qthr.signalsBlocked())
+        self._qthr.editingFinished.connect(self._update_qthreshold)        
         self._qthr.setToolTip(self._view_model.gui_text("qthr_tooltip"))
         qthrtxt = QLabel(self._view_model.gui_text("qthr"), self._win)
         self._qthr.setText(str(self._view_model.qthreshold))
