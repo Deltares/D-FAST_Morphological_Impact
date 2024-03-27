@@ -31,7 +31,9 @@ from typing import List, Optional
 import numpy as np
 import numpy.ma as ma
 import netCDF4 as nc
-    
+
+FACE_LOCATION = "face"
+
 class MapFile:
     def __init__(self, map_file: Path):
         """Initializes a new instance of the 'MapFile' class for the provided map file.
@@ -118,25 +120,17 @@ class MapFile:
             1D data of the requested variable. If the variable is time-dependent, 
             the time_index_from_last is used.
         """
-        # open file
         with nc.Dataset(self._map_file) as dataset:
-            location = "face"
-
-            # find any other variable by standard_name or long_name
-            var = dataset.get_variables_by_attributes(
-                standard_name=varname, mesh=self.mesh2d_name, location=location
-            )
-            if len(var) == 0:
-                var = dataset.get_variables_by_attributes(
-                    long_name=varname, mesh=self.mesh2d_name, location=location
-                )
-            if len(var) != 1:
+            vars = self._get_face_vars_by_standard_name(dataset, varname)
+            if len(vars) == 0:
+                vars = self._get_face_vars_by_long_name(dataset, varname)
+            if len(vars) != 1:
                 raise ValueError(
                     'Expected one variable for "{}", but obtained {}.'.format(
-                        varname, len(var)
+                        varname, len(vars)
                     )
                 )
-            var = var[0]
+            var = vars[0]
 
             if var.get_dims()[0].isunlimited():
                 # assume that time dimension is unlimited and is the first dimension
@@ -157,6 +151,16 @@ class MapFile:
 
         return data
 
+    def _get_face_vars_by_standard_name(self, dataset: nc.Dataset, standard_name: str):
+        return dataset.get_variables_by_attributes(
+            standard_name=standard_name, mesh=self.mesh2d_name, location=FACE_LOCATION
+        )
+
+    def _get_face_vars_by_long_name(self, dataset: nc.Dataset, long_name: str):
+        return dataset.get_variables_by_attributes(
+            long_name=long_name, mesh=self.mesh2d_name, location=FACE_LOCATION
+        )        
+    
     @property
     def mesh2d_name(self) -> str:
         """Get the name of the mesh2d variable.
