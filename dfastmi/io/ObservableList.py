@@ -67,6 +67,9 @@ class ObservableList(Generic[T]):
     def __iter__(self) -> Iterator[T]:
         return iter(self._list)
     
+    def __len__(self) -> int:
+        return len(self._list)
+    
     def append(self, element : T) -> None:
         """
         When an element is appended in the list we want to notify the observers 
