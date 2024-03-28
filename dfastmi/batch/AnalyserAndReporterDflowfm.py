@@ -594,7 +594,6 @@ def get_values_fm(
 
     map_file1 = MapFile(filenames[0])
     map_file2 = MapFile(filenames[1])
-    ref = map_file1.read_face_variable("sea_water_x_velocity", time_index_from_last=0)
     
     for ifld in range(n_fields):
         # if last time step is needed, pass None to allow for files without time specification
