@@ -101,7 +101,6 @@ class Test_dialog_inputs:
         # Test updating the qthreshold QLineEdit
         initial_value = dialog_view._qthr.text()
         
-
         # Test valid input
         new_value = "10.0"
         dialog_view._qthr.setText(new_value)
@@ -109,22 +108,18 @@ class Test_dialog_inputs:
         assert dialog_view._qthr.text() == new_value
 
         # Test invalid input
-        mocker.patch.object(dialog_view, "_show_message")
         invalid_value = "abc"
         dialog_view._qthr.setText(invalid_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == invalid_value                
         assert dialog_view._view_model.model.qthreshold == float(new_value)  # Input should not change
-        dialog_view._show_message.assert_called_once_with("Please input valid values for qthreshold")
-
+        
         # Test edge case: empty input
-        mocker.patch.object(dialog_view, "_show_message")
         empty_value = ""
         dialog_view._qthr.setText(empty_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == empty_value  
-        assert dialog_view._view_model.model.qthreshold == float(new_value)  # Input should not change
-        dialog_view._show_message.assert_called_once_with("Please input valid values for qthreshold")
+        assert dialog_view._view_model.model.qthreshold == float(new_value)  # Input should not change        
         
 
     def test_ucritical_update(self, dialog_view, mocker):
@@ -138,23 +133,18 @@ class Test_dialog_inputs:
         assert dialog_view._ucrit.text() == new_value
 
         # Test invalid input
-        mocker.patch.object(dialog_view, "_show_message")
         invalid_value = "xyz"
         dialog_view._ucrit.setText(invalid_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == invalid_value
         assert dialog_view._view_model.model.ucritical == float(new_value)
-        dialog_view._show_message.assert_called_once_with("Please input valid values for ucritical")
-
+        
         # Test edge case: empty input
-        mocker.patch.object(dialog_view, "_show_message")
         empty_value = ""
         dialog_view._ucrit.setText(empty_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
         assert dialog_view._view_model.model.ucritical == float(new_value)
-        dialog_view._show_message.assert_called_once_with("Please input valid values for ucritical")
-
 
     def test_branch_and_reach_selection(self, dialog_view):
         # Test branch and reach selection

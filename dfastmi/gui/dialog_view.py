@@ -424,17 +424,13 @@ class DialogView():
         if self._qthr.hasAcceptableInput():
             self._view_model.model.qthreshold = float(self._qthr.text())
             self._update_qvalues_table()
-            self._update_condition_files()
-        else: 
-            self._show_message("Please input valid values for qthreshold")
+            self._update_condition_files()        
 
     def _update_ucritical(self):
         if self._ucrit.hasAcceptableInput():
             self._view_model.model.ucritical = float(self._ucrit.text())
             self._update_qvalues_table()
-            self._update_condition_files()
-        else: 
-            self._show_message("Please input valid values for ucritical")    
+            self._update_condition_files()           
     
     def _add_condition_line(self, prefix: str, discharge : float, discharge_name:str) -> None:
         """
