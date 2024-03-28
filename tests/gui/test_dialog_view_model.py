@@ -1,6 +1,10 @@
 from pathlib import Path
 import mock
 import pytest
+
+from dfastmi.io.IBranch import IBranch
+from dfastmi.io.IReach import IReach
+pytestmark = pytest.mark.qt_api("pyqt5")
 from unittest.mock import MagicMock
 from PyQt5.QtCore import pyqtSignal
 from dfastmi.batch.DFastUtils import get_progloc
@@ -12,6 +16,7 @@ def mock_model():
     # Create a MagicMock instance to use as a mock model
     mock_model = MagicMock()
     mock_model.rivers.branches = [MagicMock()]
+    mock_model.rivers.branches[0].name = "New Branch"
     mock_model.rivers.branches[0].reaches = [MagicMock()]
     # Mock qthreshold and qstagnant attributes with numeric values
     mock_model.qthreshold = 5.0
@@ -33,21 +38,44 @@ def test_initialization(dialog_view_model, mock_model):
     assert dialog_view_model.current_reach == mock_model.rivers.branches[0].reaches[0]
 
 
-def test_updated_branch(dialog_view_model, mock_model):
-    # Test the updated_branch method
-    new_branch = MagicMock()
-    new_branch_name = "NewBranch"
-    dialog_view_model.updated_branch(new_branch_name)
-    assert dialog_view_model.current_branch == new_branch
+def test_updated_branch(qtbot, dialog_view_model):
+    result = []
 
+    def on_branch_changed(branch):
+        result.append(branch)
 
-def test_updated_reach(dialog_view_model, mock_model):
-    # Test the updated_reach method
-    new_reach = MagicMock()
-    new_reach_name = "NewReach"
-    dialog_view_model.updated_reach(new_reach_name)
-    assert dialog_view_model.current_reach == new_reach
+    dialog_view_model.branch_changed.connect(on_branch_changed)
+    mock_branch = mock.create_autospec(spec=IBranch)
+    mock_branch.name = "myBranch"
 
+    # Use qtbot to wait for the signal
+    with qtbot.waitSignal(dialog_view_model.branch_changed):
+        # Set the current branch
+        dialog_view_model.current_branch =  mock_branch
+
+    # Check if the signal was emitted and received correctly
+    assert result == ["myBranch"]
+    assert dialog_view_model.current_branch == mock_branch
+
+   
+def test_updated_reach(qtbot, dialog_view_model):
+    result = []
+
+    def on_reach_changed(reach):
+        result.append(reach)
+
+    dialog_view_model.reach_changed.connect(on_reach_changed)
+    mock_reach = mock.create_autospec(spec=IReach)
+    mock_reach.name = "myReach"
+
+    # Use qtbot to wait for the signal
+    with qtbot.waitSignal(dialog_view_model.reach_changed):
+        # Set the current reach
+        dialog_view_model.current_reach =  mock_reach
+
+    # Check if the signal was emitted and received correctly
+    assert result == ["myReach"]
+    assert dialog_view_model.current_reach == mock_reach    
 
 def test_get_configuration(dialog_view_model, mock_model):
     # Test the get_configuration method
@@ -69,10 +97,18 @@ def test_load_configuration(dialog_view_model, mock_model):
     mock_model.config.sections.return_value = ['section1']
     mock_model.config['section1'].getfloat.return_value = 10.0
     mock_model.config['section1'].get.return_value = "reference_file", "measure_file"
-    mock_model.rivers.get_branch.return_value = MagicMock()
-    dialog_view_model.load_configuration("test_config.ini")
-    assert dialog_view_model.current_branch == mock_model.rivers.get_branch.return_value
-    assert dialog_view_model.current_reach == mock_model.rivers.get_branch.return_value.get_reach.return_value
+    
+    mock_branch = mock.create_autospec(spec=IBranch)
+    mock_branch.name = "myBranch"
+    mock_model.rivers.get_branch.return_value = mock_branch
+
+    mock_reach = mock.create_autospec(spec=IReach)
+    mock_reach.name = "myReach"
+    mock_branch.get_reach.return_value = mock_reach
+
+    assert dialog_view_model.load_configuration("test_config.ini")
+    assert dialog_view_model.current_branch == mock_branch
+    assert dialog_view_model.current_reach == mock_reach
 
 
 def test_check_configuration(dialog_view_model, mock_model):
