@@ -424,7 +424,7 @@ The `io.py` file contains all generic file handling routines for reading configu
 * `collect_values4` support function for collecting branch/reach data for a parameter with four values, e.g. `QLevels`
 * `write_config` support function to write a nicely formatted analysis configuration file
 
-* `read_fm_map` for reading data fields from the D-Flow FM map-file
+* `read_variable` for reading data fields from the D-Flow FM map-file
 * `get_mesh_and_facedim_names` for obtaining the name of the 2D mesh and the name of the corresponding face dimension
 * `copy_ugrid` for copying UGRID mesh information from the D-Flow FM map-file to the spatial output file
 * `copy_var` support function for copying an individual netCDF variable from netCDF file to another
