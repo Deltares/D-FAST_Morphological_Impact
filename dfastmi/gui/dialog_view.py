@@ -35,13 +35,14 @@ from typing import Optional
 
 from PyQt5 import QtWidgets
 import PyQt5.QtGui
+from PyQt5.QtGui import QIcon
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.resources import DFAST_LOGO
 import dfastmi.kernel.core
 
 # View
-
 class DialogView:
     _app : QtWidgets.QApplication = None
     _win : QtWidgets.QMainWindow = None
@@ -156,6 +157,7 @@ class DialogView:
         self._win = QtWidgets.QMainWindow()
         self._win.setGeometry(200, 200, 600, 300)
         self._win.setWindowTitle("D-FAST Morphological Impact")
+        self._win.setWindowIcon(DialogView._get_dfast_icon())
     
     def create_menus(self) -> None:
         # Logic to create menus
@@ -434,12 +436,17 @@ class DialogView:
         None
         """
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Information)
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
         msg.setInformativeText("Copyright (c) 2024 Deltares.")
         msg.setDetailedText(self.view_model.gui_text("license"))
         msg.setWindowTitle(self.view_model.gui_text("about"))
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        
+        logo_size = msg.heightMM() * 0.9
+        pixmap = PyQt5.QtGui.QPixmap(str(DFAST_LOGO))
+        msg.setIconPixmap(pixmap.scaled(logo_size, logo_size))
+        msg.setWindowIcon(DialogView._get_dfast_icon())
+        
         msg.exec_()
 
 
@@ -575,6 +582,10 @@ class DialogView:
         self.view_model.close_plots = self.close_plots_edit.isChecked()
         self.close_plots.setEnabled(self.view_model.plotting)
         self.close_plots_edit.setEnabled(self.view_model.plotting)
+
+    @staticmethod
+    def _get_dfast_icon() -> QIcon:
+     return QIcon(str(DFAST_LOGO))
 
 # Entry point
 def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) -> None:
