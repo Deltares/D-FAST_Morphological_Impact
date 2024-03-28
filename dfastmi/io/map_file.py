@@ -144,16 +144,16 @@ class MapFile:
         return var[...]
 
     def _get_face_var_by_name(self, varname: str, dataset: nc.Dataset) -> nc.Variable:
-        vars = self._get_face_vars_by_standard_name(dataset, varname)
-        if len(vars) == 0:
-            vars = self._get_face_vars_by_long_name(dataset, varname)
-        if len(vars) != 1:
+        variables = self._get_face_vars_by_standard_name(dataset, varname)
+        if len(variables) == 0:
+            variables = self._get_face_vars_by_long_name(dataset, varname)
+        if len(variables) != 1:
             raise ValueError(
                     'Expected one variable for "{}", but obtained {}.'.format(
-                        varname, len(vars)
+                        varname, len(variables)
                     )
                 )
-        return vars[0]
+        return variables[0]
 
     def _get_face_vars_by_standard_name(self, dataset: nc.Dataset, standard_name: str) -> List[nc.Variable]:
         return dataset.get_variables_by_attributes(
