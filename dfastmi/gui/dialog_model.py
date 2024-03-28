@@ -211,15 +211,14 @@ class DialogModel():
     def _get_condition_configuration(self, config: ConfigParser, reach: AReach, reference_files: List, measure_files: List) -> None:
         num_files = min(len(reference_files), len(measure_files))
         
-        i = 0
-        for discharge in enumerate(reach.hydro_q[:num_files]):
-            if discharge[1] in reference_files.keys():
-                i += 1
-                cond = f"C{i}"
-                condition = ConditionConfig(Discharge=discharge[1], Reference="", WithMeasure="")
+        
+        for i, discharge in enumerate(reach.hydro_q[:num_files]):
+            if discharge in reference_files.keys():                
+                cond = f"C{i+1}"
+                condition = ConditionConfig(Discharge=discharge, Reference="", WithMeasure="")
                 if i < len(reference_files):
-                    condition.Reference = reference_files[discharge[1]]
+                    condition.Reference = reference_files[discharge]
                 if i < len(measure_files):
-                    condition.WithMeasure = measure_files[discharge[1]]
+                    condition.WithMeasure = measure_files[discharge]
                 
                 config[cond] = condition.model_dump()
