@@ -53,8 +53,7 @@ class FolderExistsValidator(PyQt5.QtGui.QValidator):
 class ValidatingLineEdit(QtWidgets.QLineEdit):
     def __init__(self, validator:PyQt5.QtGui.QValidator=FileExistValidator(), parent=None):
         super().__init__(parent)
-        self.validator = validator
-        #self.setValidator(self.validator)
+        self.validator = validator        
         self.invalid = True
 
     def setInvalid(self, invalid):
@@ -65,17 +64,16 @@ class ValidatingLineEdit(QtWidgets.QLineEdit):
         super().paintEvent(event)
         if self.isEnabled():
             if self.invalid:
-                painter = PyQt5.QtGui.QPainter(self)
-                painter.setPen(PyQt5.QtCore.Qt.red)
-                painter.setBrush(PyQt5.QtCore.Qt.NoBrush)
-                painter.drawRect(PyQt5.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
-                painter.end()  # Ensure to end the painter
+                self.paint_box(PyQt5.QtCore.Qt.red)
             else:
-                painter = PyQt5.QtGui.QPainter(self)
-                painter.setPen(PyQt5.QtCore.Qt.green)
-                painter.setBrush(PyQt5.QtCore.Qt.NoBrush)
-                painter.drawRect(PyQt5.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
-                painter.end()  # Ensure to end the painter
+                self.paint_box(PyQt5.QtCore.Qt.green)                
+
+    def paint_box(self, colour: PyQt5.QtGui.QColor):
+        painter = PyQt5.QtGui.QPainter(self)
+        painter.setPen(colour)
+        painter.setBrush(PyQt5.QtCore.Qt.NoBrush)
+        painter.drawRect(PyQt5.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
+        painter.end() # Ensure to end the painter
 
     def validate(self, input_str, pos):
         state, _, _ = self.validator.validate(input_str, pos)
