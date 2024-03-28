@@ -31,10 +31,11 @@ from typing import List, Tuple
 
 import os
 import numpy
+from dfastmi.batch.PlotOptions import PlotOptions
 import dfastmi.kernel.core
 import dfastmi.plotting
 
-def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotops, xyzfil, area_str, total_str, pos_up, plot_n):
+def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotting_options : PlotOptions, xyzfil, area_str, total_str, pos_up, plot_n):
     sbin_length = sthresh[1] - sthresh[0]
 
     area, volume, sub_area_list, wght_area_tot = detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
@@ -51,7 +52,7 @@ def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_
                 vol_str = " ".join("{:8.2f}".format(j) for j in binvol2[:,i])
                 file.write("{:8.2f} ".format(kmid[i]) + vol_str + "\n")
 
-    if plotops['plotting']:
+    if plotting_options.plotting:
         fig, ax = dfastmi.plotting.plot_sedimentation(
             kmid,
             "chainage [km]",
@@ -62,11 +63,11 @@ def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_
             positive_up = pos_up,
         )
 
-        if plotops['saveplot']:
-            figbase = plotops['figdir'] + os.sep + total_str.replace(" ","_")
-            if plotops['saveplot_zoomed']:
-                dfastmi.plotting.zoom_x_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['kmzoom'])
-            figfile = figbase + plotops['plot_ext']
+        if plotting_options.saveplot:
+            figbase = plotting_options.figure_save_directory + os.sep + total_str.replace(" ","_")
+            if plotting_options.saveplot_zoomed:
+                dfastmi.plotting.zoom_x_and_save(fig, ax, figbase, plotting_options.plot_extension, plotting_options.kmzoom)
+            figfile = figbase + plotting_options.plot_extension
             dfastmi.plotting.savefig(fig, figfile)
 
         if plot_n > 0:
@@ -77,7 +78,7 @@ def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_
                 vol_thresh = 0.0
             else:
                 vol_thresh = volume_mean[sorted_list[plot_n]]
-            plot_certain_areas(volume_mean > vol_thresh,  dzgemi, sub_area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops)
+            plot_certain_areas(volume_mean > vol_thresh,  dzgemi, sub_area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotting_options)
     
     return area, volume, sub_area_list, wght_area_tot
 
@@ -110,7 +111,7 @@ def detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, sifac
     
     return area, volume, sub_area_list, wght_area_tot
 
-def plot_certain_areas(condition, dzgemi, area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotops):
+def plot_certain_areas(condition, dzgemi, area_list, areai, wbin, wbin_labels, siface, afrac, sbin, wthresh, sthresh, kmid, area_str, pos_up, plotting_options : PlotOptions):
     indices = numpy.where(condition)[0]
     sbin_length = sthresh[1] - sthresh[0]
     for ia in indices:
@@ -129,11 +130,11 @@ def plot_certain_areas(condition, dzgemi, area_list, areai, wbin, wbin_labels, s
             positive_up = pos_up,
         )
         
-        if plotops['saveplot']:
-            figbase = plotops['figdir'] + os.sep + area_str.replace(" ","_").format(ia+1) + "_volumes"
-            if plotops['saveplot_zoomed']:
-                dfastmi.plotting.zoom_x_and_save(fig, ax, figbase, plotops['plot_ext'], plotops['kmzoom'])
-            figfile = figbase + plotops['plot_ext']
+        if plotting_options.saveplot:
+            figbase = plotting_options.figure_save_directory + os.sep + area_str.replace(" ","_").format(ia+1) + "_volumes"
+            if plotting_options.saveplot_zoomed:
+                dfastmi.plotting.zoom_x_and_save(fig, ax, figbase, plotting_options.plot_extension, plotting_options.kmzoom)
+            figfile = figbase + plotting_options.plot_extension
             dfastmi.plotting.savefig(fig, figfile)
         
 def comp_binned_volumes(

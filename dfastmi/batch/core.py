@@ -40,6 +40,7 @@ from packaging.version import Version, InvalidVersion
 
 from dfastmi.batch.ConfigurationInitializerFactory import ConfigurationInitializerFactory
 from dfastmi.batch.DFastUtils import get_zoom_extends
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
@@ -149,7 +150,6 @@ def batch_mode_core(
                     config,
                     data,
                     cfg_version,
-                    branch,
                     reach,
                     display,
                     report,
@@ -569,7 +569,6 @@ def _analyse_and_report(
     config : ConfigParser,
     data : DFastMIConfigParser,
     cfg_version : Version,
-    branch : IBranch,
     reach : IReach,
     display : bool,
     report : TextIO,
@@ -618,8 +617,8 @@ def _analyse_and_report(
     
     old_zmin_zmax = False
 
-    # set plotting flags
-    plotops = _set_plotting_flags(rootdir, display, data)
+    plotting_options = PlotOptions()
+    plotting_options.set_plotting_flags(rootdir, display, data)
 
     imode = _log_report_mode_usage(config, report)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
@@ -643,35 +642,22 @@ def _analyse_and_report(
         success = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
-            reach,
-            branch.qlocation,
-            initialized_config.q_threshold,
-            initialized_config.tstag,
-            initialized_config.discharges,
-            initialized_config.apply_q,
-            initialized_config.time_fractions_of_the_year,
-            initialized_config.rsigma,
-            initialized_config.slength,
             reach.normal_width,
-            initialized_config.ucrit,
             filenames,
-            plotops['xykm'],
-            initialized_config.needs_tide,
-            initialized_config.n_fields,
-            initialized_config.tide_bc,
+            plotting_options.xykm,
             old_zmin_zmax,
-            plotops['kmbounds'],
             outputdir,
-            plotops,
+            plotting_options,
+            initialized_config
         )
 
     _log_length_estimate(report, initialized_config.slength)
 
-    _finalize_plotting(plotops, gui)
+    _finalize_plotting(plotting_options, gui)
 
     return success
 
-def _finalize_plotting(plotops : dict[str,any], gui : bool) -> None:
+def _finalize_plotting(plotting_options : PlotOptions, gui : bool) -> None:
     """
     When plotting the analysis results and done analysing we need to
     finalize some actions to stop the plotting.
@@ -687,8 +673,8 @@ def _finalize_plotting(plotops : dict[str,any], gui : bool) -> None:
     -------
     None
     """
-    if plotops['plotting']:
-        if plotops['closeplot']:
+    if plotting_options.plotting:
+        if plotting_options.closeplot:
             matplotlib.pyplot.close("all")
         else:
             matplotlib.pyplot.show(block=not gui)
