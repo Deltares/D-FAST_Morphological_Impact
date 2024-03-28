@@ -40,6 +40,7 @@ from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.resources import DFAST_LOGO
 import dfastmi.kernel.core
+from PyQt5.QtGui import QFontDatabase
 from PyQt5.QtWidgets import (
     QApplication, 
     QMainWindow, 
@@ -181,7 +182,7 @@ class DialogView():
         # Set the application-wide font
         preferred_font = "Lucida Console"
         fallback_font = "Courier New"
-        font = get_available_font(self._app.font(), preferred_font, fallback_font)
+        font = get_available_font(self._app.font(), preferred_font, fallback_font, QFontDatabase())
         self._app.setFont(font)
 
     def _create_dialog(self) -> None:

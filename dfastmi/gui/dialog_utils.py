@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 import PyQt5.QtCore
 from PyQt5 import QtWidgets
-import PyQt5.QtGui
+from PyQt5.QtGui import QFontDatabase, QFont
 
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
@@ -85,16 +85,16 @@ class ValidatingLineEdit(QtWidgets.QLineEdit):
             return state, input_str[:pos], pos
 
 
-def get_available_font(currrent_font : PyQt5.QtGui.QFont, preferred_font, fallback_font):
+def get_available_font(currrent_font : QFont, preferred_font, fallback_font, font_database):
     # Check if the preferred font is available
-    available_fonts = PyQt5.QtGui.QFontDatabase().families()
+    available_fonts = font_database.families()
 
     if preferred_font in available_fonts:
-        return PyQt5.QtGui.QFont(preferred_font, currrent_font.pointSize())
+        return QFont(preferred_font, currrent_font.pointSize())
     else:
         # Check if the fallback font is available
         if fallback_font in available_fonts:
-            return PyQt5.QtGui.QFont(fallback_font, currrent_font.pointSize())
+            return QFont(fallback_font, currrent_font.pointSize())
         else:
             # If neither font is available, return the default font
             return currrent_font
@@ -125,5 +125,8 @@ def gui_text(key: str, prefix: str = "gui_", placeholder_dictionary: Optional[Di
             placeholder_dictionary = {}  # If dict is None, initialize it as an empty dictionary
 
         cstr = ApplicationSettingsHelper.get_text(prefix + key)
-        application_setting = cstr[0].format(**placeholder_dictionary)
+        try:
+            application_setting = cstr[0].format(**placeholder_dictionary)
+        except KeyError:
+            application_setting = cstr[0]
         return application_setting
