@@ -1,0 +1,91 @@
+from pathlib import Path
+import mock
+import pytest
+from unittest.mock import MagicMock
+from PyQt5.QtCore import pyqtSignal
+from dfastmi.batch.DFastUtils import get_progloc
+from dfastmi.gui.dialog_view_model import DialogViewModel
+
+
+@pytest.fixture
+def mock_model():
+    # Create a MagicMock instance to use as a mock model
+    mock_model = MagicMock()
+    mock_model.rivers.branches = [MagicMock()]
+    mock_model.rivers.branches[0].reaches = [MagicMock()]
+    # Mock qthreshold and qstagnant attributes with numeric values
+    mock_model.qthreshold = 5.0
+    mock_model.rivers.branches[0].reaches[0].qstagnant = 10.0
+    mock_model.ucritical = 5.0
+    mock_model.rivers.branches[0].reaches[0].ucritical = 10.0
+    return mock_model
+
+
+@pytest.fixture
+def dialog_view_model(mock_model):
+    # Create a DialogViewModel instance with the mock model
+    return DialogViewModel(mock_model)
+
+
+def test_initialization(dialog_view_model, mock_model):
+    # Check if the current branch and reach are set correctly during initialization
+    assert dialog_view_model.current_branch == mock_model.rivers.branches[0]
+    assert dialog_view_model.current_reach == mock_model.rivers.branches[0].reaches[0]
+
+
+def test_updated_branch(dialog_view_model, mock_model):
+    # Test the updated_branch method
+    new_branch = MagicMock()
+    new_branch_name = "NewBranch"
+    dialog_view_model.updated_branch(new_branch_name)
+    assert dialog_view_model.current_branch == new_branch
+
+
+def test_updated_reach(dialog_view_model, mock_model):
+    # Test the updated_reach method
+    new_reach = MagicMock()
+    new_reach_name = "NewReach"
+    dialog_view_model.updated_reach(new_reach_name)
+    assert dialog_view_model.current_reach == new_reach
+
+
+def test_get_configuration(dialog_view_model, mock_model):
+    # Test the get_configuration method
+    config_parser = MagicMock()
+    mock_model.get_configuration.return_value = config_parser
+    assert dialog_view_model.get_configuration() == config_parser
+
+
+def test_run_analysis(dialog_view_model, mock_model):
+    # Test the run_analysis method
+    mock_model.run_analysis.return_value = True
+    assert dialog_view_model.run_analysis() is True
+
+
+def test_load_configuration(dialog_view_model, mock_model):
+    # Test the load_configuration method
+    mock_model.branch_name = "Branch1"
+    mock_model.reach_name = "Reach1"
+    mock_model.config.sections.return_value = ['section1']
+    mock_model.config['section1'].getfloat.return_value = 10.0
+    mock_model.config['section1'].get.return_value = "reference_file", "measure_file"
+    mock_model.rivers.get_branch.return_value = MagicMock()
+    dialog_view_model.load_configuration("test_config.ini")
+    assert dialog_view_model.current_branch == mock_model.rivers.get_branch.return_value
+    assert dialog_view_model.current_reach == mock_model.rivers.get_branch.return_value.get_reach.return_value
+
+
+def test_check_configuration(dialog_view_model, mock_model):
+    # Test the check_configuration method
+    mock_model.check_configuration.return_value = True
+    assert dialog_view_model.check_configuration() is True
+
+def test_manual_filename(dialog_view_model):
+    # Test the manual_filename property
+    assert dialog_view_model.manual_filename == str(get_progloc().joinpath("dfastmi_usermanual.pdf"))
+
+def test_report(dialog_view_model):
+    # Test the report property
+    mock_get_filename = MagicMock(return_value="dummy_report_filename")
+    with mock.patch("dfastmi.io.ApplicationSettingsHelper.ApplicationSettingsHelper.get_filename", mock_get_filename):
+        assert dialog_view_model.report == "dummy_report_filename"
