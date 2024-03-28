@@ -29,7 +29,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 # ViewModel
 from configparser import ConfigParser
 from typing import Dict
-#from PyQt5 import QtCore
 from PyQt5.QtCore import QObject, pyqtSignal
 import dfastmi
 from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer

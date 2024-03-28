@@ -49,7 +49,6 @@ python_functions=["given_*",
                     "Given_*",
                     "test_*",
                     "Test_*"]
-#qt_api=pyqt5
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
