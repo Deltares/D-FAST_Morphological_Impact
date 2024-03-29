@@ -339,19 +339,28 @@ class DialogView():
             }
         """)
         # Add widgets to the group box
-        
-        # Create a grid layout
-        self._grid_layout = QGridLayout()
-        self._grid_layout.setObjectName("discharge_conditions_grid")
-        
-        self._grid_layout.addWidget(QLabel(gui_text("qloc")), 0, 0)
         # Create a new instance of the widget
         self._conditions_qloc = QLabel()
 
         # Set properties of the copied widget to match the original widget
         self._conditions_qloc.setText(self._qloc.text())
-        self._grid_layout.addWidget(self._conditions_qloc, 0, 1)
         
+        self._grid_layout = DialogView._create_empty_discharge_conditions_grid_layout(self._conditions_qloc)
+
+        group_box_layout.addLayout(self._grid_layout)
+        
+
+        # Add group box to the main layout
+        layout.addRow(group_box)
+
+    @staticmethod
+    def _create_empty_discharge_conditions_grid_layout(conditions_qloc: QLabel) -> QGridLayout:
+        # Create a grid layout
+        grid_layout = QGridLayout()
+        grid_layout.setObjectName("discharge_conditions_grid")
+        
+        grid_layout.addWidget(QLabel(gui_text("qloc")), 0, 0)
+        grid_layout.addWidget(conditions_qloc, 0, 1)
         
         # Add widgets to the form layout
         discharge_label = QLabel(gui_text("qval"))
@@ -359,15 +368,12 @@ class DialogView():
         measure_label = QLabel(gui_text("measure"))
         
         # Add widgets to the form layout with labels
-        self._grid_layout.addWidget(discharge_label, 1, 0)
-        self._grid_layout.addWidget(reference_label, 1, 1)
-        self._grid_layout.addWidget(measure_label, 1, 2)
-
-        group_box_layout.addLayout(self._grid_layout)
-
-        # Add group box to the main layout
-        layout.addRow(group_box)
-
+        grid_layout.addWidget(discharge_label, 1, 0)
+        grid_layout.addWidget(reference_label, 1, 1)
+        grid_layout.addWidget(measure_label, 1, 2)
+        
+        return grid_layout
+        
     def _show_impacted_length(self, layout):
         self._slength = QLabel(self._win)
         self._slength.setToolTip(gui_text("length_tooltip"))
