@@ -61,7 +61,9 @@ from PyQt5.QtWidgets import (
     QMessageBox
 )
 # View
-
+reference_label = "reference"
+with_measure_label = "with_measure"
+        
 class DialogView():
     """
     D-FAST Morphological Impact GUI View
@@ -173,10 +175,10 @@ class DialogView():
     def _update_condition_files(self):
         """Update the condition files."""
         for condition_discharge, reference_file in self._view_model.reference_files.items():
-            self._update_condition_file_field("reference", condition_discharge, reference_file)
+            self._update_condition_file_field(reference_label, condition_discharge, reference_file)
 
         for condition_discharge, measure_file in self._view_model.measure_files.items():
-            self._update_condition_file_field("with_measure", condition_discharge, measure_file)            
+            self._update_condition_file_field(with_measure_label, condition_discharge, measure_file)
 
     def _update_condition_file_field(self, field_postfix: str, condition_discharge, reference_file):
         """
@@ -660,21 +662,20 @@ class DialogView():
         q1_reference.setPlaceholderText("Enter reference file path")
         q1_reference.setEnabled(enabled)
         q1_reference.textChanged.connect(partial(self._update_file_or_folder_validation, q1_reference))
-        q1_reference.setObjectName(prefix+"reference")
-
+        q1_reference.setObjectName(prefix+reference_label)
         # get the file with measure
         q1_with_measure = ValidatingLineEdit(FileExistValidator(),self._win)
         q1_with_measure.setPlaceholderText("Enter with measure file path")
         q1_with_measure.setEnabled(enabled)
-        q1_with_measure.textChanged.connect(partial(self._update_file_or_folder_validation, q1_with_measure))
-        q1_with_measure.setObjectName(prefix+"with_measure")
+        q1_with_measure.textChanged.connect(partial(self._update_file_or_folder_validation, q1_with_measure))        
+        q1_with_measure.setObjectName(prefix+with_measure_label)
         
         discharge_value_label = QLabel(discharge_name)
         discharge_value_label.setEnabled(enabled)
         row_count = self._grid_layout.rowCount()
         self._grid_layout.addWidget(discharge_value_label, row_count, 0)
-        self._grid_layout.addWidget(self._open_file_layout(self._win, q1_reference, prefix+"reference", enabled), row_count, 1)
-        self._grid_layout.addWidget(self._open_file_layout(self._win, q1_with_measure, prefix+"with_measure", enabled), row_count, 2)
+        self._grid_layout.addWidget(self._open_file_layout(self._win, q1_reference, prefix+reference_label, enabled), row_count, 1)
+        self._grid_layout.addWidget(self._open_file_layout(self._win, q1_with_measure, prefix+with_measure_label, enabled), row_count, 2)
         
     def _create_button_bar(self) -> None:
         """
@@ -918,12 +919,12 @@ class DialogView():
         if input_textbox and input_textbox.hasAcceptableInput():
             input_textbox.setText(file)
             
-            if "_reference" in key:
-                key_without_suffix = key.replace("_reference", "")
+            if "_" + reference_label in key:
+                key_without_suffix = key.replace("_" + reference_label, "")
                 self._view_model.reference_files[key_without_suffix] = file
             
-            if "_with_measure" in key:
-                key_without_suffix = key.replace("_with_measure", "")
+            if "_" + with_measure_label in key:
+                key_without_suffix = key.replace("_" + with_measure_label, "")
                 self._view_model.measure_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
