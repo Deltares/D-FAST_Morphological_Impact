@@ -70,6 +70,7 @@ class DialogView():
     _branch : QComboBox = None
     _reach : QComboBox = None
     _qloc : QLabel = None
+    _conditions_qloc : QLabel = None
     _qthr : QLineEdit = None
     _ucrit : QLineEdit = None
     _slength : QLabel = None
@@ -107,6 +108,7 @@ class DialogView():
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
         self._qloc.setText(self._view_model.current_branch.qlocation)
+        self._conditions_qloc.setText(self._view_model.current_branch.qlocation)
         self._qthr.setText(str(self._view_model.model.qthreshold))
         self._ucrit.setText(str(self._view_model.model.ucritical))
         self._slength.setText(self._view_model.slength)
@@ -178,14 +180,8 @@ class DialogView():
         """
         
         self._app = QApplication(sys.argv)
-        self._app.setStyle("fusion")
-        
-        # Set the application-wide font
-        preferred_font = "Lucida Console"
-        fallback_font = "Courier New"
-        font = get_available_font(self._app.font(), preferred_font, fallback_font, QFontDatabase())
-        self._app.setFont(font)
-
+        self._app.setStyle("fusion")        
+       
     def _create_dialog(self) -> None:
         """
         Construct the D-FAST Morphological Impact user interface.
@@ -195,7 +191,7 @@ class DialogView():
         None
         """
         self._win = QMainWindow()
-        self._win.setGeometry(200, 200, 600, 300)
+        self._win.setGeometry(200, 200, 800, 300)
         self._win.setWindowTitle("D-FAST Morphological Impact")
         self._win.setWindowIcon(DialogView._get_dfast_icon())
     
@@ -350,11 +346,11 @@ class DialogView():
         
         self._grid_layout.addWidget(QLabel(gui_text("qloc")), 0, 0)
         # Create a new instance of the widget
-        copied_qloc = QLabel()
+        self._conditions_qloc = QLabel()
 
         # Set properties of the copied widget to match the original widget
-        copied_qloc.setText(self._qloc.text())
-        self._grid_layout.addWidget(copied_qloc, 0, 1)
+        self._conditions_qloc.setText(self._qloc.text())
+        self._grid_layout.addWidget(self._conditions_qloc, 0, 1)
         
         
         # Add widgets to the form layout
@@ -409,6 +405,12 @@ class DialogView():
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
         self._reach.setCurrentText(self._view_model.current_reach.name)
+         # Set the reach font
+        preferred_font = "Lucida Console"
+        fallback_font = "Courier New"
+        font = get_available_font(self._app.font(), preferred_font, fallback_font, QFontDatabase())
+        self._reach.setFont(font)
+
         layout.addRow(gui_text("reach"), self._reach)
     
     def _create_branch_input(self, layout:QFormLayout):

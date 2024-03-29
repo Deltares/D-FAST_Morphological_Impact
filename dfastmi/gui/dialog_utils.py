@@ -65,8 +65,6 @@ class ValidatingLineEdit(QtWidgets.QLineEdit):
         if self.isEnabled():
             if self.invalid:
                 self.paint_box(PyQt5.QtCore.Qt.red)
-            else:
-                self.paint_box(PyQt5.QtCore.Qt.green)                
 
     def paint_box(self, colour: PyQt5.QtGui.QColor):
         painter = PyQt5.QtGui.QPainter(self)

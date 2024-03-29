@@ -88,20 +88,20 @@ class ConfigFileOperations:
         -------
         None
         """
-        rootdir = os.path.dirname(filename)
+        rootdir = Path(filename).parent
         config = ConfigFileOperations._config_to_relative_paths(rootdir, config)
         ConfigFileOperations.write_config(filename, config)
     
     @staticmethod
     def _config_to_relative_paths(
-        rootdir: str, config: configparser.ConfigParser
+        rootdir: Path, config: configparser.ConfigParser
     ) -> configparser.ConfigParser:
         """
         Convert a configuration object to contain relative paths (for saving).
 
         Arguments
         ---------
-        rootdir : str
+        rootdir : Path
             The path to be used as base for the absolute paths.
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
@@ -122,12 +122,12 @@ class ConfigFileOperations:
         return config
     
     @staticmethod
-    def _update_to_relative_path(rootdir : str, config : configparser.ConfigParser, section : str, key : str):
+    def _update_to_relative_path(rootdir : Path, config : configparser.ConfigParser, section : str, key : str):
         """
         Convert a configuration object to contain absolute paths (for editing).
         Arguments
         ---------
-        rootdir : str
+        rootdir : Path
             The path to be used as base for the absolute paths.
         config : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis with absolute paths 
@@ -143,6 +143,9 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only relative paths.
         """
         absolute_path = config.get(section, key, fallback="")
+        if len(absolute_path) == 0:
+            absolute_path = str(Path.cwd())
+
         absolute_path_converted_to_relative_path = str(Path(absolute_path).relative_to(rootdir))
         config.set(section, key, absolute_path_converted_to_relative_path)
 

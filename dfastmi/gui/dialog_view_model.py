@@ -151,9 +151,12 @@ class DialogViewModel(QObject):
         None
         """
                 
-        try:                    
-            time_fractions_of_the_year = ConfigurationInitializer.get_time_fractions_of_the_year(self._current_reach.hydro_t)
-            time_mi = ConfigurationInitializer.calculate_time_mi(self.qthreshold, self._current_reach.hydro_q, time_fractions_of_the_year)
+        try:
+            if self.current_reach.auto_time:
+                _, time_mi = ConfigurationInitializer.set_times(self._current_reach.hydro_q, self.current_reach.qfit, self.current_reach.qstagnant, self.qthreshold)
+            else:
+                time_fractions_of_the_year = ConfigurationInitializer.get_time_fractions_of_the_year(self._current_reach.hydro_t)
+                time_mi = ConfigurationInitializer.calculate_time_mi(self.qthreshold, self._current_reach.hydro_q, time_fractions_of_the_year)
             celerity = ConfigurationInitializer.get_bed_celerity(self._current_reach, self._current_reach.hydro_q)
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
             self.slength = "{:.0f}".format(slength)
@@ -173,7 +176,7 @@ class DialogViewModel(QObject):
             Name of the configuration file to be saved.
             
         """
-        config = self.model.get_configuration()
+        config = self.model.get_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
         ConfigFileOperations.save_configuration_file(filename, config)
 
     def load_configuration(self, filename: str) -> bool:
