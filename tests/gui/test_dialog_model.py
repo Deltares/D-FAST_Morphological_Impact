@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 from configparser import ConfigParser
+from typing import Dict
 
 from mock import patch
 from dfastmi.gui.dialog_model import DialogModel, GeneralConfig
@@ -10,52 +11,72 @@ from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configur
 import pytest
 
 @pytest.fixture
-def mock_config_parser():
+def mock_config_parser() -> MagicMock:
+    """
+    Fixture for creating a MagicMock object of ConfigParser.
+
+    given:  A requirement to mock the behavior of ConfigParser for testing purposes.
+    when:   Creating a MagicMock object of ConfigParser.
+    then:   The MagicMock object is returned for further use in tests.
+    """
     return MagicMock(ConfigParser)
 
 @pytest.fixture
-def mock_config_file_operations():
+def mock_config_file_operations() -> MagicMock:
+    """ Fixture for creating a MagicMock object of ConfigFileOperations. """
     return MagicMock(ConfigFileOperations)
 
 @pytest.fixture
-def mock_branch():
+def mock_branch() -> MagicMock:
+    """ Fixture for creating a MagicMock object of Branch. """
     branch = MagicMock(Branch)
     branch.name = "MyBranch"
     return branch
 
 @pytest.fixture
-def mock_reach():
+def mock_reach() -> MagicMock:
+    """ Fixture for creating a MagicMock object of AReach. """
     reach = MagicMock(AReach)
     reach.name = "MyReach"
     reach.hydro_q = (80.1, 80.2)
     return reach
 
 @pytest.fixture
-def mock_rivers_object():
+def mock_rivers_object() -> MagicMock:
+    """ Fixture for creating a MagicMock object of RiversObject. """
     return MagicMock(RiversObject)
 
 @pytest.fixture
-def mock_reference_files():
+def mock_reference_files() -> Dict[float, str]:
+    """ Fixture for creating mock reference files."""
     return {80.1: "reference1.txt", 80.2: "reference2.txt"}
 
 @pytest.fixture
-def mock_measure_files():
+def mock_measure_files() -> Dict[float, str]:
+    """ Fixture for creating mock measurement files. """
     return {80.1: "measure1.txt", 80.2: "measure2.txt"}
 
-
-
 @pytest.fixture
-def dialog_model(mock_rivers_object, mock_config_parser):
+def dialog_model(mock_rivers_object: MagicMock, mock_config_parser: MagicMock) -> DialogModel:
+    """ Fixture for creating a DialogModel instance. """
     return DialogModel(mock_rivers_object, mock_config_parser)
 
 @pytest.fixture
-def mock_batch_mode_core():
+def mock_batch_mode_core() -> MagicMock:
+    """ Fixture for mocking the batch_mode_core function. """
     with patch("dfastmi.batch.core.batch_mode_core") as mock_batch_mode_core:
         # Set the return value of batch_mode_core to True (success)
         mock_batch_mode_core.return_value = True
         yield mock_batch_mode_core
 
-def test_run_analysis_success(mock_batch_mode_core):
+def test_run_analysis_success(mock_batch_mode_core: MagicMock) -> None:
+    """
+    Test case for successful analysis run.
+
+    given: A DialogModel instance.
+    when: Calling the run_analysis method.
+    then: The batch_mode_core function is called and the return value of run_analysis is True (success).
+    """
     # Create an instance of DialogModel
     model = DialogModel(rivers_configuration=None)
 
@@ -68,7 +89,14 @@ def test_run_analysis_success(mock_batch_mode_core):
     # Check that the return value of run_analysis is True (success)
     assert result is True
 
-def test_run_analysis_failure(mock_batch_mode_core):
+def test_run_analysis_failure(mock_batch_mode_core: MagicMock) -> None:
+    """
+    Test case for failed analysis run.
+
+    given: A DialogModel instance.
+    when: Calling the run_analysis method with batch_mode_core returning False.
+    then: The batch_mode_core function is called and the return value of run_analysis is False (failure).
+    """
     # Set the return value of batch_mode_core to False (failure)
     mock_batch_mode_core.return_value = False
 
@@ -84,9 +112,16 @@ def test_run_analysis_failure(mock_batch_mode_core):
     # Check that the return value of run_analysis is False (failure)
     assert result is False
 
-def test_run_analysis_exception(mock_batch_mode_core):
-    # Set the return value of batch_mode_core to False (failure)
-    mock_batch_mode_core.side_effect=Exception("mocked")
+def test_run_analysis_exception(mock_batch_mode_core: MagicMock) -> None:
+    """
+    Test case for exception during analysis run.
+
+    given: A DialogModel instance.
+    when: Calling the run_analysis method with batch_mode_core raising an exception.
+    then: The batch_mode_core function is called and the return value of run_analysis is False (failure).
+    """
+    # Set the side effect of batch_mode_core to raise an exception
+    mock_batch_mode_core.side_effect = Exception("mocked")
 
     # Create an instance of DialogModel
     model = DialogModel(rivers_configuration=None)
@@ -99,9 +134,11 @@ def test_run_analysis_exception(mock_batch_mode_core):
 
     # Check that the return value of run_analysis is False (failure)
     assert result is False
+
 class Test_create_configuration:
     @pytest.fixture
-    def mock_general_config_object(self):
+    def mock_general_config_object(self) -> MagicMock:
+        """ Fixture for creating a MagicMock object of GeneralConfig model. """
         # Custom values for GeneralConfig attributes
         custom_values = {
             "Version": "3.0",
@@ -123,12 +160,26 @@ class Test_create_configuration:
         mock_model_dump = MagicMock(return_value=custom_config.model_dump())
         return mock_model_dump
     
-    def test_create_configuration(self, dialog_model):
+    def test_create_configuration(self, dialog_model: DialogModel) -> None:
+        """
+        Test case for creating a configuration.
+
+        given: A DialogModel instance.
+        when: Calling the create_configuration method.
+        then: The configuration is created and the 'General' section is present in the configuration.
+        """
         dialog_model.create_configuration()
         assert dialog_model.config is not None
         assert 'General' in dialog_model.config    
 
-    def test_create_custom_configuration(self, dialog_model, mock_general_config_object):
+    def test_create_custom_configuration(self, dialog_model: DialogModel, mock_general_config_object: MagicMock) -> None:
+        """
+        Test case for creating a custom configuration.
+
+        given: A DialogModel instance and a mock of GeneralConfig.
+        when: Calling the create_configuration method with a mocked GeneralConfig object.
+        then: The configuration is customized with the mocked GeneralConfig attributes.
+        """
         org = GeneralConfig.model_dump
         GeneralConfig.model_dump = mock_general_config_object
         dialog_model.create_configuration()    
@@ -146,7 +197,14 @@ class Test_create_configuration:
         assert dialog_model.figure_dir == "/path/to/figures"
         assert not dialog_model.close_plots
 
-def test_load_configuration_init(mock_rivers_object, mocker):
+def test_load_configuration_init(mock_rivers_object: MagicMock, mocker) -> None:
+    """
+    Test case for loading configuration initialization.
+
+    given: A DialogModel instance, mock RiversObject, and mocker.
+    when: Initializing the DialogModel with a configuration file.
+    then: The configuration object is not None.
+    """
     filename = "test.cfg"
     config = ConfigParser()
     config["General"] = {}
@@ -155,7 +213,14 @@ def test_load_configuration_init(mock_rivers_object, mocker):
     mock_load_config.assert_called_once_with(filename)
     assert model.config is not None
 
-def test_load_configuration(dialog_model, mocker):
+def test_load_configuration(dialog_model: DialogModel, mocker) -> None:
+    """
+    Test case for loading configuration.
+
+    given: A DialogModel instance and mocker.
+    when: Loading a configuration file.
+    then: The configuration object is not None.
+    """
     filename = "test.cfg"
     config = ConfigParser()
     config["General"] = {}
@@ -164,21 +229,42 @@ def test_load_configuration(dialog_model, mocker):
     mock_load_config.assert_called_once_with(filename)
     assert dialog_model.config is not None
 
-def test_load_configuration_except(dialog_model, mocker):
+def test_load_configuration_except(dialog_model: DialogModel, mocker) -> None:
+    """
+    Test case for loading configuration with an exception.
+
+    given: A DialogModel instance and mocker.
+    when: Loading a configuration file that raises an exception.
+    then: The loading process fails.
+    """
     filename = "test.cfg"
     config = ConfigParser()
     config["General"] = {}
     mocker.patch.object(ConfigFileOperations, 'load_configuration_file', side_effect=Exception('mocked error'))
     assert not dialog_model.load_configuration(filename)
 
-def test_load_configuration_except_true(dialog_model, mocker):
+def test_load_configuration_except_true(dialog_model: DialogModel, mocker) -> None:
+    """
+    Test case for loading configuration with an exception.
+
+    given: A DialogModel instance and mocker.
+    when: Loading a configuration file that raises an exception.
+    then: The loading process fails, but the method returns True.
+    """
     filename = "dfastmi.cfg"
     config = ConfigParser()
     config["General"] = {}
     mocker.patch.object(ConfigFileOperations, 'load_configuration_file', side_effect=Exception('mocked error'))
     assert dialog_model.load_configuration(filename)
 
-def test_check_configuration(dialog_model, mock_branch, mock_reach, mock_reference_files, mock_measure_files):
+def test_check_configuration(dialog_model: DialogModel, mock_branch: MagicMock, mock_reach: MagicMock, mock_reference_files: Dict[float, str], mock_measure_files: Dict[float, str]) -> None:
+    """
+    Test case for checking configuration.
+
+    given: A DialogModel instance and mocked branch, reach, reference files, and measurement files.
+    when: Checking the configuration.
+    then: The configuration is checked with the expected branch, reach, reference files, and measurement files.
+    """
     # Mocking the method calls inside the methods
     dialog_model.get_configuration = MagicMock(return_value=ConfigParser())
     dialog_model._get_condition_configuration = MagicMock()
@@ -186,10 +272,19 @@ def test_check_configuration(dialog_model, mock_branch, mock_reach, mock_referen
     # Call the check_configuration method
     result = dialog_model.check_configuration(mock_branch, mock_reach, mock_reference_files, mock_measure_files)
 
+    assert not result # no valid configuration is created to be checked, logically this is false
+
     # Assert that get_configuration is called with the correct arguments
     dialog_model.get_configuration.assert_called_once_with(mock_branch, mock_reach, mock_reference_files, mock_measure_files)
 
-def test_get_configuration(dialog_model, mock_branch, mock_reach, mock_reference_files, mock_measure_files):
+def test_get_configuration(dialog_model: DialogModel, mock_branch: MagicMock, mock_reach: MagicMock, mock_reference_files: Dict[float, str], mock_measure_files: Dict[float, str]) -> None:
+    """
+    Test case for getting configuration.
+
+    given: A DialogModel instance and mocked branch, reach, reference files, and measurement files.
+    when: Getting the configuration.
+    then: The configuration is retrieved and checked for correctness.
+    """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(mock_branch, mock_reach, mock_reference_files, mock_measure_files)
 

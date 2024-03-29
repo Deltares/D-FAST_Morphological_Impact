@@ -33,12 +33,22 @@ def dialog_view_model(mock_model):
 
 
 def test_initialization(dialog_view_model, mock_model):
+    """
+    given : dialog_view_model and mock_model
+    when  : initialization method is called
+    then  : current branch and reach should be set correctly
+    """
     # Check if the current branch and reach are set correctly during initialization
     assert dialog_view_model.current_branch == mock_model.rivers.branches[0]
     assert dialog_view_model.current_reach == mock_model.rivers.branches[0].reaches[0]
 
 
 def test_updated_branch(qtbot, dialog_view_model):
+    """
+    given : qtbot and dialog_view_model
+    when  : current branch is updated
+    then  : signal should be emitted and received correctly
+    """
     result = []
 
     def on_branch_changed(branch):
@@ -59,6 +69,11 @@ def test_updated_branch(qtbot, dialog_view_model):
 
    
 def test_updated_reach(qtbot, dialog_view_model):
+    """
+    given : qtbot and dialog_view_model
+    when  : current reach is updated
+    then  : signal should be emitted and received correctly
+    """
     result = []
 
     def on_reach_changed(reach):
@@ -78,6 +93,11 @@ def test_updated_reach(qtbot, dialog_view_model):
     assert dialog_view_model.current_reach == mock_reach    
 
 def test_get_configuration(dialog_view_model, mock_model):
+    """
+    given : dialog_view_model and mock_model
+    when  : get_configuration method is called
+    then  : correct configuration parser should be returned
+    """
     # Test the get_configuration method
     config_parser = MagicMock()
     mock_model.get_configuration.return_value = config_parser
@@ -85,12 +105,22 @@ def test_get_configuration(dialog_view_model, mock_model):
 
 
 def test_run_analysis(dialog_view_model, mock_model):
+    """
+    given : dialog_view_model and mock_model
+    when  : run_analysis method is called
+    then  : it should return True
+    """
     # Test the run_analysis method
     mock_model.run_analysis.return_value = True
     assert dialog_view_model.run_analysis() is True
 
 
 def test_load_configuration(dialog_view_model, mock_model):
+    """
+    given : dialog_view_model and mock_model
+    when  : load_configuration method is called
+    then  : current branch and reach should be set correctly
+    """
     # Test the load_configuration method
     mock_model.branch_name = "Branch1"
     mock_model.reach_name = "Reach1"
@@ -112,15 +142,30 @@ def test_load_configuration(dialog_view_model, mock_model):
 
 
 def test_check_configuration(dialog_view_model, mock_model):
+    """
+    given : dialog_view_model and mock_model
+    when  : check_configuration method is called
+    then  : it should return True
+    """
     # Test the check_configuration method
     mock_model.check_configuration.return_value = True
     assert dialog_view_model.check_configuration() is True
 
 def test_manual_filename(dialog_view_model):
+    """
+    given : dialog_view_model
+    when  : accessing manual_filename property
+    then  : correct path to the user manual should be returned
+    """
     # Test the manual_filename property
     assert dialog_view_model.manual_filename == str(get_progloc().joinpath("dfastmi_usermanual.pdf"))
 
 def test_report(dialog_view_model):
+    """
+    given : dialog_view_model
+    when  : accessing report property
+    then  : correct report filename should be returned
+    """
     # Test the report property
     mock_get_filename = MagicMock(return_value="dummy_report_filename")
     with mock.patch("dfastmi.io.ApplicationSettingsHelper.ApplicationSettingsHelper.get_filename", mock_get_filename):

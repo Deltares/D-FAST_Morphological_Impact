@@ -43,6 +43,7 @@ from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.IBranch import IBranch
 
 class DialogViewModel(QObject):
+    """ Represents the ViewModel for the dialog interface. """
     branch_changed = pyqtSignal(str)
     reach_changed = pyqtSignal(str)
     _reference_files : Dict[float,str] = {}
@@ -51,6 +52,12 @@ class DialogViewModel(QObject):
     slength : str = ""
 
     def __init__(self, model: DialogModel):
+        """
+        Initializes the DialogViewModel.
+
+        Arguments:
+            model (DialogModel): The DialogModel to associate with the ViewModel.
+        """
         super().__init__()
         self._current_branch : Branch = model.rivers.branches[0]
         self._current_reach : AReach = self._current_branch.reaches[0]
@@ -60,46 +67,96 @@ class DialogViewModel(QObject):
 
     @property
     def current_branch(self) -> IBranch:
+        """
+            IBranch: The current branch.
+        """
         return self._current_branch
 
     @current_branch.setter
     def current_branch(self, value):
+        """
+        Setter for the current branch.
+        After set notify the view of the change.
+
+        Arguments:
+            value (IBranch): The branch to set.
+        """
         self._current_branch = value
         # Notify the view of the change
         self.branch_changed.emit(self._current_branch.name)
     
     @property
     def current_reach(self) -> AReach:
+        """
+            AReach: The current reach.
+        """
         return self._current_reach
 
     @current_reach.setter
     def current_reach(self, value):
+        """
+        Setter for the current reach.
+        After set notify the view of the change.
+
+        Arguments:
+            value (AReach): The reach to set.
+        """
         self._current_reach = value
         # Notify the view of the change
         self.reach_changed.emit(self._current_reach.name)
         
     @property
     def reference_files(self) -> Dict[float, str]:
+        """
+            Dict[float, str]: The reference files.
+        """
         return self._reference_files
     
     @property
     def measure_files(self) -> Dict[float, str]:
+        """
+            Dict[float, str]: The measurement files.
+        """
         return self._measure_files
 
     def get_configuration(self) -> ConfigParser:
+        """
+        Get the (loaded) DFastMI configuration.
+
+        Returns:
+            ConfigParser: The configuration.
+        """
         return self.model.get_configuration(self._current_branch, self._current_reach, self.reference_files, self.measure_files)
 
     def run_analysis(self) -> bool:
+        """
+        Run the analysis.
+
+        Returns:
+            bool: True if analysis is successful, False otherwise.
+        """
         return self.model.run_analysis()
     
     @property
     def manual_filename(self) -> str:
+        """
+        Get the manual filename.
+
+        Returns:
+            str: The manual filename.
+        """
         progloc = get_progloc()
         filename = progloc.joinpath("dfastmi_usermanual.pdf")
         return str(filename)
     
     @property
     def report(self) -> str:
+        """
+        Get the report filename.
+
+        Returns:
+            str: The report filename.
+        """
         return ApplicationSettingsHelper.get_filename("report.out")
     
     def updated_branch(self, branch_name: str) -> None:
@@ -120,10 +177,16 @@ class DialogViewModel(QObject):
         self.current_reach = self._current_branch.reaches[0]
 
     def _initialize_ucritical(self):
+        """
+        Initialize the critical velocity.
+        """
         if self.model.ucritical < self._current_reach.ucritical:
             self.ucritical = self._current_reach.ucritical
 
     def _initialize_qthreshold(self):
+        """
+        Initialize the threshold discharge.
+        """
         if self.model.qthreshold < self._current_reach.qstagnant:
             self.qthreshold = self._current_reach.qstagnant
 
@@ -144,11 +207,10 @@ class DialogViewModel(QObject):
 
     def _update_qvalues(self) -> None:
         """
-        Adjust the GUI for updated characteristic discharges.
+        Update the GUI for characteristic discharges.
 
-        Arguments
-        ---------
-        None
+        Arguments:
+            None
         """
                 
         try:
@@ -211,7 +273,11 @@ class DialogViewModel(QObject):
         
         return True
     
-    def check_configuration(self) -> bool :
+    def check_configuration(self) -> bool:
+        """
+        Check the validity of the current configuration.
+
+        Returns:
+            bool: True if the configuration is valid, False otherwise.
+        """
         return self.model.check_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
-        
-    

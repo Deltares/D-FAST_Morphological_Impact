@@ -37,6 +37,7 @@ from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 
 class GeneralConfig(BaseModel):
+    """ Represents the general configuration settings. """
     Version: str = "2.0"
     Branch: str = ""
     Reach: str = ""
@@ -49,14 +50,24 @@ class GeneralConfig(BaseModel):
     ClosePlots: bool = False
 
 class ConditionConfig(BaseModel):
+    """ Represents the configuration settings for a specific condition. """
     Discharge: float
     Reference: str
     WithMeasure: str
 
 class DialogModel():
+    """ Class for handling dialog model. """
+
     config : ConfigParser = None
     section : SectionProxy = None
     def __init__(self, rivers_configuration: RiversObject, config_file: Optional[str] = None):
+        """
+        Initialize the DialogModel.
+
+        Args:
+            rivers_configuration (RiversObject): Configuration of rivers.
+            config_file (Optional[str], optional): Configuration file. Defaults to None.
+        """
         self.rivers = rivers_configuration
         
         if config_file:
@@ -71,74 +82,91 @@ class DialogModel():
     
     @property
     def branch_name(self) -> str:
+        """Get branch name."""
         return self.section['Branch']
     
     @property
     def reach_name(self) -> str:
+        """Get reach name."""
         return self.section['Reach']
     
     @property
     def qthreshold(self) -> float:
+        """Get Qthreshold."""
         return self.section.getfloat('Qthreshold', 0.0)
     
     @qthreshold.setter
-    def qthreshold(self, value):
+    def qthreshold(self, value: float):
+        """Set Qthreshold."""
         self.section['Qthreshold'] = str(value)
     
     @property
     def ucritical(self) -> float:
+        """Get Ucritical."""
         return self.section.getfloat('Ucrit', 0.3)
     
     @ucritical.setter
-    def ucritical(self, value):
+    def ucritical(self, value: float):
+        """Set Ucritical."""
         self.section['Ucrit'] = str(value)
     
     @property
     def output_dir(self) -> str:
+        """Get output directory."""
         return self.section['OutputDir']
     
     @output_dir.setter
-    def output_dir(self, value):
+    def output_dir(self, value: str):
+        """Set output directory."""
         self.section['OutputDir'] = value
     
     @property
     def figure_dir(self) -> str:
+        """Get figure directory."""
         return self.section['FigureDir']
     
     @figure_dir.setter
-    def figure_dir(self, value):
+    def figure_dir(self, value: str):
+        """Set figure directory."""
         self.section['FigureDir'] = value
     
     @property
-    def plotting(self):
+    def plotting(self) -> bool:
+        """Get plotting flag."""
         return self.section.getboolean('Plotting')
     
     @plotting.setter
-    def plotting(self, value):
+    def plotting(self, value: bool):
+        """Set plotting flag."""
         self.section['Plotting'] = str(value)
     
     @property
     def save_plots(self) -> bool:
+        """Get save plots flag."""
         return self.section.getboolean('SavePlots')
     
     @save_plots.setter
-    def save_plots(self, value):
+    def save_plots(self, value: bool):
        self.section['SavePlots'] = str(value)
     
     @property
     def close_plots(self) -> bool:
+        """Get close plots flag."""
         return self.section.getboolean('ClosePlots')
     
     @close_plots.setter
-    def close_plots(self, value):
+    def close_plots(self, value: bool):
+        """Set close plots flag."""
         self.section['ClosePlots'] = str(value)
     
     def create_configuration(self) -> bool:
+        """Create configuration."""
         self.config = ConfigParser()
         self.config['General'] = GeneralConfig().model_dump()
         self.section = self.config['General']
 
     def load_configuration(self, filename: str) -> bool:
+        """Load configuration."""
         try:
             self.config = ConfigFileOperations.load_configuration_file(filename)
         except:
@@ -150,6 +178,7 @@ class DialogModel():
         return True
 
     def check_configuration(self, branch : Branch, reach: AReach, reference_files: List, measure_files : List) -> bool :
+        """Check configuration."""
         config = self.get_configuration(branch, reach, reference_files, measure_files)
         return check_configuration(self.rivers, config)
     
@@ -209,8 +238,8 @@ class DialogModel():
         return config
     
     def _get_condition_configuration(self, config: ConfigParser, reach: AReach, reference_files: List, measure_files: List) -> None:
+        """Get condition configuration."""
         num_files = min(len(reference_files), len(measure_files))
-        
         
         for i, discharge in enumerate(reach.hydro_q[:num_files]):
             if discharge in reference_files.keys():                
@@ -222,3 +251,4 @@ class DialogModel():
                     condition.WithMeasure = measure_files[discharge]
                 
                 config[cond] = condition.model_dump()
+
