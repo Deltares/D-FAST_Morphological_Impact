@@ -66,7 +66,8 @@ class DialogModel:
 
     config: ConfigParser = None
     section: SectionProxy = None
-
+	case_description : str = ""
+	
     def __init__(
         self, rivers_configuration: RiversObject, config_file: Optional[str] = None
     ):
