@@ -38,7 +38,7 @@ from PyQt5.QtGui import QIcon, QDoubleValidator
 from dfastmi.gui.dialog_utils import FileExistValidator, FolderExistsValidator, ValidatingLineEdit, get_available_font, gui_text
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.dialog_model import DialogModel
-from dfastmi.gui.gui_tools import clear_layout_item
+from dfastmi.gui.qt_tools import clear_layout_item
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.resources import DFAST_LOGO
 import dfastmi.kernel.core
