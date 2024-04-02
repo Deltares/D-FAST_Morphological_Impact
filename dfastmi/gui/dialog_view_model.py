@@ -102,6 +102,11 @@ class DialogViewModel(QObject):
             value (AReach): The reach to set.
         """
         self._current_reach = value
+        self.model.qthreshold = 0.0
+        self.model.ucritical = 0.0
+        self._initialize_qthreshold()
+        self._initialize_ucritical()
+        self._update_qvalues()            
         # Notify the view of the change
         self.reach_changed.emit(self._current_reach.name)
         
@@ -167,28 +172,24 @@ class DialogViewModel(QObject):
         ---------
         branch_name : str
             Newly selected branch.
-        """
-        self._initialize_qthreshold()
-
-        self._initialize_ucritical()
-        self._update_qvalues()
-
+        """        
         self.current_branch = self.model.rivers.get_branch(branch_name)
         self.current_reach = self._current_branch.reaches[0]
+        
 
     def _initialize_ucritical(self):
         """
         Initialize the critical velocity.
         """
-        if self.model.ucritical < self._current_reach.ucritical:
-            self.ucritical = self._current_reach.ucritical
+        if self.model.ucritical < self.current_reach.ucritical:
+            self.model.ucritical = self.current_reach.ucritical
 
     def _initialize_qthreshold(self):
         """
         Initialize the threshold discharge.
         """
-        if self.model.qthreshold < self._current_reach.qstagnant:
-            self.qthreshold = self._current_reach.qstagnant
+        if self.model.qthreshold < self.current_reach.qstagnant:
+            self.model.qthreshold = self.current_reach.qstagnant
 
         
     def updated_reach(self, reach_name: str) -> None:
@@ -201,9 +202,7 @@ class DialogViewModel(QObject):
             Newly selected reach.
         """
         if reach_name:
-            self._update_qvalues()
             self.current_reach = self._current_branch.get_reach(reach_name)
-            
 
     def _update_qvalues(self) -> None:
         """
@@ -215,10 +214,10 @@ class DialogViewModel(QObject):
                 
         try:
             if self.current_reach.auto_time:
-                _, time_mi = ConfigurationInitializer.set_times(self._current_reach.hydro_q, self.current_reach.qfit, self.current_reach.qstagnant, self.qthreshold)
+                _, time_mi = ConfigurationInitializer.set_times(self._current_reach.hydro_q, self.current_reach.qfit, self.current_reach.qstagnant, self.model.qthreshold)
             else:
                 time_fractions_of_the_year = ConfigurationInitializer.get_time_fractions_of_the_year(self._current_reach.hydro_t)
-                time_mi = ConfigurationInitializer.calculate_time_mi(self.qthreshold, self._current_reach.hydro_q, time_fractions_of_the_year)
+                time_mi = ConfigurationInitializer.calculate_time_mi(self.model.qthreshold, self._current_reach.hydro_q, time_fractions_of_the_year)
             celerity = ConfigurationInitializer.get_bed_celerity(self._current_reach, self._current_reach.hydro_q)
             slength = dfastmi.kernel.core.estimate_sedimentation_length(time_mi, celerity)
             self.slength = "{:.0f}".format(slength)

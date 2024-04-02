@@ -82,6 +82,9 @@ def test_updated_reach(qtbot, dialog_view_model):
     dialog_view_model.reach_changed.connect(on_reach_changed)
     mock_reach = mock.create_autospec(spec=IReach)
     mock_reach.name = "myReach"
+    mock_reach.qstagnant = 10.0
+    mock_reach.ucritical = 5.0
+    
 
     # Use qtbot to wait for the signal
     with qtbot.waitSignal(dialog_view_model.reach_changed):
@@ -134,6 +137,8 @@ def test_load_configuration(dialog_view_model, mock_model):
 
     mock_reach = mock.create_autospec(spec=IReach)
     mock_reach.name = "myReach"
+    mock_reach.qstagnant = 10.0
+    mock_reach.ucritical = 5.0
     mock_branch.get_reach.return_value = mock_reach
 
     assert dialog_view_model.load_configuration("test_config.ini")

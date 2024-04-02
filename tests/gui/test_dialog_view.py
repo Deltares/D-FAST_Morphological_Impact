@@ -121,10 +121,6 @@ class Test_dialog_inputs:
         when  : updating the qthreshold QLineEdit
         then  : the qthreshold value should be updated correctly
         """
-        # Test updating the qthreshold QLineEdit
-        initial_value = dialog_view._qthr.text()
-        assert initial_value == "0.0"
-
         # Test valid input
         new_value = "10.0"
         dialog_view._qthr.setText(new_value)

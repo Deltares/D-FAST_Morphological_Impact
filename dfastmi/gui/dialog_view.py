@@ -149,12 +149,7 @@ class DialogView():
             self._reach.addItem(r.name)
         # Update labels and text fields
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        self._conditions_qloc.setText(self._view_model.current_branch.qlocation)
-        self._qthr.setText(str(self._view_model.model.qthreshold))
-        self._ucrit.setText(str(self._view_model.model.ucritical))
-        self._slength.setText(self._view_model.slength)
-        self._reach.setCurrentText(self._view_model.current_reach.name)
-        self._update_qvalues_table()
+        self._conditions_qloc.setText(self._view_model.current_branch.qlocation)        
         self._output_dir.setText(self._view_model.model.output_dir)
         self._make_plots_edit.setChecked(self._view_model.model.plotting)
         self._save_plots_edit.setChecked(self._view_model.model.save_plots)
@@ -168,9 +163,14 @@ class DialogView():
         Args:
             data: The data for the reach.
         """
-        # Update reach selection and impacted length label
+        # Update reach label
         self._reach.setCurrentText(data)
+
+        # Update labels and text fields
+        self._qthr.setText(str(self._view_model.model.qthreshold))
+        self._ucrit.setText(str(self._view_model.model.ucritical))
         self._slength.setText(self._view_model.slength)
+        self._update_qvalues_table()
     
     def _update_condition_files(self):
         """Update the condition files."""
