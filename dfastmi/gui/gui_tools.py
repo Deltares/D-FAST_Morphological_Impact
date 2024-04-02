@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLayout, QLayoutItem, QWidget
 
 def clear_layout_item(item: QLayoutItem):
-    """Recursively removes all widgets in this layout item object.
+    """Recursively remove all widgets in the provided layout item object.
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ def clear_layout_item(item: QLayoutItem):
         clear_layout(layout)
 
 def clear_layout(layout: QLayout):
-    """Recursively removes all widgets from this layout object.
+    """Recursively remove all widgets from the provided layout object.
 
     Parameters
     ----------
@@ -32,8 +32,8 @@ def clear_layout(layout: QLayout):
         clear_layout_item(layout_item)
 
 def remove_widget(widget: QWidget):
-    """Remove this widget.
-    Widget can be removed when relation to parent is broken.  
+    """Remove the provided widget.
+    Widget is scheduled for deletion by breaking relationship with parent.  
 
     Parameters
     ----------
@@ -41,4 +41,3 @@ def remove_widget(widget: QWidget):
         The widget object. 
     """
     widget.setParent(None)
-    widget.deleteLater()
