@@ -149,6 +149,9 @@ class DialogView:
         Args:
             data: The data for the branch.
         """
+        # Update case name
+        self._case_description.setText(self._view_model.model.case_description)
+        
         # Update branch and reach selection
         self._branch.setCurrentText(data)
         self._reach.clear()
