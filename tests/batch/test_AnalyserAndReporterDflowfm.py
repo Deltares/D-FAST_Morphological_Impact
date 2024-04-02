@@ -14,6 +14,7 @@ from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
+from dfastmi.io.map_file import MapFile
 from dfastmi.kernel.typehints import Vector
 from tests.batch.Helper_AnalyserAndReporterDflowfm import TestCase_display_needs_tide_old_zmin_zmax, TestCase_display_old_zmin_zmax, TestCase_needs_tide_old_zmin_zmax # needed for fixture
 from tests.batch.Helper_AnalyserAndReporterDflowfm import display_needs_tide_old_zmin_zmax, display_old_zmin_zmax, needs_tide_old_zmin_zmax # needed for fixture
@@ -130,7 +131,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value=mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
@@ -160,7 +163,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_plot_overview.call_count == 0
         assert mocked_plotting_zoom_xy_and_save.call_count == 0
         assert mocked_plotting_savefig.call_count == 0
-        assert mocked_ugrid_add.call_count == 11
+        assert mocked_mapfile.add_variable.call_count == 11
 
     def given_file_names_based_on_numbers_with_plotting_off_and_needs_tide_true_when_analyse_and_report_dflowfm_then_return_true_and_expect_zero_grids_added_and_plotting_not_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):        
         """
@@ -177,7 +180,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value=mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
@@ -207,7 +212,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_plot_overview.call_count == 0
         assert mocked_plotting_zoom_xy_and_save.call_count == 0
         assert mocked_plotting_savefig.call_count == 0
-        assert mocked_ugrid_add.call_count == 0
+        assert mocked_mapfile.add_variable.call_count == 0
         
     def given_file_names_with_plotting_on_and_needs_tide_false_when_analyse_and_report_dflowfm_then_return_true_and_expect_eleven_grids_added_and_plotting_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):        
         """
@@ -224,7 +229,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value=mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
@@ -254,7 +261,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_plot_overview.call_count == 1
         assert mocked_plotting_zoom_xy_and_save.call_count == 1
         assert mocked_plotting_savefig.call_count == 1
-        assert mocked_ugrid_add.call_count == 11
+        assert mocked_mapfile.add_variable.call_count == 11
         
     def given_file_names_with_plotting_on_and_needs_tide_true_when_analyse_and_report_dflowfm_then_return_true_and_expect_zero_grids_added_and_plotting_not_called(self, tmp_path, display_old_zmin_zmax : TestCase_display_old_zmin_zmax, setup):        
         """
@@ -271,7 +278,9 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value=mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
@@ -301,7 +310,7 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_plot_overview.call_count == 0
         assert mocked_plotting_zoom_xy_and_save.call_count == 0
         assert mocked_plotting_savefig.call_count == 0
-        assert mocked_ugrid_add.call_count == 0
+        assert mocked_mapfile.add_variable.call_count == 0
         
     def given_xykm_and_no_display_when_analyse_and_report_dflowfm_then_return_true_and_expect_sixteen_grids_added_and_plotting_called(self, tmp_path, needs_tide_old_zmin_zmax : TestCase_needs_tide_old_zmin_zmax, setup):
         """
@@ -318,7 +327,11 @@ class Test_analyse_and_report_dflowfm_mode():
         
         self.set_file_names()
         
-        with patch('dfastmi.batch.AnalyserDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        #_replace_coordinates_in_destination_file is mocked in regard to the access to netCDF4 file.
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value=mocked_mapfile), \
+             patch('dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file') as mocked_internal_method,\
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig, \
@@ -355,4 +368,5 @@ class Test_analyse_and_report_dflowfm_mode():
         assert mocked_plotting_plot_overview.call_count == 1
         assert mocked_plotting_zoom_xy_and_save.call_count == 1
         assert mocked_plotting_savefig.call_count == 1
-        assert mocked_ugrid_add.call_count == 16
+        assert mocked_internal_method.call_count == 1
+        assert mocked_mapfile.add_variable.call_count == 16

@@ -28,14 +28,13 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from pathlib import Path
-from typing import Dict
 from dfastmi.batch.DflowfmReporters import ReporterDflowfmReporter
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.plotting import plot_overview, zoom_xy_and_save, savefig
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.GridOperations import GridOperations
+from dfastmi.io.map_file import MapFile
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 
 import netCDF4
@@ -68,13 +67,15 @@ class ReporterDflowfm():
             DTO with the data which is needed to create a report.
         """
         self._reporter.report_writing_output()
-        meshname, facedim = GridOperations.get_mesh_and_facedim_names(report_data.one_fm_filename)
-        dst = str(outputdir.joinpath(ApplicationSettingsHelper.get_filename("netcdf.out")))
-        GridOperations.copy_ugrid(report_data.one_fm_filename, meshname, dst)
+        map_file = MapFile(report_data.one_fm_filename)
+        meshname = map_file.mesh2d_name
+        facedim = map_file.face_dimension_name
+        dst = Path(outputdir) / ApplicationSettingsHelper.get_filename("netcdf.out")
+        map_file.copy_ugrid(dst)
         nc_fill = netCDF4.default_fillvals['f8']
-        projmesh = str(Path(outputdir).joinpath('projected_mesh.nc'))
+        projmesh = Path(outputdir) / 'projected_mesh.nc'
 
-        self._grid_update(report_data, report_data.xykm_data.iface, meshname, facedim, dst, nc_fill, projmesh)
+        self._grid_update(report_data, report_data.xykm_data.iface, meshname, facedim, dst, nc_fill, projmesh, map_file)
 
         if report_data.xykm_data.xykm is not None:
             self._replace_coordinates_in_destination_file(report_data, report_data.xykm_data, meshname, nc_fill, projmesh)
@@ -84,12 +85,11 @@ class ReporterDflowfm():
         self._reporter.report_compute_initial_year_dredging()
 
         if report_data.xykm_data.xykm is not None:
-            self._grid_update_xykm(outputdir, report_data.one_fm_filename, report_data.face_node_connectivity, meshname, facedim, nc_fill, report_data.sedimentation_data, report_data.xykm_data)
+            self._grid_update_xykm(outputdir, report_data.face_node_connectivity, meshname, facedim, nc_fill, report_data.sedimentation_data, report_data.xykm_data, map_file)
 
-    def _grid_update(self, report_data : OutputDataDflowfm, iface : numpy.ndarray, meshname : str, facedim : str, dst : str, nc_fill : float, projmesh :str):
+    def _grid_update(self, report_data : OutputDataDflowfm, iface : numpy.ndarray, meshname : str, facedim : str, dst : Path, nc_fill : float, projmesh :Path, map_file : MapFile):
         
         rsigma = report_data.rsigma
-        one_fm_filename = report_data.one_fm_filename
         face_node_connectivity = report_data.face_node_connectivity
         dzq = report_data.dzq
         dzgemi = report_data.dzgemi
@@ -101,75 +101,71 @@ class ReporterDflowfm():
         
         dzgem = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         dzgem[iface]=dzgemi
-        GridOperations.ugrid_add(
-                dst,
+        dst_map_file = MapFile(dst)
+        dst_map_file.add_variable(
                 "avgdzb",
                 dzgem,
                 meshname,
                 facedim,
                 long_name="year-averaged bed level change without dredging",
-                units="m",
+                unit="m",
             )
         dzmax = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         dzmax[iface]=dzmaxi
-        GridOperations.ugrid_add(
-                dst,
+        dst_map_file.add_variable(
                 "maxdzb",
                 dzmax,
                 meshname,
                 facedim,
                 long_name=zmax_str,
-                units="m",
+                unit="m",
             )
         dzmin = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         dzmin[iface]=dzmini
-        GridOperations.ugrid_add(
-                dst,
+        dst_map_file.add_variable(
                 "mindzb",
                 dzmin,
                 meshname,
                 facedim,
                 long_name=zmin_str,
-                units="m",
+                unit="m",
             )
         for i in range(len(dzbi)):
             j = (i + 1) % len(dzbi)
             dzb = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
             dzb[iface]=dzbi[j]
-            GridOperations.ugrid_add(
-                    dst,
+            dst_map_file.add_variable(
                     "dzb_{}".format(i),
                     dzb,
                     meshname,
                     facedim,
                     long_name="bed level change at end of period {}".format(i+1),
-                    units="m",
+                    unit="m",
                 )
             if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
                 dzq_full = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
                 dzq_full[iface]=dzq[i]
-                GridOperations.ugrid_add(
-                        dst,
+                dst_map_file.add_variable(
                         "dzq_{}".format(i),
                         dzq_full,
                         meshname,
                         facedim,
                         long_name="equilibrium bed level change aimed for during period {}".format(i+1),
-                        units="m",
+                        unit="m",
                     )
 
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-        GridOperations.ugrid_add(
-                projmesh,
+        map_file.copy_ugrid(projmesh)
+        projmesh_map_file = MapFile(projmesh)
+        projmesh_map_file.add_variable(
                 "avgdzb",
                 dzgem,
                 meshname,
                 facedim,
                 long_name="year-averaged bed level change without dredging",
-                units="m",
+                unit="m",
             )
 
-    def _replace_coordinates_in_destination_file(self, report_data : OutputDataDflowfm, xykm_data : XykmData, meshname : str, nc_fill : float, projmesh : str):
+    def _replace_coordinates_in_destination_file(self, report_data : OutputDataDflowfm, xykm_data : XykmData, meshname : str, nc_fill : float, projmesh : Path):
         self._reporter.print_replacing_coordinates()
         sn = numpy.repeat(nc_fill, report_data.xn.shape[0])
         sn[xykm_data.inode]=xykm_data.sni
@@ -214,67 +210,63 @@ class ReporterDflowfm():
                 figfile = figbase.with_suffix(plotting_options.plot_extension)
                 savefig(fig, figfile)
 
-    def _grid_update_xykm(self, outputdir : str, one_fm_filename : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData):
+    def _grid_update_xykm(self, outputdir : str, face_node_connectivity : numpy.ndarray, meshname : str, facedim : str, nc_fill : float, sedimentation_data : SedimentationData, xykm_data : XykmData, map_file : MapFile):
         self._reporter.print_sedimentation_and_erosion(sedimentation_data)
 
-        projmesh = str(outputdir.joinpath('sedimentation_weights.nc'))
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "interest_region",
-                    xykm_data.interest_region,
-                    meshname,
-                    facedim,
-                    long_name="Region on which the sedimentation analysis was performed",
-                units="1",
-                )
+        projmesh = Path(outputdir) / 'sedimentation_weights.nc'
+        projmesh_map_file = MapFile(projmesh)
+        map_file.copy_ugrid(projmesh)
+        projmesh_map_file.add_variable(
+            "interest_region",
+            xykm_data.interest_region,
+            meshname,
+            facedim,
+            long_name="Region on which the sedimentation analysis was performed",
+            unit="1",
+        )
         
         sed_area = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         for i in range(len(sedimentation_data.sed_area_list)):
             sed_area[xykm_data.iface[sedimentation_data.sed_area_list[i] == 1]] = i+1
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "sed_area",
-                    sed_area,
-                    meshname,
-                    facedim,
-                    long_name="Sedimentation area",
-                    units="1",
-                )
+        projmesh_map_file.add_variable(
+            "sed_area",
+            sed_area,
+            meshname,
+            facedim,
+            long_name="Sedimentation area",
+            unit="1",
+        )
         
         ero_area = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         for i in range(len(sedimentation_data.ero_area_list)):
             ero_area[xykm_data.iface[sedimentation_data.ero_area_list[i] == 1]] = i+1
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "ero_area",
-                    ero_area,
-                    meshname,
-                    facedim,
-                    long_name="Erosion area",
-                    units="1",
-                )
+        projmesh_map_file.add_variable(
+            "ero_area",
+            ero_area,
+            meshname,
+            facedim,
+            long_name="Erosion area",
+            unit="1",
+        )
         
         wght_estimate1 = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         wght_estimate1[xykm_data.iface] = sedimentation_data.wght_estimate1i
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "wght_estimate1",
-                    wght_estimate1,
-                    meshname,
-                    facedim,
-                    long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
-                    units="1",
-                )
+        projmesh_map_file.add_variable(
+            "wght_estimate1",
+            wght_estimate1,
+            meshname,
+            facedim,
+            long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
+            unit="1",
+        )
         
         wbin = numpy.repeat(nc_fill, face_node_connectivity.shape[0])
         wbin[xykm_data.iface] = sedimentation_data.wbini
-        GridOperations.ugrid_add(
-                    projmesh,
-                    "wbin",
-                    wbin,
-                    meshname,
-                    facedim,
-                    long_name="Index of width bin",
-                    units="1",
-                )
+        projmesh_map_file.add_variable(
+            "wbin",
+            wbin,
+            meshname,
+            facedim,
+            long_name="Index of width bin",
+            unit="1",
+        )

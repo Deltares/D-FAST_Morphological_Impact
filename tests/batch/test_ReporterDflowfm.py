@@ -12,6 +12,8 @@ from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from shapely.geometry.linestring import LineString
 
+from dfastmi.io.map_file import MapFile
+
 class Test_ReporterDflowfm_Report():
     
     def set_plotting_on(self, tmp_path) -> PlotOptions:
@@ -104,9 +106,9 @@ class Test_ReporterDflowfm_Report():
         plotting_options = self.set_plotting_off()
         report_data = self.set_report_data_without_xykm(tmp_path)
         
-        with patch('dfastmi.batch.ReporterDflowfm.GridOperations.get_mesh_and_facedim_names', return_value=("filename1.ext", "filename2.ext")), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.copy_ugrid'), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value = mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
@@ -114,7 +116,7 @@ class Test_ReporterDflowfm_Report():
             reporter = ReporterDflowfm(display)
             reporter.report(tmp_path, plotting_options, report_data)
                 
-            assert mocked_ugrid_add.call_count == 10
+            assert mocked_mapfile.add_variable.call_count == 10
             assert mocked_plotting_plot_overview.call_count == 0
             assert mocked_plotting_zoom_xy_and_save.call_count == 0
             assert mocked_plotting_savefig.call_count == 0
@@ -124,9 +126,9 @@ class Test_ReporterDflowfm_Report():
         plotting_options = self.set_plotting_on(tmp_path)
         report_data = self.set_report_data_without_xykm(tmp_path)
         
-        with patch('dfastmi.batch.ReporterDflowfm.GridOperations.get_mesh_and_facedim_names', return_value=("filename1.ext", "filename2.ext")), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.copy_ugrid'), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        mocked_mapfile = Mock(spec=MapFile)
+        
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value = mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
@@ -136,7 +138,7 @@ class Test_ReporterDflowfm_Report():
             reporter = ReporterDflowfm(display)
             reporter.report(tmp_path, plotting_options, report_data)
                 
-            assert mocked_ugrid_add.call_count == 10
+            assert mocked_mapfile.add_variable.call_count == 10
             assert mocked_plotting_plot_overview.call_count == 1
             assert mocked_plotting_zoom_xy_and_save.call_count == 1
             assert mocked_plotting_savefig.call_count == 1
@@ -146,20 +148,20 @@ class Test_ReporterDflowfm_Report():
         plotting_options = self.set_plotting_off()
         report_data = self.set_report_data_with_xykm(tmp_path)
         
+        mocked_mapfile = Mock(spec=MapFile)
+        
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
-        with patch('dfastmi.batch.ReporterDflowfm.GridOperations.get_mesh_and_facedim_names', return_value=("filename1.ext", "filename2.ext")), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.copy_ugrid'), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value = mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file'), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
              patch('dfastmi.batch.ReporterDflowfm.savefig') as mocked_plotting_savefig:
-        
+            
             reporter = ReporterDflowfm(display)
             reporter._reporter = Mock(spec=ReporterDflowfmReporter)
             reporter.report(tmp_path, plotting_options, report_data)
                 
-            assert mocked_ugrid_add.call_count == 15
+            assert mocked_mapfile.add_variable.call_count  == 15
             assert mocked_plotting_plot_overview.call_count == 0
             assert mocked_plotting_zoom_xy_and_save.call_count == 0
             assert mocked_plotting_savefig.call_count == 0
@@ -169,10 +171,10 @@ class Test_ReporterDflowfm_Report():
         plotting_options = self.set_plotting_on(tmp_path)
         report_data = self.set_report_data_with_xykm(tmp_path)
         
+        mocked_mapfile = Mock(spec=MapFile)
+        
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
-        with patch('dfastmi.batch.ReporterDflowfm.GridOperations.get_mesh_and_facedim_names', return_value=("filename1.ext", "filename2.ext")), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.copy_ugrid'), \
-             patch('dfastmi.batch.ReporterDflowfm.GridOperations.ugrid_add') as mocked_ugrid_add, \
+        with patch('dfastmi.batch.ReporterDflowfm.MapFile', return_value = mocked_mapfile), \
              patch('dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file'), \
              patch('dfastmi.batch.ReporterDflowfm.plot_overview') as mocked_plotting_plot_overview, \
              patch('dfastmi.batch.ReporterDflowfm.zoom_xy_and_save') as mocked_plotting_zoom_xy_and_save, \
@@ -184,7 +186,7 @@ class Test_ReporterDflowfm_Report():
             reporter._reporter = Mock(spec=ReporterDflowfmReporter)
             reporter.report(tmp_path, plotting_options, report_data)
                 
-            assert mocked_ugrid_add.call_count == 15
+            assert mocked_mapfile.add_variable.call_count == 15
             assert mocked_plotting_plot_overview.call_count == 1
             assert mocked_plotting_zoom_xy_and_save.call_count == 1
             assert mocked_plotting_savefig.call_count == 1

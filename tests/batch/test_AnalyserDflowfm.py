@@ -7,6 +7,7 @@ from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from tests.batch.Helper_AnalyserAndReporterDflowfm import TestCase_display_needs_tide_old_zmin_zmax, TestCase_display_old_zmin_zmax # needed for fixture
 from tests.batch.Helper_AnalyserAndReporterDflowfm import display_needs_tide_old_zmin_zmax, display_old_zmin_zmax # needed for fixture
+from dfastmi.io.map_file import MapFile
 
 import numpy
 import shapely
@@ -82,6 +83,13 @@ class Test_AnalyserDflowfm():
                 
         return dzgemi,dzmaxi,dzmini,dzbi
     
+    def _get_mocked_mapfile(self, read_face_variable):
+        map_file = Mock(spec=MapFile)
+        map_file.node_x_coordinates = read_face_variable
+        map_file.node_y_coordinates = read_face_variable
+        map_file.read_face_variable.return_value = read_face_variable
+        return map_file   
+    
     def assert_report_data(self, dzgemi, dzmaxi, dzmini, dzbi, face_node_connectivity, read_fm_map, xykm_data, sedimentation_data, report_data, zmax_str, zmin_str):
         assert report_data.rsigma == (0.1, 1.0, 0.2, 0.3)
         assert report_data.one_fm_filename == "file2.extension"
@@ -114,17 +122,19 @@ class Test_AnalyserDflowfm():
         
         face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
         xykm_data = self._get_mocked_xykm_data(self.xykm)
+
+        map_file = self._get_mocked_mapfile(numpy.array([0, 1, 2, 3, 4]))
         
         with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=numpy.array([0, 1, 2, 3, 4])):
+             patch('dfastmi.batch.AnalyserDflowfm.MapFile', return_value=map_file):
                  
             analyser = AnalyserDflowfm(display_old_zmin_zmax.display, self.report, display_old_zmin_zmax.old_zmin_zmax, outputdir, self.initialized_config)
             report_data = analyser.analyse(self.nwidth, self.filenames, self.xykm, self.plotops)
             
             assert analyser.missing_data
-            assert report_data == None        
+            assert report_data == None     
 
     @pytest.mark.parametrize("display", [True, False])
     def test_analyse_without_xykm_and_with_old_zmin_zmax(self, tmp_path, display : bool, setup):
@@ -142,11 +152,12 @@ class Test_AnalyserDflowfm():
         
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         sedimentation_data = None
+        map_file = self._get_mocked_mapfile(read_fm_map)
         
         with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=read_fm_map),\
+             patch('dfastmi.batch.AnalyserDflowfm.MapFile', return_value=map_file),\
              patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
              patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation:
             
@@ -179,11 +190,12 @@ class Test_AnalyserDflowfm():
         
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         sedimentation_data = None
+        map_file = self._get_mocked_mapfile(read_fm_map)
         
         with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=read_fm_map),\
+             patch('dfastmi.batch.AnalyserDflowfm.MapFile', return_value=map_file),\
              patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
              patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation:
             
@@ -215,11 +227,12 @@ class Test_AnalyserDflowfm():
         self.xykm = Mock(spec=LineString)
         xykm_data = self._get_mocked_xykm_data(self.xykm)
         sedimentation_data = Mock(spec=SedimentationData)
+        map_file = self._get_mocked_mapfile(read_fm_map)
         
         with patch('dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity', return_value=face_node_connectivity),\
              patch('dfastmi.batch.AnalyserDflowfm.XykmData', return_value =xykm_data),\
              patch('dfastmi.batch.AnalyserDflowfm.os.path.isfile', return_value=True),\
-             patch('dfastmi.batch.AnalyserDflowfm.GridOperations.read_fm_map', return_value=read_fm_map),\
+             patch('dfastmi.batch.AnalyserDflowfm.MapFile', return_value=map_file),\
              patch('dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h') as dzq_from_du_and_h,\
              patch('dfastmi.batch.AnalyserDflowfm.main_computation') as main_computation,\
              patch('dfastmi.batch.AnalyserDflowfm.comp_sedimentation_volume', return_value=sedimentation_data):

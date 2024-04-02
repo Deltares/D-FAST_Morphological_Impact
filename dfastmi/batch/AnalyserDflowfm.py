@@ -31,11 +31,11 @@ from pathlib import Path
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
+from dfastmi.io.map_file import MapFile
 from dfastmi.kernel.core import main_computation, dzq_from_du_and_h
 from dfastmi.batch.DflowfmReporters import AnalyserDflowfmReporter
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.XykmData import XykmData
-from dfastmi.io.GridOperations import GridOperations
 from dfastmi.kernel.typehints import Vector, BoolVector
 from shapely.geometry.linestring import LineString
 
@@ -129,9 +129,10 @@ class AnalyserDflowfm():
             return None
 
         self._reporter.report_load_mesh()
-        xn = GridOperations.read_fm_map(one_fm_filename, "x", location="node")
-        yn = GridOperations.read_fm_map(one_fm_filename, "y", location="node")
-        face_node_connectivity = self._get_face_node_connectivity(one_fm_filename)
+        map_file = MapFile(one_fm_filename)
+        xn = map_file.node_x_coordinates
+        yn = map_file.node_y_coordinates
+        face_node_connectivity = self._get_face_node_connectivity(map_file)
 
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
@@ -358,6 +359,9 @@ class AnalyserDflowfm():
             dzq_neg = numpy.zeros(dx.shape)
             t_pos = numpy.zeros(dx.shape)
             t_neg = numpy.zeros(dx.shape)
+            
+        map_file1 = MapFile(filenames[0])
+        map_file2 = MapFile(filenames[1])
 
         for ifld in range(n_fields):
             # if last time step is needed, pass None to allow for files without time specification
@@ -365,14 +369,14 @@ class AnalyserDflowfm():
                 ifld = None
 
             # reference data
-            u0 = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)[iface]
-            v0 = GridOperations.read_fm_map(filenames[0], "sea_water_y_velocity", ifld=ifld)[iface]
+            u0 = map_file1.read_face_variable("sea_water_x_velocity", time_index_from_last=ifld)[iface]
+            v0 = map_file1.read_face_variable("sea_water_y_velocity", time_index_from_last=ifld)[iface]
             umag0 = numpy.sqrt(u0 ** 2 + v0 ** 2)
-            h0 = GridOperations.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
+            h0 = map_file1.read_face_variable("sea_floor_depth_below_sea_surface", time_index_from_last=ifld)[iface]
 
             # data with measure
-            u1 = GridOperations.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)[iface]
-            v1 = GridOperations.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
+            u1 = map_file2.read_face_variable("sea_water_x_velocity", time_index_from_last=ifld)[iface]
+            v1 = map_file2.read_face_variable("sea_water_y_velocity", time_index_from_last=ifld)[iface]
             umag1 = numpy.sqrt(u1**2 + v1**2)
 
             dzq1 = dzq_from_du_and_h(umag0, h0, umag1, self._ucrit, default=0.0)
@@ -403,8 +407,8 @@ class AnalyserDflowfm():
 
         return dzq
 
-    def _get_face_node_connectivity(self, filename: str) -> numpy.ndarray:
-        face_node_connectivity = GridOperations.read_fm_map(filename, "face_node_connectivity")
+    def _get_face_node_connectivity(self, map_file: MapFile) -> numpy.ndarray:
+        face_node_connectivity = map_file.face_node_connectivity
         
         if face_node_connectivity.mask.shape == ():
             # all faces have the same number of nodes; empty mask
