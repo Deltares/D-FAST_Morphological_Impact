@@ -153,8 +153,7 @@ class DialogView():
         self._output_dir.setText(self._view_model.model.output_dir)
         self._make_plots_edit.setChecked(self._view_model.model.plotting)
         self._save_plots_edit.setChecked(self._view_model.model.save_plots)
-        self._close_plots_edit.setChecked(self._view_model.model.close_plots)
-        self._update_condition_files()
+        self._close_plots_edit.setChecked(self._view_model.model.close_plots)        
     
     def _update_reach(self, data):
         """
@@ -171,6 +170,7 @@ class DialogView():
         self._ucrit.setText(str(self._view_model.model.ucritical))
         self._slength.setText(self._view_model.slength)
         self._update_qvalues_table()
+        self._update_condition_files()
     
     def _update_condition_files(self):
         """Update the condition files."""
