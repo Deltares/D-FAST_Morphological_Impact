@@ -30,7 +30,7 @@ from pathlib import Path
 import subprocess
 from functools import partial
 import sys
-from typing import Optional
+from typing import Iterator, Optional, Tuple
 
 import PyQt5.QtCore
 import PyQt5.QtGui
@@ -38,6 +38,7 @@ from PyQt5.QtGui import QIcon
 from dfastmi.gui.dialog_utils import FileExistValidator, FolderExistsValidator, ValidatingLineEdit, get_available_font, gui_text
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.dialog_model import DialogModel
+from dfastmi.gui.gui_tools import clear_layout_item
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.resources import DFAST_LOGO
 import dfastmi.kernel.core
@@ -149,25 +150,9 @@ class DialogView():
 
     def _clear_conditions(self):
         if self._grid_layout:
-            for row in range(2, self._grid_layout.rowCount()):
-                for col in range(self._grid_layout.columnCount()):
-                    # Remove widgets from the specified row
-                    item = self._grid_layout.itemAtPosition(row, col)
-                    if item:
-                        widget = item.widget()
-                        if widget:
-                            widget.setParent(None)
-                            widget.deleteLater()
-                        else:
-                            layout = item.layout()
-                            if layout:
-                                while layout.count():
-                                    layout_item = layout.takeAt(0)
-                                    if layout_item:
-                                        layout_widget = layout_item.widget()
-                                        if layout_widget:
-                                            layout_widget.setParent(None)
-                                            layout_widget.deleteLater()
+            for row_index, column_index in self._get_discharge_conditions_grid_cells():
+                grid_cell = self._grid_layout.itemAtPosition(row_index, column_index)
+                clear_layout_item(grid_cell)
             
     def _create_qt_application(self) -> None:
         """
@@ -344,7 +329,7 @@ class DialogView():
         # Set properties of the copied widget to match the original widget
         self._conditions_qloc.setText(self._qloc.text())
         
-        self._grid_layout = DialogView._create_empty_discharge_conditions_grid_layout(self._conditions_qloc)
+        self._grid_layout = self._create_empty_discharge_conditions_grid_layout()
 
         group_box_layout.addLayout(self._grid_layout)
         
@@ -352,14 +337,13 @@ class DialogView():
         # Add group box to the main layout
         layout.addRow(group_box)
 
-    @staticmethod
-    def _create_empty_discharge_conditions_grid_layout(conditions_qloc: QLabel) -> QGridLayout:
+    def _create_empty_discharge_conditions_grid_layout(self) -> QGridLayout:
         # Create a grid layout
         grid_layout = QGridLayout()
         grid_layout.setObjectName("discharge_conditions_grid")
         
         grid_layout.addWidget(QLabel(gui_text("qloc")), 0, 0)
-        grid_layout.addWidget(conditions_qloc, 0, 1)
+        grid_layout.addWidget(self._conditions_qloc, 0, 1)
         
         # Add widgets to the form layout
         discharge_label = QLabel(gui_text("qval"))
@@ -765,6 +749,12 @@ class DialogView():
     @staticmethod
     def _get_dfast_icon() -> QIcon:
      return QIcon(str(DFAST_LOGO))
+
+    def _get_discharge_conditions_grid_cells(self) -> Iterator[Tuple[int, int]]:
+        start_row_index = 2
+        for row_index in range(start_row_index, self._grid_layout.rowCount()):
+            for column_index in range(self._grid_layout.columnCount()):
+                yield row_index, column_index
 
 # Entry point
 def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) -> None:
