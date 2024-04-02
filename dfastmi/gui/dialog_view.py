@@ -149,26 +149,25 @@ class DialogView():
 
     def _clear_conditions(self):
         if self._grid_layout:
-            for row in range(self._grid_layout.rowCount()):
-                if row > 1:        
-                    for col in range(self._grid_layout.columnCount()):
-                        # Remove widgets from the specified row
-                        item = self._grid_layout.itemAtPosition(row, col)
-                        if item:
-                            widget = item.widget()
-                            if widget:
-                                widget.setParent(None)
-                                widget.deleteLater()
-                            else:
-                                layout = item.layout()
-                                if layout:
-                                    while layout.count():
-                                        layout_item = layout.takeAt(0)
-                                        if layout_item:
-                                            layout_widget = layout_item.widget()
-                                            if layout_widget:
-                                                layout_widget.setParent(None)
-                                                layout_widget.deleteLater()
+            for row in range(2, self._grid_layout.rowCount()):
+                for col in range(self._grid_layout.columnCount()):
+                    # Remove widgets from the specified row
+                    item = self._grid_layout.itemAtPosition(row, col)
+                    if item:
+                        widget = item.widget()
+                        if widget:
+                            widget.setParent(None)
+                            widget.deleteLater()
+                        else:
+                            layout = item.layout()
+                            if layout:
+                                while layout.count():
+                                    layout_item = layout.takeAt(0)
+                                    if layout_item:
+                                        layout_widget = layout_item.widget()
+                                        if layout_widget:
+                                            layout_widget.setParent(None)
+                                            layout_widget.deleteLater()
             
     def _create_qt_application(self) -> None:
         """
