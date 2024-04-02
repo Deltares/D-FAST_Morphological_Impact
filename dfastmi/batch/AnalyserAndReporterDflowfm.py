@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Optional, Union, Dict, Any, Tuple, TextIO
 from dfastmi.kernel.typehints import Vector, BoolVector
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.GridOperations import GridOperations
+from dfastmi.io.map_file import MapFile
 
 from dfastmi.batch import DetectAndPlot
 
@@ -316,79 +316,77 @@ def analyse_and_report_dflowfm(
         
         if display:
             ApplicationSettingsHelper.log_text('writing_output')
-        meshname, facedim = GridOperations.get_mesh_and_facedim_names(one_fm_filename)
-        dst = str(outputdir.joinpath(ApplicationSettingsHelper.get_filename("netcdf.out")))
-        GridOperations.copy_ugrid(one_fm_filename, meshname, dst)
+        map_file = MapFile(one_fm_filename)
+        meshname = map_file.mesh2d_name
+        facedim = map_file.face_dimension_name
+        dst = Path(outputdir) / ApplicationSettingsHelper.get_filename("netcdf.out")
+        map_file.copy_ugrid(dst)
         nc_fill = netCDF4.default_fillvals['f8']
         dzgem = numpy.repeat(nc_fill, FNC.shape[0])
         dzgem[iface]=dzgemi
-        GridOperations.ugrid_add(
-            dst,
+        dst_map_file = MapFile(dst)
+        dst_map_file.add_variable(
             "avgdzb",
             dzgem,
             meshname,
             facedim,
             long_name="year-averaged bed level change without dredging",
-            units="m",
+            unit="m",
         )
         dzmax = numpy.repeat(nc_fill, FNC.shape[0])
         dzmax[iface]=dzmaxi
-        GridOperations.ugrid_add(
-            dst,
+        dst_map_file.add_variable(
             "maxdzb",
             dzmax,
             meshname,
             facedim,
             long_name=zmax_str,
-            units="m",
+            unit="m",
         )
         dzmin = numpy.repeat(nc_fill, FNC.shape[0])
         dzmin[iface]=dzmini
-        GridOperations.ugrid_add(
-            dst,
+        dst_map_file.add_variable(
             "mindzb",
             dzmin,
             meshname,
             facedim,
             long_name=zmin_str,
-            units="m",
+            unit="m",
         )
         for i in range(len(dzbi)):
             j = (i + 1) % len(dzbi)
             dzb = numpy.repeat(nc_fill, FNC.shape[0])
             dzb[iface]=dzbi[j]
-            GridOperations.ugrid_add(
-                dst,
+            dst_map_file.add_variable(
                 "dzb_{}".format(i),
                 dzb,
                 meshname,
                 facedim,
                 long_name="bed level change at end of period {}".format(i+1),
-                units="m",
+                unit="m",
             )
             if rsigma[i]<1 and isinstance(dzq[i], numpy.ndarray):
                 dzq_full = numpy.repeat(nc_fill, FNC.shape[0])
                 dzq_full[iface]=dzq[i]
-                GridOperations.ugrid_add(
-                    dst,
+                dst_map_file.add_variable(
                     "dzq_{}".format(i),
                     dzq_full,
                     meshname,
                     facedim,
                     long_name="equilibrium bed level change aimed for during period {}".format(i+1),
-                    units="m",
+                    unit="m",
                 )
         
-        projmesh = str(Path(outputdir).joinpath('projected_mesh.nc'))
-        GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-        GridOperations.ugrid_add(
-            projmesh,
+        projmesh = Path(outputdir) / 'projected_mesh.nc'
+        map_file.copy_ugrid(projmesh)
+        projmesh_map_file = MapFile(projmesh)
+        projmesh_map_file.add_variable(
             "avgdzb",
             dzgem,
             meshname,
             facedim,
             long_name="year-averaged bed level change without dredging",
-            units="m",
+            unit="m",
         )
         
         if xykm is not None:
@@ -461,64 +459,60 @@ def analyse_and_report_dflowfm(
                     print("Max                         : {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(erovol[0,:].max(), erovol[1,:].max(), erovol[2,:].max()))
                     print("Total   ({:15.3f} m2): {:13.6f} m3 {:13.6f} m3 {:13.6f} m3".format(eroarea.sum(), erovol[0,:].sum(), erovol[1,:].sum(), erovol[2,:].sum()))
 
-            projmesh = str(outputdir.joinpath('sedimentation_weights.nc'))
-            GridOperations.copy_ugrid(one_fm_filename, meshname, projmesh)
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh = Path(outputdir) / 'sedimentation_weights.nc'
+            projmesh_map_file = MapFile(projmesh)
+            map_file.copy_ugrid(projmesh)
+            projmesh_map_file.add_variable(
                 "interest_region",
                 interest_region,
                 meshname,
                 facedim,
                 long_name="Region on which the sedimentation analysis was performed",
-               units="1",
+               unit="1",
             )
             sed_area = numpy.repeat(nc_fill, FNC.shape[0])
         
             for i in range(len(sed_area_list)):
                 sed_area[iface[sed_area_list[i] == 1]] = i+1
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.add_variable(
                 "sed_area",
                 sed_area,
                 meshname,
                 facedim,
                 long_name="Sedimentation area",
-                units="1",
+                unit="1",
             )
             ero_area = numpy.repeat(nc_fill, FNC.shape[0])
         
             for i in range(len(ero_area_list)):
                 ero_area[iface[ero_area_list[i] == 1]] = i+1
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.add_variable(
                 "ero_area",
                 ero_area,
                 meshname,
                 facedim,
                 long_name="Erosion area",
-                units="1",
+                unit="1",
             )
             wght_estimate1 = numpy.repeat(nc_fill, FNC.shape[0])
             wght_estimate1[iface] = wght_estimate1i
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.add_variable(
                 "wght_estimate1",
                 wght_estimate1,
                 meshname,
                 facedim,
                 long_name="Weight per cell for determining initial year sedimentation volume estimate 1",
-                units="1",
+                unit="1",
             )
             wbin = numpy.repeat(nc_fill, FNC.shape[0])
             wbin[iface] = wbini
-            GridOperations.ugrid_add(
-                projmesh,
+            projmesh_map_file.add_variable(
                 "wbin",
                 wbin,
                 meshname,
                 facedim,
                 long_name="Index of width bin",
-                units="1",
+                unit="1",
             )
         
     return not missing_data
@@ -598,7 +592,8 @@ def get_values_fm(
         wght_pos = numpy.zeros(dx.shape)
         wght_neg = numpy.zeros(dx.shape)
 
-    ref = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=0)
+    map_file1 = MapFile(filenames[0])
+    map_file2 = MapFile(filenames[1])
     
     for ifld in range(n_fields):
         # if last time step is needed, pass None to allow for files without time specification
@@ -606,14 +601,14 @@ def get_values_fm(
             ifld = None
 
         # reference data
-        u0 = GridOperations.read_fm_map(filenames[0], "sea_water_x_velocity", ifld=ifld)[iface]
-        v0 = GridOperations.read_fm_map(filenames[0], "sea_water_y_velocity", ifld=ifld)[iface]
+        u0 = map_file1.read_face_variable("sea_water_x_velocity", time_index_from_last=ifld)[iface]
+        v0 = map_file1.read_face_variable("sea_water_y_velocity", time_index_from_last=ifld)[iface]
         umag0 = numpy.sqrt(u0 ** 2 + v0 ** 2)
-        h0 = GridOperations.read_fm_map(filenames[0], "sea_floor_depth_below_sea_surface", ifld=ifld)[iface]
+        h0 = map_file1.read_face_variable("sea_floor_depth_below_sea_surface", time_index_from_last=ifld)[iface]
 
         # data with measure
-        u1 = GridOperations.read_fm_map(filenames[1], "sea_water_x_velocity", ifld=ifld)[iface]
-        v1 = GridOperations.read_fm_map(filenames[1], "sea_water_y_velocity", ifld=ifld)[iface]
+        u1 = map_file2.read_face_variable("sea_water_x_velocity", time_index_from_last=ifld)[iface]
+        v1 = map_file2.read_face_variable("sea_water_y_velocity", time_index_from_last=ifld)[iface]
         umag1 = numpy.sqrt(u1**2 + v1**2)
 
         dzq1 = dfastmi.kernel.core.dzq_from_du_and_h(umag0, h0, umag1, ucrit, default=0.0)
@@ -844,9 +839,10 @@ def width_bins(df: numpy.ndarray, nwidth: float, nbins: int) -> Tuple[numpy.ndar
     return jbin, wthresh
     
 def get_xynode_connect(filename: str) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
-    xn = GridOperations.read_fm_map(filename, "x", location="node")
-    yn = GridOperations.read_fm_map(filename, "y", location="node")
-    FNC = GridOperations.read_fm_map(filename, "face_node_connectivity")
+    map_file = MapFile(filename)
+    xn = map_file.node_x_coordinates
+    yn = map_file.node_y_coordinates
+    FNC = map_file.face_node_connectivity
     if FNC.mask.shape == ():
         # all faces have the same number of nodes; empty mask
         FNC.mask = FNC<0
