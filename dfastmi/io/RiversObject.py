@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@ import configparser
 from typing import List, Tuple
 import zlib
 from packaging.version import Version
+from pydantic import ValidationError
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
@@ -47,7 +48,7 @@ class RiversObject():
     def __init__(self, filename: str = "rivers.ini"):
         self._read_rivers_file(filename)
     
-    def get_branch(self, branch_name : str) -> IBranch:
+    def get_branch(self, branch_name : str) -> Branch:
         """
         Return the branch from the read branches list
         Arguments
@@ -116,7 +117,7 @@ class RiversObject():
                     else:    
                         reach = Reach(reach_name, i)
                     branch.reaches.append(reach)
-                except:
+                except Exception as e:
                     break
 
     def _parse_branches(self, config : configparser.ConfigParser):
@@ -155,7 +156,7 @@ class RiversObject():
         self.version = Version("1.0")
         for branch in self.branches:
             for reach in branch.reaches:
-                self._initialize(river_data, reach)
+                self._initialize_base(river_data, reach)
                 self._initialize_legacy(river_data, reach)
 
     def _initialize_legacy(self, river_data : DFastMIConfigParser, reach : ReachLegacy):
@@ -167,7 +168,7 @@ class RiversObject():
         reach.qlevels = river_data.read_key(Tuple[float, ...], "QLevels", reach, expected_number_of_values=4)
         reach.dq = river_data.read_key(Tuple[float, ...], "dQ", reach, expected_number_of_values=2)
 
-    def _initialize(self, river_data : DFastMIConfigParser, reach:IReach):
+    def _initialize_base(self, river_data : DFastMIConfigParser, reach:IReach):
         reach.normal_width = river_data.read_key(float, "NWidth", reach)
         reach.ucritical = river_data.read_key(float, "UCrit", reach)
         reach.qstagnant = river_data.read_key(float, "QStagnant", reach)
@@ -187,106 +188,14 @@ class RiversObject():
         self.version = Version("2.0")
         for branch in self.branches:
             for reach in branch.reaches:
+                self._initialize_base(river_data, reach)
                 self._initialize(river_data, reach)
-                self._initialize_advanced(river_data, reach)
-        
-        self._verify_reaches()
-        
-    def _verify_reaches(self):
-        for branch in self.branches:
-            for reach in branch.reaches:
-                hydro_q = reach.hydro_q
-                hydro_t = reach.hydro_t
-                auto_time = reach.autotime
-                qfit = reach.qfit
-                self._verify_consistency_HydroQ_and_HydroT(hydro_q, hydro_t, auto_time, qfit, branch.name, reach.name)
+                reach.model_validate(reach)
 
-                use_tide = reach.use_tide
-                tide_boundary_condition = reach.tide_boundary_condition
-                self._verify_consistency_Hydro_and_TideBC(use_tide, hydro_q, tide_boundary_condition, branch.name, reach.name)
-                
-                celer_form = reach.celer_form                
-                celer_object = reach.celer_object
-                self._verify_CelerForm_with_PropQ_and_PropC(celer_form, celer_object, branch.name, reach.name)
-
-    def _verify_CelerForm_with_PropQ_and_PropC(self, celer_form:int, celer_object, branch, reach):
-        if celer_form == 1:
-            prop_q_length = len(celer_object.prop_q)
-            prop_c_lenght = len(celer_object.prop_c)
-            if prop_q_length != prop_c_lenght:
-                raise Exception(
-                            'Length of "PropQ" and "PropC" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
-                                branch,
-                                reach,
-                                prop_q_length,
-                                prop_c_lenght,
-                            )
-                        )
-            elif prop_q_length == 0:
-                raise Exception(
-                            'The parameters "PropQ" and "PropC" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 1.'.format(
-                                branch,
-                                reach,
-                            )
-                        )
-        elif celer_form == 2:
-            if celer_object.cdisch == (0.0, 0.0):
-                raise Exception(
-                            'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
-                                branch,
-                                reach,
-                            )
-                        )
-                        
-        else:
-            raise Exception(
-                        'Invalid value {} specified for "CelerForm" for branch "{}", reach "{}"; only 1 and 2 are supported.'.format(
-                            celer_form,
-                            branch,
-                            reach,
-                        )
-                    )
-
-    def _verify_consistency_Hydro_and_TideBC(self, use_tide, hydro_q, tide_boundary_condition, branch, reach):        
-        """
-            Verify consistent length of hydro discharge and tide boundary condition values for this branch on this reach.
-        """
-        if use_tide:
-            hydro_q_length = len(hydro_q)
-            tide_boundary_condition_length = len(tide_boundary_condition)
-            if hydro_q_length != tide_boundary_condition_length:
-                raise Exception(
-                            'Length of "HydroQ" and "TideBC" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
-                                branch,
-                                reach,
-                                hydro_q_length,
-                                tide_boundary_condition_length
-                            )
-                        )
-
-    def _verify_consistency_HydroQ_and_HydroT(self, hydro_q, hydro_t, auto_time, qfit, branch, reach):
-        """
-            Verify consistent length of hydro_q and hydro_t for this branch on this reach.
-        """        
-        if auto_time:                        
-            self._check_qfit_on_branch_on_reach_with_auto_time(qfit, branch, reach)
-        else:            
-            hydro_q_length = len(hydro_q)
-            hydro_t_length = len(hydro_t)
-            if hydro_q_length != hydro_t_length:
-                raise Exception(
-                            'Length of "HydroQ" and "HydroT" for branch "{}", reach "{}" are not consistent: {} and {} values read respectively.'.format(
-                                branch,
-                                reach,
-                                hydro_q_length,
-                                hydro_t_length,
-                            )
-                        )
-
-    def _initialize_advanced(self, river_data : DFastMIConfigParser, reach : Reach):
+    def _initialize(self, river_data : DFastMIConfigParser, reach : Reach):
         reach.hydro_q = river_data.read_key(Tuple[float, ...], "HydroQ", reach)
 
-        reach.autotime = river_data.read_key(bool, "AutoTime", reach, False)
+        reach.auto_time = river_data.read_key(bool, "AutoTime", reach, False)
         # for AutoTime = True
         reach.qfit = river_data.read_key(Tuple[float, ...], "QFit", reach, (0.0, 0.0), 2)
         # for AutoTime = False
@@ -298,24 +207,15 @@ class RiversObject():
 
         reach.celer_form = river_data.read_key(int, "CelerForm", reach, 2)
         if reach.celer_form == 1:
-            celerProperties = CelerProperties()
-            celerProperties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
-            celerProperties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
-            reach.celer_object = celerProperties
+            celerity_properties = CelerProperties()
+            celerity_properties.prop_q = river_data.read_key(Tuple[float, ...], "PropQ", reach)
+            celerity_properties.prop_c = river_data.read_key(Tuple[float, ...], "PropC", reach)
+            reach.celer_object = celerity_properties
         elif reach.celer_form == 2:
-            celerDischarge = CelerDischarge()
-            celerDischarge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
-            reach.celer_object = celerDischarge
-        
-    def _check_qfit_on_branch_on_reach_with_auto_time(self, qfit, branch, reach):
-        if qfit == (0.0, 0.0):
-            raise Exception(
-                            'The parameter "QFit" must be specified for branch "{}", reach "{}" since "AutoTime" is set to True.'.format(
-                                branch,
-                                reach,
-                            )
-                    )               
-
+            celerity_discharge = CelerDischarge()
+            celerity_discharge.cdisch = river_data.read_key(Tuple[float, ...], "CelerQ", reach, (0.0, 0.0), 2)
+            reach.celer_object = celerity_discharge       
+    
     def _verify_checksum_rivers(        
         self, 
         config: configparser.ConfigParser,

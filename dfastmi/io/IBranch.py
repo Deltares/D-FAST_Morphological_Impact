@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -35,10 +35,12 @@ Interfaces:
 """
 
 from abc import ABC, abstractmethod
+from pydantic import BaseModel
+
 
 from dfastmi.io.IReach import IReach
 
-class IBranch(ABC):
+class IBranch(ABC, BaseModel):
     """Interface for branch information"""  
 
     @property

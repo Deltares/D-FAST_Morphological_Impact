@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,6 @@ from pathlib import Path
 from packaging.version import Version
 from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 
-from dfastmi.io.FileUtils import FileUtils
 from dfastmi.io.RiversObject import RiversObject
 
 class ConfigFileOperations:
@@ -144,7 +143,7 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only relative paths.
         """
         absolute_path = config.get(section, key, fallback="")
-        absolute_path_converted_to_relative_path = FileUtils.relative_path(rootdir, absolute_path)
+        absolute_path_converted_to_relative_path = str(Path(absolute_path).relative_to(rootdir))
         config.set(section, key, absolute_path_converted_to_relative_path)
 
     @staticmethod
@@ -233,7 +232,7 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         relative_path = config.get(section, key, fallback="")
-        relative_path_converted_to_absolute_path = FileUtils.absolute_path(rootdir, relative_path)
+        relative_path_converted_to_absolute_path = str(Path(rootdir).joinpath(Path(relative_path)))
         config.set(section, key, relative_path_converted_to_absolute_path)
 
 

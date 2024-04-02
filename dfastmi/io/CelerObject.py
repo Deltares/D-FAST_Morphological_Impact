@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -38,17 +38,15 @@ Classes:
 
 """
 from abc import ABC, abstractmethod
-from typing import List
-
+from typing import List, Tuple
+from pydantic import BaseModel, model_validator
+from dfastmi.io.AReach import AReach
 from dfastmi.kernel.typehints import Vector
 
-
-class ICelerObject(ABC):
+class ICelerObject(ABC, BaseModel):
     "Interface or abstract base class to the CelerObject."
-    @abstractmethod
-    def validate(self):
-        pass
-    
+    parent_reach : AReach = None
+        
     @abstractmethod
     def get_celerity(self, discharges : Vector) -> Vector:
         """
@@ -70,18 +68,24 @@ class ICelerObject(ABC):
         pass
 
 class CelerDischarge(ICelerObject):
-    cdisch = tuple[float,float]
+    """
+        Series of discharge, bed celerity pairs
+    """
+    cdisch : Tuple[float,float] = (0.0, 0.0)
     
-    def validate(self):
-        if self.cdisch == (0.0, 0.0):            
-            # raise Exception(
-            #             'The parameter "CelerQ" must be specified for branch "{}", reach "{}" since "CelerForm" is set to 2.'.format(
-            #                 branch,
-            #                 reach,
-            #             )
-            #         )
-            return
-    
+    @model_validator(mode='after')
+    def validate(self) -> 'CelerDischarge' :
+        if not self.parent_reach:
+            return self
+        
+        branch_name : str = self.parent_reach.parent_branch.name
+        reach_name : str = self.parent_reach.name
+        if self.cdisch == (0.0, 0.0):
+             raise ValueError(f'The parameter "CelerQ" must be specified for branch "{branch_name}", '
+                              f'reach "{reach_name}" since "CelerForm" is set to 2.')
+        return self
+        
+
     def get_celerity(self, discharges : Vector) -> Vector:
         """
         Will create a vector of values each representing the bed celerity for the 
@@ -104,13 +108,31 @@ class CelerDischarge(ICelerObject):
         celerity = tuple(self.cdisch[0]*pow(discharge,self.cdisch[1]) for discharge in discharges)
         return celerity
 
-
 class CelerProperties(ICelerObject):
-    prop_q : List[float]
-    prop_c : List[float]
+    """
+        Power-law relation between celerity and discharge
+    """
+    prop_q : List[float] = []
+    prop_c : List[float] = []
 
-    def validate(self):
-        return super().validate()
+    @model_validator(mode='after')
+    def validate(self) -> 'CelerProperties':
+        if not self.parent_reach:
+            return self
+        
+        branch_name : str = self.parent_reach.parent_branch.name
+        reach_name : str = self.parent_reach.name
+        prop_q_length = len(self.prop_q)
+        prop_c_length = len(self.prop_c)
+        if prop_q_length != prop_c_length:
+            raise LookupError(f'Length of "PropQ" and "PropC" for branch "{branch_name}", '
+                            f'reach "{reach_name}" are not consistent: '
+                            f'{prop_q_length} and {prop_c_length} values read respectively.')
+                    
+        if prop_q_length == 0:
+            raise ValueError(f'The parameters "PropQ" and "PropC" must be specified for '
+                            f'branch "{branch_name}", reach "{reach_name}" since "CelerForm" is set to 1.')
+        return self
     
     def get_celerity(self, discharges : Vector) -> Vector:
         """
