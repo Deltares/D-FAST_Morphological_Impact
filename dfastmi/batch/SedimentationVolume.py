@@ -33,11 +33,11 @@ from typing import Tuple
 
 import numpy
 
-from dfastmi.batch.detect_areas import detect_areas
+from dfastmi.batch.detect_areas import AreaDetector
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
 from dfastmi.batch.PlotOptions import PlotOptions
-from dfastmi.batch.report_areas import report_areas
+from dfastmi.batch.report_areas import AreaReporter
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 
@@ -289,7 +289,8 @@ def comp_sedimentation_volume(
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
     positive_up = True
-    sedarea, sedvol, sed_area_list, wght_area_tot = detect_areas(
+    sedimentation_area_detector = AreaDetector()
+    sedarea, sedvol, sed_area_list, wght_area_tot = sedimentation_area_detector.detect_areas(
         dzgemi,
         dzmin,
         edgeface_index,
@@ -303,7 +304,8 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-    report_areas(
+    sedimentation_area_reporter = AreaReporter()
+    sedimentation_area_reporter.report_areas(
         dzgemi,
         areai,
         wbin,
@@ -328,8 +330,9 @@ def comp_sedimentation_volume(
     xyzfil = ""
     area_str = "erosion area {}"
     total_str = "total erosion volume"
+    erosion_area_detector = AreaDetector()
     positive_up = False
-    eroarea, erovol, ero_area_list, wght_area_tot = detect_areas(
+    eroarea, erovol, ero_area_list, wght_area_tot = erosion_area_detector.detect_areas(
         -dzgemi,
         dzmin,
         edgeface_index,
@@ -343,7 +346,8 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-    report_areas(
+    erosion_area_reporter = AreaReporter()
+    erosion_area_reporter.report_areas(
         -dzgemi,
         areai,
         wbin,
