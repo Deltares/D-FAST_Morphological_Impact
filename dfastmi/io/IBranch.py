@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -35,18 +35,29 @@ Interfaces:
 """
 
 from abc import ABC, abstractmethod
+from pydantic import BaseModel
+
 
 from dfastmi.io.IReach import IReach
 
-
-class IBranch(ABC):
-    """Interface for branch information"""
+class IBranch(ABC, BaseModel):
+    """Interface for branch information"""  
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Name of the branch"""
-
+        """Name of the branch"""        
+    
+    @property
     @abstractmethod
-    def get_reach(self, reach_name: str) -> IReach:
+    def qlocation(self) -> str:
+        """Location name in the branch where we have the discharge"""        
+    
+    @qlocation.setter
+    @abstractmethod
+    def qlocation(self, value):
+        """Set the location name in the branch where we have the discharge"""
+    
+    @abstractmethod
+    def get_reach(self, reach_name : str) -> IReach:
         """Reach in branch by name"""

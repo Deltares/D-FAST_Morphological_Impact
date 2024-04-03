@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2020 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -26,15 +26,16 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import os
+import pathlib
 import sys
+from dfastmi.batch.DFastUtils import get_progloc
+import dfastmi.cli
 
 import dfastmi.batch.core
-import dfastmi.cli
-import dfastmi.gui
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.FileUtils import FileUtils
+
+from dfastmi.gui.dialog_view import main
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 
 def run(
@@ -46,7 +47,7 @@ def run(
 ) -> None:
     """
     Main routine initializing the language file and starting the chosen run mode.
-
+    
     Arguments
     ---------
     language: str
@@ -62,10 +63,10 @@ def run(
         interest only (False is default).
     """
 
-    progloc = FileUtils.get_progloc()
+    progloc = get_progloc()
     try:
         ApplicationSettingsHelper.load_program_texts(
-            progloc + os.path.sep + "messages." + language + ".ini"
+            progloc.joinpath("messages." + language + ".ini")
         )
     except:
         if language == "NL":
@@ -77,7 +78,7 @@ def run(
         else:
             print("Unable to load language file 'messages." + language + ".ini'")
     else:
-        abs_rivers_file = FileUtils.absolute_path(progloc, rivers_file)
+        abs_rivers_file = str(pathlib.Path(progloc).absolute().joinpath(rivers_file))
         rivers = RiversObject(abs_rivers_file)
         if runmode == "BATCH":
             dfastmi.batch.core.batch_mode(configfile, rivers, reduced_output)
@@ -86,7 +87,7 @@ def run(
                 ApplicationSettingsHelper.log_text("ignoring_config")
             dfastmi.cli.interactive_mode(sys.stdin, rivers, reduced_output)
         elif runmode == "GUI":
-            dfastmi.gui.main(rivers, configfile)
+            main(rivers, configfile)
         else:
             raise Exception(
                 'Invalid run mode "{}" specified. Should read "BATCH", "CLI" or "GUI".'.format(

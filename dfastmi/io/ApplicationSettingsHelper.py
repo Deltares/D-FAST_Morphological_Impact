@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -55,7 +55,7 @@ class ApplicationSettingsHelper:
         text: List[str]
         dict: Dict[str, List[str]]
 
-        all_lines = open(filename, "r").read().splitlines()
+        all_lines = open(filename, "r",encoding="UTF-8").read().splitlines()
         dict = {}
         text = []
         key = None

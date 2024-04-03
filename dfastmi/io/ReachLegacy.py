@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,8 @@ Module for Reach implementation
 Classes:
     ReachLegacy
 """
+
+
 from typing import List
 
 from dfastmi.io.AReach import AReach
@@ -41,11 +43,10 @@ class ReachLegacy(AReach):
     """
     Derived class with reach data information used with legacy river configuration files.
     """
-
-    proprate_high: float
-    proprate_low: float
-    qbankfull: float
-    qmin: float
-    qfit: tuple[float, float]
-    qlevels: List[float]
-    dq: tuple[float, float]
+    proprate_high : float = 0.0
+    proprate_low : float = 0.0
+    qbankfull : float = 0.0
+    qmin : float = 0.0
+    qfit : tuple[float,float] = (0.0, 0.0)
+    qlevels : List[float]= []
+    dq : tuple[float,float] = (0.0, 0.0)

@@ -3,7 +3,7 @@
 This module contains the main computational routines of the D-FAST
 Morphological Impact application.
 
-Copyright (C) 2020 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -29,46 +29,24 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import math
-from typing import List, Tuple
+from typing import Tuple, List
 
+import math
 import numpy
 
 from dfastmi.kernel.BedLevelCalculator import BedLevelCalculator
-from dfastmi.kernel.typehints import BoolVector, Vector
+from dfastmi.kernel.typehints import Vector
 
-
-def relax_factors(
-    discharge_values: Vector,
-    year_fraction_values: Vector,
-    q_stagnant: float,
-    celerity: Vector,
-    nwidth: float,
-) -> Vector:
+def relax_factors(discharge_values: Vector, year_fraction_values: Vector, q_stagnant: float, celerity: Vector, nwidth: float) -> Vector:
     lsigma = [-1.0] * len(discharge_values)
-    for i, q in enumerate(discharge_values):
-        if q <= q_stagnant:
-            lsigma[i] = 1.0
-        else:
-            lsigma[i] = math.exp(-500 * celerity[i] * year_fraction_values[i] / nwidth)
+    for i,q in enumerate(discharge_values):
+         if q <= q_stagnant:
+             lsigma[i] = 1.0
+         else:
+             lsigma[i] = math.exp(-500 * celerity[i] * year_fraction_values[i] / nwidth)
     rsigma = tuple(s for s in lsigma)
 
     return rsigma
-
-
-def get_celerity(q: float, cel_q: Vector, cel_c: Vector) -> float:
-    for i in range(len(cel_q)):
-        if q < cel_q[i]:
-            if i > 0:
-                c = cel_c[i - 1] + (cel_c[i] - cel_c[i - 1]) * (q - cel_q[i - 1]) / (
-                    cel_q[i] - cel_q[i - 1]
-                )
-            else:
-                c = cel_c[0]
-            break
-    else:
-        c = cel_c[-1]
-    return c
 
 
 def estimate_sedimentation_length(
@@ -90,17 +68,12 @@ def estimate_sedimentation_length(
     L : float
         The expected yearly impacted sedimentation length [m].
     """
-    sedimentation_length_contributions = [tmi[i] * celerity[i] for i in range(len(tmi))]
+    sedimentation_length_contributions  = [tmi[i] * celerity[i] for i in range(len(tmi))]
     KM_TO_M = 1000
-    return sum(sedimentation_length_contributions) * KM_TO_M
-
+    return sum(sedimentation_length_contributions ) * KM_TO_M
 
 def dzq_from_du_and_h(
-    u0: numpy.ndarray,
-    h0: numpy.ndarray,
-    u1: numpy.ndarray,
-    ucrit: float,
-    default: float = numpy.NaN,
+    u0: numpy.ndarray, h0: numpy.ndarray, u1: numpy.ndarray, ucrit: float, default: float = numpy.NaN,
 ) -> numpy.ndarray:
     """
     This routine computes dzq from the velocity change and water depth.
@@ -159,12 +132,13 @@ def main_computation(
         Minimum bed level change.
     dzb   : List[numpy.ndarray]
         List of arrays containing the bed level change at the beginning of each respective discharge period.
-    """
+    """  
     number_of_periods = len(dzq)
     blc = BedLevelCalculator(number_of_periods)
     dzb = blc.get_bed_level_changes(dzq, rsigma)
     dzmax = blc.get_element_wise_maximum(dzb)
     dzmin = blc.get_element_wise_minimum(dzb)
     dzgem = blc.get_linear_average(fraction_of_year, dzb)
-
+    
     return dzgem, dzmax, dzmin, dzb
+

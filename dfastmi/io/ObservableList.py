@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2024 Stichting Deltares.
+Copyright © 2024 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -37,49 +37,48 @@ Classes:
 
 """
 from abc import abstractmethod
-from typing import Generic, Iterator, List, TypeVar
+from typing import Iterator, List, TypeVar, Generic
 
-T = TypeVar("T")
 
+T = TypeVar('T')
 
 # Define an observer interface
 class IObserver(Generic[T]):
     """
     An interface for observing changes in an ObservableList.
     """
-
     @abstractmethod
     def notify(self, element: T) -> None:
         """
         Method called when an element is added to the ObservableList.
-        """
-        pass
-
+        """        
 
 class ObservableList(Generic[T]):
     """
     This class is a list object, but notify it's observers when an element is added
     """
-
     def __init__(self):
         self._list: List[T] = []
-        self._observers: List[IObserver[T]] = []
+        self._observers : List[IObserver[T]] = []
 
     def __getitem__(self, index):
         return self._list[index]
-
+    
     def __iter__(self) -> Iterator[T]:
         return iter(self._list)
-
-    def append(self, element: T) -> None:
+    
+    def __len__(self) -> int:
+        return len(self._list)
+    
+    def append(self, element : T) -> None:
         """
-        When an element is appended in the list we want to notify the observers
+        When an element is appended in the list we want to notify the observers 
         of the list so an action can be done from the observers to the element which is added.
         """
         self._list.append(element)
         self._notify_observers(element)
 
-    def add_observer(self, observer: "IObserver[T]") -> None:
+    def add_observer(self, observer: 'IObserver[T]') -> None:
         """
         Add an objects which will observer the list (currently on appending an element)
         """
