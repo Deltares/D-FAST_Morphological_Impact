@@ -29,16 +29,34 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from typing import List, Tuple
 
-import os
 import numpy
 from dfastmi.batch.PlotOptions import PlotOptions
 import dfastmi.kernel.core
 import dfastmi.plotting
 
-def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotting_options : PlotOptions, xyzfil, area_str, total_str, pos_up, plot_n):
+def detect_and_plot_areas(dzgemi : numpy.ndarray,
+                          dzmin : float,
+                          EFCi : numpy.ndarray,
+                          wght_area_tot : numpy.ndarray,
+                          areai : numpy.ndarray,
+                          wbin : numpy.ndarray,
+                          wbin_labels : list[str],
+                          wthresh : numpy.ndarray,
+                          siface : numpy.ndarray,
+                          afrac : numpy.ndarray,
+                          sbin : numpy.ndarray,
+                          sthresh : numpy.ndarray,
+                          kmid : numpy.ndarray,
+                          slength : float,
+                          plotting_options : PlotOptions,
+                          xyzfil : str,
+                          area_str : str,
+                          total_str : str,
+                          pos_up : bool,
+                          plot_n : int) -> Tuple[numpy.ndarray, numpy.ndarray, list, numpy.ndarray]:
     sbin_length = sthresh[1] - sthresh[0]
 
-    area, volume, sub_area_list, wght_area_tot = detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
+    area, volume, sub_area_list, wght_area_tot = _detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
 
     binvol = comp_binned_volumes(numpy.maximum( dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh)
     
@@ -82,7 +100,19 @@ def detect_and_plot_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wbin_
     
     return area, volume, sub_area_list, wght_area_tot
 
-def detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength):
+def _detect_areas(dzgemi : numpy.ndarray,
+                  dzmin : float,
+                  EFCi : numpy.ndarray,
+                  wght_area_tot : numpy.ndarray,
+                  areai : numpy.ndarray,
+                  wbin : numpy.ndarray,
+                  wthresh : numpy.ndarray,
+                  siface : numpy.ndarray,
+                  afrac : numpy.ndarray,
+                  sbin : numpy.ndarray,
+                  sthresh : numpy.ndarray,
+                  slength : float) -> Tuple[numpy.ndarray, numpy.ndarray, list, numpy.ndarray]:
+    
     sbin_length = sthresh[1] - sthresh[0]
     nwidth = wthresh[-1] - wthresh[0]
     sub_areai, n_sub_areas = detect_connected_regions(dzgemi > dzmin, EFCi)
@@ -97,11 +127,9 @@ def detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, sifac
         dzgemi_filtered[sub_areai != ia] = 0.0
         sub_area_list.append(sub_areai == ia)
         
-        #ApplicationSettingsHelper.log_text("sed_vol",dict = {"ia": ia+1, "nr": 1})
         volume[1,ia], wght_area_ia = comp_sedimentation_volume1(dzgemi_filtered, dzmin, areai, wbin, siface, afrac, sbin, wthresh, sthresh, slength, sbin_length)
         wght_area_tot = wght_area_tot + wght_area_ia
         
-        #ApplicationSettingsHelper.log_text("sed_vol",dict = {"ia": ia+1, "nr": 2})
         volume[2,ia], area[ia], volume[0,ia] = comp_sedimentation_volume2(numpy.maximum(dzgemi_filtered,0.0), dzmin, areai, slength, nwidth)
     
     sorted_list = numpy.argsort(area)[::-1]
@@ -258,11 +286,8 @@ def comp_sedimentation_volume1(
         
         tot_dredge_vol_wbin, wght_all_dredge_bin = comp_sedimentation_volume1_one_width_bin(dvol[siface[lw]], sbin[lw], afrac[lw], siface[lw], sthresh, sbin_length, slength)
         
-        #print("width bin {}, total volume {:.6f} m3".format(iw+1, tot_dredge_vol_wbin))
         tot_dredge_vol = tot_dredge_vol + tot_dredge_vol_wbin
         wght_all_dredge = wght_all_dredge + numpy.bincount(siface[lw], weights = wght_all_dredge_bin, minlength = n_faces)
-
-    #print("-------> total volume {:.6f} m3".format(tot_dredge_vol))
 
     return tot_dredge_vol, wght_all_dredge
 
@@ -353,10 +378,7 @@ def comp_sedimentation_volume1_tot(
             if frac != 0.0:
                 wght[ii] = wght[ii] + frac * afrac[ii]
                 dredge_vol = dredge_vol + frac * sedvol[ii] * afrac[ii]
-                #print(siface[ii], frac, sedvol[ii], afrac[ii], frac * sedvol[ii] * afrac[ii],' -> ',dredge_vol)
         
-    #print(dredge_vol, ' > ', wght)
-
     return dredge_vol, wght
 
 def comp_sedimentation_volume2(
@@ -402,7 +424,6 @@ def comp_sedimentation_volume2(
         dvol = dz_eq * area_1y
     
     print(dzmin)
-    #print("dz_min = {:.6f} m, dz_max = {:.6f} m, dz_thresh = {:.6f} m".format(min(dzgem), max(dzgem), dzmin))
     print("dz_mean = {:.6f} m, width = {:.6f} m, length = {:.6f} m, volume = {:.6f} m3".format(dz_eq, nwidth, slength, dvol))
     return dvol, area_eq, dvol_eq
 
@@ -427,15 +448,12 @@ def detect_connected_regions(fcondition: numpy.ndarray, EFC: numpy.ndarray) -> T
         Number of regions detected.
     """
     partition = -numpy.ones(fcondition.shape[0], dtype=numpy.int64)
-    #print('Total number of cells ', fcondition.shape[0])
     
     ncells = fcondition.sum()
     partition[fcondition] = numpy.arange(ncells)
-    #print('Total number of flagged cells ', ncells)
     
     efc = EFC[fcondition[EFC].all(axis=1),:]
     nlinks = efc.shape[0]
-    #print('Total number of internal flow links ', nlinks)
     
     anychange = True
     while anychange:
