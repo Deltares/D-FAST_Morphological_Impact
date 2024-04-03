@@ -28,24 +28,26 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from pathlib import Path
-from typing import Dict, Any, Tuple, TextIO
+from typing import Any, Dict, TextIO, Tuple
+
+import shapely
+
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 
-import shapely
 
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
     nwidth: float,
-    filenames: Dict[Any, Tuple[str,str]],
+    filenames: Dict[Any, Tuple[str, str]],
     xykm: shapely.geometry.linestring.LineString,
     old_zmin_zmax: bool,
     outputdir: Path,
     plotting_options: PlotOptions,
-    initialized_config : AConfigurationInitializerBase
+    initialized_config: AConfigurationInitializerBase,
 ) -> bool:
     """
     Perform analysis based on D-Flow FM data.
@@ -82,12 +84,14 @@ def analyse_and_report_dflowfm(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    analyser = AnalyserDflowfm(display, report, old_zmin_zmax, outputdir, initialized_config)
+    analyser = AnalyserDflowfm(
+        display, report, old_zmin_zmax, outputdir, initialized_config
+    )
     report_data = analyser.analyse(nwidth, filenames, xykm, plotting_options)
-    
+
     if analyser.missing_data:
         return True
-    
+
     reporter = ReporterDflowfm(display)
     reporter.report(outputdir, plotting_options, report_data)
 

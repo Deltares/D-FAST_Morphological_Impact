@@ -35,29 +35,30 @@ Interfaces:
 """
 
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
 
+from pydantic import BaseModel
 
 from dfastmi.io.IReach import IReach
 
+
 class IBranch(ABC, BaseModel):
-    """Interface for branch information"""  
+    """Interface for branch information"""
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Name of the branch"""        
-    
+        """Name of the branch"""
+
     @property
     @abstractmethod
     def qlocation(self) -> str:
-        """Location name in the branch where we have the discharge"""        
-    
+        """Location name in the branch where we have the discharge"""
+
     @qlocation.setter
     @abstractmethod
     def qlocation(self, value):
         """Set the location name in the branch where we have the discharge"""
-    
+
     @abstractmethod
-    def get_reach(self, reach_name : str) -> IReach:
+    def get_reach(self, reach_name: str) -> IReach:
         """Reach in branch by name"""

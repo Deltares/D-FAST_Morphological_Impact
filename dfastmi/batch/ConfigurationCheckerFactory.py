@@ -27,24 +27,30 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 from typing import Callable
+
 from packaging.version import Version
+
 from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
 from dfastmi.batch.ConfigurationChecker import ConfigurationChecker
 from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
+
 
 class ConfigurationCheckerFactory:
     """
     Class is used to register and get creation of AConfigurationChecker Objects
     """
+
     _creators = {}
     """Contains the AConfigurationChecker Objects creators to be used"""
 
     @staticmethod
-    def register_creator(configuration_version: Version, creator: Callable[[], AConfigurationCheckerBase]):
+    def register_creator(
+        configuration_version: Version, creator: Callable[[], AConfigurationCheckerBase]
+    ):
         """Register creator function to create a AConfigurationChecker object."""
         if configuration_version not in ConfigurationCheckerFactory._creators:
             ConfigurationCheckerFactory._creators[configuration_version] = creator
-        
+
     @staticmethod
     def generate(configuration_version: Version) -> AConfigurationCheckerBase:
         """
@@ -63,11 +69,13 @@ class ConfigurationCheckerFactory:
         constructor = ConfigurationCheckerFactory._creators.get(configuration_version)
         if constructor:
             return constructor()
-        raise ValueError(f"No ConfigurationChecker constructor registered for version {configuration_version}")
+        raise ValueError(
+            f"No ConfigurationChecker constructor registered for version {configuration_version}"
+        )
+
 
 legacy_version = Version("1.0")
 ConfigurationCheckerFactory.register_creator(legacy_version, ConfigurationCheckerLegacy)
 
 correct_version = Version("2.0")
 ConfigurationCheckerFactory.register_creator(correct_version, ConfigurationChecker)
-

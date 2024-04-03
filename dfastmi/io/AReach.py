@@ -41,16 +41,17 @@ class AReach(IReach):
     """
     Abstract base class with reach data information. Should never be instantiated.
     """
-    _name : str
-    _config_key_index : int
 
-    normal_width : float = 0.0
-    ucritical : float = 0.0
-    qstagnant : float = 0.0
-    parent_branch : IBranch = None
+    _name: str
+    _config_key_index: int
 
-    def __init__(self, reach_name : str = "Reach", reach_config_key_index:int = 1):
-        super().__init__(_name=reach_name, _config_key_index = reach_config_key_index)
+    normal_width: float = 0.0
+    ucritical: float = 0.0
+    qstagnant: float = 0.0
+    parent_branch: IBranch = None
+
+    def __init__(self, reach_name: str = "Reach", reach_config_key_index: int = 1):
+        super().__init__(_name=reach_name, _config_key_index=reach_config_key_index)
         self._name = reach_name
         self._config_key_index = reach_config_key_index
 

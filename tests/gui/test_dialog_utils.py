@@ -1,29 +1,42 @@
 from typing import List
-import PyQt5
-from mock import patch
-import pytest
-from pytestqt.qtbot import QtBot
 from unittest.mock import MagicMock
-from dfastmi.gui.dialog_utils import FileExistValidator, FolderExistsValidator, ValidatingLineEdit, get_available_font, gui_text
+
+import PyQt5
+import pytest
+from mock import patch
+from pytestqt.qtbot import QtBot
+
+from dfastmi.gui.dialog_utils import (
+    FileExistValidator,
+    FolderExistsValidator,
+    ValidatingLineEdit,
+    get_available_font,
+    gui_text,
+)
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+
 
 @pytest.fixture
 def mock_application_settings_helper():
     return MagicMock(spec=ApplicationSettingsHelper)
 
+
 @pytest.fixture
 def file_exist_validator():
     return FileExistValidator()
+
 
 @pytest.fixture
 def folder_exists_validator():
     return FolderExistsValidator()
 
+
 @pytest.fixture
 def validating_line_edit():
     return ValidatingLineEdit()
 
-def test_file_exist_validator_validate(file_exist_validator : FileExistValidator):
+
+def test_file_exist_validator_validate(file_exist_validator: FileExistValidator):
     """
     given : FileExistValidator instance.
     when  : Invoking the validate method with a file that exists and a file that does not exist.
@@ -40,7 +53,10 @@ def test_file_exist_validator_validate(file_exist_validator : FileExistValidator
     result, _, _ = file_exist_validator.validate(input_text, pos)
     assert result == PyQt5.QtGui.QValidator.Invalid
 
-def test_folder_exists_validator_validate(folder_exists_validator : FolderExistsValidator):
+
+def test_folder_exists_validator_validate(
+    folder_exists_validator: FolderExistsValidator,
+):
     """
     given : FolderExistsValidator instance.
     when  : Invoking the validate method with a folder that exists and a folder that does not exist.
@@ -57,7 +73,10 @@ def test_folder_exists_validator_validate(folder_exists_validator : FolderExists
     result, _, _ = folder_exists_validator.validate(input_str, pos)
     assert result == PyQt5.QtGui.QValidator.Invalid
 
-def test_validating_line_edit_paint_event_setInvalid_True(validating_line_edit : ValidatingLineEdit, qtbot : QtBot):
+
+def test_validating_line_edit_paint_event_setInvalid_True(
+    validating_line_edit: ValidatingLineEdit, qtbot: QtBot
+):
     """
     given : ValidatingLineEdit instance.
     when  : Setting the widget as invalid and triggering a repaint.
@@ -68,10 +87,13 @@ def test_validating_line_edit_paint_event_setInvalid_True(validating_line_edit :
     qtbot.addWidget(validating_line_edit)
     validating_line_edit.show()
     validating_line_edit.repaint()  # Trigger repaint
-    
+
     assert validating_line_edit.invalid
 
-def test_validating_line_edit_paint_event_setInvalid_False(validating_line_edit : ValidatingLineEdit, qtbot : QtBot):
+
+def test_validating_line_edit_paint_event_setInvalid_False(
+    validating_line_edit: ValidatingLineEdit, qtbot: QtBot
+):
     """
     given : ValidatingLineEdit instance.
     when  : Setting the widget as valid and triggering a repaint.
@@ -83,8 +105,13 @@ def test_validating_line_edit_paint_event_setInvalid_False(validating_line_edit 
     validating_line_edit.show()
     validating_line_edit.repaint()  # Trigger repaint
     assert not validating_line_edit.invalid
-    
-def test_validating_line_edit_validate(validating_line_edit : ValidatingLineEdit, file_exist_validator : FileExistValidator, qtbot : QtBot):
+
+
+def test_validating_line_edit_validate(
+    validating_line_edit: ValidatingLineEdit,
+    file_exist_validator: FileExistValidator,
+    qtbot: QtBot,
+):
     """
     given : ValidatingLineEdit instance and FileExistValidator instance.
     when  : Invoking the validate method with a valid and an invalid input.
@@ -101,6 +128,7 @@ def test_validating_line_edit_validate(validating_line_edit : ValidatingLineEdit
     result, _, _ = validating_line_edit.validate(input_str, pos)
     assert result == PyQt5.QtGui.QValidator.Invalid
 
+
 def test_get_available_font():
     """
     given : No specific conditions.
@@ -114,9 +142,12 @@ def test_get_available_font():
     # Test when preferred font is available
     preferred_font = "Helvetica"
     fallback_font = "Tahoma"
-    result_font = get_available_font(current_font, preferred_font, fallback_font, QFontDatabaseWrapper())
+    result_font = get_available_font(
+        current_font, preferred_font, fallback_font, QFontDatabaseWrapper()
+    )
     assert result_font.family() == preferred_font
-    assert result_font.pointSize() == 12  # Point size should remain unchanged        
+    assert result_font.pointSize() == 12  # Point size should remain unchanged
+
 
 def test_get_available_font_preferred_font_is_not_available_but_fallback_font_is():
     """
@@ -131,9 +162,12 @@ def test_get_available_font_preferred_font_is_not_available_but_fallback_font_is
     # Test when preferred font is not available but fallback font is
     preferred_font = "Arial"
     fallback_font = "Tahoma"
-    result_font = get_available_font(current_font, preferred_font, fallback_font,QFontDatabaseWrapper())
+    result_font = get_available_font(
+        current_font, preferred_font, fallback_font, QFontDatabaseWrapper()
+    )
     assert result_font.family() == fallback_font
     assert result_font.pointSize() == 12  # Point size should remain unchanged
+
 
 def test_get_available_font_neither_preferred_nor_fallback_font_is_available():
     """
@@ -148,14 +182,20 @@ def test_get_available_font_neither_preferred_nor_fallback_font_is_available():
     # Test when neither preferred nor fallback font is available
     preferred_font = "Georgia"
     fallback_font = "Times New Roman"
-    result_font = get_available_font(current_font, preferred_font, fallback_font, QFontDatabaseWrapper())
-    assert result_font.family() == current_font.family()  # Should fall back to the current font
+    result_font = get_available_font(
+        current_font, preferred_font, fallback_font, QFontDatabaseWrapper()
+    )
+    assert (
+        result_font.family() == current_font.family()
+    )  # Should fall back to the current font
     assert result_font.pointSize() == 12  # Point size should remain unchanged
+
 
 class QFontDatabaseWrapper:
     def families(self) -> List[str]:
         return ["Helvetica", "Tahoma", "Verdana"]
-    
+
+
 def test_gui_text():
     """
     given : No specific conditions.
@@ -163,7 +203,9 @@ def test_gui_text():
     then  : The function should return the expected text based on the provided keys and placeholders.
     """
     # Mock the return value of ApplicationSettingsHelper.get_text
-    with patch("dfastmi.io.ApplicationSettingsHelper.ApplicationSettingsHelper.get_text") as mock_application_settings_helper_get_text:
+    with patch(
+        "dfastmi.io.ApplicationSettingsHelper.ApplicationSettingsHelper.get_text"
+    ) as mock_application_settings_helper_get_text:
         mock_application_settings_helper_get_text.return_value = ["Hello, {name}!"]
 
         # Test with placeholder dictionary
@@ -174,4 +216,3 @@ def test_gui_text():
         # Test without placeholder dictionary
         result = gui_text("greeting", "hello_")
         assert result == "Hello, {name}!"
-

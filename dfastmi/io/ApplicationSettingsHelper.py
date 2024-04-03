@@ -55,7 +55,7 @@ class ApplicationSettingsHelper:
         text: List[str]
         dict: Dict[str, List[str]]
 
-        all_lines = open(filename, "r",encoding="UTF-8").read().splitlines()
+        all_lines = open(filename, "r", encoding="UTF-8").read().splitlines()
         dict = {}
         text = []
         key = None

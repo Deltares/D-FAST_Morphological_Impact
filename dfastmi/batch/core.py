@@ -27,33 +27,32 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+import sys
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple, TextIO
-import sys
+from typing import Any, Dict, Optional, TextIO, Tuple
+
 import matplotlib
-from packaging.version import Version, InvalidVersion
-
-from dfastmi.batch.ConfigurationInitializerFactory import ConfigurationInitializerFactory
-from dfastmi.batch.PlotOptions import PlotOptions
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
-from dfastmi.io.IReach import IReach
-
-from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import Vector
-from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
-
-from dfastmi.batch import AnalyserAndReporterDflowfm
-from dfastmi.batch import AnalyserAndReporterWaqua
-
-from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from packaging.version import InvalidVersion, Version
 
 import dfastmi.kernel.core
 import dfastmi.plotting
+from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
+from dfastmi.batch.ConfigurationInitializerFactory import (
+    ConfigurationInitializerFactory,
+)
+from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from dfastmi.batch.PlotOptions import PlotOptions
+from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
+from dfastmi.io.IReach import IReach
+from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import Vector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
+
 
 def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> None:
     """
@@ -70,7 +69,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
-    
+
     Return
     ------
     None
@@ -84,10 +83,15 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     except:
         print(sys.exc_info()[1])
     else:
-        batch_mode_core(rivers, reduced_output, config, rootdir = rootdir)
+        batch_mode_core(rivers, reduced_output, config, rootdir=rootdir)
+
 
 def batch_mode_core(
-    rivers: RiversObject, reduced_output: bool, config: ConfigParser, rootdir: Path = None, gui: bool = False
+    rivers: RiversObject,
+    reduced_output: bool,
+    config: ConfigParser,
+    rootdir: Path = None,
+    gui: bool = False,
 ) -> bool:
     """
     Run the analysis for a given configuration in batch mode.
@@ -117,8 +121,10 @@ def batch_mode_core(
     # check outputdir
     rootdir = _get_root_dir(rootdir)
     outputdir = _get_output_dir(rootdir, display, data)
-    report_path = outputdir.joinpath(ApplicationSettingsHelper.get_filename("report.out"))
-    
+    report_path = outputdir.joinpath(
+        ApplicationSettingsHelper.get_filename("report.out")
+    )
+
     with report_path.open(mode="w", encoding="utf-8") as report:
         _log_header(report)
 
@@ -127,14 +133,18 @@ def batch_mode_core(
         branch_name = config.get("General", "Branch", fallback="")
         branch = rivers.get_branch(branch_name)
         if not branch:
-            ApplicationSettingsHelper.log_text("invalid_branch", dict={"branch": branch_name}, file=report)
+            ApplicationSettingsHelper.log_text(
+                "invalid_branch", dict={"branch": branch_name}, file=report
+            )
             success = False
         else:
             reach_name = config.get("General", "Reach", fallback="")
             reach = branch.get_reach(reach_name)
             if not reach:
                 ApplicationSettingsHelper.log_text(
-                    "invalid_reach", dict={"reach": reach_name, "branch": branch_name}, file=report
+                    "invalid_reach",
+                    dict={"reach": reach_name, "branch": branch_name},
+                    file=report,
                 )
                 success = False
             else:
@@ -148,16 +158,17 @@ def batch_mode_core(
                     reduced_output,
                     rootdir,
                     outputdir,
-                    gui
+                    gui,
                 )
 
         ApplicationSettingsHelper.log_text("end", file=report)
-    
+
     return success
+
 
 def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     """
-    Detect and log which mode is used to create the output report. 
+    Detect and log which mode is used to create the output report.
     The mode could be using WAQUA or (default) DFLOWFM.
     Depending on the mode select the appropriate analysis runner.
 
@@ -177,37 +188,38 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     if mode_str == WAQUA_EXPORT:
         imode = 0
         ApplicationSettingsHelper.log_text(
-                    "results_with_input_waqua",
-                    file=report,
-                    dict={
-                        "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
-                        "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
-                        "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
-                    },
-                )
+            "results_with_input_waqua",
+            file=report,
+            dict={
+                "avgdzb": ApplicationSettingsHelper.get_filename("avgdzb.out"),
+                "maxdzb": ApplicationSettingsHelper.get_filename("maxdzb.out"),
+                "mindzb": ApplicationSettingsHelper.get_filename("mindzb.out"),
+            },
+        )
     else:
         imode = 1
         ApplicationSettingsHelper.log_text(
-                    "results_with_input_dflowfm",
-                    file=report,
-                    dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
-                )
+            "results_with_input_dflowfm",
+            file=report,
+            dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
+        )
     return imode
+
 
 def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
     """
-    Will get the stated version string from the application config 
+    Will get the stated version string from the application config
     and convert this to a Version object.
-    This can be used to determine which Rivers configuration should 
+    This can be used to determine which Rivers configuration should
     be used in the calculation.
 
     Arguments
     ---------
     rivers : RiversObject
-        An object containing the river data.        
+        An object containing the river data.
     config: ConfigParser
         Configuration of the analysis to be run.
-    
+
     Return
     ------
     version : Version
@@ -217,34 +229,42 @@ def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
     try:
         cfg_version = Version(cfg_version)
     except InvalidVersion as exception:
-        raise LookupError(f"Wrong version detected in configuration file, when parsing the value got this : {exception}")
+        raise LookupError(
+            f"Wrong version detected in configuration file, when parsing the value got this : {exception}"
+        )
 
     if cfg_version != rivers.version:
-        raise LookupError(f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})")
-    
+        raise LookupError(
+            f"Version number of configuration file ({cfg_version}) must match version number of rivers file ({rivers.version})"
+        )
+
     return cfg_version
+
 
 def _log_header(report: TextIO) -> None:
     """
     Will log into the report default static header information
-    
+
     Arguments
     ---------
     report: TextIO
         An object containing the river data.
-    
+
     Returns
     -------
     None
     """
     prog_version = dfastmi.__version__
-    ApplicationSettingsHelper.log_text("header", dict={"version": prog_version}, file=report)
+    ApplicationSettingsHelper.log_text(
+        "header", dict={"version": prog_version}, file=report
+    )
     ApplicationSettingsHelper.log_text("limits", file=report)
     ApplicationSettingsHelper.log_text("===", file=report)
 
-def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -> Path:
+
+def _get_output_dir(rootdir: str, display: bool, data: DFastMIConfigParser) -> Path:
     """
-    Will get the string containing the explicit output directory from the dfast configuration. 
+    Will get the string containing the explicit output directory from the dfast configuration.
     If not available it will create an explicit output directory relative to the root directory.
     From this string it will create a PathLib Path object.
 
@@ -254,7 +274,7 @@ def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -
         Reference directory for default folders.
     display : bool
         Flag indicating text output to stdout.
-    data : DFastMIConfigParser        
+    data : DFastMIConfigParser
         DFast MI application config file.
 
     Return
@@ -262,7 +282,9 @@ def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -
     outputdir : Path
         A Path object to the output directory location.
     """
-    outputdir = Path(data.config_get(str, "General", "OutputDir", Path(rootdir).joinpath("output")))
+    outputdir = Path(
+        data.config_get(str, "General", "OutputDir", Path(rootdir).joinpath("output"))
+    )
     if outputdir.exists():
         if display:
             ApplicationSettingsHelper.log_text("overwrite_dir", dict={"dir": outputdir})
@@ -270,7 +292,8 @@ def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -
         outputdir.mkdir()
     return outputdir
 
-def _get_root_dir(rootdir:Path) -> Path:
+
+def _get_root_dir(rootdir: Path) -> Path:
     """
     Return a new path object representing the current directory.
 
@@ -278,16 +301,17 @@ def _get_root_dir(rootdir:Path) -> Path:
     ---------
     rootdir : Path
         Reference directory for default folders.
-    
+
     Return
     ------
     rootdir : Path
-        A Path object to the currenct directory 
+        A Path object to the currenct directory
         location or default directory location.
     """
     if not rootdir:
         rootdir = Path.cwd()
     return rootdir
+
 
 def count_discharges(discharges: Vector) -> int:
     """
@@ -305,11 +329,12 @@ def count_discharges(discharges: Vector) -> int:
     """
     return sum([q is not None for q in discharges])
 
+
 def get_filenames(
     imode: int,
     needs_tide: bool,
     config: Optional[ConfigParser] = None,
-) -> Dict[Any, Tuple[str,str]]:
+) -> Dict[Any, Tuple[str, str]]:
     """
     Extract the list of six file names from the configuration.
 
@@ -334,7 +359,7 @@ def get_filenames(
     """
 
     if imode != 0:
-        general_version = config.get("General", "Version", fallback= None)
+        general_version = config.get("General", "Version", fallback=None)
     else:
         general_version = None
 
@@ -343,20 +368,23 @@ def get_filenames(
     else:
         file_name_retriever_version = None
 
-    file_name_retriever = FileNameRetrieverFactory.generate(file_name_retriever_version, needs_tide)
+    file_name_retriever = FileNameRetrieverFactory.generate(
+        file_name_retriever_version, needs_tide
+    )
     return file_name_retriever.get_file_names(config)
 
+
 def _analyse_and_report(
-    config : ConfigParser,
-    data : DFastMIConfigParser,
-    cfg_version : Version,
-    reach : IReach,
-    display : bool,
-    report : TextIO,
-    reduced_output : bool,
-    rootdir : Path,
-    outputdir : Path,
-    gui : bool
+    config: ConfigParser,
+    data: DFastMIConfigParser,
+    cfg_version: Version,
+    reach: IReach,
+    display: bool,
+    report: TextIO,
+    reduced_output: bool,
+    rootdir: Path,
+    outputdir: Path,
+    gui: bool,
 ) -> bool:
     """
     Perform analysis for any model.
@@ -383,7 +411,7 @@ def _analyse_and_report(
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
     rootdir : Path
-        Reference directory for default folders.        
+        Reference directory for default folders.
     outputdir : Path
         Reference directory for default output folders.
     gui : bool
@@ -394,8 +422,10 @@ def _analyse_and_report(
     success : bool
         Flag indicating whether analysis could be carried out.
     """
-    initialized_config = ConfigurationInitializerFactory.generate(cfg_version, reach, config)
-    
+    initialized_config = ConfigurationInitializerFactory.generate(
+        cfg_version, reach, config
+    )
+
     old_zmin_zmax = False
 
     plotting_options = PlotOptions()
@@ -429,7 +459,7 @@ def _analyse_and_report(
             old_zmin_zmax,
             outputdir,
             plotting_options,
-            initialized_config
+            initialized_config,
         )
 
     _log_length_estimate(report, initialized_config.slength)
@@ -438,15 +468,16 @@ def _analyse_and_report(
 
     return success
 
-def _finalize_plotting(plotting_options : PlotOptions, gui : bool) -> None:
+
+def _finalize_plotting(plotting_options: PlotOptions, gui: bool) -> None:
     """
     When plotting the analysis results and done analysing we need to
     finalize some actions to stop the plotting.
-    
+
     Arguments
     ---------
     plotops : dict[str, Any]
-        The variable with the key values    
+        The variable with the key values
     gui : bool
         Flag indicating whether this routine is called from the GUI.
 
@@ -460,11 +491,12 @@ def _finalize_plotting(plotting_options : PlotOptions, gui : bool) -> None:
         else:
             matplotlib.pyplot.show(block=not gui)
 
-def _log_length_estimate(report : TextIO, slength:float) -> None:
+
+def _log_length_estimate(report: TextIO, slength: float) -> None:
     """
     After analysis is done we want to report the used estimated
     length in the report.
-    
+
     Arguments
     ---------
     report : TextIO
@@ -483,6 +515,7 @@ def _log_length_estimate(report : TextIO, slength:float) -> None:
     ApplicationSettingsHelper.log_text(
         "length_estimate", dict={"nlength": nlength}, file=report
     )
+
 
 def write_report(
     report: TextIO,
@@ -539,7 +572,9 @@ def write_report(
             file=report,
         )
     ApplicationSettingsHelper.log_text(
-        "report_qbankfull", dict={"q": q_bankfull, "border": q_location}, file=report,
+        "report_qbankfull",
+        dict={"q": q_bankfull, "border": q_location},
+        file=report,
     )
     ApplicationSettingsHelper.log_text("", file=report)
     if q_stagnant > q_fit[0]:
@@ -569,10 +604,14 @@ def write_report(
                 ApplicationSettingsHelper.log_text("---", file=report)
     number_of_discharges = count_discharges(discharges)
     if number_of_discharges == 1:
-        ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach}, file=report)
+        ApplicationSettingsHelper.log_text(
+            "need_single_input", dict={"reach": reach}, file=report
+        )
     else:
         ApplicationSettingsHelper.log_text(
-            "need_multiple_input", dict={"reach": reach, "numq": number_of_discharges}, file=report,
+            "need_multiple_input",
+            dict={"reach": reach, "numq": number_of_discharges},
+            file=report,
         )
 
     stagenames = ["lowwater", "transition", "highwater"]
@@ -581,12 +620,16 @@ def write_report(
     for i in range(3):
         if discharges[i] is not None:
             ApplicationSettingsHelper.log_text(
-                stagenames[i], dict={"q": discharges[i], "border": q_location}, file=report
+                stagenames[i],
+                dict={"q": discharges[i], "border": q_location},
+                file=report,
             )
     ApplicationSettingsHelper.log_text("---", file=report)
     if slength > 1:
         nlength = int(slength)
     else:
         nlength = slength
-    ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength}, file=report)
+    ApplicationSettingsHelper.log_text(
+        "length_estimate", dict={"nlength": nlength}, file=report
+    )
     ApplicationSettingsHelper.log_text("prepare_input", file=report)

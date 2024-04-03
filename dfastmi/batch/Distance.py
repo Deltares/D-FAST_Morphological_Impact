@@ -27,11 +27,15 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-import numpy
 import math
 from typing import Tuple
 
-def distance_to_chainage(sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy.ndarray) -> numpy.ndarray:
+import numpy
+
+
+def distance_to_chainage(
+    sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy.ndarray
+) -> numpy.ndarray:
     """
     Interpolate a quantity 'chainage' along a line to a given set of points.
 
@@ -63,7 +67,7 @@ def distance_to_chainage(sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy
         s = spnt_sorted[i]
         while j < M:
             if sline[j] < s:
-                j = j+1
+                j = j + 1
             else:
                 break
         if j == 0:
@@ -74,12 +78,13 @@ def distance_to_chainage(sline: numpy.ndarray, kline: numpy.ndarray, spnt: numpy
             kpnt[i] = kline[-1]
         else:
             # somewhere in the middle, average the chainage values
-            a = (s - sline[j-1]) / (sline[j] - sline[j-1])
-            kpnt[i] = (1-a) * kline[j-1] + a * kline[j]
+            a = (s - sline[j - 1]) / (sline[j] - sline[j - 1])
+            kpnt[i] = (1 - a) * kline[j - 1] + a * kline[j]
 
     return kpnt[unsort]
 
-def distance_along_line(xyline: numpy.ndarray)-> numpy.ndarray:
+
+def distance_along_line(xyline: numpy.ndarray) -> numpy.ndarray:
     """
     Compute distance coordinate along the specified line
 
@@ -95,12 +100,15 @@ def distance_along_line(xyline: numpy.ndarray)-> numpy.ndarray:
     """
 
     # compute distance coordinate along the line
-    ds = numpy.sqrt(((xyline[1:] - xyline[:-1])**2).sum(axis=1))
-    sline = numpy.cumsum(numpy.concatenate([numpy.zeros(1),ds]))
+    ds = numpy.sqrt(((xyline[1:] - xyline[:-1]) ** 2).sum(axis=1))
+    sline = numpy.cumsum(numpy.concatenate([numpy.zeros(1), ds]))
 
     return sline
 
-def get_direction(xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
+
+def get_direction(
+    xyline: numpy.ndarray, spnt: numpy.ndarray
+) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
     Determine the orientation of a line at a given set of points.
 
@@ -134,7 +142,7 @@ def get_direction(xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.nda
         s = spnt_sorted[i]
         while j < M:
             if sline[j] < s:
-                j = j+1
+                j = j + 1
             else:
                 break
         if j == 0:
@@ -145,9 +153,9 @@ def get_direction(xyline: numpy.ndarray, spnt: numpy.ndarray) -> Tuple[numpy.nda
             dxy = xyline[-1] - xyline[-2]
         else:
             # somewhere in the middle, get the direction of the line segment
-            dxy = xyline[j] - xyline[j-1]
+            dxy = xyline[j] - xyline[j - 1]
         ds = math.sqrt((dxy**2).sum())
-        dxpnt[i] = dxy[0]/ds
-        dypnt[i] = dxy[1]/ds
+        dxpnt[i] = dxy[0] / ds
+        dypnt[i] = dxy[1] / ds
 
     return dxpnt[unsort], dypnt[unsort]

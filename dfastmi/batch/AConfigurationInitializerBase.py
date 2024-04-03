@@ -29,9 +29,9 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from abc import ABC
 from configparser import ConfigParser
 from typing import Tuple
+
 from dfastmi.io.IReach import IReach
 from dfastmi.kernel.core import estimate_sedimentation_length
-
 from dfastmi.kernel.typehints import BoolVector, Vector
 
 
@@ -39,25 +39,25 @@ class AConfigurationInitializerBase(ABC):
     """
     DTO with discharges, times, etc. for analysis
     """
-    
-    def __init__(self, reach : IReach, config: ConfigParser):
+
+    def __init__(self, reach: IReach, config: ConfigParser):
         """
         Initialize the DTO with defaults and then initialize
         """
-        self._discharges : Vector = ()
-        self._rsigma : Vector = ()
-        self._time_fractions_of_the_year : Vector = ()
-        self._time_mi : Vector = ()
-        self._apply_q : Vector = ()
-        self._celerity : Vector = ()
-        self._tide_bc : Tuple[str, ...] = ()
-        self._q_threshold : float = 0.0
-        self._tstag : float = 0.0
-        self._ucrit : float = 0.0
-        self._n_fields : int = 1
-        self._slength : float = 0.0
-        self._needs_tide : bool = False
-        self._set_ucrit(reach, config)        
+        self._discharges: Vector = ()
+        self._rsigma: Vector = ()
+        self._time_fractions_of_the_year: Vector = ()
+        self._time_mi: Vector = ()
+        self._apply_q: Vector = ()
+        self._celerity: Vector = ()
+        self._tide_bc: Tuple[str, ...] = ()
+        self._q_threshold: float = 0.0
+        self._tstag: float = 0.0
+        self._ucrit: float = 0.0
+        self._n_fields: int = 1
+        self._slength: float = 0.0
+        self._needs_tide: bool = False
+        self._set_ucrit(reach, config)
 
     @property
     def discharges(self) -> Vector:
@@ -78,64 +78,64 @@ class AConfigurationInitializerBase(ABC):
     def tstag(self) -> float:
         """Fraction of year during which flow velocity is considered negligible [-]."""
         return self._tstag
-    
+
     @property
     def ucrit(self) -> float:
         """Critical flow velocity [m/s]."""
         return self._ucrit
-    
+
     @property
     def slength(self) -> float:
         """The expected yearly impacted sedimentation length [m]."""
         return self._slength
-    
+
     @property
     def time_fractions_of_the_year(self) -> Vector:
         """A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-]."""
         return self._time_fractions_of_the_year
-    
+
     @property
     def time_mi(self) -> Vector:
         """A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-]."""
         return self._time_mi
-    
+
     @property
     def celerity(self) -> Vector:
         """A vector of values each representing the bed celerity for the period given by the corresponding entry in Q [m/s]."""
         return self._celerity
-    
+
     @property
     def tide_bc(self) -> Tuple[str, ...]:
         """Array of tidal boundary condition; one per forcing condition."""
         return self._tide_bc
-    
+
     @property
     def apply_q(self) -> BoolVector:
         """A list of flags indicating whether the corresponding entry in Q should be used."""
         return self._apply_q
-    
+
     @property
     def needs_tide(self) -> bool:
         """Specifies whether the tidal boundary is needed."""
         return self._needs_tide
-    
-    @property    
+
+    @property
     def n_fields(self) -> int:
         """An int stating the number of fields."""
         return self._n_fields
-    
-    def _set_ucrit(self, reach : IReach, config: ConfigParser) -> None:
+
+    def _set_ucrit(self, reach: IReach, config: ConfigParser) -> None:
         """
-        Set critical flow velocity [m/s] based on dfast mi configuration 
+        Set critical flow velocity [m/s] based on dfast mi configuration
         and river default configuration or use min default.
 
         Arguments
         ---------
         reach : IReach
             Reach which we want to do the initialization on.
-        config : ConfigParser        
+        config : ConfigParser
             The variable containing the configuration.
-        
+
         Return
         ------
         None
@@ -148,11 +148,11 @@ class AConfigurationInitializerBase(ABC):
         ucrit_min = 0.01
         ucrit = max(ucrit_min, ucrit)
         self._ucrit = ucrit
-    
+
     def _set_slenght(self) -> None:
         """
-        Should only be called AFTER(!) init. 
-        Set the expected yearly impacted sedimentation length 
+        Should only be called AFTER(!) init.
+        Set the expected yearly impacted sedimentation length
         depending on time_mi and celerity.
 
         Arguments
