@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from pathlib import Path
 from typing import TextIO
 from dfastmi.batch.AnalyserWaqua import AnalyserWaqua
 from dfastmi.batch.ReporterWaqua import ReporterWaqua
@@ -43,7 +44,7 @@ def analyse_and_report_waqua(
     rsigma: Vector,
     ucrit: float,
     old_zmin_zmax: bool,
-    outputdir: str
+    outputdir: Path
 ) -> bool:
     """
     Perform analysis based on WAQUA data.
@@ -74,8 +75,8 @@ def analyse_and_report_waqua(
         Critical flow velocity [m/s].
     old_zmin_zmax : bool
         Specifies the minimum and maximum should follow old or new definition.
-    outputdir : str
-        Name of the output directory.
+    outputdir : Path
+        The output directory.
 
     Returns
     -------
