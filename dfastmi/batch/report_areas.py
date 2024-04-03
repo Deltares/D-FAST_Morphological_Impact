@@ -50,14 +50,13 @@ def report_areas(dzgemi : numpy.ndarray,
                  total_str : str,
                  pos_up : bool,
                  plot_n : int,
-                 sbin_length : float,
                  volume : numpy.ndarray,
                  sub_area_list : list):
     
+    sbin_length = sthresh[1] - sthresh[0]
     binvol = comp_binned_volumes(numpy.maximum( dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh)
-
+    
     _write_xyz_file(wbin_labels, kmid, xyzfil, binvol)
-
     _plot_areas(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotting_options, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list, binvol)
     
 

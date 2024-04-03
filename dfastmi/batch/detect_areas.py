@@ -28,40 +28,9 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Tuple
-
 import numpy
-from dfastmi.batch.PlotOptions import PlotOptions
-from dfastmi.batch.report_areas import report_areas
 
-def detect_and_plot_areas(dzgemi : numpy.ndarray,
-                          dzmin : float,
-                          EFCi : numpy.ndarray,
-                          wght_area_tot : numpy.ndarray,
-                          areai : numpy.ndarray,
-                          wbin : numpy.ndarray,
-                          wbin_labels : list[str],
-                          wthresh : numpy.ndarray,
-                          siface : numpy.ndarray,
-                          afrac : numpy.ndarray,
-                          sbin : numpy.ndarray,
-                          sthresh : numpy.ndarray,
-                          kmid : numpy.ndarray,
-                          slength : float,
-                          plotting_options : PlotOptions,
-                          xyzfil : str,
-                          area_str : str,
-                          total_str : str,
-                          pos_up : bool,
-                          plot_n : int) -> Tuple[numpy.ndarray, numpy.ndarray, list, numpy.ndarray]:
-    sbin_length = sthresh[1] - sthresh[0]
-
-    area, volume, sub_area_list, wght_area_tot = _detect_areas(dzgemi, dzmin, EFCi, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
-
-    report_areas(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotting_options, xyzfil, area_str, total_str, pos_up, plot_n, sbin_length, volume, sub_area_list)
-    
-    return area, volume, sub_area_list, wght_area_tot
-
-def _detect_areas(dzgemi : numpy.ndarray,
+def detect_areas(dzgemi : numpy.ndarray,
                   dzmin : float,
                   EFCi : numpy.ndarray,
                   wght_area_tot : numpy.ndarray,

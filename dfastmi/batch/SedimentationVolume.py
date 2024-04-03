@@ -33,11 +33,13 @@ import numpy
 
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
-from dfastmi.batch.DetectAndPlot import detect_and_plot_areas
+from dfastmi.batch.detect_areas import detect_areas
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from typing import Tuple
+
+from dfastmi.batch.report_areas import report_areas
 
 def stream_bins(min_s, max_s, ds):
     """
@@ -258,11 +260,16 @@ def comp_sedimentation_volume(
     xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
-    sedarea, sedvol, sed_area_list, wght_area_tot = detect_and_plot_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotting_options, xyzfil, area_str, total_str, True, plot_n)
+    positive_up = True
+    sedarea, sedvol, sed_area_list, wght_area_tot = detect_areas(dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
+    report_areas(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotting_options, xyzfil, area_str, total_str, positive_up, plot_n, sedvol, sed_area_list)
     
     print("-- detecting separate erosion areas")
     xyzfil = ""
     area_str = "erosion area {}"
     total_str = "total erosion volume"
-    eroarea, erovol, ero_area_list, wght_area_tot = detect_and_plot_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, slength, plotting_options, xyzfil, area_str, total_str, False, plot_n)
+    positive_up = False
+    eroarea, erovol, ero_area_list, wght_area_tot = detect_areas(-dzgemi, dzmin, edgeface_index, wght_area_tot, areai, wbin, wthresh, siface, afrac, sbin, sthresh, slength)
+    report_areas(-dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid, plotting_options, xyzfil, area_str, total_str, positive_up, plot_n, erovol, ero_area_list)
+    
     return SedimentationData(sedarea, sedvol, sed_area_list, eroarea, erovol, ero_area_list, wght_area_tot, wbini)
