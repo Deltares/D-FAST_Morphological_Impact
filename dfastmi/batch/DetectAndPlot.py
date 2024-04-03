@@ -127,7 +127,7 @@ def _detect_areas(dzgemi : numpy.ndarray,
         dzgemi_filtered[sub_areai != ia] = 0.0
         sub_area_list.append(sub_areai == ia)
         
-        volume[1,ia], wght_area_ia = comp_sedimentation_volume1(dzgemi_filtered, dzmin, areai, wbin, siface, afrac, sbin, wthresh, sthresh, slength, sbin_length)
+        volume[1,ia], wght_area_ia = comp_sedimentation_volume1(dzgemi_filtered, dzmin, areai, wbin, siface, afrac, sbin, wthresh, slength, sbin_length)
         wght_area_tot = wght_area_tot + wght_area_ia
         
         volume[2,ia], area[ia], volume[0,ia] = comp_sedimentation_volume2(numpy.maximum(dzgemi_filtered,0.0), dzmin, areai, slength, nwidth)
@@ -231,7 +231,6 @@ def comp_sedimentation_volume1(
     afrac: numpy.ndarray,
     sbin: numpy.ndarray,
     wthresh: numpy.ndarray,
-    sthresh: numpy.ndarray,
     slength: float,
     sbin_length: float,
 ) -> float:
@@ -257,8 +256,6 @@ def comp_sedimentation_volume1(
         Array of length N containing the index of the target chainage bin [-].
     wthresh : numpy.ndarray
         Array containing the cross-stream coordinate boundaries between the width bins [m].
-    sthresh : numpy.ndarray
-        Array containing the along-stream coordinate boundaries between the streamwise bins [m].
     slength : float
         The expected yearly impacted sedimentation length [m].
     sbin_length : float
@@ -275,7 +272,6 @@ def comp_sedimentation_volume1(
     dvol = dzgem_filtered * area
     
     n_wbin = len(wthresh)-1
-    n_sbin = len(sthresh)-1
     n_faces = len(dvol)
     tot_dredge_vol = 0
     wght_all_dredge = numpy.zeros(dvol.shape)
@@ -284,7 +280,7 @@ def comp_sedimentation_volume1(
     for iw in range(n_wbin):
         lw = wbin == iw
         
-        tot_dredge_vol_wbin, wght_all_dredge_bin = comp_sedimentation_volume1_one_width_bin(dvol[siface[lw]], sbin[lw], afrac[lw], siface[lw], sthresh, sbin_length, slength)
+        tot_dredge_vol_wbin, wght_all_dredge_bin = comp_sedimentation_volume1_one_width_bin(dvol[siface[lw]], sbin[lw], afrac[lw], siface[lw], sbin_length, slength)
         
         tot_dredge_vol = tot_dredge_vol + tot_dredge_vol_wbin
         wght_all_dredge = wght_all_dredge + numpy.bincount(siface[lw], weights = wght_all_dredge_bin, minlength = n_faces)
@@ -296,7 +292,6 @@ def comp_sedimentation_volume1_one_width_bin(
     sbin: numpy.ndarray,
     afrac: numpy.ndarray,
     siface: numpy.ndarray,
-    sthresh: numpy.ndarray,
     sbin_length: float,
     slength: float,
 ) -> float:
@@ -313,15 +308,13 @@ def comp_sedimentation_volume1_one_width_bin(
     dvol : float
         Sedimentation volume [m3].
     """    
-    n_sbin = len(sthresh)-1
-    
     check_sed = dvol > 0.0
     dvol_sed = dvol[check_sed]
     sbin_sed = sbin[check_sed]
     siface_sed = siface[check_sed]
     afrac_sed = afrac[check_sed]
     
-    tot_dredge_vol, wght_all_dredge_sed = comp_sedimentation_volume1_tot(dvol_sed, sbin_sed, afrac_sed, siface_sed, sthresh, sbin_length, slength)
+    tot_dredge_vol, wght_all_dredge_sed = comp_sedimentation_volume1_tot(dvol_sed, sbin_sed, afrac_sed, siface_sed, sbin_length, slength)
     
     wght_all_dredge = numpy.zeros(dvol.shape)
     wght_all_dredge[check_sed] = wght_all_dredge_sed
@@ -333,7 +326,6 @@ def comp_sedimentation_volume1_tot(
     sbin: numpy.ndarray,
     afrac: numpy.ndarray,
     siface: numpy.ndarray,
-    sthresh: numpy.ndarray,
     sbin_length: float,
     slength: float,
 ) -> float:
@@ -361,7 +353,6 @@ def comp_sedimentation_volume1_tot(
 
     if len(index) > 0:
         ibprev = -999
-        s0 = sthresh[sbin[index[0]]]
         slength1 = slength
         for i in range(len(index)):
             ii = index[i]
@@ -370,7 +361,6 @@ def comp_sedimentation_volume1_tot(
                 pass
 
             else: # next index
-                s0 = sthresh[ib]
                 frac = max(0.0, min(slength1/sbin_length, 1.0))
                 ibprev = ib
                 slength1 = slength1 - sbin_length
@@ -457,7 +447,6 @@ def detect_connected_regions(fcondition: numpy.ndarray, EFC: numpy.ndarray) -> T
     
     anychange = True
     while anychange:
-        partEFC = partition[efc]
         anychange = False
 
         for j in range(nlinks):
