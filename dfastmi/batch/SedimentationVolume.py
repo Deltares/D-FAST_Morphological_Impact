@@ -290,19 +290,21 @@ def comp_sedimentation_volume(
     total_str = "total sedimentation volume"
     positive_up = True
     sedimentation_area_detector = AreaDetector()
-    sedarea, sedvol, sed_area_list, wght_area_tot = sedimentation_area_detector.detect_areas(
-        dzgemi,
-        dzmin,
-        edgeface_index,
-        wght_area_tot,
-        areai,
-        wbin,
-        wthresh,
-        siface,
-        afrac,
-        sbin,
-        sthresh,
-        slength,
+    sedarea, sedvol, sed_area_list, wght_area_tot = (
+        sedimentation_area_detector.detect_areas(
+            dzgemi,
+            dzmin,
+            edgeface_index,
+            wght_area_tot,
+            areai,
+            wbin,
+            wthresh,
+            siface,
+            afrac,
+            sbin,
+            sthresh,
+            slength,
+        )
     )
     sedimentation_area_reporter = AreaReporter()
     sedimentation_area_reporter.report_areas(

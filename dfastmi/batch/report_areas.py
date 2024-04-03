@@ -35,9 +35,11 @@ import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch.PlotOptions import PlotOptions
 
+
 class AreaReporter:
 
-    def report_areas(self,
+    def report_areas(
+        self,
         dzgemi: numpy.ndarray,
         areai: numpy.ndarray,
         wbin: numpy.ndarray,
@@ -60,7 +62,14 @@ class AreaReporter:
 
         sbin_length = sthresh[1] - sthresh[0]
         binvol = self.comp_binned_volumes(
-            numpy.maximum(dzgemi, 0.0), areai, wbin, siface, afrac, sbin, wthresh, sthresh
+            numpy.maximum(dzgemi, 0.0),
+            areai,
+            wbin,
+            siface,
+            afrac,
+            sbin,
+            wthresh,
+            sthresh,
         )
 
         self._write_xyz_file(wbin_labels, kmid, xyzfil, binvol)
@@ -86,7 +95,6 @@ class AreaReporter:
             binvol,
         )
 
-
     def _write_xyz_file(self, wbin_labels, kmid, xyzfil, binvol):
         if xyzfil != "":
             # write a table of chainage and volume per width bin to file
@@ -98,8 +106,8 @@ class AreaReporter:
                     vol_str = " ".join("{:8.2f}".format(j) for j in binvol2[:, i])
                     file.write("{:8.2f} ".format(kmid[i]) + vol_str + "\n")
 
-
-    def _plot_areas(self,
+    def _plot_areas(
+        self,
         dzgemi: numpy.ndarray,
         areai: numpy.ndarray,
         wbin: numpy.ndarray,
@@ -160,8 +168,8 @@ class AreaReporter:
                     plotting_options,
                 )
 
-
-    def plot_certain_areas(self,
+    def plot_certain_areas(
+        self,
         condition,
         dzgemi,
         area_list,
@@ -201,8 +209,7 @@ class AreaReporter:
             figure_base_name = area_str.replace(" ", "_").format(ia + 1) + "_volumes"
             self._save_figure(plotting_options, fig, ax, figure_base_name)
 
-
-    def _save_figure(self,plotting_options: PlotOptions, fig, ax, figure_base_name):
+    def _save_figure(self, plotting_options: PlotOptions, fig, ax, figure_base_name):
         if plotting_options.saveplot:
             figbase = plotting_options.figure_save_directory / figure_base_name
             if plotting_options.saveplot_zoomed:
@@ -216,8 +223,8 @@ class AreaReporter:
             figfile = figbase.with_suffix(plotting_options.plot_extension)
             dfastmi.plotting.savefig(fig, figfile)
 
-
-    def comp_binned_volumes(self,
+    def comp_binned_volumes(
+        self,
         dzgem: numpy.ndarray,
         area: numpy.ndarray,
         wbin: numpy.ndarray,

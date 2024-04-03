@@ -31,9 +31,11 @@ from typing import Tuple
 
 import numpy
 
+
 class AreaDetector:
-    
-    def detect_areas(self,
+
+    def detect_areas(
+        self,
         dzgemi: numpy.ndarray,
         dzmin: float,
         EFCi: numpy.ndarray,
@@ -87,8 +89,8 @@ class AreaDetector:
 
         return area, volume, sub_area_list, wght_area_tot
 
-
-    def comp_sedimentation_volume1(self,
+    def comp_sedimentation_volume1(
+        self,
         dzgem: numpy.ndarray,
         dzmin: float,
         area: numpy.ndarray,
@@ -148,7 +150,12 @@ class AreaDetector:
 
             tot_dredge_vol_wbin, wght_all_dredge_bin = (
                 self.comp_sedimentation_volume1_one_width_bin(
-                    dvol[siface[lw]], sbin[lw], afrac[lw], siface[lw], sbin_length, slength
+                    dvol[siface[lw]],
+                    sbin[lw],
+                    afrac[lw],
+                    siface[lw],
+                    sbin_length,
+                    slength,
                 )
             )
 
@@ -159,8 +166,8 @@ class AreaDetector:
 
         return tot_dredge_vol, wght_all_dredge
 
-
-    def comp_sedimentation_volume1_one_width_bin(self,
+    def comp_sedimentation_volume1_one_width_bin(
+        self,
         dvol: numpy.ndarray,
         sbin: numpy.ndarray,
         afrac: numpy.ndarray,
@@ -196,8 +203,8 @@ class AreaDetector:
 
         return tot_dredge_vol, wght_all_dredge
 
-
-    def comp_sedimentation_volume1_tot(self,
+    def comp_sedimentation_volume1_tot(
+        self,
         sedvol: numpy.ndarray,
         sbin: numpy.ndarray,
         afrac: numpy.ndarray,
@@ -247,8 +254,8 @@ class AreaDetector:
 
         return dredge_vol, wght
 
-
-    def comp_sedimentation_volume2(self,
+    def comp_sedimentation_volume2(
+        self,
         dzgem: numpy.ndarray,
         dzmin: float,
         area: numpy.ndarray,
@@ -298,9 +305,8 @@ class AreaDetector:
         )
         return dvol, area_eq, dvol_eq
 
-
-    def detect_connected_regions(self,
-        fcondition: numpy.ndarray, EFC: numpy.ndarray
+    def detect_connected_regions(
+        self, fcondition: numpy.ndarray, EFC: numpy.ndarray
     ) -> Tuple[numpy.ndarray, int]:
         """
         Detect regions of faces for which the fcondition equals True.
