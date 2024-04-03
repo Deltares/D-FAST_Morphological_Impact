@@ -37,6 +37,7 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
  --windows-force-stderr-spec=%PROGRAM%logs.txt ^
  --windows-force-stdout-spec=%PROGRAM%output.txt ^
+ --windows-disable-console ^
  dfastmi
 
 rem end of build
