@@ -29,9 +29,11 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 from pathlib import Path
 from typing import TextIO
+
 from dfastmi.batch.AnalyserWaqua import AnalyserWaqua
 from dfastmi.batch.ReporterWaqua import ReporterWaqua
-from dfastmi.kernel.typehints import Vector, BoolVector
+from dfastmi.kernel.typehints import BoolVector, Vector
+
 
 def analyse_and_report_waqua(
     display: bool,
@@ -44,7 +46,7 @@ def analyse_and_report_waqua(
     rsigma: Vector,
     ucrit: float,
     old_zmin_zmax: bool,
-    outputdir: Path
+    outputdir: Path,
 ) -> bool:
     """
     Perform analysis based on WAQUA data.
@@ -83,7 +85,16 @@ def analyse_and_report_waqua(
     success : bool
         Flag indicating whether analysis could be carried out. (always true)
     """
-    waqua = AnalyserWaqua(display, report, reduced_output, tstag, discharges, apply_q, ucrit, old_zmin_zmax)
+    waqua = AnalyserWaqua(
+        display,
+        report,
+        reduced_output,
+        tstag,
+        discharges,
+        apply_q,
+        ucrit,
+        old_zmin_zmax,
+    )
     output_data = waqua.analyse(fraction_of_year, rsigma)
 
     waqua_reporter = ReporterWaqua(outputdir)

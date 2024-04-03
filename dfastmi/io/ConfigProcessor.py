@@ -36,19 +36,25 @@ Classes:
 
 from typing import Callable, Type, TypeVar
 
-T = TypeVar('T')  # Define a type variable
+T = TypeVar("T")  # Define a type variable
+
 
 class ConfigProcessor:
     """
-    Class is used to register processing functions to retrieve values from keys out of DFast MI Configuration files    
+    Class is used to register processing functions to retrieve values from keys out of DFast MI Configuration files
     """
-    _parsers  = {}
+
+    _parsers = {}
     """Contains the parser methods to be used to parse the value string to the data type"""
 
     def __init__(self):
         self._parsers = {}
 
-    def register_parser(self, element_type: Type[T], processor: Callable[[str], T],):
+    def register_parser(
+        self,
+        element_type: Type[T],
+        processor: Callable[[str], T],
+    ):
         """Register processing function to parse the type of element to get from the DFast MI Configuration."""
         self._parsers[element_type] = processor
 
@@ -58,4 +64,6 @@ class ConfigProcessor:
         if processor:
             return processor(config_value)
         else:
-            raise ValueError(f"No config value processor registered for type {element_type}")
+            raise ValueError(
+                f"No config value processor registered for type {element_type}"
+            )

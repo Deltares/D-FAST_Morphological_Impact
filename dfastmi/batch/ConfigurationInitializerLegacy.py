@@ -26,11 +26,10 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+from configparser import ConfigParser
 from typing import List, Optional
 
-from configparser import ConfigParser
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
-
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.kernel.legacy import char_discharges, char_times
 from dfastmi.kernel.typehints import BoolVector, QRuns
@@ -41,11 +40,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
     Determine discharges, times, etc. for version 1 analysis
     """
 
-    def __init__(
-        self,
-        reach: ReachLegacy,
-        config: ConfigParser
-    ) -> None:
+    def __init__(self, reach: ReachLegacy, config: ConfigParser) -> None:
         """
         Determine discharges, times, etc. for version 1 analysis
 
@@ -54,31 +49,37 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         reach : ReachLegacy
             The reach we want to get the levels from.
         config : configparser.ConfigParser
-            Configuration of the analysis to be run.        
+            Configuration of the analysis to be run.
 
         Return
         ------
         None
         """
-        
+
         super().__init__(reach, config)
         celerity_hg = reach.proprate_high
         celerity_lw = reach.proprate_low
         self._q_threshold = self._get_q_threshold_from_config(config)
-        
+
         self._set_discharges(reach, config, celerity_hg, celerity_lw)
-        self._time_mi = tuple(0 if self.discharges[i] is None or self.discharges[i]<= reach.qstagnant else self.time_fractions_of_the_year[i] for i in range(len(self.time_fractions_of_the_year)))
+        self._time_mi = tuple(
+            (
+                0
+                if self.discharges[i] is None or self.discharges[i] <= reach.qstagnant
+                else self.time_fractions_of_the_year[i]
+            )
+            for i in range(len(self.time_fractions_of_the_year))
+        )
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
         self._set_slenght()
-        
 
     def _set_discharges(
         self,
-        reach : ReachLegacy,
+        reach: ReachLegacy,
         config: ConfigParser,
         celerity_hg: float,
-        celerity_lw: float
-    ) -> None :
+        celerity_lw: float,
+    ) -> None:
         """
         Set the simulation discharges in batch mode (no user interaction).
         three_characteristic_discharges :  Tuple of (at most) three characteristic discharges [m3/s].
@@ -98,26 +99,42 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             Bed celerity during transitional and flood periods (from rivers configuration file) [m/s].
         celerity_lw : float
             Bed celerity during low flow period (from rivers configuration file) [m/s].
-        
+
         Results
         -------
         None
         """
-        q_bankfull = self._get_q_bankfull_from_config(config, self.q_threshold, reach.qlevels)
-
-        three_characteristic_discharges, self._apply_q = char_discharges(reach.qlevels, reach.dq, self.q_threshold, q_bankfull)
-
-        self._tstag, self._time_fractions_of_the_year, self._rsigma = char_times(
-            reach.qfit, reach.qstagnant, three_characteristic_discharges, celerity_hg, celerity_lw, reach.normal_width
+        q_bankfull = self._get_q_bankfull_from_config(
+            config, self.q_threshold, reach.qlevels
         )
 
-        q_list = self._discharge_from_config(config, three_characteristic_discharges, self.apply_q)
+        three_characteristic_discharges, self._apply_q = char_discharges(
+            reach.qlevels, reach.dq, self.q_threshold, q_bankfull
+        )
+
+        self._tstag, self._time_fractions_of_the_year, self._rsigma = char_times(
+            reach.qfit,
+            reach.qstagnant,
+            three_characteristic_discharges,
+            celerity_hg,
+            celerity_lw,
+            reach.normal_width,
+        )
+
+        q_list = self._discharge_from_config(
+            config, three_characteristic_discharges, self.apply_q
+        )
         self._discharges = (q_list[0], q_list[1], q_list[2])
 
-    def _discharge_from_config(self, config : ConfigParser, three_characteristic_discharges : QRuns, apply_q : BoolVector) -> List:
+    def _discharge_from_config(
+        self,
+        config: ConfigParser,
+        three_characteristic_discharges: QRuns,
+        apply_q: BoolVector,
+    ) -> List:
         """
         Tuple of (at most) three characteristic discharges [m3/s].
-        
+
         Arguments
         ---------
         config : configparser.ConfigParser
@@ -130,7 +147,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             The Q1 value can't be set to None because it's needed for char_times.
         Results
         -------
-        q_list : list 
+        q_list : list
             A list of discharges
         """
         q_list = list(three_characteristic_discharges)
@@ -145,9 +162,11 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
                 q_list[iq] = None
         return q_list
 
-    def _get_q_bankfull_from_config(self, config:ConfigParser, q_threshold:Optional[float], q_levels:List[float]) -> float:
+    def _get_q_bankfull_from_config(
+        self, config: ConfigParser, q_threshold: Optional[float], q_levels: List[float]
+    ) -> float:
         """
-        Get the simulation discharge at which measure reaches bankfull 
+        Get the simulation discharge at which measure reaches bankfull
         from configuration in batch mode (no user interaction).
 
         Arguments
@@ -155,8 +174,8 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         config : ConfigParser
             Configuration of the analysis to be run.
         q_threshold : Optional[float]
-            River discharge at which the measure becomes active 
-        q_levels : 
+            River discharge at which the measure becomes active
+        q_levels :
             Characteristic discharges used by algorithm [m3/s].
 
         Results
@@ -171,7 +190,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
                 q_bankfull = float(q_bankfull)
         return q_bankfull
 
-    def _get_q_threshold_from_config(self, config:ConfigParser) -> Optional[float]:
+    def _get_q_threshold_from_config(self, config: ConfigParser) -> Optional[float]:
         """
         Get the simulation discharge threshold from configuration in batch mode (no user interaction).
 
@@ -179,7 +198,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         ---------
         config : ConfigParser
             Configuration of the analysis to be run.
-        
+
         Results
         -------
         q_threshold : Optional[float]
@@ -193,7 +212,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             q_threshold = None
         return q_threshold
 
-    def _is_float_str(self, string:str) -> bool:
+    def _is_float_str(self, string: str) -> bool:
         """
         Check if a string represents a (floating point) number.
 

@@ -34,12 +34,14 @@ Interface:
 
 """
 from abc import ABC, abstractmethod
+
 from pydantic import BaseModel
 
+
 class IReach(ABC, BaseModel):
-    normal_width : float
-    ucritical : float
-    qstagnant : float
+    normal_width: float
+    ucritical: float
+    qstagnant: float
 
     """Interface for Reach information"""
 

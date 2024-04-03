@@ -28,11 +28,13 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from pathlib import Path
 from typing import List, Optional
+
+import netCDF4 as nc
 import numpy as np
 import numpy.ma as ma
-import netCDF4 as nc
 
 FACE_LOCATION = "face"
+
 
 class MapFile:
     def __init__(self, map_file: Path):
@@ -46,7 +48,7 @@ class MapFile:
         self._map_file = map_file
         self._mesh2d_name = None
         self._face_dimension_name = None
-    
+
     @property
     def node_x_coordinates(self) -> np.ndarray:
         """Get the x-coordinates of the nodes.
@@ -57,7 +59,7 @@ class MapFile:
             Array with shape (N,) where N is the number of nodes.
         """
         return self._get_node_coordinate_data(["projection_x_coordinate", "longitude"])
-    
+
     @property
     def node_y_coordinates(self) -> np.ndarray:
         """Get the y-coordinates of the nodes.
@@ -68,7 +70,7 @@ class MapFile:
             Array with shape (N,) where N is the number of nodes.
         """
         return self._get_node_coordinate_data(["projection_y_coordinate", "latitude"])
-    
+
     @property
     def face_node_connectivity(self) -> ma.masked_array:
         """Get the face-node connectivity from the 2d mesh.
@@ -77,7 +79,7 @@ class MapFile:
         -------
         ma.masked_array
             Array with shape (N,M) where N is the number of faces and M the maximum number of nodes per face.
-            If not all the faces have the same number of nodes, a boolean mask is provided with shape (N,M) 
+            If not all the faces have the same number of nodes, a boolean mask is provided with shape (N,M)
             where each True value indicates a fill value.
         """
         with nc.Dataset(self._map_file) as dataset:
@@ -93,10 +95,11 @@ class MapFile:
         if "start_index" in var.ncattrs():
             return var.getncattr("start_index")
         return 0
-    
-    def read_face_variable(self, 
-                      varname: str, 
-                      time_index_from_last: Optional[int] = None,
+
+    def read_face_variable(
+        self,
+        varname: str,
+        time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """
         Read the last time step of any quantity defined at faces from a D-Flow FM map-file.
@@ -117,7 +120,7 @@ class MapFile:
         Returns
         -------
         numpy.ndarray
-            1D data of the requested variable. If the variable is time-dependent, 
+            1D data of the requested variable. If the variable is time-dependent,
             the time_index_from_last is used.
         """
         with nc.Dataset(self._map_file) as dataset:
@@ -128,16 +131,16 @@ class MapFile:
 
     def _get_var_data(self, var: nc.Variable, time_index_from_last: Optional[int]):
         if var.get_dims()[0].isunlimited():
-                # assume that time dimension is unlimited and is the first dimension
-                # slice to obtain last time step or earlier as requested
+            # assume that time dimension is unlimited and is the first dimension
+            # slice to obtain last time step or earlier as requested
             if time_index_from_last is None:
                 time_index_from_last = 0
             return var[-1 - time_index_from_last, :]
-                
+
         if time_index_from_last is not None:
             raise ValueError(
                 'Trying to access time-independent variable "{}" with time offset {}.'.format(
-                            var.name, -1 - time_index_from_last
+                    var.name, -1 - time_index_from_last
                 )
             )
 
@@ -149,22 +152,26 @@ class MapFile:
             variables = self._get_face_vars_by_long_name(dataset, varname)
         if len(variables) != 1:
             raise ValueError(
-                    'Expected one variable for "{}", but obtained {}.'.format(
-                        varname, len(variables)
-                    )
+                'Expected one variable for "{}", but obtained {}.'.format(
+                    varname, len(variables)
                 )
+            )
         return variables[0]
 
-    def _get_face_vars_by_standard_name(self, dataset: nc.Dataset, standard_name: str) -> List[nc.Variable]:
+    def _get_face_vars_by_standard_name(
+        self, dataset: nc.Dataset, standard_name: str
+    ) -> List[nc.Variable]:
         return dataset.get_variables_by_attributes(
             standard_name=standard_name, mesh=self.mesh2d_name, location=FACE_LOCATION
         )
 
-    def _get_face_vars_by_long_name(self, dataset: nc.Dataset, long_name: str) -> List[nc.Variable]:
+    def _get_face_vars_by_long_name(
+        self, dataset: nc.Dataset, long_name: str
+    ) -> List[nc.Variable]:
         return dataset.get_variables_by_attributes(
             long_name=long_name, mesh=self.mesh2d_name, location=FACE_LOCATION
-        )        
-    
+        )
+
     @property
     def mesh2d_name(self) -> str:
         """Get the name of the mesh2d variable.
@@ -177,8 +184,8 @@ class MapFile:
         if not self._mesh2d_name:
             with nc.Dataset(self._map_file) as dataset:
                 mesh2d = MapFile._get_mesh2d_variable(dataset)
-                self._mesh2d_name = mesh2d.name    
- 
+                self._mesh2d_name = mesh2d.name
+
         return self._mesh2d_name
 
     @property
@@ -194,11 +201,13 @@ class MapFile:
             with nc.Dataset(self._map_file) as dataset:
                 mesh2d = dataset.variables[self.mesh2d_name]
                 facenodeconnect_varname = mesh2d.face_node_connectivity
-                fnc = dataset.get_variables_by_attributes(name=facenodeconnect_varname)[0]
+                fnc = dataset.get_variables_by_attributes(name=facenodeconnect_varname)[
+                    0
+                ]
                 self._face_dimension_name = fnc.dimensions[0]
-            
+
         return self._face_dimension_name
-    
+
     @staticmethod
     def _get_mesh2d_variable(dataset: nc.Dataset) -> nc.Variable:
         mesh2d = dataset.get_variables_by_attributes(
@@ -210,12 +219,13 @@ class MapFile:
                     len(mesh2d)
                 )
             )
-        
+
         return mesh2d[0]
 
-
     @staticmethod
-    def _copy_var(source_dataset: nc.Dataset, var_name: str, target_dataset: nc.Dataset) -> None:
+    def _copy_var(
+        source_dataset: nc.Dataset, var_name: str, target_dataset: nc.Dataset
+    ) -> None:
         """
         Copy a single variable from one netCDF file to another.
 
@@ -236,7 +246,9 @@ class MapFile:
         MapFile._copy_var_data(variable, target_dataset)
 
     @staticmethod
-    def _copy_var_dimensions(variable: nc.Variable, source_dataset: nc.Dataset, target_dataset: nc.Dataset):
+    def _copy_var_dimensions(
+        variable: nc.Variable, source_dataset: nc.Dataset, target_dataset: nc.Dataset
+    ):
         for dim_name in variable.dimensions:
             dimension = source_dataset.dimensions[dim_name]
             if dim_name not in target_dataset.dimensions.keys():
@@ -246,7 +258,9 @@ class MapFile:
 
     @staticmethod
     def _copy_var_data(variable: nc.Variable, target_dataset: nc.Dataset):
-        variable_copy = target_dataset.createVariable(variable.name, variable.datatype, variable.dimensions)
+        variable_copy = target_dataset.createVariable(
+            variable.name, variable.datatype, variable.dimensions
+        )
         variable_copy.setncatts(variable.__dict__)
         variable_copy[:] = variable[:]
 
@@ -263,14 +277,14 @@ class MapFile:
             Path to the target file.
         """
         target_file.unlink(missing_ok=True)
-        
+
         with nc.Dataset(self._map_file) as source_dataset:
             with nc.Dataset(target_file, "w", format="NETCDF4") as target_dataset:
 
                 mesh_variable = source_dataset.variables[self.mesh2d_name]
 
                 MapFile._copy_var(source_dataset, self.mesh2d_name, target_dataset)
-                
+
                 mesh_attrs = [
                     "face_node_connectivity",
                     "edge_node_connectivity",
@@ -280,10 +294,14 @@ class MapFile:
                     "node_coordinates",
                 ]
                 for mesh_attr in mesh_attrs:
-                    MapFile._copy_mesh_attr_variable(mesh_variable, mesh_attr, source_dataset, target_dataset)
+                    MapFile._copy_mesh_attr_variable(
+                        mesh_variable, mesh_attr, source_dataset, target_dataset
+                    )
 
     @staticmethod
-    def _copy_mesh_attr_variable(mesh_variable, mesh_attr, source_dataset, target_dataset):
+    def _copy_mesh_attr_variable(
+        mesh_variable, mesh_attr, source_dataset, target_dataset
+    ):
         var_names = MapFile._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
         for var_name in var_names:
             MapFile._copy_var(source_dataset, var_name, target_dataset)
@@ -292,19 +310,23 @@ class MapFile:
             variable = source_dataset.variables[var_name]
 
             bounds_attr = "bounds"
-            bounds_var_names = MapFile._get_var_names_from_var_attribute(variable, bounds_attr)
+            bounds_var_names = MapFile._get_var_names_from_var_attribute(
+                variable, bounds_attr
+            )
             for bounds_var_name in bounds_var_names:
                 MapFile._copy_var(source_dataset, bounds_var_name, target_dataset)
 
     @staticmethod
-    def _get_var_names_from_var_attribute(variable: nc.Variable, attr_name: str) -> List[str]:
+    def _get_var_names_from_var_attribute(
+        variable: nc.Variable, attr_name: str
+    ) -> List[str]:
         try:
             var_names = variable.getncattr(attr_name).split()
         except AttributeError:
             var_names = []
-            
+
         return var_names
-        
+
     def add_variable(
         self,
         variable_name: str,
@@ -343,18 +365,17 @@ class MapFile:
             var.units = unit
             var[:] = data[:]
 
-        
     def _get_node_coordinate_data(self, standard_names: List[str]) -> np.ndarray:
         with nc.Dataset(self._map_file) as dataset:
             mesh2d = dataset.variables[self.mesh2d_name]
-    
+
             coord_var_names = mesh2d.getncattr("node_coordinates").split()
             for coord_var_name in coord_var_names:
                 standard_name = dataset.variables[coord_var_name].standard_name
                 if standard_name in standard_names:
                     var = dataset.variables[coord_var_name]
                     break
-                
+
             data = var[...]
 
         return data

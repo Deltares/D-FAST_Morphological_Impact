@@ -28,14 +28,13 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import pathlib
 import sys
-from dfastmi.batch.DFastUtils import get_progloc
-import dfastmi.cli
 
 import dfastmi.batch.core
-
+import dfastmi.cli
+from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_view import main
-from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.RiversObject import RiversObject
 
 
 def run(
@@ -47,7 +46,7 @@ def run(
 ) -> None:
     """
     Main routine initializing the language file and starting the chosen run mode.
-    
+
     Arguments
     ---------
     language: str

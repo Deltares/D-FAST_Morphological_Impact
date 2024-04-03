@@ -1,13 +1,14 @@
-import context
 import os
+import subprocess
 import sys
-
 from contextlib import contextmanager
 from io import StringIO
-import subprocess
+
+import context
 
 # dfast binary path relative to tstdir
 dfastexe = "../../dfastmi.dist/dfastmi.exe"
+
 
 @contextmanager
 def captured_output():
@@ -19,7 +20,8 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-class Test_interactive_mode():
+
+class Test_interactive_mode:
     def test_interactive_mode_01(self):
         """
         Testing interactive_mode in Dutch.
@@ -28,17 +30,21 @@ class Test_interactive_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            infile = open("waqmorf.in","r")
-            result = subprocess.run([dfastexe,"--mode","CLI","--language","NL"], stdin=infile, capture_output=True)
-            outstr = result.stdout.decode('UTF-8').splitlines()
+            infile = open("waqmorf.in", "r")
+            result = subprocess.run(
+                [dfastexe, "--mode", "CLI", "--language", "NL"],
+                stdin=infile,
+                capture_output=True,
+            )
+            outstr = result.stdout.decode("UTF-8").splitlines()
         finally:
             os.chdir(cwd)
         #
-        #for s in outstr:
+        # for s in outstr:
         #    print(s)
         self.maxDiff = None
         #
-        prefixes = ('Dit is versie')
+        prefixes = "Dit is versie"
         #
         refstr = open(tstdir + os.sep + "ref_stdout_NL.txt", "r").read().splitlines()
         outstr = [x for x in outstr if not x.startswith(prefixes)]
@@ -71,17 +77,19 @@ class Test_interactive_mode():
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
-            infile = open("waqmorf.in","r")
-            result = subprocess.run([dfastexe,"--mode","CLI"], stdin=infile, capture_output=True)
-            outstr = result.stdout.decode('UTF-8').splitlines()
+            infile = open("waqmorf.in", "r")
+            result = subprocess.run(
+                [dfastexe, "--mode", "CLI"], stdin=infile, capture_output=True
+            )
+            outstr = result.stdout.decode("UTF-8").splitlines()
         finally:
             os.chdir(cwd)
         #
-        #for s in outstr:
+        # for s in outstr:
         #    print(s)
         self.maxDiff = None
         #
-        prefixes = ('This is version')
+        prefixes = "This is version"
         #
         refstr = open(tstdir + os.sep + "ref_stdout_UK.txt", "r").read().splitlines()
         outstr = [x for x in outstr if not x.startswith(prefixes)]
