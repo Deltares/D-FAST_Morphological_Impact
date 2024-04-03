@@ -36,13 +36,13 @@ class ReporterWaqua():
     """
     Class writes the report for waqua.
     """
-    def __init__(self, output_dir):
+    def __init__(self, output_dir: Path):
         """
         Init of the reporter.
 
         Arguments
         ---------
-        outputdir : str
+        outputdir : Path
             Name of the output directory.
         """
         self.output_dir = output_dir
@@ -69,4 +69,4 @@ class ReporterWaqua():
         DataTextFileOperations.write_simona_box(mindzb_file, output_data.data_zmin, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
 
     def _get_file_location(self, output_file_name : str) -> str:
-        return str(Path(self.output_dir).joinpath(ApplicationSettingsHelper.get_filename(output_file_name)))
+        return str(self.output_dir.joinpath(ApplicationSettingsHelper.get_filename(output_file_name)))

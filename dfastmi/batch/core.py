@@ -31,7 +31,6 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Optional, Dict, Any, Tuple, TextIO
 import sys
-import os
 import matplotlib
 from packaging.version import Version, InvalidVersion
 
@@ -81,14 +80,14 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
 
     try:
         config = ConfigFileOperations.load_configuration_file(config_file)
-        rootdir = os.path.dirname(config_file)
+        rootdir = Path(config_file).parent
     except:
         print(sys.exc_info()[1])
     else:
         batch_mode_core(rivers, reduced_output, config, rootdir = rootdir)
 
 def batch_mode_core(
-    rivers: RiversObject, reduced_output: bool, config: ConfigParser, rootdir: str = "", gui: bool = False
+    rivers: RiversObject, reduced_output: bool, config: ConfigParser, rootdir: Path = None, gui: bool = False
 ) -> bool:
     """
     Run the analysis for a given configuration in batch mode.
@@ -102,7 +101,7 @@ def batch_mode_core(
         interest only.
     config : configparser.ConfigParser
         Configuration of the analysis to be run.
-    rootdir : str
+    rootdir : Path
         Reference directory for default output folders.
     gui : bool
         Flag indicating whether this routine is called from the GUI.
@@ -271,7 +270,7 @@ def _get_output_dir(rootdir : str, display : bool, data : DFastMIConfigParser) -
         outputdir.mkdir()
     return outputdir
 
-def _get_root_dir(rootdir) -> str:
+def _get_root_dir(rootdir:Path) -> Path:
     """
     Return a new path object representing the current directory.
 
@@ -282,13 +281,13 @@ def _get_root_dir(rootdir) -> str:
     
     Return
     ------
-    rootdir : str
-        A to string converted Path object to the currenct directory 
+    rootdir : Path
+        A Path object to the currenct directory 
         location or default directory location.
     """
     if rootdir == "":
         rootdir = Path.cwd()
-    return str(rootdir)
+    return rootdir
 
 def count_discharges(discharges: Vector) -> int:
     """
@@ -355,8 +354,8 @@ def _analyse_and_report(
     display : bool,
     report : TextIO,
     reduced_output : bool,
-    rootdir : str,
-    outputdir : str,
+    rootdir : Path,
+    outputdir : Path,
     gui : bool
 ) -> bool:
     """
@@ -383,9 +382,9 @@ def _analyse_and_report(
     reduced_output : bool
         Flag to indicate whether WAQUA output should be reduced to the area of
         interest only.
-    rootdir : str
+    rootdir : Path
         Reference directory for default folders.        
-    outputdir : str
+    outputdir : Path
         Reference directory for default output folders.
     gui : bool
         Flag indicating whether this routine is called from the GUI.

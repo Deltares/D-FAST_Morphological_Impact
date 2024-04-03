@@ -25,13 +25,13 @@ class PlotOptions(BaseModel):
     kmzoom : List[Tuple[float, float]] =[]
     xyzoom : List[Tuple[float, float, float, float]] = []
         
-    def set_plotting_flags(self, rootdir : str, display : bool, data : DFastMIConfigParser):
+    def set_plotting_flags(self, rootdir : Path, display : bool, data : DFastMIConfigParser):
         """
         Set dictionary key values to be used in the analysis runner.
 
         Arguments
         ---------
-        rootdir : str
+        rootdir : Path
             Reference directory for default output folders.
         display : bool
             Flag indicating text output to stdout.
@@ -154,7 +154,7 @@ class PlotOptions(BaseModel):
                 ApplicationSettingsHelper.log_text("clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]})
         return kmbounds
     
-    def _set_output_figure_dir(self, rootdir : str, display : bool, data : DFastMIConfigParser, saveplot : bool) -> Optional[Path]:
+    def _set_output_figure_dir(self, rootdir : Path, display : bool, data : DFastMIConfigParser, saveplot : bool) -> Optional[Path]:
         """
         Read from the dfast mi configuration the output directory
         create when it doesn't exist or feedback that the content 
@@ -162,7 +162,7 @@ class PlotOptions(BaseModel):
 
         Arguments
         ---------
-        rootdir : str
+        rootdir : Path
             Reference directory for default output folders.
         display : bool
             Flag indicating text output to stdout.
@@ -175,7 +175,7 @@ class PlotOptions(BaseModel):
             The location where the plotted results will be stored.
         """
         if saveplot:
-            default_figure_dir = Path(rootdir).joinpath("figure")
+            default_figure_dir = rootdir.joinpath("figure")
             figdir = Path(data.config_get(str,"General", "FigureDir", default_figure_dir))
             if display:
                 ApplicationSettingsHelper.log_text("figure_dir", dict={"dir": str(figdir)})

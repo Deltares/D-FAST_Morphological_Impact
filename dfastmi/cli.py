@@ -125,7 +125,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             ApplicationSettingsHelper.log_text("", repeat=19)
             display = True
             old_zmin_zmax = True
-            outputdir = Path(".")
+            outputdir = Path.cwd()
             
             success = analyse_and_report_waqua(
             display,

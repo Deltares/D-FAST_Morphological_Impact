@@ -8,9 +8,9 @@ from shapely.geometry.linestring import LineString
 
 class Test_PlotOptions():
     
-    def test_PlotOptions_set_plotting_flags_sets_object_data(self):
+    def test_PlotOptions_set_plotting_flags_sets_object_data(self,tmp_path):
         plot_options = PlotOptions()
-        rootdir = ""
+        rootdir = tmp_path
         display = True
         data = Mock(spec=DFastMIConfigParser)
         
