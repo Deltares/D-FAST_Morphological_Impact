@@ -74,3 +74,4 @@ def remove_widget(widget: QWidget):
         The widget to be removed. 
     """
     widget.setParent(None)
+    widget.deleteLater()
