@@ -27,14 +27,18 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-import dfastmi.batch.Distance
-import dfastmi.batch.Face
-
-import numpy
 import math
 from typing import Tuple
 
-def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]:
+import numpy
+
+import dfastmi.batch.Distance
+import dfastmi.batch.Face
+
+
+def project_xy_point_onto_line(
+    xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray
+) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
     Project points onto a line.
 
@@ -65,7 +69,7 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
     """
     # combine xf and yf
     nf = len(xf)
-    xyf = numpy.concatenate([xf.reshape((nf,1)),yf.reshape((nf,1))], axis=1)
+    xyf = numpy.concatenate([xf.reshape((nf, 1)), yf.reshape((nf, 1))], axis=1)
 
     # pre-allocate the output arrays
     sf = numpy.zeros(nf)
@@ -81,7 +85,7 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
     sgn = 1
 
     # for each point xyp = xyf[i] ...
-    for i,xyp in enumerate(xyf):
+    for i, xyp in enumerate(xyf):
         # find the node on xyline closest to xyp
         imin = numpy.argmin(((xyp - xyline) ** 2).sum(axis=1))
         p0 = xyline[imin]
@@ -97,11 +101,11 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
             # check if xyp projects much before the first line segment.
             p1 = xyline[imin + 1]
             alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0])
-                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
             ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = ((p1[0] - p0[0]) * (xyp[1] - p0[1])
-                - (p1[1] - p0[1]) * (xyp[0] - p0[0]))
+            sgn = (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (
+                xyp[0] - p0[0]
+            )
             # if the closest point is before the segment ...
             if alpha < 0:
                 dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
@@ -116,11 +120,11 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
             # project xyp onto the line segment before this node
             p1 = xyline[imin - 1]
             alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0])
-                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
             ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = ((p0[0] - p1[0]) * (xyp[1] - p0[1])
-                - (p0[1] - p1[1]) * (xyp[0] - p0[0]))
+            sgn = (p0[0] - p1[0]) * (xyp[1] - p0[1]) - (p0[1] - p1[1]) * (
+                xyp[0] - p0[0]
+            )
             # if there is a closest point not coinciding with the nodes ...
             if alpha > 0 and alpha < 1:
                 dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
@@ -137,11 +141,11 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
             # check if xyp projects much beyond the last line segment.
             p1 = xyline[imin - 1]
             alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0])
-                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
             ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = ((p0[0] - p1[0]) * (xyp[1] - p0[1])
-                - (p0[1] - p1[1]) * (xyp[0] - p0[0]))
+            sgn = (p0[0] - p1[0]) * (xyp[1] - p0[1]) - (p0[1] - p1[1]) * (
+                xyp[0] - p0[0]
+            )
             # if the closest point is before the segment ...
             if alpha < 0:
                 dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
@@ -156,11 +160,11 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
             # project rp onto the line segment after this node
             p1 = xyline[imin + 1]
             alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0])
-                + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
             ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = ((p1[0] - p0[0]) * (xyp[1] - p0[1])
-                - (p1[1] - p0[1]) * (xyp[0] - p0[0]))
+            sgn = (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (
+                xyp[0] - p0[0]
+            )
             # if there is a closest point not coinciding with the nodes ...
             if alpha > 0 and alpha < 1:
                 dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
@@ -170,12 +174,10 @@ def project_xy_point_onto_line(xf: numpy.ndarray, yf: numpy.ndarray, xyline: num
                 if dist2link < dist2:
                     # update the closest point information
                     dist2 = dist2link
-                    s = sline[imin] + alpha * (
-                        sline[imin + 1] - sline[imin]
-                    )
+                    s = sline[imin] + alpha * (sline[imin + 1] - sline[imin])
 
         # store the distance values, loop ... and return
         sf[i] = s
         df[i] = math.copysign(math.sqrt(dist2), sgn)
 
-    return sf,df
+    return sf, df

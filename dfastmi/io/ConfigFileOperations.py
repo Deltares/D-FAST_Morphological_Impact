@@ -27,13 +27,15 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 import configparser
-from configparser import ConfigParser
 import os
+from configparser import ConfigParser
 from pathlib import Path
-from packaging.version import Version
-from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 
+from packaging.version import Version
+
+from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.io.RiversObject import RiversObject
+
 
 class ConfigFileOperations:
     @staticmethod
@@ -91,7 +93,7 @@ class ConfigFileOperations:
         rootdir = Path(filename).parent
         config = ConfigFileOperations._config_to_relative_paths(rootdir, config)
         ConfigFileOperations.write_config(filename, config)
-    
+
     @staticmethod
     def _config_to_relative_paths(
         rootdir: Path, config: configparser.ConfigParser
@@ -113,16 +115,24 @@ class ConfigFileOperations:
         """
         for key in ("RiverKM", "FigureDir", "OutputDir"):
             if key in config["General"]:
-                ConfigFileOperations._update_to_relative_path(rootdir, config, "General", key)
+                ConfigFileOperations._update_to_relative_path(
+                    rootdir, config, "General", key
+                )
         for qstr in config.keys():
             if "Reference" in config[qstr]:
-                ConfigFileOperations._update_to_relative_path(rootdir, config, qstr, "Reference")
+                ConfigFileOperations._update_to_relative_path(
+                    rootdir, config, qstr, "Reference"
+                )
             if "WithMeasure" in config[qstr]:
-                ConfigFileOperations._update_to_relative_path(rootdir, config, qstr, "WithMeasure")
+                ConfigFileOperations._update_to_relative_path(
+                    rootdir, config, qstr, "WithMeasure"
+                )
         return config
-    
+
     @staticmethod
-    def _update_to_relative_path(rootdir : Path, config : configparser.ConfigParser, section : str, key : str):
+    def _update_to_relative_path(
+        rootdir: Path, config: configparser.ConfigParser, section: str, key: str
+    ):
         """
         Convert a configuration object to contain absolute paths (for editing).
         Arguments
@@ -130,7 +140,7 @@ class ConfigFileOperations:
         rootdir : Path
             The path to be used as base for the absolute paths.
         config : configparser.ConfigParser
-            Configuration for the D-FAST Morphological Impact analysis with absolute paths 
+            Configuration for the D-FAST Morphological Impact analysis with absolute paths
             to be converted to relative paths.
         section : str
             Where in the configuration we need to update the absolute path
@@ -146,7 +156,9 @@ class ConfigFileOperations:
         if len(absolute_path) == 0:
             absolute_path = str(Path.cwd())
 
-        absolute_path_converted_to_relative_path = str(Path(absolute_path).relative_to(rootdir))
+        absolute_path_converted_to_relative_path = str(
+            Path(absolute_path).relative_to(rootdir)
+        )
         config.set(section, key, absolute_path_converted_to_relative_path)
 
     @staticmethod
@@ -174,11 +186,14 @@ class ConfigFileOperations:
         with Path(filename).open("r", encoding="utf-8") as configfile:
             config.read_file(configfile)
 
-        file_version = config.get("General", "Version", fallback= "")
-        if len(file_version) == 0 :
+        file_version = config.get("General", "Version", fallback="")
+        if len(file_version) == 0:
             raise LookupError("No version information in the file!")
 
-        if not (Version(file_version) == Version("1") or Version(file_version) == Version("2")):
+        if not (
+            Version(file_version) == Version("1")
+            or Version(file_version) == Version("2")
+        ):
             raise ValueError(f"Unsupported version number {file_version} in the file!")
 
         rootdir = os.path.dirname(filename)
@@ -205,16 +220,24 @@ class ConfigFileOperations:
         """
         for key in ("RiverKM", "FigureDir", "OutputDir"):
             if key in config["General"]:
-                ConfigFileOperations._update_to_absolute_path(rootdir, config, "General", key)
+                ConfigFileOperations._update_to_absolute_path(
+                    rootdir, config, "General", key
+                )
         for qstr in config.keys():
             if "Reference" in config[qstr]:
-                ConfigFileOperations._update_to_absolute_path(rootdir, config, qstr, "Reference")
+                ConfigFileOperations._update_to_absolute_path(
+                    rootdir, config, qstr, "Reference"
+                )
             if "WithMeasure" in config[qstr]:
-                ConfigFileOperations._update_to_absolute_path(rootdir, config, qstr, "WithMeasure")
+                ConfigFileOperations._update_to_absolute_path(
+                    rootdir, config, qstr, "WithMeasure"
+                )
         return config
-    
+
     @staticmethod
-    def _update_to_absolute_path(rootdir : str, config : configparser.ConfigParser, section : str, key : str):
+    def _update_to_absolute_path(
+        rootdir: str, config: configparser.ConfigParser, section: str, key: str
+    ):
         """
         Convert a configuration object to contain absolute paths (for editing).
         Arguments
@@ -222,7 +245,7 @@ class ConfigFileOperations:
         rootdir : str
             The path to be used as base for the absolute paths.
         config : configparser.ConfigParser
-            Configuration for the D-FAST Morphological Impact analysis with relative paths 
+            Configuration for the D-FAST Morphological Impact analysis with relative paths
             to be converted to absolute paths.
         section : str
             Where in the configuration we need to update the relative path
@@ -235,7 +258,9 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         relative_path = config.get(section, key, fallback="")
-        relative_path_converted_to_absolute_path = str(Path(rootdir).joinpath(Path(relative_path)))
+        relative_path_converted_to_absolute_path = str(
+            Path(rootdir).joinpath(Path(relative_path))
+        )
         config.set(section, key, relative_path_converted_to_absolute_path)
 
 
@@ -259,7 +284,9 @@ def check_configuration(rivers: RiversObject, config: ConfigParser) -> bool:
 
     try:
         configuration_version = Version(cfg_version)
-        configuration_checker = ConfigurationCheckerFactory.generate(configuration_version)
+        configuration_checker = ConfigurationCheckerFactory.generate(
+            configuration_version
+        )
         return configuration_checker.check_configuration(rivers, config)
     except SystemExit as e:
         raise e

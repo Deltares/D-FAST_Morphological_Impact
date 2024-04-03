@@ -27,16 +27,19 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-class SedimentationData():
-    def __init__(self,
-                 sedarea,
-                 sedvol,
-                 sed_area_list,
-                 eroarea,
-                 erovol,
-                 ero_area_list,
-                 wght_estimate1i,
-                 wbini):
+
+class SedimentationData:
+    def __init__(
+        self,
+        sedarea,
+        sedvol,
+        sed_area_list,
+        eroarea,
+        erovol,
+        ero_area_list,
+        wght_estimate1i,
+        wbini,
+    ):
         self.sedarea = sedarea
         self.sedvol = sedvol
         self.sed_area_list = sed_area_list

@@ -28,10 +28,12 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from typing import Any, Dict, List, Optional, TextIO
 
+
 class ApplicationSettingsHelper:
     """
-        Load texts from configuration file, and store globally for access.
+    Load texts from configuration file, and store globally for access.
     """
+
     PROGTEXTS: Dict[str, List[str]]
 
     @staticmethod
@@ -53,7 +55,7 @@ class ApplicationSettingsHelper:
         text: List[str]
         dict: Dict[str, List[str]]
 
-        all_lines = open(filename, "r",encoding="UTF-8").read().splitlines()
+        all_lines = open(filename, "r", encoding="UTF-8").read().splitlines()
         dict = {}
         text = []
         key = None
@@ -71,7 +73,6 @@ class ApplicationSettingsHelper:
         if not key is None:
             dict[key] = text
         ApplicationSettingsHelper.PROGTEXTS = dict
-
 
     @staticmethod
     def get_text(key: str) -> List[str]:
@@ -100,7 +101,6 @@ class ApplicationSettingsHelper:
         except:
             application_setting = ["No message found for " + key]
         return application_setting
-
 
     @staticmethod
     def log_text(
@@ -135,7 +135,6 @@ class ApplicationSettingsHelper:
                     print(expanded_line)
                 else:
                     file.write(expanded_line + "\n")
-
 
     @staticmethod
     def get_filename(key: str) -> str:

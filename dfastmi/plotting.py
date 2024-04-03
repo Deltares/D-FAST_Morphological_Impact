@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Bank Erosion: https://github.com/Deltares/D-FAST_Bank_Erosion
 """
 
-from typing import List, Tuple, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import matplotlib
 import matplotlib.pyplot
@@ -37,7 +37,7 @@ import numpy
 def savefig(fig: matplotlib.figure.Figure, filename: str) -> None:
     """
     Save a single figure to file.
-    
+
     Arguments
     ---------
     fig : matplotlib.figure.Figure
@@ -53,10 +53,10 @@ def savefig(fig: matplotlib.figure.Figure, filename: str) -> None:
 def setsize(fig: matplotlib.figure.Figure) -> None:
     """
     Set the size of a figure.
-    
+
     Currently the size is hardcoded, but functionality may be extended in the
     future.
-    
+
     Arguments
     ---------
     fig : matplotlib.figure.Figure
@@ -73,11 +73,11 @@ def set_bbox(
 ) -> None:
     """
     Specify the bounding limits of an axes object.
-    
+
     Arguments
     ---------
     ax : matplotlib.axes.Axes
-        Axes object to be adjusted. 
+        Axes object to be adjusted.
     bbox : Tuple[float, float, float, float]
         Tuple containing boundary limits (xmin, ymin, xmax, ymax); unit m.
     scale: float
@@ -92,7 +92,7 @@ def chainage_markers(
 ) -> None:
     """
     Add markers indicating the river chainage to a plot.
-    
+
     Arguments
     ---------
     xykm : numpy.ndarray
@@ -132,7 +132,7 @@ def plot_zoom_boxes(
 ) -> None:
     """
     Add the zoom boxes to a plot.
-    
+
     Arguments
     ---------
     xyzoom : List[Tuple[float, float, float, float]]
@@ -145,9 +145,7 @@ def plot_zoom_boxes(
     for bbox in xyzoom:
         x_box = numpy.array((bbox[0], bbox[1], bbox[1], bbox[0], bbox[0]))
         y_box = numpy.array((bbox[2], bbox[2], bbox[3], bbox[3], bbox[2]))
-        ax.plot(
-            x_box / scale, y_box / scale, color=(0.0, 0.0, 0.0), linewidth=0.5
-        )
+        ax.plot(x_box / scale, y_box / scale, color=(0.0, 0.0, 0.0), linewidth=0.5)
 
 
 def plot_mesh(
@@ -155,7 +153,7 @@ def plot_mesh(
 ) -> None:
     """
     Add a mesh to a plot.
-    
+
     Arguments
     ---------
     ax : matplotlib.axes.Axes
@@ -197,7 +195,7 @@ def plot_mesh_patches(
 ) -> matplotlib.collections.PolyCollection:
     """
     Add a collection of patches to the plot one for every face of the mesh.
-    
+
     Arguments
     ---------
     ax : matplotlib.axes.Axes
@@ -220,7 +218,7 @@ def plot_mesh_patches(
         Indicates whether the axes are in m (1) or km (1000).
     cmap : Union[str, matplotlib.colors.LinearSegmentedColormap]
         Colormap or name of colormap.
-    
+
     Returns
     -------
     p : matplotlib.collections.PolyCollection
@@ -268,9 +266,9 @@ def plot_overview(
 ) -> [matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """
     Create the erosion and sedimentation plot.
-    
+
     The figure contains a map of the equilibrium erosion and sedimentation and the chainage.
-    
+
     Arguments
     ---------
     bbox : Tuple[float, float, float, float]
@@ -297,7 +295,7 @@ def plot_overview(
         Label for the color bar.
     xyzoom : List[Tuple[float, float, float, float]]
         List of xmin, xmax, ymin, ymax values to zoom into.
-    
+
     Returns
     -------
     fig : matplotlib.figure.Figure:
@@ -317,17 +315,19 @@ def plot_overview(
         chainage_markers(xykm, ax, ndec=0, scale=scale)
     dzgem_max = abs(dzgem).max()
     dzgem_min = -dzgem_max
-    p = plot_mesh_patches(ax, fn, nnodes, xn, yn, dzgem, dzgem_min, dzgem_max, scale=scale, cmap=cmap)
+    p = plot_mesh_patches(
+        ax, fn, nnodes, xn, yn, dzgem, dzgem_min, dzgem_max, scale=scale, cmap=cmap
+    )
     cbar = fig.colorbar(p, ax=ax, shrink=0.5, drawedges=False, label=dzgem_txt)
     #
-    #plot_zoom_boxes(xyzoom, ax, scale=scale)
+    # plot_zoom_boxes(xyzoom, ax, scale=scale)
     #
     set_bbox(ax, bbox, scale=scale)
     ax.set_xlabel(xlabel_txt)
     ax.set_ylabel(ylabel_txt)
     ax.grid(True)
     ax.set_title(title_txt)
-    #ax.legend(handles, labels, loc="upper right")
+    # ax.legend(handles, labels, loc="upper right")
     return fig, ax
 
 
@@ -342,7 +342,7 @@ def plot_sedimentation(
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """
     Create the sedimentation volumes plot with total sedimentation volume per width bin.
-    
+
     Arguments
     ---------
     km_mid : numpy.ndarray
@@ -360,7 +360,7 @@ def plot_sedimentation(
     positive_up : bool
         Flag indicating whether the y axis should be positive up (sedimentation) or down (erosion).
 
-    
+
     Results
     -------
     fig : matplotlib.figure.Figure
@@ -372,13 +372,13 @@ def plot_sedimentation(
     setsize(fig)
     #
     n_levels = len(dv)
-    #clrs = get_colors("Blues", n_levels + 1)
-    #matplotlib.pyplot.stackplot(km_mid, *dv, colors = clrs, labels = wlabels)
-    matplotlib.pyplot.stackplot(km_mid, *dv, labels = wlabels)
+    # clrs = get_colors("Blues", n_levels + 1)
+    # matplotlib.pyplot.stackplot(km_mid, *dv, colors = clrs, labels = wlabels)
+    matplotlib.pyplot.stackplot(km_mid, *dv, labels=wlabels)
     #
     ax.set_xlabel(chainage_txt)
     ax.set_ylabel(ylabel_txt)
-    #ax.set_yscale("log")
+    # ax.set_yscale("log")
     ax.grid(True)
     ax.set_title(title_txt)
     if positive_up:
@@ -392,14 +392,14 @@ def plot_sedimentation(
 def get_colors(cmap_name: str, n: int) -> List[Tuple[float, float, float]]:
     """
     Obtain N colors from the specified colormap.
-    
+
     Arguments
     ---------
     cmap_name : str
         Name of the color map.
     n : int
         Number of colors to be returned.
-    
+
     Returns
     -------
     clrcyc : List[Tuple[float, float, float]]
@@ -410,7 +410,13 @@ def get_colors(cmap_name: str, n: int) -> List[Tuple[float, float, float]]:
     return clrs
 
 
-def zoom_x_and_save(fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes, figbase: str, plot_ext: str, xzoom: List[Tuple[float,float]]) -> None:
+def zoom_x_and_save(
+    fig: matplotlib.figure.Figure,
+    ax: matplotlib.axes.Axes,
+    figbase: str,
+    plot_ext: str,
+    xzoom: List[Tuple[float, float]],
+) -> None:
     """
     Zoom in on subregions of the x-axis and save the figure.
 
@@ -430,17 +436,19 @@ def zoom_x_and_save(fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes, fig
     xmin, xmax = ax.get_xlim()
     for ix in range(len(xzoom)):
         ax.set_xlim(xmin=xzoom[ix][0], xmax=xzoom[ix][1])
-        figfile = (
-            figbase
-            + ".sub"
-            + str(ix + 1)
-            + plot_ext
-        )
+        figfile = figbase + ".sub" + str(ix + 1) + plot_ext
         savefig(fig, figfile)
     ax.set_xlim(xmin=xmin, xmax=xmax)
 
 
-def zoom_xy_and_save(fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes, figbase: str, plot_ext: str, xyzoom: List[Tuple[float, float, float, float]], scale: float = 1000) -> None:
+def zoom_xy_and_save(
+    fig: matplotlib.figure.Figure,
+    ax: matplotlib.axes.Axes,
+    figbase: str,
+    plot_ext: str,
+    xyzoom: List[Tuple[float, float, float, float]],
+    scale: float = 1000,
+) -> None:
     """
     Zoom in on subregions in x,y-space and save the figure.
 
@@ -461,7 +469,7 @@ def zoom_xy_and_save(fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes, fi
     """
     xmin, xmax = ax.get_xlim()
     ymin, ymax = ax.get_ylim()
-    
+
     dx_zoom = 0.0
     xy_ratio = (ymax - ymin) / (xmax - xmin)
     for ix in range(len(xyzoom)):
@@ -478,19 +486,14 @@ def zoom_xy_and_save(fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes, fi
             # y range limiting
             dx_zoom = max(dx_zoom, dy / xy_ratio)
     dy_zoom = dx_zoom * xy_ratio
-    
+
     for ix in range(len(xyzoom)):
         x0 = (xyzoom[ix][0] + xyzoom[ix][1]) / 2
         y0 = (xyzoom[ix][2] + xyzoom[ix][3]) / 2
-        ax.set_xlim(xmin=(x0 - dx_zoom/2) / scale, xmax=(x0 + dx_zoom/2) / scale)
-        ax.set_ylim(ymin=(y0 - dy_zoom/2) / scale, ymax=(y0 + dy_zoom/2) / scale)
-        figfile = (
-            figbase
-            + ".sub"
-            + str(ix + 1)
-            + plot_ext
-        )
+        ax.set_xlim(xmin=(x0 - dx_zoom / 2) / scale, xmax=(x0 + dx_zoom / 2) / scale)
+        ax.set_ylim(ymin=(y0 - dy_zoom / 2) / scale, ymax=(y0 + dy_zoom / 2) / scale)
+        figfile = figbase + ".sub" + str(ix + 1) + plot_ext
         savefig(fig, figfile)
-    
+
     ax.set_xlim(xmin=xmin, xmax=xmax)
     ax.set_ylim(ymin=ymin, ymax=ymax)

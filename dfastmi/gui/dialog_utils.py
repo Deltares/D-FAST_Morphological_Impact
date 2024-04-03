@@ -33,16 +33,18 @@ It also includes functions for handling fonts and querying text strings for GUI 
 
 from pathlib import Path
 from typing import Any, Dict, Optional
+
 import PyQt5.QtCore
+from PyQt5.QtGui import QColor, QFont, QFontDatabase, QPainter, QPaintEvent, QValidator
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtGui import QFontDatabase, QFont, QColor, QValidator, QPainter, QPaintEvent
 
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
-class FileExistValidator(QValidator):
-    """ A validator class to check if a file exists at the provided path. """
 
-    def validate(self, input_text : str, pos : int):
+class FileExistValidator(QValidator):
+    """A validator class to check if a file exists at the provided path."""
+
+    def validate(self, input_text: str, pos: int):
         """
         Validate the input text as a file path.
 
@@ -64,9 +66,9 @@ class FileExistValidator(QValidator):
 
 
 class FolderExistsValidator(QValidator):
-    """ A validator class to check if a folder exists at the provided path. """
+    """A validator class to check if a folder exists at the provided path."""
 
-    def validate(self, input_str : str, pos : int):
+    def validate(self, input_str: str, pos: int):
         """
         Validate the input string as a folder path.
 
@@ -88,7 +90,7 @@ class FolderExistsValidator(QValidator):
 
 
 class ValidatingLineEdit(QLineEdit):
-    """ A custom QLineEdit widget with validation support. """
+    """A custom QLineEdit widget with validation support."""
 
     def __init__(self, validator: QValidator = FileExistValidator(), parent=None):
         """
@@ -105,7 +107,7 @@ class ValidatingLineEdit(QLineEdit):
         self.validator = validator
         self.invalid = True
 
-    def setInvalid(self, invalid : bool):
+    def setInvalid(self, invalid: bool):
         """
         Set the validation state of the widget.
 
@@ -117,7 +119,7 @@ class ValidatingLineEdit(QLineEdit):
         self.invalid = invalid
         self.update()
 
-    def paintEvent(self, event : QPaintEvent):
+    def paintEvent(self, event: QPaintEvent):
         """
         Handle the paint event to visually indicate the validation state.
 
@@ -145,7 +147,7 @@ class ValidatingLineEdit(QLineEdit):
         painter.drawRect(PyQt5.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
         painter.end()  # Ensure to end the painter
 
-    def validate(self, input_str : str, pos : int):
+    def validate(self, input_str: str, pos: int):
         """
         Validate the input string based on the provided validator.
 
@@ -168,7 +170,12 @@ class ValidatingLineEdit(QLineEdit):
             return state, input_str[:pos], pos
 
 
-def get_available_font(currrent_font : QFont, preferred_font : str, fallback_font : str, font_database : QFontDatabase):
+def get_available_font(
+    currrent_font: QFont,
+    preferred_font: str,
+    fallback_font: str,
+    font_database: QFontDatabase,
+):
     """
     Get an available font based on preference and availability.
 
@@ -202,7 +209,11 @@ def get_available_font(currrent_font : QFont, preferred_font : str, fallback_fon
             return currrent_font
 
 
-def gui_text(key: str, prefix: str = "gui_", placeholder_dictionary: Optional[Dict[str, Any]] = None):
+def gui_text(
+    key: str,
+    prefix: str = "gui_",
+    placeholder_dictionary: Optional[Dict[str, Any]] = None,
+):
     """
     Query the global dictionary of texts for a single string in the GUI.
 
@@ -226,7 +237,9 @@ def gui_text(key: str, prefix: str = "gui_", placeholder_dictionary: Optional[Di
         The first line of the text in the dictionary expanded with the provided keys.
     """
     if placeholder_dictionary is None:
-        placeholder_dictionary = {}  # If dict is None, initialize it as an empty dictionary
+        placeholder_dictionary = (
+            {}
+        )  # If dict is None, initialize it as an empty dictionary
 
     cstr = ApplicationSettingsHelper.get_text(prefix + key)
     try:

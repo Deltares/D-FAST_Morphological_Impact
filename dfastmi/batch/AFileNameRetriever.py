@@ -27,9 +27,10 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Any, Dict, Optional, Tuple
 import configparser
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional, Tuple
+
 
 class AFileNameRetriever(ABC):
     """
@@ -37,7 +38,9 @@ class AFileNameRetriever(ABC):
     """
 
     @abstractmethod
-    def get_file_names(self, config : Optional[configparser.ConfigParser] = None) -> Dict[Any, Tuple[str,str]]:
+    def get_file_names(
+        self, config: Optional[configparser.ConfigParser] = None
+    ) -> Dict[Any, Tuple[str, str]]:
         """
         Abstract method to get the filenames.
 
@@ -77,7 +80,9 @@ class AFileNameRetriever(ABC):
         value : str
             The value specified for the key in the chapter.
         """
-        value = config.get(chap, key, fallback= None)
+        value = config.get(chap, key, fallback=None)
         if value is None:
-            raise KeyError(f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.')
+            raise KeyError(
+                f'Keyword "{key}" is not specified in group "{chap}" of analysis configuration file.'
+            )
         return value

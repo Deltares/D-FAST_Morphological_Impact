@@ -28,14 +28,17 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from pathlib import Path
+
 from dfastmi.batch.OutputDataWaqua import OutputDataWaqua
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 
-class ReporterWaqua():
+
+class ReporterWaqua:
     """
     Class writes the report for waqua.
     """
+
     def __init__(self, output_dir: Path):
         """
         Init of the reporter.
@@ -50,7 +53,7 @@ class ReporterWaqua():
         self.maxdzb = "maxdzb.out"
         self.mindzb = "mindzb.out"
 
-    def write_report(self, output_data : OutputDataWaqua):
+    def write_report(self, output_data: OutputDataWaqua):
         """
         Writes the reports to the retrieved output files and location based on the outputdir.
 
@@ -60,13 +63,32 @@ class ReporterWaqua():
             Output data that is to be writen to the related files.
         """
         avgdzb_file = self._get_file_location(self.avgdzb)
-        DataTextFileOperations.write_simona_box(avgdzb_file, output_data.data_zgem, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
+        DataTextFileOperations.write_simona_box(
+            avgdzb_file,
+            output_data.data_zgem,
+            output_data.first_min_velocity_m,
+            output_data.first_min_velocity_n,
+        )
 
         maxdzb_file = self._get_file_location(self.maxdzb)
-        DataTextFileOperations.write_simona_box(maxdzb_file, output_data.data_zmax, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
+        DataTextFileOperations.write_simona_box(
+            maxdzb_file,
+            output_data.data_zmax,
+            output_data.first_min_velocity_m,
+            output_data.first_min_velocity_n,
+        )
 
         mindzb_file = self._get_file_location(self.mindzb)
-        DataTextFileOperations.write_simona_box(mindzb_file, output_data.data_zmin, output_data.first_min_velocity_m, output_data.first_min_velocity_n)
+        DataTextFileOperations.write_simona_box(
+            mindzb_file,
+            output_data.data_zmin,
+            output_data.first_min_velocity_m,
+            output_data.first_min_velocity_n,
+        )
 
-    def _get_file_location(self, output_file_name : str) -> str:
-        return str(self.output_dir.joinpath(ApplicationSettingsHelper.get_filename(output_file_name)))
+    def _get_file_location(self, output_file_name: str) -> str:
+        return str(
+            self.output_dir.joinpath(
+                ApplicationSettingsHelper.get_filename(output_file_name)
+            )
+        )

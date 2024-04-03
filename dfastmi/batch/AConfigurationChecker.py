@@ -30,11 +30,13 @@ import configparser
 import pathlib
 from abc import ABC, abstractmethod
 from typing import Type, TypeVar
+
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.IReach import IReach
 from dfastmi.io.RiversObject import RiversObject
 
-T = TypeVar('T', bound=IReach)
+T = TypeVar("T", bound=IReach)
+
 
 class AConfigurationCheckerBase(ABC):
     """
@@ -42,7 +44,9 @@ class AConfigurationCheckerBase(ABC):
     """
 
     @abstractmethod
-    def check_configuration(self, rivers: RiversObject, config: configparser.ConfigParser) -> bool:
+    def check_configuration(
+        self, rivers: RiversObject, config: configparser.ConfigParser
+    ) -> bool:
         """
         Abstract method to check a D-FAST MI analysis configuration is valid
 
@@ -56,13 +60,15 @@ class AConfigurationCheckerBase(ABC):
         Returns
         -------
         success : bool
-            Boolean indicating whether the D-FAST MI analysis configuration is valid.        
+            Boolean indicating whether the D-FAST MI analysis configuration is valid.
         """
 
-    def _get_reach(self,
-                   rivers : RiversObject,
-                   config : configparser.ConfigParser,
-                   reach_type: Type[T]) -> T:
+    def _get_reach(
+        self,
+        rivers: RiversObject,
+        config: configparser.ConfigParser,
+        reach_type: Type[T],
+    ) -> T:
         """
         Get the General branch reach, used in derived classes
         """
@@ -74,31 +80,34 @@ class AConfigurationCheckerBase(ABC):
         if branch is None:
             raise LookupError(f"Branch not in file {branch_name}!")
 
-        reach_name = config.get("General","Reach", fallback="")
+        reach_name = config.get("General", "Reach", fallback="")
         if len(reach_name) <= 0:
-            raise ValueError("Reach name cannot be empty")        
+            raise ValueError("Reach name cannot be empty")
         reach = branch.get_reach(reach_name)
 
         if reach is None:
             raise LookupError(f"Reach not in file {reach_name}!")
-        
-        if not isinstance(reach, reach_type) :
-            raise TypeError(f"Created Reach {reach_name} in river configuration is not of type {reach_type}")
+
+        if not isinstance(reach, reach_type):
+            raise TypeError(
+                f"Created Reach {reach_name} in river configuration is not of type {reach_type}"
+            )
 
         return reach
 
     def _check_key_with_file_value(
-            self,
-            config : configparser.ConfigParser,
-            cond : str,
-            key: str
-            ) -> bool:
+        self, config: configparser.ConfigParser, cond: str, key: str
+    ) -> bool:
         if not config.has_option(cond, key):
-            ApplicationSettingsHelper.log_text(f"Please this condition {cond} is found, but '{key}' key is not set!")
+            ApplicationSettingsHelper.log_text(
+                f"Please this condition {cond} is found, but '{key}' key is not set!"
+            )
             return False
 
         file = config.get(cond, key)
         if not pathlib.Path(file).exists():
-            ApplicationSettingsHelper.log_text(f"Please this condition {cond} is found, but '{key}' value (file = {file}) does not exist!")
+            ApplicationSettingsHelper.log_text(
+                f"Please this condition {cond} is found, but '{key}' value (file = {file}) does not exist!"
+            )
             return False
         return True

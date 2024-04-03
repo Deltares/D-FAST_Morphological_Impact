@@ -26,14 +26,18 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from pathlib import Path
-import dfastmi
-from typing import List, Tuple
 import math
+from pathlib import Path
+from typing import List, Tuple
+
 import numpy
 
+import dfastmi
 
-def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray) -> Tuple[List[Tuple[float, float]],List[Tuple[float, float, float, float]]]:
+
+def get_zoom_extends(
+    km_min: float, km_max: float, zoom_km_step: float, xykline: numpy.ndarray
+) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float, float, float]]]:
     """
     Zoom .
 
@@ -45,7 +49,7 @@ def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline:
         Maximum value for the chainage range of interest.
     zoom_km_step : float
         Preferred chainage length of zoom box.
-    xykline : numpy.ndarray 
+    xykline : numpy.ndarray
         Array containing the x,y and chainage data of a line.
 
     Returns
@@ -62,14 +66,14 @@ def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline:
 
     kmzoom: List[Tuple[float, float]] = []
     xyzoom: List[Tuple[float, float, float, float]] = []
-    for i in range(len(zoom_km_bnd)-1):
+    for i in range(len(zoom_km_bnd) - 1):
         km_min = zoom_km_bnd[i] - eps
         km_max = zoom_km_bnd[i + 1] + eps
 
         # only append zoom range if there are any chainage points in that range
         # (might be none if there is a chainage discontinuity in the region of
         # interest)
-        irange = (xykline[:,2] >= km_min) & (xykline[:,2] <= km_max)
+        irange = (xykline[:, 2] >= km_min) & (xykline[:, 2] <= km_max)
         if any(irange):
             kmzoom.append((km_min, km_max))
 
@@ -84,7 +88,12 @@ def get_zoom_extends(km_min: float, km_max: float, zoom_km_step: float, xykline:
 
     return kmzoom, xyzoom
 
-def _get_km_bins(km_bin: Tuple[float, float, float], type_characteristic_chainage: int = 2, adjust: bool = False) -> numpy.ndarray:
+
+def _get_km_bins(
+    km_bin: Tuple[float, float, float],
+    type_characteristic_chainage: int = 2,
+    adjust: bool = False,
+) -> numpy.ndarray:
     """
     [identical to dfastbe.kernel.get_km_bins]
     Get an array of representative chainage values.
@@ -135,6 +144,7 @@ def _get_km_bins(km_bin: Tuple[float, float, float], type_characteristic_chainag
 
     return km
 
+
 def get_progloc() -> Path:
     """
     Get the location of the program.
@@ -143,6 +153,6 @@ def get_progloc() -> Path:
     ---------
     None
     """
-    
+
     progloc = Path(dfastmi.__path__[0])
     return progloc

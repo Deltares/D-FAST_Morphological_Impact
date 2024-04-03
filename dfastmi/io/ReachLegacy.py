@@ -43,10 +43,11 @@ class ReachLegacy(AReach):
     """
     Derived class with reach data information used with legacy river configuration files.
     """
-    proprate_high : float = 0.0
-    proprate_low : float = 0.0
-    qbankfull : float = 0.0
-    qmin : float = 0.0
-    qfit : tuple[float,float] = (0.0, 0.0)
-    qlevels : List[float]= []
-    dq : tuple[float,float] = (0.0, 0.0)
+
+    proprate_high: float = 0.0
+    proprate_low: float = 0.0
+    qbankfull: float = 0.0
+    qmin: float = 0.0
+    qfit: tuple[float, float] = (0.0, 0.0)
+    qlevels: List[float] = []
+    dq: tuple[float, float] = (0.0, 0.0)

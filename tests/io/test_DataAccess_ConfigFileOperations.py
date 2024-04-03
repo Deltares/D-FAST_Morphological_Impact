@@ -5,6 +5,7 @@ from io import StringIO
 
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 
+
 @contextmanager
 def captured_output():
     new_out, new_err = StringIO(), StringIO()
@@ -16,7 +17,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class Test_data_access_write_config():
+class Test_data_access_write_config:
     def test_write_config_and_read_back(self):
         """
         Testing write_config.
@@ -32,13 +33,15 @@ class Test_data_access_write_config():
         config["Group 3"]["LongKey"] = "3"
         ConfigFileOperations.write_config(filename, config)
         all_lines = open(filename, "r").read().splitlines()
-        all_lines_ref = ['[G 1]',
-                         '  k 1     = V 1',
-                         '',
-                         '[Group 2]',
-                         '  k1      = 1.0 0.1 0.0 0.01',
-                         '  k2      = 2.0 0.2 0.02 0.0',
-                         '',
-                         '[Group 3]',
-                         '  longkey = 3']
+        all_lines_ref = [
+            "[G 1]",
+            "  k 1     = V 1",
+            "",
+            "[Group 2]",
+            "  k1      = 1.0 0.1 0.0 0.01",
+            "  k2      = 2.0 0.2 0.02 0.0",
+            "",
+            "[Group 3]",
+            "  longkey = 3",
+        ]
         assert all_lines == all_lines_ref
