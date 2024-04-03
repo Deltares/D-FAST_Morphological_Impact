@@ -276,7 +276,7 @@ def _get_root_dir(rootdir:Path) -> Path:
 
     Arguments
     ---------
-    rootdir : str
+    rootdir : Path
         Reference directory for default folders.
     
     Return
@@ -285,7 +285,7 @@ def _get_root_dir(rootdir:Path) -> Path:
         A Path object to the currenct directory 
         location or default directory location.
     """
-    if rootdir == "":
+    if not rootdir:
         rootdir = Path.cwd()
     return rootdir
 
