@@ -28,24 +28,145 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from configparser import ConfigParser, SectionProxy
 from typing import List, Optional
+
+from pydantic import BaseModel
 import dfastmi
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 
+class GeneralConfig(BaseModel):
+    """ Represents the general configuration settings. """
+    Version: str = "2.0"
+    Branch: str = ""
+    Reach: str = ""
+    Qthreshold: float = 0.0
+    Ucrit: float = 0.3
+    OutputDir: str = ""
+    Plotting: bool = False
+    SavePlots: bool = False
+    FigureDir: str = ""
+    ClosePlots: bool = False
 
-class DialogModel:
+class ConditionConfig(BaseModel):
+    """ Represents the configuration settings for a specific condition. """
+    Discharge: float
+    Reference: str
+    WithMeasure: str
+
+class DialogModel():
+    """ Class for handling dialog model. """
+
     config : ConfigParser = None
     section : SectionProxy = None
     def __init__(self, rivers_configuration: RiversObject, config_file: Optional[str] = None):
+        """
+        Initialize the DialogModel.
+
+        Args:
+            rivers_configuration (RiversObject): Configuration of rivers.
+            config_file (Optional[str], optional): Configuration file. Defaults to None.
+        """
         self.rivers = rivers_configuration
         
         if config_file:
             self.load_configuration(config_file)
-
+                
+        if not self.config:
+            self.create_configuration()
+        
+        BOOLEAN_STATES = {  '1': True,  'yes': True,  'true' : True,  'on' : True,  't':True,  'y':True,
+                            '0': False, 'no' : False, 'false': False, 'off': False, 'f':False, 'n':False}
+        self.config.BOOLEAN_STATES = BOOLEAN_STATES
+    
+    @property
+    def branch_name(self) -> str:
+        """Get branch name."""
+        return self.section['Branch']
+    
+    @property
+    def reach_name(self) -> str:
+        """Get reach name."""
+        return self.section['Reach']
+    
+    @property
+    def qthreshold(self) -> float:
+        """Get Qthreshold."""
+        return self.section.getfloat('Qthreshold', 0.0)
+    
+    @qthreshold.setter
+    def qthreshold(self, value: float):
+        """Set Qthreshold."""
+        self.section['Qthreshold'] = str(value)
+    
+    @property
+    def ucritical(self) -> float:
+        """Get Ucritical."""
+        return self.section.getfloat('Ucrit', 0.3)
+    
+    @ucritical.setter
+    def ucritical(self, value: float):
+        """Set Ucritical."""
+        self.section['Ucrit'] = str(value)
+    
+    @property
+    def output_dir(self) -> str:
+        """Get output directory."""
+        return self.section['OutputDir']
+    
+    @output_dir.setter
+    def output_dir(self, value: str):
+        """Set output directory."""
+        self.section['OutputDir'] = value
+    
+    @property
+    def figure_dir(self) -> str:
+        """Get figure directory."""
+        return self.section['FigureDir']
+    
+    @figure_dir.setter
+    def figure_dir(self, value: str):
+        """Set figure directory."""
+        self.section['FigureDir'] = value
+    
+    @property
+    def plotting(self) -> bool:
+        """Get plotting flag."""
+        return self.section.getboolean('Plotting')
+    
+    @plotting.setter
+    def plotting(self, value: bool):
+        """Set plotting flag."""
+        self.section['Plotting'] = str(value)
+    
+    @property
+    def save_plots(self) -> bool:
+        """Get save plots flag."""
+        return self.section.getboolean('SavePlots')
+    
+    @save_plots.setter
+    def save_plots(self, value: bool):
+       self.section['SavePlots'] = str(value)
+    
+    @property
+    def close_plots(self) -> bool:
+        """Get close plots flag."""
+        return self.section.getboolean('ClosePlots')
+    
+    @close_plots.setter
+    def close_plots(self, value: bool):
+        """Set close plots flag."""
+        self.section['ClosePlots'] = str(value)
+    
+    def create_configuration(self) -> bool:
+        """Create configuration."""
+        self.config = ConfigParser()
+        self.config['General'] = GeneralConfig().model_dump()
+        self.section = self.config['General']
 
     def load_configuration(self, filename: str) -> bool:
+        """Load configuration."""
         try:
             self.config = ConfigFileOperations.load_configuration_file(filename)
         except:
@@ -57,6 +178,7 @@ class DialogModel:
         return True
 
     def check_configuration(self, branch : Branch, reach: AReach, reference_files: List, measure_files : List) -> bool :
+        """Check configuration."""
         config = self.get_configuration(branch, reach, reference_files, measure_files)
         return check_configuration(self.rivers, config)
     
@@ -100,39 +222,33 @@ class DialogModel:
         config = ConfigParser()
         config.optionxform = str
         config.add_section("General")
-        config["General"]["Version"] = "2.0"
-        config["General"]["Branch"] = branch.name
-        config["General"]["Reach"] = reach.name
-        config["General"]["Qthreshold"] = str(reach.qstagnant)
-        config["General"]["Ucrit"] = str(reach.ucritical)
-        self._get_application_configuration(config)
+        config["General"] = GeneralConfig(
+            Branch=branch.name,
+            Reach=reach.name,
+            Qthreshold=self.qthreshold,
+            Ucrit=self.ucritical,
+            OutputDir=self.output_dir,
+            Plotting=self.plotting,
+            SavePlots=self.save_plots,
+            FigureDir=self.figure_dir,
+            ClosePlots=self.close_plots
+        ).model_dump()        
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
         return config
-
-    def _get_application_configuration(self, config : ConfigParser) -> None:
-        config["General"]["OutputDir"] = self.section["OutputDir"] if self.config and self.section and self.config.has_option("General", "OutputDir") and self.section["OutputDir"] else ""
-        config["General"]["Plotting"] = self.section["Plotting"] if self.config and self.section and self.config.has_option("General", "Plotting") and self.section["Plotting"] else "False"
-        config["General"]["SavePlots"] = self.section["SavePlots"] if self.config and self.section and self.config.has_option("General", "SavePlots") and self.section["SavePlots"] else "False"
-        config["General"]["FigureDir"] = self.section["FigureDir"] if self.config and self.section and self.config.has_option("General", "FigureDir") and self.section["FigureDir"] else ""
-        config["General"]["ClosePlots"] = self.section["ClosePlots"] if self.config and self.section and self.config.has_option("General", "ClosePlots") and self.section["ClosePlots"] else "False"
     
-    def _get_condition_configuration(self, config : ConfigParser, reach : AReach, reference_files:List, measure_files:List) -> None:
-        # Ensure both lists have the same length
+    def _get_condition_configuration(self, config: ConfigParser, reach: AReach, reference_files: List, measure_files: List) -> None:
+        """Get condition configuration."""
         num_files = min(len(reference_files), len(measure_files))
         
-        # loop over conditions cond = "C1", "C2", ...        
-        for i, discharge in enumerate(reach.hydro_q[:num_files]): # Ensure it loops until the minimum length
-            cond = f"C{i+1}"
-            config.add_section(cond)            
-            config[cond]["Discharge"] = str(discharge)
-             # Check if the index is within the bounds of the lists
-            if i < len(reference_files):
-                config[cond]["Reference"] = reference_files[i]
-            else:
-                config[cond]["Reference"] = ""  # Default value if index is out of range
+        for i, discharge in enumerate(reach.hydro_q[:num_files]):
+            if discharge in reference_files.keys():                
+                cond = f"C{i+1}"
+                condition = ConditionConfig(Discharge=discharge, Reference="", WithMeasure="")
+                if i < len(reference_files):
+                    condition.Reference = reference_files[discharge]
+                if i < len(measure_files):
+                    condition.WithMeasure = measure_files[discharge]
+                
+                config[cond] = condition.model_dump()
 
-            if i < len(measure_files):
-                config[cond]["WithMeasure"] = measure_files[i]
-            else:
-                config[cond]["WithMeasure"] = ""  # Default value if index is out of range

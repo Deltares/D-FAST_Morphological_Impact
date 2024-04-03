@@ -48,6 +48,16 @@ class IBranch(ABC, BaseModel):
     def name(self) -> str:
         """Name of the branch"""        
     
+    @property
+    @abstractmethod
+    def qlocation(self) -> str:
+        """Location name in the branch where we have the discharge"""        
+    
+    @qlocation.setter
+    @abstractmethod
+    def qlocation(self, value):
+        """Set the location name in the branch where we have the discharge"""
+    
     @abstractmethod
     def get_reach(self, reach_name : str) -> IReach:
         """Reach in branch by name"""

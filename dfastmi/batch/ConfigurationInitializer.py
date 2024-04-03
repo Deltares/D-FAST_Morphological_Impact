@@ -171,7 +171,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         """
         
         if reach.auto_time:
-            self._set_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
+            self._time_fractions_of_the_year, self._time_mi = self.set_times(discharges, reach.qfit, reach.qstagnant, q_threshold)
         else:
             self._time_fractions_of_the_year = self.get_time_fractions_of_the_year(reach.hydro_t)
             self._time_mi = self.calculate_time_mi(q_threshold, discharges, self.time_fractions_of_the_year)
@@ -242,7 +242,8 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
             q_threshold = q_stagnant
         self._q_threshold = q_threshold
 
-    def _set_times(self, discharges: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> None:
+    @staticmethod
+    def set_times(discharges: Vector, q_fit: Tuple[float, float], q_stagnant: float, q_threshold: float) -> Tuple[Vector,Vector]:
         """
         Get the representative time span for each discharge.
 
@@ -300,8 +301,10 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         # correct in case the sorting of the discharges changed the order
         tvec = numpy.zeros(q.shape)
         tvec[sorted_qvec] = t
-        self._time_fractions_of_the_year = tuple(ti for ti in tvec)
+        time_fractions_of_the_year = tuple(ti for ti in tvec)
 
         tvec_mi = numpy.zeros(q.shape)
         tvec_mi[sorted_qvec] = tmi
-        self._time_mi = tuple(ti for ti in tvec_mi)
+        time_mi = tuple(ti for ti in tvec_mi)
+
+        return time_fractions_of_the_year, time_mi
