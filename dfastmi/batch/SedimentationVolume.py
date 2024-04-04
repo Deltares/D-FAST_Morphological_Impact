@@ -34,10 +34,10 @@ from typing import Tuple
 import numpy
 
 from dfastmi.batch.AreaDetector import AreaDetector
+from dfastmi.batch.AreaPlotter import ErosionAreaPlotter, SedimentationAreaPlotter
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
 from dfastmi.batch.PlotOptions import PlotOptions
-from dfastmi.batch.AreaPlotter import ErosionAreaPlotter, SedimentationAreaPlotter
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 
