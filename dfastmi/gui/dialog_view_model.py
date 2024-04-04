@@ -181,7 +181,8 @@ class DialogViewModel(QObject):
             Newly selected branch.
         """
         self.current_branch = self.model.rivers.get_branch(branch_name)
-        self.current_reach = self._current_branch.reaches[0]
+        if self.current_reach.name != self._current_branch.reaches[0].name:
+            self.current_reach = self._current_branch.reaches[0]
 
     def _initialize_ucritical(self):
         """
