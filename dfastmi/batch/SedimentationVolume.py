@@ -300,7 +300,7 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-    
+
     xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
@@ -343,7 +343,7 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-    
+
     xyzfil = ""
     area_str = "erosion area {}"
     total_str = "total erosion volume"
@@ -377,6 +377,7 @@ def comp_sedimentation_volume(
         erosion_area_detector.area,
         erosion_area_detector.volume,
         erosion_area_detector.area_list,
-        sedimentation_area_detector.total_area_weigth + erosion_area_detector.total_area_weigth,
+        sedimentation_area_detector.total_area_weigth
+        + erosion_area_detector.total_area_weigth,
         wbini,
     )
