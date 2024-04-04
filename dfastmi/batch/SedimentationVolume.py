@@ -37,7 +37,7 @@ from dfastmi.batch.detect_areas import AreaDetector
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
 from dfastmi.batch.PlotOptions import PlotOptions
-from dfastmi.batch.report_areas import AreaReporter
+from dfastmi.batch.report_areas import ErosionAreaReporter, SedimentationAreaReporter
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 
@@ -277,7 +277,6 @@ def comp_sedimentation_volume(
     kmid = distance_to_chainage(sline, xykm_data.xykline[:, 2], smid)
 
     edgeface_index = facenode_to_edgeface(xykm_data.face_node_connectivity_index)
-    wght_area_tot = numpy.zeros(dzgemi.shape)
     wbin_labels = [
         "between {w1} and {w2} m".format(w1=wthresh[iw], w2=wthresh[iw + 1])
         for iw in range(nwbins)
@@ -290,7 +289,6 @@ def comp_sedimentation_volume(
         dzgemi,
         dzmin,
         edgeface_index,
-        wght_area_tot,
         areai,
         wbin,
         wthresh,
@@ -300,12 +298,8 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-
-    xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
-    area_str = "sedimentation area {}"
-    total_str = "total sedimentation volume"
-    positive_up = True
-    sedimentation_area_reporter = AreaReporter()
+    
+    sedimentation_area_reporter = SedimentationAreaReporter(plotting_options, outputdir.joinpath("sedimentation_volumes.xyz"))
     sedimentation_area_reporter.report_areas(
         dzgemi,
         areai,
@@ -317,11 +311,6 @@ def comp_sedimentation_volume(
         sbin,
         sthresh,
         kmid,
-        plotting_options,
-        xyzfil,
-        area_str,
-        total_str,
-        positive_up,
         plot_n,
         sedimentation_area_detector.volume,
         sedimentation_area_detector.area_list,
@@ -333,7 +322,6 @@ def comp_sedimentation_volume(
         -dzgemi,
         dzmin,
         edgeface_index,
-        wght_area_tot,
         areai,
         wbin,
         wthresh,
@@ -343,12 +331,8 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-
-    xyzfil = ""
-    area_str = "erosion area {}"
-    total_str = "total erosion volume"
-    positive_up = False
-    erosion_area_reporter = AreaReporter()
+    
+    erosion_area_reporter = ErosionAreaReporter(plotting_options)
     erosion_area_reporter.report_areas(
         -dzgemi,
         areai,
@@ -360,11 +344,6 @@ def comp_sedimentation_volume(
         sbin,
         sthresh,
         kmid,
-        plotting_options,
-        xyzfil,
-        area_str,
-        total_str,
-        positive_up,
         plot_n,
         erosion_area_detector.volume,
         erosion_area_detector.area_list,
@@ -377,7 +356,6 @@ def comp_sedimentation_volume(
         erosion_area_detector.area,
         erosion_area_detector.volume,
         erosion_area_detector.area_list,
-        sedimentation_area_detector.total_area_weigth
-        + erosion_area_detector.total_area_weigth,
+        sedimentation_area_detector.total_area_weigth + erosion_area_detector.total_area_weigth,
         wbini,
     )

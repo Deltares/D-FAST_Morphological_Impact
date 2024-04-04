@@ -26,28 +26,26 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import numpy
 import math
 from typing import Tuple
 
-import numpy
-
-
 class AreaDetector:
-
+    
     @property
     def area(self) -> numpy.ndarray:
         """
         area
         """
         return self._area
-
+    
     @property
     def volume(self) -> numpy.ndarray:
         """
         area volume
         """
         return self._volume
-
+    
     @property
     def area_list(self) -> list:
         """
@@ -61,19 +59,18 @@ class AreaDetector:
         total area weigth
         """
         return self._total_area_weigth
-
-    def __init__(self) -> None:
-        self._area: numpy.ndarray = numpy.zeros(0)
-        self._volume: numpy.ndarray = numpy.zeros(0)
-        self._area_list: list = []
-        self._total_area_weigth: numpy.ndarray = numpy.zeros(0)
+    
+    def __init__(self):
+        self._area : numpy.ndarray = numpy.zeros(0)
+        self._volume : numpy.ndarray = numpy.zeros(0)
+        self._area_list : list = []
+        self._total_area_weigth : numpy.ndarray = numpy.zeros(0)
 
     def detect_areas(
         self,
         dzgemi: numpy.ndarray,
         dzmin: float,
         edgeface_indeces: numpy.ndarray,
-        wght_area_tot: numpy.ndarray,
         areai: numpy.ndarray,
         wbin: numpy.ndarray,
         wthresh: numpy.ndarray,
@@ -83,7 +80,8 @@ class AreaDetector:
         sthresh: numpy.ndarray,
         slength: float,
     ):
-
+        self._total_area_weigth = numpy.zeros(dzgemi.shape)
+        
         sbin_length = sthresh[1] - sthresh[0]
         nwidth = wthresh[-1] - wthresh[0]
         sub_areai, n_sub_areas = self.detect_connected_regions(
@@ -112,7 +110,7 @@ class AreaDetector:
                 slength,
                 sbin_length,
             )
-            wght_area_tot = wght_area_tot + wght_area_ia
+            self._total_area_weigth += wght_area_ia
 
             volume[2, ia], area[ia], volume[0, ia] = self.comp_sedimentation_volume2(
                 numpy.maximum(dzgemi_filtered, 0.0), dzmin, areai, slength, nwidth
@@ -122,11 +120,10 @@ class AreaDetector:
         area = area[sorted_list]
         volume = volume[:, sorted_list]
         sub_area_list = [sub_area_list[ia] for ia in sorted_list]
-
+        
         self._area = area
         self._volume = volume
         self._area_list = sub_area_list
-        self._total_area_weigth = wght_area_tot
 
     def comp_sedimentation_volume1(
         self,

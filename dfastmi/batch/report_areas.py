@@ -27,6 +27,8 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+from abc import ABC
+from pathlib import Path
 from typing import List
 
 import numpy
@@ -35,8 +37,15 @@ import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch.PlotOptions import PlotOptions
 
+class AreaReporter(ABC):
 
-class AreaReporter:
+    _total_str : str
+    _area_str : str
+    _positive_up : bool
+
+    def __init__(self, plotting_options : PlotOptions, xyzfil : Path):
+        self._xyzfil = xyzfil
+        self._plotting_options = plotting_options
 
     def report_areas(
         self,
@@ -50,11 +59,6 @@ class AreaReporter:
         sbin: numpy.ndarray,
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
-        plotting_options: PlotOptions,
-        xyzfil: str,
-        area_str: str,
-        total_str: str,
-        pos_up: bool,
         plot_n: int,
         volume: numpy.ndarray,
         sub_area_list: list,
@@ -72,7 +76,7 @@ class AreaReporter:
             sthresh,
         )
 
-        self._write_xyz_file(wbin_labels, kmid, xyzfil, binvol)
+        self._write_xyz_file(wbin_labels, kmid, binvol)
         self._plot_areas(
             dzgemi,
             areai,
@@ -84,10 +88,6 @@ class AreaReporter:
             sbin,
             sthresh,
             kmid,
-            plotting_options,
-            area_str,
-            total_str,
-            pos_up,
             plot_n,
             sbin_length,
             volume,
@@ -95,11 +95,11 @@ class AreaReporter:
             binvol,
         )
 
-    def _write_xyz_file(self, wbin_labels, kmid, xyzfil, binvol):
-        if xyzfil != "":
+    def _write_xyz_file(self, wbin_labels, kmid, binvol):
+        if self._xyzfil:
             # write a table of chainage and volume per width bin to file
             binvol2 = numpy.stack(binvol)
-            with open(xyzfil, "w") as file:
+            with open(self._xyzfil, "w") as file:
                 vol_str = " ".join('"{}"'.format(str) for str in wbin_labels)
                 file.write('"chainage" ' + vol_str + "\n")
                 for i in range(binvol2.shape[1]):
@@ -118,29 +118,25 @@ class AreaReporter:
         sbin: numpy.ndarray,
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
-        plotting_options: PlotOptions,
-        area_str: str,
-        total_str: str,
-        pos_up: bool,
         plot_n: int,
         sbin_length: float,
         volume: numpy.ndarray,
         sub_area_list: list,
         binvol: List[numpy.ndarray],
     ):
-        if plotting_options.plotting:
+        if self._plotting_options.plotting:
             fig, ax = dfastmi.plotting.plot_sedimentation(
                 kmid,
                 "chainage [km]",
                 binvol,
                 "volume [m3] accumulated per {} m bin alongstream".format(sbin_length),
-                total_str,
+                self._total_str,
                 wbin_labels,
-                positive_up=pos_up,
+                positive_up=self._positive_up,
             )
 
-            figure_base_name = total_str.replace(" ", "_")
-            self._save_figure(plotting_options, fig, ax, figure_base_name)
+            figure_base_name = self._total_str.replace(" ", "_")
+            self._save_figure(fig, ax, figure_base_name)
 
             if plot_n > 0:
                 # plot the figures with details for the N areas with largest volumes
@@ -163,9 +159,6 @@ class AreaReporter:
                     wthresh,
                     sthresh,
                     kmid,
-                    area_str,
-                    pos_up,
-                    plotting_options,
                 )
 
     def plot_certain_areas(
@@ -182,9 +175,6 @@ class AreaReporter:
         wthresh,
         sthresh,
         kmid,
-        area_str,
-        pos_up,
-        plotting_options: PlotOptions,
     ):
         indices = numpy.nonzero(condition)[0]
         sbin_length = sthresh[1] - sthresh[0]
@@ -201,26 +191,26 @@ class AreaReporter:
                 "chainage [km]",
                 area_binvol,
                 "volume [m3] accumulated per {} m bin alongstream".format(sbin_length),
-                area_str.format(ia + 1),
+                self._area_str.format(ia + 1),
                 wbin_labels,
-                positive_up=pos_up,
+                positive_up=self._positive_up,
             )
 
-            figure_base_name = area_str.replace(" ", "_").format(ia + 1) + "_volumes"
-            self._save_figure(plotting_options, fig, ax, figure_base_name)
+            figure_base_name = self._area_str.replace(" ", "_").format(ia + 1) + "_volumes"
+            self._save_figure(fig, ax, figure_base_name)
 
-    def _save_figure(self, plotting_options: PlotOptions, fig, ax, figure_base_name):
-        if plotting_options.saveplot:
-            figbase = plotting_options.figure_save_directory / figure_base_name
-            if plotting_options.saveplot_zoomed:
+    def _save_figure(self, fig, ax, figure_base_name):
+        if self._plotting_options.saveplot:
+            figbase = self._plotting_options.figure_save_directory / figure_base_name
+            if self._plotting_options.saveplot_zoomed:
                 dfastmi.plotting.zoom_x_and_save(
                     fig,
                     ax,
                     figbase,
-                    plotting_options.plot_extension,
-                    plotting_options.kmzoom,
+                    self._plotting_options.plot_extension,
+                    self._plotting_options.kmzoom,
                 )
-            figfile = figbase.with_suffix(plotting_options.plot_extension)
+            figfile = figbase.with_suffix(self._plotting_options.plot_extension)
             dfastmi.plotting.savefig(fig, figfile)
 
     def comp_binned_volumes(
@@ -281,3 +271,18 @@ class AreaReporter:
             )
 
         return sedbinvol
+
+class SedimentationAreaReporter(AreaReporter):
+    def __init__(self, plotting_options : PlotOptions, xyzfil : Path):
+        super().__init__(plotting_options, xyzfil)
+        self._area_str = "sedimentation area {}"
+        self._total_str = "total sedimentation volume"
+        self._positive_up = True
+
+class ErosionAreaReporter(AreaReporter):
+    def __init__(self, plotting_options : PlotOptions, xyzfil : Path = None):
+        super().__init__(plotting_options, xyzfil)
+        self._area_str = "erosion area {}"
+        self._total_str = "total erosion volume"
+        self._positive_up = False
+        
