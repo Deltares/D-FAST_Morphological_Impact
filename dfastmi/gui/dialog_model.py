@@ -67,8 +67,8 @@ class DialogModel:
 
     config: ConfigParser = None
     section: SectionProxy = None
-    case_description : str = ""
-	
+    case_description: str = ""
+
     def __init__(
         self, rivers_configuration: RiversObject, config_file: Optional[str] = None
     ):
@@ -102,16 +102,16 @@ class DialogModel:
             "n": False,
         }
         self.config.BOOLEAN_STATES = BOOLEAN_STATES
+
     @property
     def case_description(self) -> str:
         """Get case description."""
-        return self.section['CaseDescription']
-    
+        return self.section["CaseDescription"]
+
     @case_description.setter
     def case_description(self, value: str):
         """Set case description."""
-        self.section['CaseDescription'] = value
-    
+        self.section["CaseDescription"] = value
 
     @property
     def branch_name(self) -> str:
