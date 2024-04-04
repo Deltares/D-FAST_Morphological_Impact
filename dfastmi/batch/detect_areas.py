@@ -26,14 +26,45 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-
+import numpy
 import math
 from typing import Tuple
 
-import numpy
-
-
 class AreaDetector:
+    
+    @property
+    def area(self) -> numpy.ndarray:
+        """
+        area
+        """
+        return self._area
+    
+    @property
+    def volume(self) -> numpy.ndarray:
+        """
+        area volume
+        """
+        return self._volume
+    
+    @property
+    def area_list(self) -> list:
+        """
+        List of sub areas
+        """
+        return self._area_list
+
+    @property
+    def total_area_weigth(self) -> numpy.ndarray:
+        """
+        total area weigth
+        """
+        return self._total_area_weigth
+    
+    def __init__(self) -> None:
+        self._area : numpy.ndarray = numpy.zeros(0)
+        self._volume : numpy.ndarray = numpy.zeros(0)
+        self._area_list : list = []
+        self._total_area_weigth : numpy.ndarray = numpy.zeros(0)
 
     def detect_areas(
         self,
@@ -49,7 +80,7 @@ class AreaDetector:
         sbin: numpy.ndarray,
         sthresh: numpy.ndarray,
         slength: float,
-    ) -> Tuple[numpy.ndarray, numpy.ndarray, list, numpy.ndarray]:
+    ):
 
         sbin_length = sthresh[1] - sthresh[0]
         nwidth = wthresh[-1] - wthresh[0]
@@ -89,8 +120,11 @@ class AreaDetector:
         area = area[sorted_list]
         volume = volume[:, sorted_list]
         sub_area_list = [sub_area_list[ia] for ia in sorted_list]
-
-        return area, volume, sub_area_list, wght_area_tot
+        
+        self._area = area
+        self._volume = volume
+        self._area_list = sub_area_list
+        self._total_area_weigth = wght_area_tot
 
     def comp_sedimentation_volume1(
         self,

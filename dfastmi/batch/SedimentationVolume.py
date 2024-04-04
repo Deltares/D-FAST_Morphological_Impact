@@ -285,27 +285,26 @@ def comp_sedimentation_volume(
     plot_n = 3
 
     print("-- detecting separate sedimentation areas")
+    sedimentation_area_detector = AreaDetector()
+    sedimentation_area_detector.detect_areas(
+        dzgemi,
+        dzmin,
+        edgeface_index,
+        wght_area_tot,
+        areai,
+        wbin,
+        wthresh,
+        siface,
+        afrac,
+        sbin,
+        sthresh,
+        slength,
+    )
+    
     xyzfil = str(outputdir.joinpath("sedimentation_volumes.xyz"))
     area_str = "sedimentation area {}"
     total_str = "total sedimentation volume"
     positive_up = True
-    sedimentation_area_detector = AreaDetector()
-    sedarea, sedvol, sed_area_list, wght_area_tot = (
-        sedimentation_area_detector.detect_areas(
-            dzgemi,
-            dzmin,
-            edgeface_index,
-            wght_area_tot,
-            areai,
-            wbin,
-            wthresh,
-            siface,
-            afrac,
-            sbin,
-            sthresh,
-            slength,
-        )
-    )
     sedimentation_area_reporter = AreaReporter()
     sedimentation_area_reporter.report_areas(
         dzgemi,
@@ -324,17 +323,13 @@ def comp_sedimentation_volume(
         total_str,
         positive_up,
         plot_n,
-        sedvol,
-        sed_area_list,
+        sedimentation_area_detector.volume,
+        sedimentation_area_detector.area_list,
     )
 
     print("-- detecting separate erosion areas")
-    xyzfil = ""
-    area_str = "erosion area {}"
-    total_str = "total erosion volume"
     erosion_area_detector = AreaDetector()
-    positive_up = False
-    eroarea, erovol, ero_area_list, wght_area_tot = erosion_area_detector.detect_areas(
+    erosion_area_detector.detect_areas(
         -dzgemi,
         dzmin,
         edgeface_index,
@@ -348,6 +343,11 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
+    
+    xyzfil = ""
+    area_str = "erosion area {}"
+    total_str = "total erosion volume"
+    positive_up = False
     erosion_area_reporter = AreaReporter()
     erosion_area_reporter.report_areas(
         -dzgemi,
@@ -366,17 +366,17 @@ def comp_sedimentation_volume(
         total_str,
         positive_up,
         plot_n,
-        erovol,
-        ero_area_list,
+        erosion_area_detector.volume,
+        erosion_area_detector.area_list,
     )
 
     return SedimentationData(
-        sedarea,
-        sedvol,
-        sed_area_list,
-        eroarea,
-        erovol,
-        ero_area_list,
-        wght_area_tot,
+        sedimentation_area_detector.area,
+        sedimentation_area_detector.volume,
+        sedimentation_area_detector.area_list,
+        erosion_area_detector.area,
+        erosion_area_detector.volume,
+        erosion_area_detector.area_list,
+        sedimentation_area_detector.total_area_weigth + erosion_area_detector.total_area_weigth,
         wbini,
     )
