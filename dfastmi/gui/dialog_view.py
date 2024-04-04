@@ -667,12 +667,7 @@ class DialogView:
         layout.addRow(case_description_label, self._case_description) 
 
     def _update_case_description(self) -> None:
-        """
-        Update case description.
-
-        Returns:
-            None
-        """
+        """ Update case description. """
         self._view_model.model.case_description = self._case_description.text()
 
     
