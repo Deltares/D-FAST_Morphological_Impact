@@ -28,10 +28,12 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from pathlib import Path
+from typing import TextIO
 
 import netCDF4
 import numpy
 
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.DflowfmReporters import ReporterDflowfmReporter
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
@@ -46,14 +48,18 @@ class ReporterDflowfm:
 
     _reporter: ReporterDflowfmReporter
 
-    def __init__(self, display: bool):
+    def __init__(self, display: bool, config: AConfigurationInitializerBase, report: TextIO):
         """
         Arguments
         ---------
         display : bool
             Flag indicating text output to stdout.
+        config : AConfigurationInitializerBase
+            DTO with discharges, times, etc. for analysis
+        report : TextIO
+            Text stream for log file.
         """
-        self._reporter = ReporterDflowfmReporter(display)
+        self._reporter = ReporterDflowfmReporter(display, config, report)
 
     def report(
         self,
@@ -73,6 +79,7 @@ class ReporterDflowfm:
         report_data  : OutputDataDflowfm
             DTO with the data which is needed to create a report.
         """
+        self._reporter.report_analysis_configuration()
         self._reporter.report_writing_output()
         map_file = MapFile(report_data.one_fm_filename)
         meshname = map_file.mesh2d_name
