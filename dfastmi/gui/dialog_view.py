@@ -87,7 +87,6 @@ class DialogView:
         _branch (QComboBox): The combo box for selecting the river branch.
         _reach (QComboBox): The combo box for selecting the river reach.
         _qloc (QLabel): The label for displaying the discharge location.
-        _conditions_qloc (QLabel): The label for displaying conditions discharge location.
         _qthr (QLineEdit): The line edit for specifying the discharge threshold.
         _ucrit (QLineEdit): The line edit for specifying the critical velocity.
         _slength (QLabel): The label for displaying the impacted length.
@@ -106,7 +105,6 @@ class DialogView:
     _branch: QComboBox = None
     _reach: QComboBox = None
     _qloc: QLabel = None
-    _conditions_qloc: QLabel = None
     _qthr: QLineEdit = None
     _ucrit: QLineEdit = None
     _slength: QLabel = None
@@ -158,7 +156,6 @@ class DialogView:
             self._reach.addItem(r.name)
         # Update labels and text fields
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        self._conditions_qloc.setText(self._view_model.current_branch.qlocation)
         self._output_dir.setText(self._view_model.model.output_dir)
         self._make_plots_edit.setChecked(self._view_model.model.plotting)
         self._save_plots_edit.setChecked(self._view_model.model.save_plots)
@@ -518,23 +515,15 @@ class DialogView:
         self._grid_layout = QGridLayout()
         self._grid_layout.setObjectName("discharge_conditions_grid")
 
-        self._grid_layout.addWidget(QLabel(gui_text("qloc")), 0, 0)
-        # Create a new instance of the widget
-        self._conditions_qloc = QLabel()
-
-        # Set properties of the copied widget to match the original widget
-        self._conditions_qloc.setText(self._qloc.text())
-        self._grid_layout.addWidget(self._conditions_qloc, 0, 1)
-
         # Add widgets to the form layout
-        discharge_label = QLabel(gui_text("qval"))
-        reference_label = QLabel(gui_text("reference"))
-        measure_label = QLabel(gui_text("measure"))
+        discharge_column_label = QLabel(gui_text("qval"))
+        reference_column__label = QLabel(gui_text("reference"))
+        measure_column_label = QLabel(gui_text("measure"))
 
         # Add widgets to the form layout with labels
-        self._grid_layout.addWidget(discharge_label, 1, 0)
-        self._grid_layout.addWidget(reference_label, 1, 1)
-        self._grid_layout.addWidget(measure_label, 1, 2)
+        self._grid_layout.addWidget(discharge_column_label, 1, 0)
+        self._grid_layout.addWidget(reference_column__label, 1, 1)
+        self._grid_layout.addWidget(measure_column_label, 1, 2)
 
         group_box_layout.addLayout(self._grid_layout)
 
