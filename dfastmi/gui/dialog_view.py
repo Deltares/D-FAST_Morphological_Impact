@@ -149,6 +149,9 @@ class DialogView:
         Args:
             data: The data for the branch.
         """
+        # Update case name
+        self._case_description.setText(self._view_model.model.case_description)
+
         # Update branch and reach selection
         self._branch.setCurrentText(data)
         self._reach.clear()
@@ -311,6 +314,7 @@ class DialogView:
         self._general_widget = QWidget(self._win)
         layout = QFormLayout(self._general_widget)
 
+        self._create_case_input(layout)
         self._create_branch_input(layout)
         self._create_reach_input(layout)
 
@@ -644,6 +648,27 @@ class DialogView:
             self._branch.addItem(b.name)
         self._branch.setCurrentText(self._view_model.current_branch.name)
         layout.addRow(gui_text("branch"), self._branch)
+
+    def _create_case_input(self, layout: QBoxLayout) -> None:
+        """
+        Create input field for case description.
+
+        Args:
+            layout (QBoxLayout): Layout to add the case description input field.
+
+        Returns:
+            None
+        """
+        self._case_description = QLineEdit(self._win)
+        self._case_description.setText(self._view_model.model.case_description)
+        self._case_description.editingFinished.connect(self._update_case_description)
+        self._case_description.setToolTip(gui_text("case_description_tooltip"))
+        case_description_label = QLabel(gui_text("case_description"), self._win)
+        layout.addRow(case_description_label, self._case_description)
+
+    def _update_case_description(self) -> None:
+        """Update case description."""
+        self._view_model.model.case_description = self._case_description.text()
 
     def _update_qthreshold(self) -> None:
         """
