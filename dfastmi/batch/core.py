@@ -35,7 +35,6 @@ from typing import Any, Dict, Optional, TextIO, Tuple
 import matplotlib
 from packaging.version import InvalidVersion, Version
 
-from dfastmi.io.Branch import Branch
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
@@ -45,6 +44,7 @@ from dfastmi.batch.ConfigurationInitializerFactory import (
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.IReach import IReach

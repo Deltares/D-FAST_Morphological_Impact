@@ -17,8 +17,8 @@ from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
-from dfastmi.io.Reach import Reach
 from dfastmi.io.map_file import MapFile
+from dfastmi.io.Reach import Reach
 from dfastmi.kernel.typehints import Vector
 from tests.batch.Helper_AnalyserAndReporterDflowfm import (  # needed for fixture
     TestCase_display_needs_tide_old_zmin_zmax,
