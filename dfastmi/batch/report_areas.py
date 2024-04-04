@@ -32,13 +32,14 @@ from pathlib import Path
 from typing import List
 
 import numpy
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch.detect_areas import AreaDetector
 from dfastmi.batch.PlotOptions import PlotOptions
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
+
 
 class AreaPlotter(ABC):
     """
@@ -141,7 +142,12 @@ class AreaPlotter(ABC):
             binvol,
         )
 
-    def _write_xyz_file(self, wbin_labels : numpy.ndarray, kmid : numpy.ndarray, binvol : List[numpy.ndarray]):
+    def _write_xyz_file(
+        self,
+        wbin_labels: numpy.ndarray,
+        kmid: numpy.ndarray,
+        binvol: List[numpy.ndarray],
+    ):
         if self._xyz_file_location:
             # write a table of chainage and volume per width bin to file
             binvol2 = numpy.stack(binvol)
@@ -233,17 +239,17 @@ class AreaPlotter(ABC):
 
     def _plot_certain_areas(
         self,
-        condition : bool,
-        dzgemi : numpy.ndarray,
-        areai : numpy.ndarray,
-        wbin : numpy.ndarray,
+        condition: bool,
+        dzgemi: numpy.ndarray,
+        areai: numpy.ndarray,
+        wbin: numpy.ndarray,
         wbin_labels: list[str],
-        siface : numpy.ndarray,
-        afrac : numpy.ndarray,
-        sbin : numpy.ndarray,
-        wthresh : numpy.ndarray,
-        sthresh : numpy.ndarray,
-        kmid : numpy.ndarray,
+        siface: numpy.ndarray,
+        afrac: numpy.ndarray,
+        sbin: numpy.ndarray,
+        wthresh: numpy.ndarray,
+        sthresh: numpy.ndarray,
+        kmid: numpy.ndarray,
     ):
         indices = numpy.nonzero(condition)[0]
         sbin_length = sthresh[1] - sthresh[0]
@@ -270,8 +276,7 @@ class AreaPlotter(ABC):
             )
             self._save_figure(fig, ax, figure_base_name)
 
-
-    def _save_figure(self, fig : Figure, ax : Axes, figure_base_name : str):
+    def _save_figure(self, fig: Figure, ax: Axes, figure_base_name: str):
         if not self._plotting_options.saveplot:
             return
 
