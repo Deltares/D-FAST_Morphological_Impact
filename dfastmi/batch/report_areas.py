@@ -186,7 +186,7 @@ class AreaReporter:
         pos_up,
         plotting_options: PlotOptions,
     ):
-        indices = numpy.where(condition)[0]
+        indices = numpy.nonzero(condition)[0]
         sbin_length = sthresh[1] - sthresh[0]
         for ia in indices:
             dzgemi_filtered = dzgemi.copy()

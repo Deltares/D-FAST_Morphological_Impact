@@ -27,6 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
+import math
 from typing import Tuple
 
 import numpy
@@ -38,7 +39,7 @@ class AreaDetector:
         self,
         dzgemi: numpy.ndarray,
         dzmin: float,
-        EFCi: numpy.ndarray,
+        edgeface_indeces: numpy.ndarray,
         wght_area_tot: numpy.ndarray,
         areai: numpy.ndarray,
         wbin: numpy.ndarray,
@@ -52,7 +53,7 @@ class AreaDetector:
 
         sbin_length = sthresh[1] - sthresh[0]
         nwidth = wthresh[-1] - wthresh[0]
-        sub_areai, n_sub_areas = self.detect_connected_regions(dzgemi > dzmin, EFCi)
+        sub_areai, n_sub_areas = self.detect_connected_regions(dzgemi > dzmin, edgeface_indeces)
         print("number of areas detected: ", n_sub_areas)
 
         area = numpy.zeros(n_sub_areas)
@@ -248,7 +249,7 @@ class AreaDetector:
                     ibprev = ib
                     slength1 = slength1 - sbin_length
 
-                if frac != 0.0:
+                if not math.isclose(frac, 0.0):
                     wght[ii] = wght[ii] + frac * afrac[ii]
                     dredge_vol = dredge_vol + frac * sedvol[ii] * afrac[ii]
 
@@ -284,7 +285,7 @@ class AreaDetector:
         dvol : float
             Sedimentation volume [m3].
         """
-        iface = numpy.where(dzgem > dzmin)
+        iface = numpy.nonzero(dzgem > dzmin)
         dzgem_clip = dzgem[iface]
         area_clip = area[iface]
 
@@ -306,7 +307,7 @@ class AreaDetector:
         return dvol, area_eq, dvol_eq
 
     def detect_connected_regions(
-        self, fcondition: numpy.ndarray, EFC: numpy.ndarray
+        self, fcondition: numpy.ndarray, edgeface_indeces: numpy.ndarray
     ) -> Tuple[numpy.ndarray, int]:
         """
         Detect regions of faces for which the fcondition equals True.
@@ -315,7 +316,7 @@ class AreaDetector:
         ---------
         fcondition : numpy.ndarray
             Boolean array of length M: one boolean per face.
-        EFC : numpy.ndarray
+        edgeface_indeces : numpy.ndarray
             N x 2 array containing the indices of neighbouring faces.
             Maximum face index is M-1.
 
@@ -332,7 +333,7 @@ class AreaDetector:
         ncells = fcondition.sum()
         partition[fcondition] = numpy.arange(ncells)
 
-        efc = EFC[fcondition[EFC].all(axis=1), :]
+        efc = edgeface_indeces[fcondition[edgeface_indeces].all(axis=1), :]
         nlinks = efc.shape[0]
 
         anychange = True
