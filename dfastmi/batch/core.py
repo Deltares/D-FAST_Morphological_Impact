@@ -35,6 +35,7 @@ from typing import Any, Dict, Optional, TextIO, Tuple
 import matplotlib
 from packaging.version import InvalidVersion, Version
 
+from dfastmi.io.Branch import Branch
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
@@ -153,6 +154,7 @@ def batch_mode_core(
                     data,
                     cfg_version,
                     reach,
+                    branch,
                     display,
                     report,
                     reduced_output,
@@ -379,6 +381,7 @@ def _analyse_and_report(
     data: DFastMIConfigParser,
     cfg_version: Version,
     reach: IReach,
+    branch: Branch,
     display: bool,
     report: TextIO,
     reduced_output: bool,
@@ -399,7 +402,7 @@ def _analyse_and_report(
         DFast MI application config file.
     cfg_version : Version,
         Version object extracted from the configuration file.
-    branch : IBranch
+    branch : Branch
         Branch object we want to do analysis on.
     reach: IReach,
         Reach object we want to do analysis on,
@@ -453,7 +456,8 @@ def _analyse_and_report(
         success = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
-            reach.normal_width,
+            reach,
+            branch,
             filenames,
             plotting_options.xykm,
             old_zmin_zmax,
