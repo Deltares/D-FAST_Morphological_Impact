@@ -298,8 +298,10 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-    
-    sedimentation_area_reporter = SedimentationAreaReporter(plotting_options, outputdir.joinpath("sedimentation_volumes.xyz"))
+
+    sedimentation_area_reporter = SedimentationAreaReporter(
+        plotting_options, outputdir.joinpath("sedimentation_volumes.xyz")
+    )
     sedimentation_area_reporter.report_areas(
         dzgemi,
         areai,
@@ -331,7 +333,7 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
-    
+
     erosion_area_reporter = ErosionAreaReporter(plotting_options)
     erosion_area_reporter.report_areas(
         -dzgemi,
@@ -356,6 +358,7 @@ def comp_sedimentation_volume(
         erosion_area_detector.area,
         erosion_area_detector.volume,
         erosion_area_detector.area_list,
-        sedimentation_area_detector.total_area_weigth + erosion_area_detector.total_area_weigth,
+        sedimentation_area_detector.total_area_weigth
+        + erosion_area_detector.total_area_weigth,
         wbini,
     )

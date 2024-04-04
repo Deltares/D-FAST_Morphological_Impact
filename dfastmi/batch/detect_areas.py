@@ -26,26 +26,28 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import numpy
 import math
 from typing import Tuple
 
+import numpy
+
+
 class AreaDetector:
-    
+
     @property
     def area(self) -> numpy.ndarray:
         """
         area
         """
         return self._area
-    
+
     @property
     def volume(self) -> numpy.ndarray:
         """
         area volume
         """
         return self._volume
-    
+
     @property
     def area_list(self) -> list:
         """
@@ -59,12 +61,12 @@ class AreaDetector:
         total area weigth
         """
         return self._total_area_weigth
-    
+
     def __init__(self):
-        self._area : numpy.ndarray = numpy.zeros(0)
-        self._volume : numpy.ndarray = numpy.zeros(0)
-        self._area_list : list = []
-        self._total_area_weigth : numpy.ndarray = numpy.zeros(0)
+        self._area: numpy.ndarray = numpy.zeros(0)
+        self._volume: numpy.ndarray = numpy.zeros(0)
+        self._area_list: list = []
+        self._total_area_weigth: numpy.ndarray = numpy.zeros(0)
 
     def detect_areas(
         self,
@@ -81,7 +83,7 @@ class AreaDetector:
         slength: float,
     ):
         self._total_area_weigth = numpy.zeros(dzgemi.shape)
-        
+
         sbin_length = sthresh[1] - sthresh[0]
         nwidth = wthresh[-1] - wthresh[0]
         sub_areai, n_sub_areas = self.detect_connected_regions(
@@ -120,7 +122,7 @@ class AreaDetector:
         area = area[sorted_list]
         volume = volume[:, sorted_list]
         sub_area_list = [sub_area_list[ia] for ia in sorted_list]
-        
+
         self._area = area
         self._volume = volume
         self._area_list = sub_area_list

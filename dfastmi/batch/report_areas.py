@@ -37,13 +37,14 @@ import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch.PlotOptions import PlotOptions
 
+
 class AreaReporter(ABC):
 
-    _total_str : str
-    _area_str : str
-    _positive_up : bool
+    _total_str: str
+    _area_str: str
+    _positive_up: bool
 
-    def __init__(self, plotting_options : PlotOptions, xyzfil : Path):
+    def __init__(self, plotting_options: PlotOptions, xyzfil: Path):
         self._xyzfil = xyzfil
         self._plotting_options = plotting_options
 
@@ -196,7 +197,9 @@ class AreaReporter(ABC):
                 positive_up=self._positive_up,
             )
 
-            figure_base_name = self._area_str.replace(" ", "_").format(ia + 1) + "_volumes"
+            figure_base_name = (
+                self._area_str.replace(" ", "_").format(ia + 1) + "_volumes"
+            )
             self._save_figure(fig, ax, figure_base_name)
 
     def _save_figure(self, fig, ax, figure_base_name):
@@ -272,17 +275,18 @@ class AreaReporter(ABC):
 
         return sedbinvol
 
+
 class SedimentationAreaReporter(AreaReporter):
-    def __init__(self, plotting_options : PlotOptions, xyzfil : Path):
+    def __init__(self, plotting_options: PlotOptions, xyzfil: Path):
         super().__init__(plotting_options, xyzfil)
         self._area_str = "sedimentation area {}"
         self._total_str = "total sedimentation volume"
         self._positive_up = True
 
+
 class ErosionAreaReporter(AreaReporter):
-    def __init__(self, plotting_options : PlotOptions, xyzfil : Path = None):
+    def __init__(self, plotting_options: PlotOptions, xyzfil: Path = None):
         super().__init__(plotting_options, xyzfil)
         self._area_str = "erosion area {}"
         self._total_str = "total erosion volume"
         self._positive_up = False
-        
