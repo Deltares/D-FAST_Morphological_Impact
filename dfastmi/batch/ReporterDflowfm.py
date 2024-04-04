@@ -48,7 +48,9 @@ class ReporterDflowfm:
 
     _reporter: ReporterDflowfmReporter
 
-    def __init__(self, display: bool, config: AConfigurationInitializerBase, report: TextIO):
+    def __init__(
+        self, display: bool, config: AConfigurationInitializerBase, report: TextIO
+    ):
         """
         Arguments
         ---------
