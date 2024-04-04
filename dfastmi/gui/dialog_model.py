@@ -42,6 +42,7 @@ class GeneralConfig(BaseModel):
     """Represents the general configuration settings."""
 
     Version: str = "2.0"
+    CaseDescription: str = ""
     Branch: str = ""
     Reach: str = ""
     Qthreshold: float = 0.0
@@ -66,6 +67,7 @@ class DialogModel:
 
     config: ConfigParser = None
     section: SectionProxy = None
+    case_description: str = ""
 
     def __init__(
         self, rivers_configuration: RiversObject, config_file: Optional[str] = None
@@ -100,6 +102,16 @@ class DialogModel:
             "n": False,
         }
         self.config.BOOLEAN_STATES = BOOLEAN_STATES
+
+    @property
+    def case_description(self) -> str:
+        """Get case description."""
+        return self.section["CaseDescription"]
+
+    @case_description.setter
+    def case_description(self, value: str):
+        """Set case description."""
+        self.section["CaseDescription"] = value
 
     @property
     def branch_name(self) -> str:
@@ -248,6 +260,7 @@ class DialogModel:
         config.optionxform = str
         config.add_section("General")
         config["General"] = GeneralConfig(
+            CaseDescription=self.case_description,
             Branch=branch.name,
             Reach=reach.name,
             Qthreshold=self.qthreshold,
