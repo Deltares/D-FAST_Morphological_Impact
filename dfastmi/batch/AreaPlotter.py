@@ -37,7 +37,7 @@ from matplotlib.figure import Figure
 
 import dfastmi.kernel.core
 import dfastmi.plotting
-from dfastmi.batch.detect_areas import AreaDetector
+from dfastmi.batch.AreaDetector import AreaDetector
 from dfastmi.batch.PlotOptions import PlotOptions
 
 
