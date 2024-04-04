@@ -31,6 +31,7 @@ from typing import Tuple
 
 import numpy
 
+
 class AreaDetector:
 
     @property
