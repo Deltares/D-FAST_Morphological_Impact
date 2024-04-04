@@ -33,21 +33,28 @@ from typing import List
 
 import numpy
 
-from dfastmi.batch.detect_areas import AreaDetector
 import dfastmi.kernel.core
 import dfastmi.plotting
+from dfastmi.batch.detect_areas import AreaDetector
 from dfastmi.batch.PlotOptions import PlotOptions
+
 
 class AreaPlotter(ABC):
     """
     Abstract class used to plot the area.
     """
 
-    _total_str : str
-    _area_str : str
-    _positive_up : bool
+    _total_str: str
+    _area_str: str
+    _positive_up: bool
 
-    def __init__(self, plotting_options : PlotOptions, plot_n: int, area_detector : AreaDetector, xyz_file_location : Path):
+    def __init__(
+        self,
+        plotting_options: PlotOptions,
+        plot_n: int,
+        area_detector: AreaDetector,
+        xyz_file_location: Path,
+    ):
         """
         Arguments
         ---------
@@ -76,9 +83,7 @@ class AreaPlotter(ABC):
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
     ):
-        """
-    
-        """
+        """ """
 
         sbin_length = sthresh[1] - sthresh[0]
         binvol = self._comp_binned_volumes(
@@ -136,7 +141,7 @@ class AreaPlotter(ABC):
     ):
         if not self._plotting_options.plotting:
             return
-        
+
         fig, ax = dfastmi.plotting.plot_sedimentation(
             kmid,
             "chainage [km]",
@@ -151,29 +156,52 @@ class AreaPlotter(ABC):
         self._save_figure(fig, ax, figure_base_name)
 
         if self._plot_n > 0:
-            self._plot_figures_with_details_for_n_areas_with_largest_volumes(dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid)
+            self._plot_figures_with_details_for_n_areas_with_largest_volumes(
+                dzgemi,
+                areai,
+                wbin,
+                wbin_labels,
+                wthresh,
+                siface,
+                afrac,
+                sbin,
+                sthresh,
+                kmid,
+            )
 
-    def _plot_figures_with_details_for_n_areas_with_largest_volumes(self, dzgemi, areai, wbin, wbin_labels, wthresh, siface, afrac, sbin, sthresh, kmid):
+    def _plot_figures_with_details_for_n_areas_with_largest_volumes(
+        self,
+        dzgemi,
+        areai,
+        wbin,
+        wbin_labels,
+        wthresh,
+        siface,
+        afrac,
+        sbin,
+        sthresh,
+        kmid,
+    ):
         volume_mean = self._area_detector.volume[1:, :].mean(axis=0)
         sorted_list = numpy.argsort(volume_mean)[::-1]
         if len(sorted_list) <= self._plot_n:
             vol_thresh = 0.0
         else:
             vol_thresh = volume_mean[sorted_list[self._plot_n]]
-            
+
         self._plot_certain_areas(
-                volume_mean > vol_thresh,
-                dzgemi,
-                areai,
-                wbin,
-                wbin_labels,
-                siface,
-                afrac,
-                sbin,
-                wthresh,
-                sthresh,
-                kmid,
-            )
+            volume_mean > vol_thresh,
+            dzgemi,
+            areai,
+            wbin,
+            wbin_labels,
+            siface,
+            afrac,
+            sbin,
+            wthresh,
+            sthresh,
+            kmid,
+        )
 
     def _plot_certain_areas(
         self,
@@ -209,13 +237,15 @@ class AreaPlotter(ABC):
                 positive_up=self._positive_up,
             )
 
-            figure_base_name = self._area_str.replace(" ", "_").format(ia + 1) + "_volumes"
+            figure_base_name = (
+                self._area_str.replace(" ", "_").format(ia + 1) + "_volumes"
+            )
             self._save_figure(fig, ax, figure_base_name)
 
     def _save_figure(self, fig, ax, figure_base_name):
         if not self._plotting_options.saveplot:
             return
-        
+
         figbase = self._plotting_options.figure_save_directory / figure_base_name
         if self._plotting_options.saveplot_zoomed:
             dfastmi.plotting.zoom_x_and_save(
@@ -287,23 +317,38 @@ class AreaPlotter(ABC):
 
         return sedbinvol
 
+
 class SedimentationAreaPlotter(AreaPlotter):
     """
     Class used to plot the sedimentation area.
     """
-    def __init__(self, plotting_options : PlotOptions, plot_n: int, area_detector : AreaDetector, xyz_file_location : Path):
+
+    def __init__(
+        self,
+        plotting_options: PlotOptions,
+        plot_n: int,
+        area_detector: AreaDetector,
+        xyz_file_location: Path,
+    ):
         super().__init__(plotting_options, plot_n, area_detector, xyz_file_location)
         self._area_str = "sedimentation area {}"
         self._total_str = "total sedimentation volume"
         self._positive_up = True
 
+
 class ErosionAreaPlotter(AreaPlotter):
     """
     Class used to plot the erosion area.
     """
-    def __init__(self, plotting_options : PlotOptions, plot_n: int, area_detector : AreaDetector, xyz_file_location : Path = None):
+
+    def __init__(
+        self,
+        plotting_options: PlotOptions,
+        plot_n: int,
+        area_detector: AreaDetector,
+        xyz_file_location: Path = None,
+    ):
         super().__init__(plotting_options, plot_n, area_detector, xyz_file_location)
         self._area_str = "erosion area {}"
         self._total_str = "total erosion volume"
         self._positive_up = False
-        
