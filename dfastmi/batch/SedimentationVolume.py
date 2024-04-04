@@ -300,10 +300,10 @@ def comp_sedimentation_volume(
     )
 
     xyz_file_location = outputdir.joinpath("sedimentation_volumes.xyz")
-    sedimentation_area_reporter = SedimentationAreaPlotter(
+    sedimentation_area_plotter = SedimentationAreaPlotter(
         plotting_options, plot_n, sedimentation_area_detector, xyz_file_location
     )
-    sedimentation_area_reporter.report_areas(
+    sedimentation_area_plotter.plot_areas(
         dzgemi,
         areai,
         wbin,
@@ -332,10 +332,10 @@ def comp_sedimentation_volume(
         slength,
     )
 
-    erosion_area_reporter = ErosionAreaPlotter(
+    erosion_area_plotter = ErosionAreaPlotter(
         plotting_options, plot_n, erosion_area_detector
     )
-    erosion_area_reporter.report_areas(
+    erosion_area_plotter.plot_areas(
         -dzgemi,
         areai,
         wbin,

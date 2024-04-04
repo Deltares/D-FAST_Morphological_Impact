@@ -37,7 +37,8 @@ import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch.detect_areas import AreaDetector
 from dfastmi.batch.PlotOptions import PlotOptions
-
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 
 class AreaPlotter(ABC):
     """
@@ -60,17 +61,19 @@ class AreaPlotter(ABC):
         ---------
         plotting_options : PlotOptions
             Options for plotting.
-        xyz_file_location : Path
-            Location to write the xyz file to.
+        area_detector: AreaDetector
+            Class which holds the information regarding detected areas.
         plot_n : int
             n for plotting.
+        xyz_file_location : Path
+            Location to write the xyz file to.
         """
         self._xyz_file_location = xyz_file_location
         self._plotting_options = plotting_options
         self._plot_n = plot_n
         self._area_detector = area_detector
 
-    def report_areas(
+    def plot_areas(
         self,
         dzgemi: numpy.ndarray,
         areai: numpy.ndarray,
@@ -83,7 +86,32 @@ class AreaPlotter(ABC):
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
     ):
-        """ """
+        """
+        Plot the area data.
+
+        Arguments
+        ---------
+        dzgemi : numpy.ndarray
+            Yearly mean bed level change [m].
+        areai : numpy.ndarray
+            Array of length M containing the grid cell area [m2].
+        wbin: numpy.ndarray
+            Array of length N containing the index of the target width bin [-].
+        wbin_labels: list[str]
+            Array of length N containing the index of the target width bin [-].
+        wthresh : numpy.ndarray
+            Array containing the cross-stream coordinate boundaries between the width bins [m].
+        siface : numpy.ndarray
+            Array of length N containing the index of the source cell (range 0 to M-1) [-].
+        afrac : numpy.ndarray
+            Array of length N containing the fraction of the source cell associated with the target chainage bin [-].
+        sbin : numpy.ndarray
+            Array of length N containing the index of the target chainage bin [-].
+        sthresh : numpy.ndarray
+            Array containing the along-stream coordinate boundaries between the streamwise bins [m].
+        kmid: numpy.ndarray
+            Array of length N containing the location of points expressed as chainage.
+        """
 
         sbin_length = sthresh[1] - sthresh[0]
         binvol = self._comp_binned_volumes(
@@ -113,7 +141,7 @@ class AreaPlotter(ABC):
             binvol,
         )
 
-    def _write_xyz_file(self, wbin_labels, kmid, binvol):
+    def _write_xyz_file(self, wbin_labels : numpy.ndarray, kmid : numpy.ndarray, binvol : List[numpy.ndarray]):
         if self._xyz_file_location:
             # write a table of chainage and volume per width bin to file
             binvol2 = numpy.stack(binvol)
@@ -171,16 +199,16 @@ class AreaPlotter(ABC):
 
     def _plot_figures_with_details_for_n_areas_with_largest_volumes(
         self,
-        dzgemi,
-        areai,
-        wbin,
-        wbin_labels,
-        wthresh,
-        siface,
-        afrac,
-        sbin,
-        sthresh,
-        kmid,
+        dzgemi: numpy.ndarray,
+        areai: numpy.ndarray,
+        wbin: numpy.ndarray,
+        wbin_labels: list[str],
+        wthresh: numpy.ndarray,
+        siface: numpy.ndarray,
+        afrac: numpy.ndarray,
+        sbin: numpy.ndarray,
+        sthresh: numpy.ndarray,
+        kmid: numpy.ndarray,
     ):
         volume_mean = self._area_detector.volume[1:, :].mean(axis=0)
         sorted_list = numpy.argsort(volume_mean)[::-1]
@@ -205,17 +233,17 @@ class AreaPlotter(ABC):
 
     def _plot_certain_areas(
         self,
-        condition,
-        dzgemi,
-        areai,
-        wbin,
-        wbin_labels,
-        siface,
-        afrac,
-        sbin,
-        wthresh,
-        sthresh,
-        kmid,
+        condition : bool,
+        dzgemi : numpy.ndarray,
+        areai : numpy.ndarray,
+        wbin : numpy.ndarray,
+        wbin_labels: list[str],
+        siface : numpy.ndarray,
+        afrac : numpy.ndarray,
+        sbin : numpy.ndarray,
+        wthresh : numpy.ndarray,
+        sthresh : numpy.ndarray,
+        kmid : numpy.ndarray,
     ):
         indices = numpy.nonzero(condition)[0]
         sbin_length = sthresh[1] - sthresh[0]
@@ -242,7 +270,8 @@ class AreaPlotter(ABC):
             )
             self._save_figure(fig, ax, figure_base_name)
 
-    def _save_figure(self, fig, ax, figure_base_name):
+
+    def _save_figure(self, fig : Figure, ax : Axes, figure_base_name : str):
         if not self._plotting_options.saveplot:
             return
 
