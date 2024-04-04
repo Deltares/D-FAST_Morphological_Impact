@@ -1061,7 +1061,7 @@ class DialogView:
         None
         """
         if self._view_model.model.plotting != self._make_plots_edit.isChecked():
-            self._view_model.model.plotting = self._make_plots_edit.isChecked()        
+            self._view_model.model.plotting = self._make_plots_edit.isChecked()
 
     def _update_save_plotting(self) -> None:
         """
@@ -1074,9 +1074,11 @@ class DialogView:
         self._save_plots.setEnabled(self._view_model.model.plotting)
         self._save_plots_edit.setEnabled(self._view_model.model.plotting)
 
-        save_plot_gui = ( self._save_plots_edit.isChecked() and self._view_model.model.plotting )
+        save_plot_gui = (
+            self._save_plots_edit.isChecked() and self._view_model.model.plotting
+        )
 
-        if self._view_model.model.save_plots != save_plot_gui :
+        if self._view_model.model.save_plots != save_plot_gui:
             self._view_model.model.save_plots = save_plot_gui
 
         self._figure_dir.setEnabled(self._view_model.model.save_plots)
@@ -1085,7 +1087,6 @@ class DialogView:
             QPushButton, "figure_dir_edit_button"
         )
         figure_dir_button.setEnabled(self._view_model.model.save_plots)
-        
 
     def _update_close_plots(self) -> None:
         """
@@ -1094,8 +1095,8 @@ class DialogView:
         Arguments
         ---------
         None
-        """        
-        if self._view_model.model.close_plots != self._close_plots_edit.isChecked() :
+        """
+        if self._view_model.model.close_plots != self._close_plots_edit.isChecked():
             self._view_model.model.close_plots = self._close_plots_edit.isChecked()
         self._close_plots.setEnabled(self._view_model.model.plotting)
         self._close_plots_edit.setEnabled(self._view_model.model.plotting)

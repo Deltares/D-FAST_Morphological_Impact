@@ -55,7 +55,6 @@ class GeneralConfig(BaseModel):
     RiverKM: str = ""
 
 
-
 class ConditionConfig(BaseModel):
     """Represents the configuration settings for a specific condition."""
 
@@ -193,7 +192,7 @@ class DialogModel:
     def close_plots(self, value: bool):
         """Set close plots flag."""
         self.section["ClosePlots"] = str(value)
-    
+
     @property
     def riverkm_file(self) -> str:
         """Get RiverKM file to specify the chainage along the reach of interest."""
