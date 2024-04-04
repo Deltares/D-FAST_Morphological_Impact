@@ -174,7 +174,7 @@ class AreaDetector:
         siface: numpy.ndarray,
         sbin_length: float,
         slength: float,
-    ) -> float:
+    ) -> Tuple[float, numpy.ndarray]:
         """
         Compute the initial year sedimentation volume.
         Algorithm 1.
@@ -211,7 +211,7 @@ class AreaDetector:
         siface: numpy.ndarray,
         sbin_length: float,
         slength: float,
-    ) -> float:
+    ) -> Tuple[float, numpy.ndarray]:
         """
         Compute the initial year sedimentation volume.
         Algorithm 1.
@@ -261,7 +261,7 @@ class AreaDetector:
         area: numpy.ndarray,
         slength: float,
         nwidth: float,
-    ) -> float:
+    ) -> Tuple[float, float, float]:
         """
         Compute the initial year sedimentation volume.
         Algorithm 2.
