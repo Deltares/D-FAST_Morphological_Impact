@@ -31,7 +31,6 @@ from typing import Tuple
 
 import numpy
 
-
 class AreaDetector:
 
     @property
@@ -86,7 +85,7 @@ class AreaDetector:
 
         sbin_length = sthresh[1] - sthresh[0]
         nwidth = wthresh[-1] - wthresh[0]
-        sub_areai, n_sub_areas = self.detect_connected_regions(
+        sub_areai, n_sub_areas = self._detect_connected_regions(
             dzgemi > dzmin, edgeface_indeces
         )
         print("number of areas detected: ", n_sub_areas)
@@ -100,7 +99,7 @@ class AreaDetector:
             dzgemi_filtered[sub_areai != ia] = 0.0
             sub_area_list.append(sub_areai == ia)
 
-            volume[1, ia], wght_area_ia = self.comp_sedimentation_volume1(
+            volume[1, ia], wght_area_ia = self._comp_sedimentation_volume1(
                 dzgemi_filtered,
                 dzmin,
                 areai,
@@ -114,7 +113,7 @@ class AreaDetector:
             )
             self._total_area_weigth += wght_area_ia
 
-            volume[2, ia], area[ia], volume[0, ia] = self.comp_sedimentation_volume2(
+            volume[2, ia], area[ia], volume[0, ia] = self._comp_sedimentation_volume2(
                 numpy.maximum(dzgemi_filtered, 0.0), dzmin, areai, slength, nwidth
             )
 
@@ -127,7 +126,7 @@ class AreaDetector:
         self._volume = volume
         self._area_list = sub_area_list
 
-    def comp_sedimentation_volume1(
+    def _comp_sedimentation_volume1(
         self,
         dzgem: numpy.ndarray,
         dzmin: float,
@@ -187,7 +186,7 @@ class AreaDetector:
             lw = wbin == iw
 
             tot_dredge_vol_wbin, wght_all_dredge_bin = (
-                self.comp_sedimentation_volume1_one_width_bin(
+                self._comp_sedimentation_volume1_one_width_bin(
                     dvol[siface[lw]],
                     sbin[lw],
                     afrac[lw],
@@ -204,7 +203,7 @@ class AreaDetector:
 
         return tot_dredge_vol, wght_all_dredge
 
-    def comp_sedimentation_volume1_one_width_bin(
+    def _comp_sedimentation_volume1_one_width_bin(
         self,
         dvol: numpy.ndarray,
         sbin: numpy.ndarray,
@@ -232,7 +231,7 @@ class AreaDetector:
         siface_sed = siface[check_sed]
         afrac_sed = afrac[check_sed]
 
-        tot_dredge_vol, wght_all_dredge_sed = self.comp_sedimentation_volume1_tot(
+        tot_dredge_vol, wght_all_dredge_sed = self._comp_sedimentation_volume1_tot(
             dvol_sed, sbin_sed, afrac_sed, siface_sed, sbin_length, slength
         )
 
@@ -241,7 +240,7 @@ class AreaDetector:
 
         return tot_dredge_vol, wght_all_dredge
 
-    def comp_sedimentation_volume1_tot(
+    def _comp_sedimentation_volume1_tot(
         self,
         sedvol: numpy.ndarray,
         sbin: numpy.ndarray,
@@ -292,7 +291,7 @@ class AreaDetector:
 
         return dredge_vol, wght
 
-    def comp_sedimentation_volume2(
+    def _comp_sedimentation_volume2(
         self,
         dzgem: numpy.ndarray,
         dzmin: float,
@@ -343,7 +342,7 @@ class AreaDetector:
         )
         return dvol, area_eq, dvol_eq
 
-    def detect_connected_regions(
+    def _detect_connected_regions(
         self, fcondition: numpy.ndarray, edgeface_indeces: numpy.ndarray
     ) -> Tuple[numpy.ndarray, int]:
         """
