@@ -53,7 +53,9 @@ class AreaDetector:
 
         sbin_length = sthresh[1] - sthresh[0]
         nwidth = wthresh[-1] - wthresh[0]
-        sub_areai, n_sub_areas = self.detect_connected_regions(dzgemi > dzmin, edgeface_indeces)
+        sub_areai, n_sub_areas = self.detect_connected_regions(
+            dzgemi > dzmin, edgeface_indeces
+        )
         print("number of areas detected: ", n_sub_areas)
 
         area = numpy.zeros(n_sub_areas)
