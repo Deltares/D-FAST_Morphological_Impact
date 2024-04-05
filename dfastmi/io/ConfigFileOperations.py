@@ -154,10 +154,10 @@ class ConfigFileOperations:
         """
         absolute_path = config.get(section, key, fallback="")
         if len(absolute_path) == 0:
-            absolute_path = str(Path.cwd())
+            absolute_path = rootdir
 
         absolute_path_converted_to_relative_path = str(
-            Path(absolute_path).relative_to(rootdir)
+            os.path.relpath(absolute_path, rootdir)
         )
         config.set(section, key, absolute_path_converted_to_relative_path)
 
