@@ -180,6 +180,7 @@ def _report_analysis_configuration(
     q_threshold: float,
     ucrit: float,
     slength: float,
+    config : ConfigParser,
     report: TextIO,
 ):
     """Basic WAQUA analysis configuration will not be reported."""
@@ -190,8 +191,36 @@ def _report_analysis_configuration(
     _report_basic_analysis_configuration(
         branch, reach, q_threshold, ucrit, slength, report
     )
+    _report_discharge_branch_location(branch.qlocation, report)
+    _report_analysis_conditions_header(report)
+    for section in config:
+        if section[0].lower() == "c":
+            discharge = config.get(section, "Discharge", fallback="")
+            reference = Path(config.get(section, "Reference", fallback="")).name
+            measure = Path(config.get(section, "WithMeasure", fallback="")).name
+            _report_analysis_conditions_values(discharge, reference, measure, report)
+    
     _report_section_break(report)
 
+def _report_discharge_branch_location(
+    qlocation: str,    
+    report: TextIO,
+):
+    settings = {
+        "location": qlocation,        
+    }
+    ApplicationSettingsHelper.log_text("analysis_settings_discharge_location", file=report, dict=settings)
+
+def _report_analysis_conditions_header(report: TextIO):
+    ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
+
+def _report_analysis_conditions_values(discharge: str, reference: str, measure: str, report: TextIO):
+    settings = {
+        "discharge": discharge,        
+        "reference": reference,        
+        "measure": measure,        
+    }
+    ApplicationSettingsHelper.log_text("analysis_settings_conditions_values", file=report, dict=settings)
 
 def _report_analysis_settings_header(report: TextIO):
     ApplicationSettingsHelper.log_text("analysis_settings_header", report)
@@ -502,6 +531,7 @@ def _analyse_and_report(
         initialized_config.q_threshold,
         initialized_config.ucrit,
         initialized_config.slength,
+        config,
         report,
     )
     _report_mode_usage(imode, report)
