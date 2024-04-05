@@ -151,9 +151,7 @@ class AnalyserDflowfmReporter:
 class ReporterDflowfmReporter:
     "This reporter reports events occuring in the ReporterDflowfm class."
 
-    def __init__(
-        self, display: bool 
-    ):
+    def __init__(self, display: bool):
         """
         Arguments
         ---------

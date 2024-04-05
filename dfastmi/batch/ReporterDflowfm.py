@@ -46,9 +46,7 @@ class ReporterDflowfm:
 
     _reporter: ReporterDflowfmReporter
 
-    def __init__(
-        self, display: bool
-    ):
+    def __init__(self, display: bool):
         """
         Arguments
         ---------

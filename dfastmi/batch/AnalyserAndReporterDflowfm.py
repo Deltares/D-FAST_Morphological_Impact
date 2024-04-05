@@ -87,9 +87,7 @@ def analyse_and_report_dflowfm(
     analyser = AnalyserDflowfm(
         display, report, old_zmin_zmax, outputdir, initialized_config
     )
-    report_data = analyser.analyse(
-        normal_width, filenames, xykm, plotting_options
-    )
+    report_data = analyser.analyse(normal_width, filenames, xykm, plotting_options)
 
     if analyser.missing_data:
         return True
