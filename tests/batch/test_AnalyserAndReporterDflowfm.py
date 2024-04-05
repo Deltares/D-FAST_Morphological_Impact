@@ -15,10 +15,8 @@ from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitialize
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.Branch import Branch
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.map_file import MapFile
-from dfastmi.io.Reach import Reach
 from dfastmi.kernel.typehints import Vector
 from tests.batch.Helper_AnalyserAndReporterDflowfm import (  # needed for fixture
     TestCase_display_needs_tide_old_zmin_zmax,
@@ -42,9 +40,7 @@ class Test_analyse_and_report_dflowfm_mode:
     @pytest.fixture
     def setup(self):
         self.report = None
-        self.reach = Reach()
-        self.reach.normal_width = 1.0
-        self.branch = Branch()
+        self.normal_width = 1.0
         self.filenames = {}
         self.xykm = None
         self.plotting_options = Mock(spec=PlotOptions)
@@ -104,8 +100,7 @@ class Test_analyse_and_report_dflowfm_mode:
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display_needs_tide_old_zmin_zmax.display,
             self.report,
-            self.reach,
-            self.branch,
+            self.normal_width,
             self.filenames,
             self.xykm,
             display_needs_tide_old_zmin_zmax.old_zmin_zmax,
@@ -137,8 +132,7 @@ class Test_analyse_and_report_dflowfm_mode:
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display_needs_tide_old_zmin_zmax.display,
             self.report,
-            self.reach,
-            self.branch,
+            self.normal_width,
             self.filenames,
             self.xykm,
             display_needs_tide_old_zmin_zmax.old_zmin_zmax,
@@ -193,8 +187,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.reach,
-                    self.branch,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -255,8 +248,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.reach,
-                    self.branch,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -317,8 +309,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.reach,
-                    self.branch,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -379,8 +370,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.reach,
-                    self.branch,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -459,8 +449,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     False,
                     self.report,
-                    self.reach,
-                    self.branch,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     needs_tide_old_zmin_zmax.old_zmin_zmax,
