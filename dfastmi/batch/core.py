@@ -180,7 +180,7 @@ def _report_analysis_configuration(
     q_threshold: float,
     ucrit: float,
     slength: float,
-    case_description : str,
+    case_description: str,
     report: TextIO,
 ):
     """Basic WAQUA analysis configuration will not be reported."""
@@ -194,7 +194,8 @@ def _report_analysis_configuration(
     )
     _report_section_break(report)
 
-def _report_case_description(case_description : str, report):
+
+def _report_case_description(case_description: str, report):
     settings = {
         "case_description": case_description,
     }
