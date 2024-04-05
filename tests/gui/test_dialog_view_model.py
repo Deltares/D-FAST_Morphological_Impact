@@ -213,6 +213,6 @@ def test_load_configuration_with_unknown_key_value_save_and_load_unknown_are_ret
         dialog_view_model.load_configuration(file_location)
         assert dialog_view_model.model.config.has_option("General", "UnknownKey")
         assert dialog_view_model.model.config["General"]["UnknownKey"] == "unkown value"
-        assert dialog_view_model.model.config["Onzin1"]["Troep"] == '1000.0'
+        assert dialog_view_model.model.config["Onzin1"]["Troep"] == "1000.0"
     finally:
         os.chdir(cwd)

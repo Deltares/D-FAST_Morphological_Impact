@@ -308,7 +308,7 @@ class DialogModel:
         for section in self.config:
             if not config.has_section(section):
                 config[section] = {}
-                
+
             for key, value in self.config.items(section):
                 if not config.has_option(section, key):
                     config[section][key] = value
