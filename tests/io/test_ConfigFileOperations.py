@@ -96,4 +96,4 @@ class Test_write_config:
 
         relative_path = config[section][key]
 
-        assert relative_path == "."
+        assert relative_path == ""

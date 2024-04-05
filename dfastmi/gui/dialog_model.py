@@ -52,6 +52,7 @@ class GeneralConfig(BaseModel):
     SavePlots: bool = False
     FigureDir: str = ""
     ClosePlots: bool = False
+    RiverKM: str = ""
 
 
 class ConditionConfig(BaseModel):
@@ -192,6 +193,11 @@ class DialogModel:
         """Set close plots flag."""
         self.section["ClosePlots"] = str(value)
 
+    @property
+    def riverkm_file(self) -> str:
+        """Get RiverKM file to specify the chainage along the reach of interest."""
+        return self.section["RiverKM"]
+
     def create_configuration(self) -> bool:
         """Create configuration."""
         self.config = ConfigParser()
@@ -270,6 +276,7 @@ class DialogModel:
             SavePlots=self.save_plots,
             FigureDir=self.figure_dir,
             ClosePlots=self.close_plots,
+            RiverKM=self.riverkm_file,
         ).model_dump()
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
