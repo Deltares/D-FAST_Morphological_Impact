@@ -19,6 +19,7 @@ def dialog_view():
         "tests/c01 - GendtseWaardNevengeul/rivers_Q4000_v2.ini"
     )  # You need to provide proper initialization parameters here
     model = DialogModel(rivers_configuration)
+    model.case_description = "myCase"
     view_model = DialogViewModel(model)
     view = DialogView(view_model)
 
@@ -135,8 +136,17 @@ class Test_dialog_inputs:
         when  : updating the qthreshold QLineEdit
         then  : the qthreshold value should be updated correctly
         """
-        # Test valid input
+        # Test valid input, but less than qstagnant
         new_value = "10.0"
+        dialog_view._qthr.setText(new_value)
+        dialog_view._qthr.editingFinished.emit()
+        assert dialog_view._qthr.text() != new_value
+        assert dialog_view._qthr.text() == str(
+            dialog_view._view_model.current_reach.qstagnant
+        )
+
+        # Test valid input
+        new_value = "900.0"
         dialog_view._qthr.setText(new_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == new_value
@@ -445,6 +455,7 @@ class Test_view_model_updates:
         )  # Pass the branch name to simulate the update
 
         # Assertions
+        assert dialog_view._case_description.text() == "myCase"
         assert dialog_view._branch.currentText() == "Bovenrijn & Waal"
         assert dialog_view._reach.count() == len(
             dialog_view._view_model.current_branch.reaches
