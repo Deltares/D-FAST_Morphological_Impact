@@ -1068,13 +1068,7 @@ class DialogView:
             self._close_plots_edit.setEnabled(self._view_model.model.plotting)
 
     def _update_save_plotting(self) -> None:
-        """
-        Update the plotting flags.
-
-        Arguments
-        ---------
-        None
-        """
+        """Update the plotting flags."""
 
         save_plot_gui = (
             self._save_plots_edit.isChecked() and self._view_model.model.plotting
