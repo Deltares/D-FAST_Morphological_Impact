@@ -177,19 +177,6 @@ class ReporterDflowfmReporter:
         if self.display:
             ApplicationSettingsHelper.log_text("writing_output")
 
-    def report_analysis_configuration(self):
-        self._report_to_file("===")
-        settings = {
-            "branch": "branch_name",
-            "reach": "reach_name",
-            "q_threshold": self.config.q_threshold,
-            "u_critical": self.config.ucrit,
-        }
-        self._report_to_file("analysis_settings", settings)
-
-    def _report_to_file(self, resources_key: str, dict: Dict[str, Any] = {}):
-        ApplicationSettingsHelper.log_text(resources_key, file=self.report, dict=dict)
-
     def print_sedimentation_and_erosion(self, sedimentation_data):
         if self.display:
             if sedimentation_data.sedvol.shape[1] > 0:

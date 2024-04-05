@@ -35,6 +35,7 @@ from typing import Any, Dict, Optional, TextIO, Tuple
 import matplotlib
 from packaging.version import InvalidVersion, Version
 
+from dfastmi.io.Reach import Reach
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
@@ -168,9 +169,28 @@ def batch_mode_core(
     return success
 
 
-def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
+def _report_section_break(report: TextIO):
+    ApplicationSettingsHelper.log_text("===", file=report)
+
+def _report_analysis_configuration(imode : int, branch : Branch, reach : IReach, q_threshold, ucrit, report: TextIO):
+    if imode == 0:
+        return
+    
+    _report_basic_analysis_configuration(branch, reach, q_threshold, ucrit, report)
+    _report_section_break(report)
+
+def _report_basic_analysis_configuration(branch : Branch, reach : Reach, q_threshold, ucrit,  report: TextIO):
+    settings = {
+        "branch": branch.name,
+        "reach": reach.name,
+        "q_threshold": q_threshold,
+        "u_critical": ucrit,
+    }
+    ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict = settings)
+
+def _get_mode_usage(config: ConfigParser) -> int:
     """
-    Detect and log which mode is used to create the output report.
+    Detect which mode is used to create the output report.
     The mode could be using WAQUA or (default) DFLOWFM.
     Depending on the mode select the appropriate analysis runner.
 
@@ -178,8 +198,6 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     ---------
     config: ConfigParser
         Configuration of the analysis to be run.
-    report : TextIO
-        Text stream for log file.
 
     Return
     ------
@@ -188,7 +206,23 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     """
     mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
     if mode_str == WAQUA_EXPORT:
-        imode = 0
+        return 0
+    else:
+        return 1
+
+def _report_mode_usage(imode : int, report: TextIO) -> int:
+    """
+    Log which mode is used to create the output report.
+    The mode could be using WAQUA or (default) DFLOWFM.
+
+    Arguments
+    ---------
+    imode : int
+        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+    report : TextIO
+        Text stream for log file.
+    """
+    if imode == 0:
         ApplicationSettingsHelper.log_text(
             "results_with_input_waqua",
             file=report,
@@ -199,13 +233,11 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
             },
         )
     else:
-        imode = 1
         ApplicationSettingsHelper.log_text(
             "results_with_input_dflowfm",
             file=report,
             dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
         )
-    return imode
 
 
 def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
@@ -261,7 +293,7 @@ def _log_header(report: TextIO) -> None:
         "header", dict={"version": prog_version}, file=report
     )
     ApplicationSettingsHelper.log_text("limits", file=report)
-    ApplicationSettingsHelper.log_text("===", file=report)
+    _report_section_break(report)
 
 
 def _get_output_dir(rootdir: str, display: bool, data: DFastMIConfigParser) -> Path:
@@ -434,7 +466,10 @@ def _analyse_and_report(
     plotting_options = PlotOptions()
     plotting_options.set_plotting_flags(rootdir, display, data)
 
-    imode = _log_report_mode_usage(config, report)
+    
+    imode = _get_mode_usage(config)
+    _report_analysis_configuration(imode, branch, reach, initialized_config.q_threshold, initialized_config.ucrit, report)
+    _report_mode_usage(imode, report)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
     success = False
 
