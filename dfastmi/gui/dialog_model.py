@@ -106,7 +106,7 @@ class DialogModel:
     @property
     def case_description(self) -> str:
         """Get case description."""
-        return self.section["CaseDescription"]
+        return self.section.get("CaseDescription", "")
 
     @case_description.setter
     def case_description(self, value: str):
@@ -116,12 +116,12 @@ class DialogModel:
     @property
     def branch_name(self) -> str:
         """Get branch name."""
-        return self.section["Branch"]
+        return self.section.get("Branch", "")
 
     @property
     def reach_name(self) -> str:
         """Get reach name."""
-        return self.section["Reach"]
+        return self.section.get("Reach", "")
 
     @property
     def qthreshold(self) -> float:
@@ -146,7 +146,7 @@ class DialogModel:
     @property
     def output_dir(self) -> str:
         """Get output directory."""
-        return self.section["OutputDir"]
+        return self.section.get("OutputDir", "")
 
     @output_dir.setter
     def output_dir(self, value: str):
@@ -156,7 +156,7 @@ class DialogModel:
     @property
     def figure_dir(self) -> str:
         """Get figure directory."""
-        return self.section["FigureDir"]
+        return self.section.get("FigureDir", "")
 
     @figure_dir.setter
     def figure_dir(self, value: str):
@@ -166,7 +166,7 @@ class DialogModel:
     @property
     def plotting(self) -> bool:
         """Get plotting flag."""
-        return self.section.getboolean("Plotting")
+        return self.section.getboolean("Plotting", False)
 
     @plotting.setter
     def plotting(self, value: bool):
@@ -176,7 +176,7 @@ class DialogModel:
     @property
     def save_plots(self) -> bool:
         """Get save plots flag."""
-        return self.section.getboolean("SavePlots")
+        return self.section.getboolean("SavePlots", False)
 
     @save_plots.setter
     def save_plots(self, value: bool):
@@ -185,7 +185,7 @@ class DialogModel:
     @property
     def close_plots(self) -> bool:
         """Get close plots flag."""
-        return self.section.getboolean("ClosePlots")
+        return self.section.getboolean("ClosePlots", False)
 
     @close_plots.setter
     def close_plots(self, value: bool):
