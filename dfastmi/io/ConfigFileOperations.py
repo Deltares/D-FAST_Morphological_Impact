@@ -159,8 +159,8 @@ class ConfigFileOperations:
         absolute_path_converted_to_relative_path = str(
             os.path.relpath(absolute_path, rootdir)
         )
-        
-        if absolute_path_converted_to_relative_path == "." :
+
+        if absolute_path_converted_to_relative_path == ".":
             absolute_path_converted_to_relative_path = ""
 
         config.set(section, key, absolute_path_converted_to_relative_path)
