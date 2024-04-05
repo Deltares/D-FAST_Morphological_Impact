@@ -41,6 +41,10 @@ Minimum Flow-carying Discharge      : 4000.0 m3/s
 Critical flow velocity              : 0.3 m/s
 Impacted length                     : 299 m
 
+Discharge location  	            : Lobith
+
+Discharge [m3/s]|Reference file (without measure)       |File with measure
+
 ================================================================================
 
 The result of this program is one netCDF file named:
