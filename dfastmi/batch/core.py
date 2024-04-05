@@ -35,6 +35,7 @@ from typing import Any, Dict, Optional, TextIO, Tuple
 import matplotlib
 from packaging.version import InvalidVersion, Version
 
+from dfastmi.io.Reach import Reach
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
@@ -48,7 +49,6 @@ from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.IReach import IReach
-from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector
 
@@ -172,28 +172,27 @@ def batch_mode_core(
 def _report_section_break(report: TextIO):
     ApplicationSettingsHelper.log_text("===", file=report)
 
-
-def _report_analysis_configuration(
-    imode: int, branch: Branch, reach: IReach, q_threshold, ucrit, report: TextIO
-):
+def _report_analysis_configuration(imode : int, branch : Branch, reach : IReach, q_threshold : float, ucrit : float, slength : float, report: TextIO):
+    """Basic WAQUA analysis configuration will not be reported."""
     if imode == 0:
         return
-
-    _report_basic_analysis_configuration(branch, reach, q_threshold, ucrit, report)
+    
+    _report_analysis_settings_header(report)
+    _report_basic_analysis_configuration(branch, reach, q_threshold, ucrit, slength, report)
     _report_section_break(report)
 
+def _report_analysis_settings_header(report: TextIO):
+    ApplicationSettingsHelper.log_text("analysis_settings_header", report)
 
-def _report_basic_analysis_configuration(
-    branch: Branch, reach: Reach, q_threshold, ucrit, report: TextIO
-):
+def _report_basic_analysis_configuration(branch : Branch, reach : Reach, q_threshold : float, ucrit : float, slength : float, report: TextIO):
     settings = {
         "branch": branch.name,
         "reach": reach.name,
         "q_threshold": q_threshold,
         "u_critical": ucrit,
+        "slength": int(slength),
     }
-    ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict=settings)
-
+    ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict = settings)
 
 def _get_mode_usage(config: ConfigParser) -> int:
     """
@@ -217,8 +216,7 @@ def _get_mode_usage(config: ConfigParser) -> int:
     else:
         return 1
 
-
-def _report_mode_usage(imode: int, report: TextIO) -> int:
+def _report_mode_usage(imode : int, report: TextIO) -> int:
     """
     Log which mode is used to create the output report.
     The mode could be using WAQUA or (default) DFLOWFM.
@@ -474,15 +472,9 @@ def _analyse_and_report(
     plotting_options = PlotOptions()
     plotting_options.set_plotting_flags(rootdir, display, data)
 
+    
     imode = _get_mode_usage(config)
-    _report_analysis_configuration(
-        imode,
-        branch,
-        reach,
-        initialized_config.q_threshold,
-        initialized_config.ucrit,
-        report,
-    )
+    _report_analysis_configuration(imode, branch, reach, initialized_config.q_threshold, initialized_config.ucrit, initialized_config.slength, report)
     _report_mode_usage(imode, report)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
     success = False
