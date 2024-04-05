@@ -566,8 +566,7 @@ def _analyse_and_report(
         success = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display,
             report,
-            reach,
-            branch,
+            reach.normal_width,
             filenames,
             plotting_options.xykm,
             old_zmin_zmax,

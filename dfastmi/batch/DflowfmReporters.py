@@ -27,9 +27,8 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import Any, Dict, TextIO
+from typing import TextIO
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
 
@@ -152,22 +151,14 @@ class AnalyserDflowfmReporter:
 class ReporterDflowfmReporter:
     "This reporter reports events occuring in the ReporterDflowfm class."
 
-    def __init__(
-        self, display: bool, config: AConfigurationInitializerBase, report: TextIO
-    ):
+    def __init__(self, display: bool):
         """
         Arguments
         ---------
         display : bool
             Flag indicating text output to stdout.
-        config : AConfigurationInitializerBase
-            DTO with discharges, times, etc. for analysis
-        report : TextIO
-            Text stream for log file.
         """
         self.display = display
-        self.config = config
-        self.report = report
 
     def report_compute_initial_year_dredging(self):
         if self.display:
