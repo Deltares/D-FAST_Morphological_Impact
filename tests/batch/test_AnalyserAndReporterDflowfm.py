@@ -40,7 +40,7 @@ class Test_analyse_and_report_dflowfm_mode:
     @pytest.fixture
     def setup(self):
         self.report = None
-        self.nwidth = 1.0
+        self.normal_width = 1.0
         self.filenames = {}
         self.xykm = None
         self.plotting_options = Mock(spec=PlotOptions)
@@ -100,7 +100,7 @@ class Test_analyse_and_report_dflowfm_mode:
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display_needs_tide_old_zmin_zmax.display,
             self.report,
-            self.nwidth,
+            self.normal_width,
             self.filenames,
             self.xykm,
             display_needs_tide_old_zmin_zmax.old_zmin_zmax,
@@ -132,7 +132,7 @@ class Test_analyse_and_report_dflowfm_mode:
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display_needs_tide_old_zmin_zmax.display,
             self.report,
-            self.nwidth,
+            self.normal_width,
             self.filenames,
             self.xykm,
             display_needs_tide_old_zmin_zmax.old_zmin_zmax,
@@ -187,7 +187,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.nwidth,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -248,7 +248,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.nwidth,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -309,7 +309,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.nwidth,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -370,7 +370,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     display_old_zmin_zmax.display,
                     self.report,
-                    self.nwidth,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     display_old_zmin_zmax.old_zmin_zmax,
@@ -449,7 +449,7 @@ class Test_analyse_and_report_dflowfm_mode:
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
                     False,
                     self.report,
-                    self.nwidth,
+                    self.normal_width,
                     self.filenames,
                     self.xykm,
                     needs_tide_old_zmin_zmax.old_zmin_zmax,

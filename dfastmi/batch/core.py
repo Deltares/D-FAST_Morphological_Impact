@@ -38,15 +38,18 @@ from packaging.version import InvalidVersion, Version
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.ConfigurationInitializerFactory import (
     ConfigurationInitializerFactory,
 )
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
+from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.IReach import IReach
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector
 
@@ -153,6 +156,7 @@ def batch_mode_core(
                     data,
                     cfg_version,
                     reach,
+                    branch,
                     display,
                     report,
                     reduced_output,
@@ -166,9 +170,116 @@ def batch_mode_core(
     return success
 
 
-def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
+def _report_section_break(report: TextIO):
+    ApplicationSettingsHelper.log_text("===", file=report)
+
+
+def _report_analysis_configuration(
+    imode: int,
+    branch: Branch,
+    reach: IReach,
+    initialized_config: AConfigurationInitializerBase,
+    config: ConfigParser,
+    report: TextIO,
+):
+    """Basic WAQUA analysis configuration will not be reported."""
+    if imode == 0:
+        return
+
+    _report_analysis_settings_header(report)
+    _report_case_description(initialized_config.case_description, report)
+    _report_basic_analysis_configuration(
+        branch,
+        reach,
+        initialized_config.q_threshold,
+        initialized_config.ucrit,
+        initialized_config.slength,
+        report,
+    )
+    _report_discharge_branch_location(branch.qlocation, report)
+    _report_analysis_conditions_header(report)
+    _report_used_file_names(config, report)
+    _report_section_break(report)
+
+
+def _report_case_description(case_description: str, report):
+    settings = {
+        "case_description": case_description,
+    }
+    ApplicationSettingsHelper.log_text("case_description", file=report, dict=settings)
+
+
+def _report_analysis_settings_header(report: TextIO):
+    ApplicationSettingsHelper.log_text("analysis_settings_header", report)
+
+
+def _report_basic_analysis_configuration(
+    branch: Branch,
+    reach: Reach,
+    q_threshold: float,
+    ucrit: float,
+    slength: float,
+    report: TextIO,
+):
+    settings = {
+        "branch": branch.name,
+        "reach": reach.name,
+        "q_threshold": q_threshold,
+        "u_critical": ucrit,
+        "slength": int(slength),
+    }
+    ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict=settings)
+
+
+def _report_discharge_branch_location(
+    qlocation: str,
+    report: TextIO,
+):
+    settings = {
+        "location": qlocation,
+    }
+    ApplicationSettingsHelper.log_text(
+        "analysis_settings_discharge_location", file=report, dict=settings
+    )
+
+
+def _report_analysis_conditions_header(report: TextIO):
+    ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
+
+
+def _report_used_file_names(config: ConfigParser, report: TextIO):
+    for section in config:
+        if section[0].lower() == "c":
+            discharge_file_name = config.get(section, "Discharge", fallback="")
+            reference_file_name = _get_file_name(config, section, "Reference")
+            measure_file_name = _get_file_name(config, section, "WithMeasure")
+            _report_analysis_conditions_values(
+                discharge_file_name, reference_file_name, measure_file_name, report
+            )
+
+
+def _get_file_name(config: ConfigParser, section: str, value_name: str) -> str:
+    location = config.get(section, value_name, fallback="")
+    path = Path(location)
+    return path.name
+
+
+def _report_analysis_conditions_values(
+    discharge: str, reference: str, measure: str, report: TextIO
+):
+    settings = {
+        "discharge": discharge,
+        "reference": reference,
+        "measure": measure,
+    }
+    ApplicationSettingsHelper.log_text(
+        "analysis_settings_conditions_values", file=report, dict=settings
+    )
+
+
+def _get_mode_usage(config: ConfigParser) -> int:
     """
-    Detect and log which mode is used to create the output report.
+    Detect which mode is used to create the output report.
     The mode could be using WAQUA or (default) DFLOWFM.
     Depending on the mode select the appropriate analysis runner.
 
@@ -176,8 +287,6 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     ---------
     config: ConfigParser
         Configuration of the analysis to be run.
-    report : TextIO
-        Text stream for log file.
 
     Return
     ------
@@ -186,7 +295,24 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
     """
     mode_str = config.get("General", "Mode", fallback=DFLOWFM_MAP)
     if mode_str == WAQUA_EXPORT:
-        imode = 0
+        return 0
+    else:
+        return 1
+
+
+def _report_mode_usage(imode: int, report: TextIO) -> int:
+    """
+    Log which mode is used to create the output report.
+    The mode could be using WAQUA or (default) DFLOWFM.
+
+    Arguments
+    ---------
+    imode : int
+        Specification of run mode (0 = WAQUA, 1 = D-Flow FM).
+    report : TextIO
+        Text stream for log file.
+    """
+    if imode == 0:
         ApplicationSettingsHelper.log_text(
             "results_with_input_waqua",
             file=report,
@@ -197,13 +323,11 @@ def _log_report_mode_usage(config: ConfigParser, report: TextIO) -> int:
             },
         )
     else:
-        imode = 1
         ApplicationSettingsHelper.log_text(
             "results_with_input_dflowfm",
             file=report,
             dict={"netcdf": ApplicationSettingsHelper.get_filename("netcdf.out")},
         )
-    return imode
 
 
 def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
@@ -259,7 +383,7 @@ def _log_header(report: TextIO) -> None:
         "header", dict={"version": prog_version}, file=report
     )
     ApplicationSettingsHelper.log_text("limits", file=report)
-    ApplicationSettingsHelper.log_text("===", file=report)
+    _report_section_break(report)
 
 
 def _get_output_dir(rootdir: str, display: bool, data: DFastMIConfigParser) -> Path:
@@ -379,6 +503,7 @@ def _analyse_and_report(
     data: DFastMIConfigParser,
     cfg_version: Version,
     reach: IReach,
+    branch: Branch,
     display: bool,
     report: TextIO,
     reduced_output: bool,
@@ -399,7 +524,7 @@ def _analyse_and_report(
         DFast MI application config file.
     cfg_version : Version,
         Version object extracted from the configuration file.
-    branch : IBranch
+    branch : Branch
         Branch object we want to do analysis on.
     reach: IReach,
         Reach object we want to do analysis on,
@@ -431,7 +556,16 @@ def _analyse_and_report(
     plotting_options = PlotOptions()
     plotting_options.set_plotting_flags(rootdir, display, data)
 
-    imode = _log_report_mode_usage(config, report)
+    imode = _get_mode_usage(config)
+    _report_analysis_configuration(
+        imode,
+        branch,
+        reach,
+        initialized_config,
+        config,
+        report,
+    )
+    _report_mode_usage(imode, report)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
     success = False
 

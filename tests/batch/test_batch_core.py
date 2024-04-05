@@ -8,9 +8,7 @@ import pytest
 
 import dfastmi.batch.core
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
-from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector
 
@@ -165,7 +163,7 @@ class Test_batch_mode:
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
         outdir = tstdir + os.sep + "output"
-        refdir = tstdir + os.sep + "ref_Qmin_Q4000"
+        refdir = tstdir + os.sep + "ref_Qmin_Q4000_special_backward_case"
         try:
             os.chdir(tstdir)
             rivers = RiversObject("rivers_Q4000_v2.ini")
