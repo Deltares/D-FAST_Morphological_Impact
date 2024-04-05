@@ -33,6 +33,16 @@ scenario simulations on the same computational mesh.
 
 ================================================================================
 
+Configuration settings used for computation:
+
+Branch                              : Bovenrijn & Waal
+Reach                               : Boven-Waal                   km  868-886
+Minimum Flow-carying Discharge      : 4000.0 m3/s
+Critical flow velocity              : 0.3 m/s
+Impacted length                     : 299 m
+
+================================================================================
+
 The result of this program is one netCDF file named:
 
     dfastmi_results.nc
