@@ -298,18 +298,15 @@ class DialogModel:
                     condition.WithMeasure = measure_files[discharge]
 
                 config[cond] = condition.model_dump()
-    
-    def _add_unknown_read_config_key_values(
-        self,
-        config: ConfigParser
-    ) -> None:
-        """ 
-            When the config has kes and values which are not known yet in the application 
-            we should also write them back in the new config file 
+
+    def _add_unknown_read_config_key_values(self, config: ConfigParser) -> None:
         """
-        
-        #self.config.optionxform = str
+        When the config has kes and values which are not known yet in the application
+        we should also write them back in the new config file
+        """
+
+        # self.config.optionxform = str
         for section in self.config:
-            for (key, value) in self.config.items(section):
-                if not config.has_option(section, key) :
+            for key, value in self.config.items(section):
+                if not config.has_option(section, key):
                     config[section][key] = value
