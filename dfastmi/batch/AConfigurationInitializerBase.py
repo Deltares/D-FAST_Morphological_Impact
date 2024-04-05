@@ -58,6 +58,7 @@ class AConfigurationInitializerBase(ABC):
         self._slength: float = 0.0
         self._needs_tide: bool = False
         self._set_ucrit(reach, config)
+        self._case_description = config.get("General", "CaseDescription", fallback="")
 
     @property
     def discharges(self) -> Vector:
@@ -123,6 +124,11 @@ class AConfigurationInitializerBase(ABC):
     def n_fields(self) -> int:
         """An int stating the number of fields."""
         return self._n_fields
+
+    @property
+    def case_description(self) -> str:
+        """Case description of the model."""
+        return self._case_description
 
     def _set_ucrit(self, reach: IReach, config: ConfigParser) -> None:
         """
