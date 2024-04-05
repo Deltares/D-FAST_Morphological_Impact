@@ -1062,7 +1062,11 @@ class DialogView:
         """
         if self._view_model.model.plotting != self._make_plots_edit.isChecked():
             self._view_model.model.plotting = self._make_plots_edit.isChecked()
-
+            self._save_plots.setEnabled(self._view_model.model.plotting)
+            self._save_plots_edit.setEnabled(self._view_model.model.plotting)
+            self._close_plots.setEnabled(self._view_model.model.plotting)
+            self._close_plots_edit.setEnabled(self._view_model.model.plotting)
+  
     def _update_save_plotting(self) -> None:
         """
         Update the plotting flags.
@@ -1071,9 +1075,7 @@ class DialogView:
         ---------
         None
         """
-        self._save_plots.setEnabled(self._view_model.model.plotting)
-        self._save_plots_edit.setEnabled(self._view_model.model.plotting)
-
+        
         save_plot_gui = (
             self._save_plots_edit.isChecked() and self._view_model.model.plotting
         )
@@ -1098,8 +1100,7 @@ class DialogView:
         """
         if self._view_model.model.close_plots != self._close_plots_edit.isChecked():
             self._view_model.model.close_plots = self._close_plots_edit.isChecked()
-        self._close_plots.setEnabled(self._view_model.model.plotting)
-        self._close_plots_edit.setEnabled(self._view_model.model.plotting)
+        
 
     @staticmethod
     def _get_dfast_icon() -> QIcon:
