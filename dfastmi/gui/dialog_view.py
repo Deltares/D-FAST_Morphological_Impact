@@ -1085,13 +1085,7 @@ class DialogView:
         figure_dir_button.setEnabled(self._view_model.model.save_plots)
 
     def _update_close_plots(self) -> None:
-        """
-        Update the close plot flag.
-
-        Arguments
-        ---------
-        None
-        """
+        """Update the close plot flag."""
         if self._view_model.model.close_plots != self._close_plots_edit.isChecked():
             self._view_model.model.close_plots = self._close_plots_edit.isChecked()
 
