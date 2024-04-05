@@ -35,6 +35,7 @@ scenario simulations on the same computational mesh.
 
 Configuration settings used for computation:
 
+Case description                    : 
 Branch                              : Bovenrijn & Waal
 Reach                               : Boven-Waal                   km  868-886
 Minimum Flow-carying Discharge      : 4000.0 m3/s
