@@ -193,44 +193,8 @@ def _report_analysis_configuration(
     )
     _report_discharge_branch_location(branch.qlocation, report)
     _report_analysis_conditions_header(report)
-    for section in config:
-        if section[0].lower() == "c":
-            discharge = config.get(section, "Discharge", fallback="")
-            reference = Path(config.get(section, "Reference", fallback="")).name
-            measure = Path(config.get(section, "WithMeasure", fallback="")).name
-            _report_analysis_conditions_values(discharge, reference, measure, report)
-
+    _report_used_file_names(config, report)
     _report_section_break(report)
-
-
-def _report_discharge_branch_location(
-    qlocation: str,
-    report: TextIO,
-):
-    settings = {
-        "location": qlocation,
-    }
-    ApplicationSettingsHelper.log_text(
-        "analysis_settings_discharge_location", file=report, dict=settings
-    )
-
-
-def _report_analysis_conditions_header(report: TextIO):
-    ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
-
-
-def _report_analysis_conditions_values(
-    discharge: str, reference: str, measure: str, report: TextIO
-):
-    settings = {
-        "discharge": discharge,
-        "reference": reference,
-        "measure": measure,
-    }
-    ApplicationSettingsHelper.log_text(
-        "analysis_settings_conditions_values", file=report, dict=settings
-    )
-
 
 def _report_analysis_settings_header(report: TextIO):
     ApplicationSettingsHelper.log_text("analysis_settings_header", report)
@@ -252,6 +216,46 @@ def _report_basic_analysis_configuration(
         "slength": int(slength),
     }
     ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict=settings)
+
+def _report_discharge_branch_location(
+    qlocation: str,
+    report: TextIO,
+):
+    settings = {
+        "location": qlocation,
+    }
+    ApplicationSettingsHelper.log_text(
+        "analysis_settings_discharge_location", file=report, dict=settings
+    )
+
+
+def _report_analysis_conditions_header(report: TextIO):
+    ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
+
+def _report_used_file_names(config : ConfigParser, report : TextIO):
+    for section in config:
+        if section[0].lower() == "c":
+            discharge_file_name = config.get(section, "Discharge", fallback="")
+            reference_file_name = _get_file_name(config, section, "Reference")
+            measure_file_name = _get_file_name(config, section, "WithMeasure")
+            _report_analysis_conditions_values(discharge_file_name, reference_file_name, measure_file_name, report)
+    
+def _get_file_name(config : ConfigParser, section : str, value_name : str) -> str:
+    location = config.get(section, value_name, fallback="")
+    path = Path(location)
+    return path.name
+
+def _report_analysis_conditions_values(
+    discharge: str, reference: str, measure: str, report: TextIO
+):
+    settings = {
+        "discharge": discharge,
+        "reference": reference,
+        "measure": measure,
+    }
+    ApplicationSettingsHelper.log_text(
+        "analysis_settings_conditions_values", file=report, dict=settings
+    )
 
 
 def _get_mode_usage(config: ConfigParser) -> int:
