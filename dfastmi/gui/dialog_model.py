@@ -273,6 +273,7 @@ class DialogModel:
         ).model_dump()
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
+        self._add_unknown_read_config_key_values(config)
         return config
 
     def _get_condition_configuration(
@@ -297,3 +298,16 @@ class DialogModel:
                     condition.WithMeasure = measure_files[discharge]
 
                 config[cond] = condition.model_dump()
+
+    def _add_unknown_read_config_key_values(self, config: ConfigParser) -> None:
+        """
+        When the config has keys and values which are not known yet in the application
+        we should also write them back in the new config file
+        """
+        for section in self.config:
+            if not config.has_section(section):
+                config[section] = {}
+
+            for key, value in self.config.items(section):
+                if not config.has_option(section, key):
+                    config[section][key] = value

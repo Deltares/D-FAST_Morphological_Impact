@@ -183,6 +183,7 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         config = configparser.ConfigParser()
+        config.optionxform = str
         with Path(filename).open("r", encoding="utf-8") as configfile:
             config.read_file(configfile)
 
