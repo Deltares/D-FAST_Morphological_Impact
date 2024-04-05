@@ -681,7 +681,7 @@ class DialogView:
 
             user_inputted_qthreshold = float(self._qthr.text())
 
-            if user_inputted_qthreshold > self._view_model.current_reach.qstagnant  :
+            if user_inputted_qthreshold > self._view_model.current_reach.qstagnant:
                 self._view_model.model.qthreshold = user_inputted_qthreshold
                 self._update_qvalues_table()
                 self._update_condition_files()
