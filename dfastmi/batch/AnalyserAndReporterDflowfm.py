@@ -36,15 +36,12 @@ from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitialize
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
-from dfastmi.io.Branch import Branch
-from dfastmi.io.IReach import IReach
 
 
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
-    reach: IReach,
-    branch: Branch,
+    normal_width: float,
     filenames: Dict[Any, Tuple[str, str]],
     xykm: shapely.geometry.linestring.LineString,
     old_zmin_zmax: bool,
@@ -66,8 +63,6 @@ def analyse_and_report_dflowfm(
         Text stream for log file.
     reach : IReach
         The reach that is used in the computation.
-    branch : Branch
-        The branch that is used in the computation.
     filenames : Dict[Any, Tuple[str,str]]
         Dictionary of the names of the data file containing the simulation
         results to be processed. The conditions (discharge, wave conditions,
@@ -93,13 +88,13 @@ def analyse_and_report_dflowfm(
         display, report, old_zmin_zmax, outputdir, initialized_config
     )
     report_data = analyser.analyse(
-        reach.normal_width, filenames, xykm, plotting_options
+        normal_width, filenames, xykm, plotting_options
     )
 
     if analyser.missing_data:
         return True
 
-    reporter = ReporterDflowfm(display, initialized_config, report)
+    reporter = ReporterDflowfm(display)
     reporter.report(outputdir, plotting_options, report_data)
 
     return not analyser.missing_data
