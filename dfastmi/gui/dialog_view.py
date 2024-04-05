@@ -1066,16 +1066,10 @@ class DialogView:
             self._save_plots_edit.setEnabled(self._view_model.model.plotting)
             self._close_plots.setEnabled(self._view_model.model.plotting)
             self._close_plots_edit.setEnabled(self._view_model.model.plotting)
-  
-    def _update_save_plotting(self) -> None:
-        """
-        Update the plotting flags.
 
-        Arguments
-        ---------
-        None
-        """
-        
+    def _update_save_plotting(self) -> None:
+        """Update the plotting flags."""
+
         save_plot_gui = (
             self._save_plots_edit.isChecked() and self._view_model.model.plotting
         )
@@ -1091,16 +1085,9 @@ class DialogView:
         figure_dir_button.setEnabled(self._view_model.model.save_plots)
 
     def _update_close_plots(self) -> None:
-        """
-        Update the close plot flag.
-
-        Arguments
-        ---------
-        None
-        """
+        """Update the close plot flag."""
         if self._view_model.model.close_plots != self._close_plots_edit.isChecked():
             self._view_model.model.close_plots = self._close_plots_edit.isChecked()
-        
 
     @staticmethod
     def _get_dfast_icon() -> QIcon:
