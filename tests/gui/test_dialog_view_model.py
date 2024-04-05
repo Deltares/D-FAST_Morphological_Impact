@@ -1,10 +1,13 @@
+import os
 from pathlib import Path
 
 import mock
 import pytest
 
+from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
+from dfastmi.io.RiversObject import RiversObject
 
 pytestmark = pytest.mark.qt_api("pyqt5")
 from unittest.mock import MagicMock
@@ -186,3 +189,28 @@ def test_report(dialog_view_model):
         mock_get_filename,
     ):
         assert dialog_view_model.report == "dummy_report_filename"
+
+def test_load_configuration_with_unknown_key_value_save_and_load_unknown_are_retained(dialog_view_model, tmp_path):
+    """
+    given : dialog_view_model and mock_model
+    when  : load_configuration method is called
+    then  : current branch and reach should be set correctly
+    """
+    rivers = RiversObject("tests/c01 - GendtseWaardNevengeul/rivers_Q4000_v2.ini")
+    dialog_view_model.model = DialogModel(rivers, None)
+    cwd = os.getcwd()
+    tstdir = "tests/files"
+    try:
+        os.chdir(tstdir)
+        config_file = "Qmin_4000_v2_rkm_with_unknown_key.cfg"
+        dialog_view_model.load_configuration(config_file)        
+        file_location = tmp_path.joinpath("test.cfg")
+        dialog_view_model.save_configuration(file_location)
+        dialog_view_model.model = DialogModel(rivers, None)
+        dialog_view_model.load_configuration(file_location)
+        assert dialog_view_model.model.config.has_option("General", "UnknownKey")
+        assert dialog_view_model.model.config["General"]["UnknownKey"] == "unkown value"
+        
+    finally:
+        os.chdir(cwd)    
+
