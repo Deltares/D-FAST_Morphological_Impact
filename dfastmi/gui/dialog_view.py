@@ -678,9 +678,15 @@ class DialogView:
             None
         """
         if self._qthr.hasAcceptableInput():
-            self._view_model.model.qthreshold = float(self._qthr.text())
-            self._update_qvalues_table()
-            self._update_condition_files()
+
+            user_inputted_qthreshold = float(self._qthr.text())
+
+            if user_inputted_qthreshold > self._view_model.current_reach.qstagnant:
+                self._view_model.model.qthreshold = user_inputted_qthreshold
+                self._update_qvalues_table()
+                self._update_condition_files()
+            else:
+                self._qthr.setText(str(self._view_model.current_reach.qstagnant))
 
     def _update_ucritical(self) -> None:
         """
