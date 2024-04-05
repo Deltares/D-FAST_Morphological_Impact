@@ -124,7 +124,7 @@ class AConfigurationInitializerBase(ABC):
     def n_fields(self) -> int:
         """An int stating the number of fields."""
         return self._n_fields
-    
+
     @property
     def case_description(self) -> str:
         """Case description of the model."""

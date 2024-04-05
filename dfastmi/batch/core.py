@@ -35,10 +35,10 @@ from typing import Any, Dict, Optional, TextIO, Tuple
 import matplotlib
 from packaging.version import InvalidVersion, Version
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 import dfastmi.kernel.core
 import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
+from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.ConfigurationInitializerFactory import (
     ConfigurationInitializerFactory,
 )
@@ -178,7 +178,7 @@ def _report_analysis_configuration(
     imode: int,
     branch: Branch,
     reach: IReach,
-    initialized_config : AConfigurationInitializerBase,
+    initialized_config: AConfigurationInitializerBase,
     report: TextIO,
 ):
     """Basic WAQUA analysis configuration will not be reported."""
@@ -188,11 +188,17 @@ def _report_analysis_configuration(
     _report_analysis_settings_header(report)
     _report_case_description(initialized_config.case_description, report)
     _report_basic_analysis_configuration(
-        branch, reach, initialized_config.q_threshold, initialized_config.ucrit, initialized_config.slength, report
+        branch,
+        reach,
+        initialized_config.q_threshold,
+        initialized_config.ucrit,
+        initialized_config.slength,
+        report,
     )
     _report_section_break(report)
 
-def _report_case_description(case_description : str, report):
+
+def _report_case_description(case_description: str, report):
     settings = {
         "case_description": case_description,
     }
