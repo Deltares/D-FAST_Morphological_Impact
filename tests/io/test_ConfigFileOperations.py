@@ -57,32 +57,24 @@ class Test_write_config:
             mock_file.return_value.__enter__().write.assert_any_call("[Group 3]\n")
             mock_file.return_value.__enter__().write.assert_any_call("  longkey = 3\n")
 
-    
-    @pytest.mark.parametrize("absolute_path, expected_relative_path", [
-        pytest.param(
-            Path(r"D:\DHYDRO\file1.txt"),
-            r"..\..\DHYDRO\file1.txt"
-        ),
-        pytest.param(
-            Path(r'D:\DFAST\file2.txt'),
-            r"..\file2.txt"
-        ),
-        pytest.param(
-            Path(r'D:\DFAST\root\file3.txt'),
-            r"file3.txt"
-        ),
-        pytest.param(
-            Path(r'D:\DFAST\root\output\file4.txt'),
-            r"output\file4.txt"
-        ),
-    ])
-    def test_absolute_path_in_config_is_updated_to_relative_path_correctly(self, absolute_path: Path, expected_relative_path: str):
+    @pytest.mark.parametrize(
+        "absolute_path, expected_relative_path",
+        [
+            pytest.param(Path(r"D:\DHYDRO\file1.txt"), r"..\..\DHYDRO\file1.txt"),
+            pytest.param(Path(r"D:\DFAST\file2.txt"), r"..\file2.txt"),
+            pytest.param(Path(r"D:\DFAST\root\file3.txt"), r"file3.txt"),
+            pytest.param(Path(r"D:\DFAST\root\output\file4.txt"), r"output\file4.txt"),
+        ],
+    )
+    def test_absolute_path_in_config_is_updated_to_relative_path_correctly(
+        self, absolute_path: Path, expected_relative_path: str
+    ):
         rootdir = Path(r"D:\DFAST\root")
-        
+
         config = configparser.ConfigParser()
         section = "randomSection"
         key = "randomKey"
-        config[section] = { key: absolute_path }
+        config[section] = {key: absolute_path}
 
         ConfigFileOperations._update_to_relative_path(rootdir, config, section, key)
 
@@ -90,13 +82,15 @@ class Test_write_config:
 
         assert relative_path == expected_relative_path
 
-    def test_no_absolute_path_when_converting_to_relative_path_uses_root_dir_instead(self):
+    def test_no_absolute_path_when_converting_to_relative_path_uses_root_dir_instead(
+        self,
+    ):
         rootdir = Path(r"D:\DFAST\root")
-        
+
         config = configparser.ConfigParser()
         section = "randomSection"
         key = "randomKey"
-        config[section] = { key: "" }
+        config[section] = {key: ""}
 
         ConfigFileOperations._update_to_relative_path(rootdir, config, section, key)
 
