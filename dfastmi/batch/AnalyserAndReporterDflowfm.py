@@ -61,8 +61,8 @@ def analyse_and_report_dflowfm(
         Flag indicating text output to stdout.
     report : TextIO
         Text stream for log file.
-    reach : IReach
-        The reach that is used in the computation.
+    normal_width : float
+        normal width of the reach.
     filenames : Dict[Any, Tuple[str,str]]
         Dictionary of the names of the data file containing the simulation
         results to be processed. The conditions (discharge, wave conditions,
