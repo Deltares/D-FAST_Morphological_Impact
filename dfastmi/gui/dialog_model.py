@@ -304,9 +304,11 @@ class DialogModel:
         When the config has kes and values which are not known yet in the application
         we should also write them back in the new config file
         """
-
         # self.config.optionxform = str
         for section in self.config:
+            if not config.has_section(section):
+                config[section] = {}
+                
             for key, value in self.config.items(section):
                 if not config.has_option(section, key):
                     config[section][key] = value
