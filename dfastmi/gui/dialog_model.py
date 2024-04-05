@@ -301,10 +301,9 @@ class DialogModel:
 
     def _add_unknown_read_config_key_values(self, config: ConfigParser) -> None:
         """
-        When the config has kes and values which are not known yet in the application
+        When the config has keys and values which are not known yet in the application
         we should also write them back in the new config file
         """
-        # self.config.optionxform = str
         for section in self.config:
             if not config.has_section(section):
                 config[section] = {}
