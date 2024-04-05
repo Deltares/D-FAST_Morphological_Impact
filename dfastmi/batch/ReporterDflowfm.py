@@ -82,7 +82,7 @@ class ReporterDflowfm:
             DTO with the data which is needed to create a report.
         """
         self._reporter.report_writing_output()
-        
+
         map_file = MapFile(report_data.one_fm_filename)
         meshname = map_file.mesh2d_name
         facedim = map_file.face_dimension_name
