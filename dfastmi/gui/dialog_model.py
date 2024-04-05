@@ -276,7 +276,7 @@ class DialogModel:
             SavePlots=self.save_plots,
             FigureDir=self.figure_dir,
             ClosePlots=self.close_plots,
-            RiverKMFile=self.riverkm_file,
+            RiverKM=self.riverkm_file,
         ).model_dump()
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
