@@ -144,7 +144,7 @@ class AreaPlotter(ABC):
 
     def _write_xyz_file(
         self,
-        wbin_labels: numpy.ndarray,
+        wbin_labels: list[str],
         kmid: numpy.ndarray,
         binvol: List[numpy.ndarray],
     ):
