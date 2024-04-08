@@ -56,17 +56,17 @@ class AreaDetector:
         return self._area_list
 
     @property
-    def total_area_weigth(self) -> numpy.ndarray:
+    def total_area_weight(self) -> numpy.ndarray:
         """
-        total area weigth
+        total area weight
         """
-        return self._total_area_weigth
+        return self._total_area_weight
 
     def __init__(self):
         self._area: numpy.ndarray = numpy.zeros(0)
         self._volume: numpy.ndarray = numpy.zeros(0)
         self._area_list: list = []
-        self._total_area_weigth: numpy.ndarray = numpy.zeros(0)
+        self._total_area_weight: numpy.ndarray = numpy.zeros(0)
 
     def detect_areas(
         self,
@@ -82,7 +82,7 @@ class AreaDetector:
         sthresh: numpy.ndarray,
         slength: float,
     ):
-        self._total_area_weigth = numpy.zeros(dzgemi.shape)
+        self._total_area_weight = numpy.zeros(dzgemi.shape)
 
         sbin_length: float = sthresh[1] - sthresh[0]
         nwidth: float = wthresh[-1] - wthresh[0]
@@ -112,7 +112,7 @@ class AreaDetector:
                 slength,
                 sbin_length,
             )
-            self._total_area_weigth += wght_area_ia
+            self._total_area_weight += wght_area_ia
 
             volume[2, ia], area[ia], volume[0, ia] = self._comp_sedimentation_volume2(
                 numpy.maximum(dzgemi_filtered, 0.0), dzmin, areai, slength, nwidth
