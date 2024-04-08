@@ -1,11 +1,8 @@
 from pathlib import Path
-
 import numpy
-
 from dfastmi.batch.XyzFileWriter import XyzFileWriter
 
-
-class Test_xyz_file_writer:
+class Test_XyzFileWriter:
 
     def assert_lines_are_equal(self, xyz_file_location, expected_lines):
         with open(xyz_file_location, "r") as file:
@@ -21,12 +18,12 @@ class Test_xyz_file_writer:
         xyz_file_location = tmp_path / "file.xyz"
         wbin_labels: list[str] = ["1", "2", "3"]
         kmid: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-
+        
         binvol = []
         binvol.append(numpy.array([1, 2, 3]))
         binvol.append(numpy.array([10, 11, 12]))
         binvol.append(numpy.array([19, 20, 21]))
-
+        
         XyzFileWriter.write_xyz_file(wbin_labels, kmid, binvol, xyz_file_location)
 
         expected_lines = [

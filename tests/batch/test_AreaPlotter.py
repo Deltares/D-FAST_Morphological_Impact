@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 from unittest.mock import Mock, patch
 
 import numpy
@@ -30,13 +31,6 @@ def mock_area_detector():
     area_detector.area_list = [True, True, True]
     return area_detector
 
-
-def mock_xyz_file_location(tmp_path):
-    xyz_file_location = Path(tmp_path)
-    xyz_file_location = xyz_file_location / "file.xyz"
-    return xyz_file_location
-
-
 def plotting_on(tmp_path):
     plotting_options = Mock(spec=PlotOptions)
     plotting_options.plotting = True
@@ -60,6 +54,7 @@ class Test_SedimentationAreaPlotter:
     sbin: numpy.ndarray
     sthresh: numpy.ndarray
     kmid: numpy.ndarray
+    binvol: List[numpy.ndarray]
 
     @pytest.fixture
     def setup(self):
@@ -73,15 +68,18 @@ class Test_SedimentationAreaPlotter:
         self.sbin: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
         self.sthresh: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
         self.kmid: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
+        self.binvol = []
+        self.binvol.append(numpy.array([0, 1, 2, 3, 4]))
+        self.binvol.append(numpy.array([0, 1, 2, 3, 4]))
+        self.binvol.append(numpy.array([0, 1, 2, 3, 4]))
 
     def test_init_sets_protected_variables(self, tmp_path):
         plotting_options = plotting_on(tmp_path)
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         assert plotter._area_str == "sedimentation area {}"
@@ -91,11 +89,10 @@ class Test_SedimentationAreaPlotter:
     def test_plot_areas_with_plotting_plots_areas(self, setup, tmp_path: Path):
         plotting_options = plotting_on(tmp_path)
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         with (
@@ -120,6 +117,7 @@ class Test_SedimentationAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
+                self.binvol
             )
 
             assert plot_sedimentation.call_count == 10
@@ -132,11 +130,10 @@ class Test_SedimentationAreaPlotter:
         plotting_options = plotting_on(tmp_path)
         plotting_options.saveplot = False
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         with (
@@ -161,20 +158,20 @@ class Test_SedimentationAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
+                self.binvol
             )
 
             assert plot_sedimentation.call_count == 10
             assert zoom_x_and_save.call_count == 0
             assert savefig.call_count == 0
 
-    def test_plot_areas_without_plotting_plot_no_areas(self, setup, tmp_path: Path):
+    def test_plot_areas_without_plotting_plot_no_areas(self, setup):
         plotting_options = plotting_off()
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         with (
@@ -199,6 +196,7 @@ class Test_SedimentationAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
+                self.binvol
             )
 
             assert plot_sedimentation.call_count == 0
@@ -218,6 +216,7 @@ class Test_ErosionAreaPlotter:
     sbin: numpy.ndarray
     sthresh: numpy.ndarray
     kmid: numpy.ndarray
+    binvol : List[numpy.ndarray]
 
     @pytest.fixture
     def setup(self):
@@ -231,15 +230,18 @@ class Test_ErosionAreaPlotter:
         self.sbin: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
         self.sthresh: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
         self.kmid: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
+        self.binvol = []
+        self.binvol.append(numpy.array([0, 1, 2, 3, 4]))
+        self.binvol.append(numpy.array([0, 1, 2, 3, 4]))
+        self.binvol.append(numpy.array([0, 1, 2, 3, 4]))
 
     def test_init_sets_protected_variables(self, tmp_path):
         plotting_options = plotting_on(tmp_path)
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = ErosionAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         assert plotter._area_str == "erosion area {}"
@@ -249,11 +251,10 @@ class Test_ErosionAreaPlotter:
     def test_plot_areas_with_plotting_plots_areas(self, setup, tmp_path: Path):
         plotting_options = plotting_on(tmp_path)
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = ErosionAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         with (
@@ -278,6 +279,7 @@ class Test_ErosionAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
+                self.binvol
             )
 
             assert plot_sedimentation.call_count == 10
@@ -290,11 +292,10 @@ class Test_ErosionAreaPlotter:
         plotting_options = plotting_on(tmp_path)
         plotting_options.saveplot = False
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         with (
@@ -319,20 +320,20 @@ class Test_ErosionAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
+                self.binvol
             )
 
             assert plot_sedimentation.call_count == 10
             assert zoom_x_and_save.call_count == 0
             assert savefig.call_count == 0
 
-    def test_plot_areas_without_plotting_plot_no_areas(self, setup, tmp_path: Path):
+    def test_plot_areas_without_plotting_plot_no_areas(self, setup):
         plotting_options = plotting_off()
         area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
         plot_n = 3
 
         plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
+            plotting_options, plot_n, area_detector
         )
 
         with (
@@ -357,6 +358,7 @@ class Test_ErosionAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
+                self.binvol
             )
 
             assert plot_sedimentation.call_count == 0

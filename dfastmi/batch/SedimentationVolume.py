@@ -376,7 +376,7 @@ def comp_sedimentation_volume(
     )
 
     sedimentation_area_plotter = SedimentationAreaPlotter(
-        plotting_options, plot_n, sedimentation_area_detector, xyz_file_location
+        plotting_options, plot_n, sedimentation_area_detector
     )
     sedimentation_area_plotter.plot_areas(
         dzgemi,

@@ -28,7 +28,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from abc import ABC
-from pathlib import Path
 from typing import List
 
 import numpy
@@ -55,7 +54,6 @@ class AreaPlotter(ABC):
         plotting_options: PlotOptions,
         plot_n: int,
         area_detector: AreaDetector,
-        xyz_file_location: Path,
     ):
         """
         Arguments
@@ -66,10 +64,7 @@ class AreaPlotter(ABC):
             Class which holds the information regarding detected areas.
         plot_n : int
             n for plotting.
-        xyz_file_location : Path
-            Location to write the xyz file to.
         """
-        self._xyz_file_location = xyz_file_location
         self._plotting_options = plotting_options
         self._plot_n = plot_n
         self._area_detector = area_detector
@@ -338,9 +333,8 @@ class SedimentationAreaPlotter(AreaPlotter):
         plotting_options: PlotOptions,
         plot_n: int,
         area_detector: AreaDetector,
-        xyz_file_location: Path,
     ):
-        super().__init__(plotting_options, plot_n, area_detector, xyz_file_location)
+        super().__init__(plotting_options, plot_n, area_detector)
         self._area_str = "sedimentation area {}"
         self._total_str = "total sedimentation volume"
         self._positive_up = True
@@ -356,9 +350,8 @@ class ErosionAreaPlotter(AreaPlotter):
         plotting_options: PlotOptions,
         plot_n: int,
         area_detector: AreaDetector,
-        xyz_file_location: Path = None,
     ):
-        super().__init__(plotting_options, plot_n, area_detector, xyz_file_location)
+        super().__init__(plotting_options, plot_n, area_detector)
         self._area_str = "erosion area {}"
         self._total_str = "total erosion volume"
         self._positive_up = False
