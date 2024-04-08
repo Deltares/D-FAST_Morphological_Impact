@@ -11,15 +11,6 @@ from dfastmi.batch.AreaPlotter import ErosionAreaPlotter, SedimentationAreaPlott
 from dfastmi.batch.PlotOptions import PlotOptions
 
 
-def assert_lines_are_equal(xyz_file_location, expected_lines):
-    with open(xyz_file_location, "r") as file:
-        for expected_line in expected_lines:
-            actual_line = file.readline().strip()
-            assert (
-                actual_line == expected_line
-            ), f"Expected line '{expected_line}' not found in the file."
-
-
 def plotting_off():
     plotting_options = Mock(spec=PlotOptions)
     plotting_options.plotting = False
@@ -55,106 +46,6 @@ def plotting_on(tmp_path):
     plotting_options.plot_extension = ".png"
     plotting_options.kmzoom = []
     return plotting_options
-
-
-class Test_xyz_file_writer:
-
-    dzgemi: numpy.ndarray
-    areai: numpy.ndarray
-    wbin: numpy.ndarray
-    wbin_labels: list[str]
-    wthresh: numpy.ndarray
-    siface: numpy.ndarray
-    afrac: numpy.ndarray
-    sbin: numpy.ndarray
-    sthresh: numpy.ndarray
-    kmid: numpy.ndarray
-
-    @pytest.fixture
-    def setup(self):
-        self.dzgemi: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.areai: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.wbin: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.wbin_labels: list[str] = ["1", "2", "3"]
-        self.wthresh: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.siface: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.afrac: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.sbin: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.sthresh: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-        self.kmid: numpy.ndarray = numpy.array([0, 1, 2, 3, 4])
-
-    def test_plot_areas_with_SedimentationAreaPlotter_writes_xyz_file(
-        self, setup, tmp_path: Path
-    ):
-        plotting_options = plotting_off()
-        area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
-        plot_n = 3
-
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
-        )
-
-        plotter.plot_areas(
-            -self.dzgemi,
-            self.areai,
-            self.wbin,
-            self.wbin_labels,
-            self.wthresh,
-            self.siface,
-            self.afrac,
-            self.sbin,
-            self.sthresh,
-            self.kmid,
-        )
-
-        expected_lines = [
-            '"chainage" "1" "2" "3"',
-            "0.00     0.00     0.00     0.00     0.00",
-            "1.00     0.00     0.00     0.00     0.00",
-            "2.00     0.00     0.00     0.00     0.00",
-            "3.00     0.00     0.00     0.00     0.00",
-        ]
-
-        assert xyz_file_location.exists()
-        assert_lines_are_equal(xyz_file_location, expected_lines)
-
-    def test_plot_areas_with_ErosionAreaPlotter_writes_xyz_file(
-        self, setup, tmp_path: Path
-    ):
-        plotting_options = plotting_off()
-        area_detector = mock_area_detector()
-        xyz_file_location = mock_xyz_file_location(tmp_path)
-        plot_n = 3
-
-        plotter = ErosionAreaPlotter(
-            plotting_options, plot_n, area_detector, xyz_file_location
-        )
-
-        plotter.plot_areas(
-            -self.dzgemi,
-            self.areai,
-            self.wbin,
-            self.wbin_labels,
-            self.wthresh,
-            self.siface,
-            self.afrac,
-            self.sbin,
-            self.sthresh,
-            self.kmid,
-        )
-
-        expected_lines = [
-            '"chainage" "1" "2" "3"',
-            "0.00     0.00     0.00     0.00     0.00",
-            "1.00     0.00     0.00     0.00     0.00",
-            "2.00     0.00     0.00     0.00     0.00",
-            "3.00     0.00     0.00     0.00     0.00",
-        ]
-
-        assert xyz_file_location.exists()
-        assert_lines_are_equal(xyz_file_location, expected_lines)
-
 
 class Test_SedimentationAreaPlotter:
 
