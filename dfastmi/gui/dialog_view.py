@@ -841,14 +841,18 @@ class DialogView:
             caption=gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
         )
         filename = fil[0]
-        if filename != "" and not self._view_model.load_configuration(filename):
-            self._show_error(
-                gui_text(
-                    "file_not_found",
-                    prefix="",
-                    placeholder_dictionary={"name": filename},
+        if filename != "" :
+            if not self._view_model.load_configuration(filename):
+                self._show_error(
+                    gui_text(
+                        "file_not_found",
+                        prefix="",
+                        placeholder_dictionary={"name": filename},
+                    )
                 )
-            )
+            else:
+                self._update_enabling_plotting_controls()
+        
 
     def _menu_save_configuration(self) -> None:
         """
@@ -1068,10 +1072,13 @@ class DialogView:
         """
         if self._view_model.model.plotting != self._make_plots_edit.isChecked():
             self._view_model.model.plotting = self._make_plots_edit.isChecked()
-            self._save_plots.setEnabled(self._view_model.model.plotting)
-            self._save_plots_edit.setEnabled(self._view_model.model.plotting)
-            self._close_plots.setEnabled(self._view_model.model.plotting)
-            self._close_plots_edit.setEnabled(self._view_model.model.plotting)
+            self._update_enabling_plotting_controls()
+
+    def _update_enabling_plotting_controls(self):
+        self._save_plots.setEnabled(self._view_model.model.plotting)
+        self._save_plots_edit.setEnabled(self._view_model.model.plotting)
+        self._close_plots.setEnabled(self._view_model.model.plotting)
+        self._close_plots_edit.setEnabled(self._view_model.model.plotting)
 
     def _update_save_plotting(self) -> None:
         """Update the plotting flags."""
