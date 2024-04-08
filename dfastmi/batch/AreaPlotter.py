@@ -40,7 +40,6 @@ import dfastmi.plotting
 from dfastmi.batch.AreaDetector import AreaDetector
 from dfastmi.batch.PlotOptions import PlotOptions
 
-
 class AreaPlotter(ABC):
     """
     Abstract class used to plot the area.
@@ -86,6 +85,7 @@ class AreaPlotter(ABC):
         sbin: numpy.ndarray,
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
+        binvol: List[numpy.ndarray]
     ):
         """
         Plot the area data.
@@ -112,21 +112,12 @@ class AreaPlotter(ABC):
             Array containing the along-stream coordinate boundaries between the streamwise bins [m].
         kmid: numpy.ndarray
             Array of length N containing the location of points expressed as chainage.
+        binvol : List[numpy.ndarray]
+            List of arrays containing the total volume per streamwise bin [m3]. List length corresponds to number of width bins.
         """
 
         sbin_length: float = sthresh[1] - sthresh[0]
-        binvol = self._comp_binned_volumes(
-            numpy.maximum(dzgemi, 0.0),
-            areai,
-            wbin,
-            siface,
-            afrac,
-            sbin,
-            wthresh,
-            sthresh,
-        )
 
-        self._write_xyz_file(wbin_labels, kmid, binvol)
         self._plot_areas(
             dzgemi,
             areai,
@@ -141,22 +132,6 @@ class AreaPlotter(ABC):
             sbin_length,
             binvol,
         )
-
-    def _write_xyz_file(
-        self,
-        wbin_labels: list[str],
-        kmid: numpy.ndarray,
-        binvol: List[numpy.ndarray],
-    ):
-        if self._xyz_file_location:
-            # write a table of chainage and volume per width bin to file
-            binvol2 = numpy.stack(binvol)
-            with open(self._xyz_file_location, "w") as file:
-                vol_str = " ".join('"{}"'.format(str) for str in wbin_labels)
-                file.write('"chainage" ' + vol_str + "\n")
-                for i in range(binvol2.shape[1]):
-                    vol_str = " ".join("{:8.2f}".format(j) for j in binvol2[:, i])
-                    file.write("{:8.2f} ".format(kmid[i]) + vol_str + "\n")
 
     def _plot_areas(
         self,

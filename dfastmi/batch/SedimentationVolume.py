@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 
 import math
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy
 
@@ -40,6 +40,7 @@ from dfastmi.batch.Face import face_mean, facenode_to_edgeface
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
+from dfastmi.batch.XyzFileWriter import XyzFileWriter
 
 
 def stream_bins(min_s, max_s, ds):
@@ -219,6 +220,63 @@ def min_max_s(s, face_node_connectivity):
 
     return min_s, max_s
 
+def _comp_binned_volumes(
+        dzgem: numpy.ndarray,
+        area: numpy.ndarray,
+        wbin: numpy.ndarray,
+        siface: numpy.ndarray,
+        afrac: numpy.ndarray,
+        sbin: numpy.ndarray,
+        wthresh: numpy.ndarray,
+        sthresh: numpy.ndarray,
+    ) -> List[numpy.ndarray]:
+        """
+        Determine the volume per streamwise bin and width bin.
+
+        Arguments
+        ---------
+        dzgem : numpy.ndarray
+            Array of length M containing the bed level change per cell [m].
+        area : numpy.ndarray
+            Array of length M containing the grid cell area [m2].
+        wbin: numpy.ndarray
+            Array of length N containing the index of the target width bin [-].
+        siface : numpy.ndarray
+            Array of length N containing the index of the source cell (range 0 to M-1) [-].
+        afrac : numpy.ndarray
+            Array of length N containing the fraction of the source cell associated with the target chainage bin [-].
+        sbin : numpy.ndarray
+            Array of length N containing the index of the target chainage bin [-].
+        wthresh : numpy.ndarray
+            Array containing the cross-stream coordinate boundaries between the width bins [m].
+        sthresh : numpy.ndarray
+            Array containing the along-stream coordinate boundaries between the streamwise bins [m].
+
+        Returns
+        -------
+        binvol : List[numpy.ndarray]
+            List of arrays containing the total volume per streamwise bin [m3]. List length corresponds to number of width bins.
+        """
+
+        dvol = dzgem * area
+
+        n_wbin = len(wthresh) - 1
+        n_sbin = len(sthresh) - 1
+        sedbinvol: List[numpy.ndarray] = []
+
+        # compute for every width bin the sedimentation volume
+        for iw in range(n_wbin):
+            lw = wbin == iw
+
+            sbin_lw = sbin[lw]
+            dvol_lw = dvol[siface[lw]]
+            afrac_lw = afrac[lw]
+
+            sedbinvol.append(
+                numpy.bincount(sbin_lw, weights=dvol_lw * afrac_lw, minlength=n_sbin)
+            )
+
+        return sedbinvol
 
 def comp_sedimentation_volume(
     xykm_data: XykmData,
@@ -298,8 +356,20 @@ def comp_sedimentation_volume(
         sthresh,
         slength,
     )
+    
+    sedimentation_binvol = _comp_binned_volumes(
+            numpy.maximum(dzgemi, 0.0),
+            areai,
+            wbin,
+            siface,
+            afrac,
+            sbin,
+            wthresh,
+            sthresh,
+        )    
 
     xyz_file_location = outputdir.joinpath("sedimentation_volumes.xyz")
+    XyzFileWriter.write_xyz_file(wbin_labels, kmid, sedimentation_binvol, xyz_file_location)
     sedimentation_area_plotter = SedimentationAreaPlotter(
         plotting_options, plot_n, sedimentation_area_detector, xyz_file_location
     )
@@ -314,6 +384,7 @@ def comp_sedimentation_volume(
         sbin,
         sthresh,
         kmid,
+        sedimentation_binvol
     )
 
     print("-- detecting separate erosion areas")
@@ -332,6 +403,17 @@ def comp_sedimentation_volume(
         slength,
     )
 
+    erosion_binvol = _comp_binned_volumes(
+            numpy.maximum(-dzgemi, 0.0),
+            areai,
+            wbin,
+            siface,
+            afrac,
+            sbin,
+            wthresh,
+            sthresh,
+        )
+
     erosion_area_plotter = ErosionAreaPlotter(
         plotting_options, plot_n, erosion_area_detector
     )
@@ -346,6 +428,7 @@ def comp_sedimentation_volume(
         sbin,
         sthresh,
         kmid,
+        erosion_binvol
     )
 
     return SedimentationData(
