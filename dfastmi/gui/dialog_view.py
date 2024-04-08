@@ -362,7 +362,7 @@ class DialogView:
         self._close_plots_edit = QCheckBox(self._win)
         self._close_plots_edit.setToolTip(gui_text("closePlots_tooltip"))
         self._close_plots_edit.setEnabled(False)
-        self._close_plots_edit.stateChanged.connect(self._update_plotting)
+        self._close_plots_edit.stateChanged.connect(self._update_close_plots)
         layout.addRow(self._close_plots, self._close_plots_edit)
 
     def _create_output_figure_plots_directory_input(self, layout: QBoxLayout) -> None:
@@ -411,7 +411,7 @@ class DialogView:
         self._save_plots.setEnabled(False)
         self._save_plots_edit = QCheckBox(self._win)
         self._save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
-        self._save_plots_edit.stateChanged.connect(self._update_plotting)
+        self._save_plots_edit.stateChanged.connect(self._update_save_plotting)
         self._save_plots_edit.setEnabled(False)
         layout.addRow(self._save_plots, self._save_plots_edit)
 
@@ -678,9 +678,15 @@ class DialogView:
             None
         """
         if self._qthr.hasAcceptableInput():
-            self._view_model.model.qthreshold = float(self._qthr.text())
-            self._update_qvalues_table()
-            self._update_condition_files()
+
+            user_inputted_qthreshold = float(self._qthr.text())
+
+            if user_inputted_qthreshold > self._view_model.current_reach.qstagnant:
+                self._view_model.model.qthreshold = user_inputted_qthreshold
+                self._update_qvalues_table()
+                self._update_condition_files()
+            else:
+                self._qthr.setText(str(self._view_model.current_reach.qstagnant))
 
     def _update_ucritical(self) -> None:
         """
@@ -1060,14 +1066,22 @@ class DialogView:
         ---------
         None
         """
-        self._view_model.model.plotting = self._make_plots_edit.isChecked()
+        if self._view_model.model.plotting != self._make_plots_edit.isChecked():
+            self._view_model.model.plotting = self._make_plots_edit.isChecked()
+            self._save_plots.setEnabled(self._view_model.model.plotting)
+            self._save_plots_edit.setEnabled(self._view_model.model.plotting)
+            self._close_plots.setEnabled(self._view_model.model.plotting)
+            self._close_plots_edit.setEnabled(self._view_model.model.plotting)
 
-        self._save_plots.setEnabled(self._view_model.model.plotting)
-        self._save_plots_edit.setEnabled(self._view_model.model.plotting)
+    def _update_save_plotting(self) -> None:
+        """Update the plotting flags."""
 
-        self._view_model.model.save_plots = (
+        save_plot_gui = (
             self._save_plots_edit.isChecked() and self._view_model.model.plotting
         )
+
+        if self._view_model.model.save_plots != save_plot_gui:
+            self._view_model.model.save_plots = save_plot_gui
 
         self._figure_dir.setEnabled(self._view_model.model.save_plots)
         self._figure_dir_edit.setEnabled(self._view_model.model.save_plots)
@@ -1076,9 +1090,10 @@ class DialogView:
         )
         figure_dir_button.setEnabled(self._view_model.model.save_plots)
 
-        self._view_model.model.close_plots = self._close_plots_edit.isChecked()
-        self._close_plots.setEnabled(self._view_model.model.plotting)
-        self._close_plots_edit.setEnabled(self._view_model.model.plotting)
+    def _update_close_plots(self) -> None:
+        """Update the close plot flag."""
+        if self._view_model.model.close_plots != self._close_plots_edit.isChecked():
+            self._view_model.model.close_plots = self._close_plots_edit.isChecked()
 
     @staticmethod
     def _get_dfast_icon() -> QIcon:

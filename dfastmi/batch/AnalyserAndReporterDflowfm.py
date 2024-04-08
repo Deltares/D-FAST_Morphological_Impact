@@ -41,7 +41,7 @@ from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
 def analyse_and_report_dflowfm(
     display: bool,
     report: TextIO,
-    nwidth: float,
+    normal_width: float,
     filenames: Dict[Any, Tuple[str, str]],
     xykm: shapely.geometry.linestring.LineString,
     old_zmin_zmax: bool,
@@ -61,7 +61,7 @@ def analyse_and_report_dflowfm(
         Flag indicating text output to stdout.
     report : TextIO
         Text stream for log file.
-    nwidth : float
+    normal_width : float
         normal width of the reach.
     filenames : Dict[Any, Tuple[str,str]]
         Dictionary of the names of the data file containing the simulation
@@ -87,7 +87,7 @@ def analyse_and_report_dflowfm(
     analyser = AnalyserDflowfm(
         display, report, old_zmin_zmax, outputdir, initialized_config
     )
-    report_data = analyser.analyse(nwidth, filenames, xykm, plotting_options)
+    report_data = analyser.analyse(normal_width, filenames, xykm, plotting_options)
 
     if analyser.missing_data:
         return True

@@ -136,8 +136,17 @@ class Test_dialog_inputs:
         when  : updating the qthreshold QLineEdit
         then  : the qthreshold value should be updated correctly
         """
-        # Test valid input
+        # Test valid input, but less than qstagnant
         new_value = "10.0"
+        dialog_view._qthr.setText(new_value)
+        dialog_view._qthr.editingFinished.emit()
+        assert dialog_view._qthr.text() != new_value
+        assert dialog_view._qthr.text() == str(
+            dialog_view._view_model.current_reach.qstagnant
+        )
+
+        # Test valid input
+        new_value = "900.0"
         dialog_view._qthr.setText(new_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == new_value

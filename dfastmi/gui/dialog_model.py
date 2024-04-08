@@ -52,6 +52,7 @@ class GeneralConfig(BaseModel):
     SavePlots: bool = False
     FigureDir: str = ""
     ClosePlots: bool = False
+    RiverKM: str = ""
 
 
 class ConditionConfig(BaseModel):
@@ -106,7 +107,7 @@ class DialogModel:
     @property
     def case_description(self) -> str:
         """Get case description."""
-        return self.section["CaseDescription"]
+        return self.section.get("CaseDescription", "")
 
     @case_description.setter
     def case_description(self, value: str):
@@ -116,12 +117,12 @@ class DialogModel:
     @property
     def branch_name(self) -> str:
         """Get branch name."""
-        return self.section["Branch"]
+        return self.section.get("Branch", "")
 
     @property
     def reach_name(self) -> str:
         """Get reach name."""
-        return self.section["Reach"]
+        return self.section.get("Reach", "")
 
     @property
     def qthreshold(self) -> float:
@@ -146,7 +147,7 @@ class DialogModel:
     @property
     def output_dir(self) -> str:
         """Get output directory."""
-        return self.section["OutputDir"]
+        return self.section.get("OutputDir", "")
 
     @output_dir.setter
     def output_dir(self, value: str):
@@ -156,7 +157,7 @@ class DialogModel:
     @property
     def figure_dir(self) -> str:
         """Get figure directory."""
-        return self.section["FigureDir"]
+        return self.section.get("FigureDir", "")
 
     @figure_dir.setter
     def figure_dir(self, value: str):
@@ -166,7 +167,7 @@ class DialogModel:
     @property
     def plotting(self) -> bool:
         """Get plotting flag."""
-        return self.section.getboolean("Plotting")
+        return self.section.getboolean("Plotting", False)
 
     @plotting.setter
     def plotting(self, value: bool):
@@ -176,7 +177,7 @@ class DialogModel:
     @property
     def save_plots(self) -> bool:
         """Get save plots flag."""
-        return self.section.getboolean("SavePlots")
+        return self.section.getboolean("SavePlots", False)
 
     @save_plots.setter
     def save_plots(self, value: bool):
@@ -185,12 +186,17 @@ class DialogModel:
     @property
     def close_plots(self) -> bool:
         """Get close plots flag."""
-        return self.section.getboolean("ClosePlots")
+        return self.section.getboolean("ClosePlots", False)
 
     @close_plots.setter
     def close_plots(self, value: bool):
         """Set close plots flag."""
         self.section["ClosePlots"] = str(value)
+
+    @property
+    def riverkm_file(self) -> str:
+        """Get RiverKM file to specify the chainage along the reach of interest."""
+        return self.section["RiverKM"]
 
     def create_configuration(self) -> bool:
         """Create configuration."""
@@ -270,9 +276,11 @@ class DialogModel:
             SavePlots=self.save_plots,
             FigureDir=self.figure_dir,
             ClosePlots=self.close_plots,
+            RiverKM=self.riverkm_file,
         ).model_dump()
 
         self._get_condition_configuration(config, reach, reference_files, measure_files)
+        self._add_unknown_read_config_key_values(config)
         return config
 
     def _get_condition_configuration(
@@ -297,3 +305,16 @@ class DialogModel:
                     condition.WithMeasure = measure_files[discharge]
 
                 config[cond] = condition.model_dump()
+
+    def _add_unknown_read_config_key_values(self, config: ConfigParser) -> None:
+        """
+        When the config has keys and values which are not known yet in the application
+        we should also write them back in the new config file
+        """
+        for section in self.config:
+            if not config.has_section(section):
+                config[section] = {}
+
+            for key, value in self.config.items(section):
+                if not config.has_option(section, key):
+                    config[section][key] = value

@@ -104,8 +104,6 @@ class DialogViewModel(QObject):
             value (AReach): The reach to set.
         """
         self._current_reach = value
-        self.model.qthreshold = 0.0
-        self.model.ucritical = 0.0
         self._initialize_qthreshold()
         self._initialize_ucritical()
         self._update_qvalues()
