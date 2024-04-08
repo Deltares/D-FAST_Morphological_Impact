@@ -114,7 +114,7 @@ class AreaPlotter(ABC):
             Array of length N containing the location of points expressed as chainage.
         """
 
-        sbin_length = sthresh[1] - sthresh[0]
+        sbin_length: float = sthresh[1] - sthresh[0]
         binvol = self._comp_binned_volumes(
             numpy.maximum(dzgemi, 0.0),
             areai,
