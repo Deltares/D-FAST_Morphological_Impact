@@ -72,7 +72,7 @@ class AreaDetector:
         self,
         dzgemi: numpy.ndarray,
         dzmin: float,
-        edgeface_indeces: numpy.ndarray,
+        edgeface_indexes: numpy.ndarray,
         areai: numpy.ndarray,
         wbin: numpy.ndarray,
         wthresh: numpy.ndarray,
@@ -87,7 +87,7 @@ class AreaDetector:
         sbin_length: float = sthresh[1] - sthresh[0]
         nwidth: float = wthresh[-1] - wthresh[0]
         sub_areai, n_sub_areas = self._detect_connected_regions(
-            dzgemi > dzmin, edgeface_indeces
+            dzgemi > dzmin, edgeface_indexes
         )
         print("number of areas detected: ", n_sub_areas)
 
@@ -344,7 +344,7 @@ class AreaDetector:
         return dvol, area_eq, dvol_eq
 
     def _detect_connected_regions(
-        self, fcondition: numpy.ndarray, edgeface_indeces: numpy.ndarray
+        self, fcondition: numpy.ndarray, edgeface_indexes: numpy.ndarray
     ) -> Tuple[numpy.ndarray, int]:
         """
         Detect regions of faces for which the fcondition equals True.
@@ -353,7 +353,7 @@ class AreaDetector:
         ---------
         fcondition : numpy.ndarray
             Boolean array of length M: one boolean per face.
-        edgeface_indeces : numpy.ndarray
+        edgeface_indexes : numpy.ndarray
             N x 2 array containing the indices of neighbouring faces.
             Maximum face index is M-1.
 
@@ -370,7 +370,7 @@ class AreaDetector:
         ncells = fcondition.sum()
         partition[fcondition] = numpy.arange(ncells)
 
-        efc = edgeface_indeces[fcondition[edgeface_indeces].all(axis=1), :]
+        efc = edgeface_indexes[fcondition[edgeface_indexes].all(axis=1), :]
         nlinks = efc.shape[0]
 
         anychange = True
