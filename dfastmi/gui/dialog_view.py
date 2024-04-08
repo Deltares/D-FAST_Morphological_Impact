@@ -841,7 +841,7 @@ class DialogView:
             caption=gui_text("select_cfg_file"), filter="Config Files (*.cfg)"
         )
         filename = fil[0]
-        if filename != "" :
+        if filename != "":
             if not self._view_model.load_configuration(filename):
                 self._show_error(
                     gui_text(
@@ -852,7 +852,6 @@ class DialogView:
                 )
             else:
                 self._update_enabling_plotting_controls()
-        
 
     def _menu_save_configuration(self) -> None:
         """
