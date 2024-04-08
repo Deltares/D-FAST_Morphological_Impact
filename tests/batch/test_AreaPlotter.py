@@ -31,6 +31,7 @@ def mock_area_detector():
     area_detector.area_list = [True, True, True]
     return area_detector
 
+
 def plotting_on(tmp_path):
     plotting_options = Mock(spec=PlotOptions)
     plotting_options.plotting = True
@@ -78,9 +79,7 @@ class Test_SedimentationAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
 
         assert plotter._area_str == "sedimentation area {}"
         assert plotter._total_str == "total sedimentation volume"
@@ -91,9 +90,7 @@ class Test_SedimentationAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
 
         with (
             patch(
@@ -117,7 +114,7 @@ class Test_SedimentationAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
-                self.binvol
+                self.binvol,
             )
 
             assert plot_sedimentation.call_count == 10
@@ -132,9 +129,7 @@ class Test_SedimentationAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
 
         with (
             patch(
@@ -158,7 +153,7 @@ class Test_SedimentationAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
-                self.binvol
+                self.binvol,
             )
 
             assert plot_sedimentation.call_count == 10
@@ -170,9 +165,7 @@ class Test_SedimentationAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
 
         with (
             patch(
@@ -196,7 +189,7 @@ class Test_SedimentationAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
-                self.binvol
+                self.binvol,
             )
 
             assert plot_sedimentation.call_count == 0
@@ -216,7 +209,7 @@ class Test_ErosionAreaPlotter:
     sbin: numpy.ndarray
     sthresh: numpy.ndarray
     kmid: numpy.ndarray
-    binvol : List[numpy.ndarray]
+    binvol: List[numpy.ndarray]
 
     @pytest.fixture
     def setup(self):
@@ -240,9 +233,7 @@ class Test_ErosionAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = ErosionAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = ErosionAreaPlotter(plotting_options, plot_n, area_detector)
 
         assert plotter._area_str == "erosion area {}"
         assert plotter._total_str == "total erosion volume"
@@ -253,9 +244,7 @@ class Test_ErosionAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = ErosionAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = ErosionAreaPlotter(plotting_options, plot_n, area_detector)
 
         with (
             patch(
@@ -279,7 +268,7 @@ class Test_ErosionAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
-                self.binvol
+                self.binvol,
             )
 
             assert plot_sedimentation.call_count == 10
@@ -294,9 +283,7 @@ class Test_ErosionAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
 
         with (
             patch(
@@ -320,7 +307,7 @@ class Test_ErosionAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
-                self.binvol
+                self.binvol,
             )
 
             assert plot_sedimentation.call_count == 10
@@ -332,9 +319,7 @@ class Test_ErosionAreaPlotter:
         area_detector = mock_area_detector()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(
-            plotting_options, plot_n, area_detector
-        )
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
 
         with (
             patch(
@@ -358,7 +343,7 @@ class Test_ErosionAreaPlotter:
                 self.sbin,
                 self.sthresh,
                 self.kmid,
-                self.binvol
+                self.binvol,
             )
 
             assert plot_sedimentation.call_count == 0
