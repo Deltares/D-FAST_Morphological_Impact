@@ -47,6 +47,7 @@ def plotting_on(tmp_path):
     plotting_options.kmzoom = []
     return plotting_options
 
+
 class Test_SedimentationAreaPlotter:
 
     dzgemi: numpy.ndarray
