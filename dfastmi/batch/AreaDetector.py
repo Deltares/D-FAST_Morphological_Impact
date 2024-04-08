@@ -84,8 +84,8 @@ class AreaDetector:
     ):
         self._total_area_weigth = numpy.zeros(dzgemi.shape)
 
-        sbin_length = sthresh[1] - sthresh[0]
-        nwidth = wthresh[-1] - wthresh[0]
+        sbin_length: float = sthresh[1] - sthresh[0]
+        nwidth: float = wthresh[-1] - wthresh[0]
         sub_areai, n_sub_areas = self._detect_connected_regions(
             dzgemi > dzmin, edgeface_indeces
         )
