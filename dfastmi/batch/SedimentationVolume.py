@@ -374,7 +374,7 @@ def comp_sedimentation_volume(
     XyzFileWriter.write_xyz_file(
         wbin_labels, kmid, sedimentation_binvol, xyz_file_location
     )
-    
+
     sedimentation_area_plotter = SedimentationAreaPlotter(
         plotting_options, plot_n, sedimentation_area_detector, xyz_file_location
     )
