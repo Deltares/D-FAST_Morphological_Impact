@@ -1,20 +1,20 @@
-import numpy
-
 from pathlib import Path
 from typing import List
 
+import numpy
 
-class XyzFileWriter():
+
+class XyzFileWriter:
     @staticmethod
     def write_xyz_file(
         wbin_labels: list[str],
         kmid: numpy.ndarray,
         binvol: List[numpy.ndarray],
-        xyz_file_location : Path
+        xyz_file_location: Path,
     ) -> None:
         """
         Writes the given data to the given file location.
-        
+
         Arguments
         ---------
         wbin_labels: list[str]

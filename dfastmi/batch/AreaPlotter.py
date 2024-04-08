@@ -40,6 +40,7 @@ import dfastmi.plotting
 from dfastmi.batch.AreaDetector import AreaDetector
 from dfastmi.batch.PlotOptions import PlotOptions
 
+
 class AreaPlotter(ABC):
     """
     Abstract class used to plot the area.
@@ -85,7 +86,7 @@ class AreaPlotter(ABC):
         sbin: numpy.ndarray,
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
-        binvol: List[numpy.ndarray]
+        binvol: List[numpy.ndarray],
     ):
         """
         Plot the area data.
