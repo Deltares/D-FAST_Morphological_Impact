@@ -95,7 +95,9 @@ class DFastAnalysisConfigFileParser:
         """
         return self._config_parser.get(section, key, fallback=fallback)
 
-    def get_range(self, section: str, key: str, fallback: Tuple[float, float]) -> Tuple[float, float]:
+    def get_range(
+        self, section: str, key: str, fallback: Tuple[float, float]
+    ) -> Tuple[float, float]:
         """Retrieves a range (tuple of two floats) from the configuration.
 
         The range is specified in the configuration file in the format "[x:y]", where
@@ -117,7 +119,7 @@ class DFastAnalysisConfigFileParser:
             obrack = ini_value.find("[")
             cbrack = ini_value.find("]")
             if obrack >= 0 and cbrack >= 0:
-                ini_value = ini_value[obrack + 1: cbrack - 1]
+                ini_value = ini_value[obrack + 1 : cbrack - 1]
             vallist = [float(fstr) for fstr in ini_value.split(":")]
             if vallist[0] > vallist[1]:
                 val = (vallist[1], vallist[0])
@@ -129,9 +131,16 @@ class DFastAnalysisConfigFileParser:
             else:
                 raise Exception(
                     f'Invalid range specification "{ini_value}" for required keyword "{key}" in block "{section}".'
-                    )
+                )
 
         return val
 
     def _configure_booleans(self):
-        self._config_parser.BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True, 'y': True, 't': True}
+        self._config_parser.BOOLEAN_STATES = {
+            "1": True,
+            "yes": True,
+            "true": True,
+            "on": True,
+            "y": True,
+            "t": True,
+        }
