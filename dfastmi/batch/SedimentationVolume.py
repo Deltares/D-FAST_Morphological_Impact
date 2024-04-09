@@ -33,7 +33,7 @@ from typing import List, Tuple
 
 import numpy
 
-from dfastmi.batch.AreaDetector import AreaDetector
+from dfastmi.batch.AreaDetector import AreaData, AreaDetector
 from dfastmi.batch.AreaPlotter import ErosionAreaPlotter, SedimentationAreaPlotter
 from dfastmi.batch.Distance import distance_along_line, distance_to_chainage
 from dfastmi.batch.Face import face_mean, facenode_to_edgeface
@@ -345,7 +345,7 @@ def comp_sedimentation_volume(
 
     print("-- detecting separate sedimentation areas")
     sedimentation_area_detector = AreaDetector()
-    sedimentation_area_detector.detect_areas(
+    sedimentation_area_data: AreaData = sedimentation_area_detector.detect_areas(
         dzgemi,
         dzmin,
         edgeface_index,
@@ -376,7 +376,7 @@ def comp_sedimentation_volume(
     )
 
     sedimentation_area_plotter = SedimentationAreaPlotter(
-        plotting_options, plot_n, sedimentation_area_detector
+        plotting_options, plot_n, sedimentation_area_data
     )
     sedimentation_area_plotter.plot_areas(
         dzgemi,
@@ -394,7 +394,7 @@ def comp_sedimentation_volume(
 
     print("-- detecting separate erosion areas")
     erosion_area_detector = AreaDetector()
-    erosion_area_detector.detect_areas(
+    erosion_area_data: AreaData = erosion_area_detector.detect_areas(
         -dzgemi,
         dzmin,
         edgeface_index,
@@ -420,7 +420,7 @@ def comp_sedimentation_volume(
     )
 
     erosion_area_plotter = ErosionAreaPlotter(
-        plotting_options, plot_n, erosion_area_detector
+        plotting_options, plot_n, erosion_area_data
     )
     erosion_area_plotter.plot_areas(
         -dzgemi,
@@ -437,13 +437,13 @@ def comp_sedimentation_volume(
     )
 
     return SedimentationData(
-        sedimentation_area_detector.area,
-        sedimentation_area_detector.volume,
-        sedimentation_area_detector.area_list,
-        erosion_area_detector.area,
-        erosion_area_detector.volume,
-        erosion_area_detector.area_list,
-        sedimentation_area_detector.total_area_weight
-        + erosion_area_detector.total_area_weight,
+        sedimentation_area_data.area,
+        sedimentation_area_data.volume,
+        sedimentation_area_data.area_list,
+        erosion_area_data.area,
+        erosion_area_data.volume,
+        erosion_area_data.area_list,
+        sedimentation_area_data.total_area_weight
+        + erosion_area_data.total_area_weight,
         wbini,
     )

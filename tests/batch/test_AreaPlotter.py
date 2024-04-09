@@ -7,7 +7,7 @@ import pytest
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from dfastmi.batch.AreaDetector import AreaDetector
+from dfastmi.batch.AreaDetector import AreaData
 from dfastmi.batch.AreaPlotter import ErosionAreaPlotter, SedimentationAreaPlotter
 from dfastmi.batch.PlotOptions import PlotOptions
 
@@ -18,9 +18,9 @@ def plotting_off():
     return plotting_options
 
 
-def mock_area_detector():
-    area_detector = Mock(spec=AreaDetector)
-    area_detector.volume = numpy.array(
+def mock_area_data():
+    area_data = Mock(spec=AreaData)
+    area_data.volume = numpy.array(
         [
             [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
             [[10, 11, 12], [13, 14, 15], [16, 17, 18]],
@@ -28,8 +28,8 @@ def mock_area_detector():
             [[28, 29, 30], [31, 32, 33], [34, 35, 36]],
         ]
     )
-    area_detector.area_list = [True, True, True]
-    return area_detector
+    area_data.area_list = [True, True, True]
+    return area_data
 
 
 def plotting_on(tmp_path):
@@ -76,10 +76,10 @@ class Test_SedimentationAreaPlotter:
 
     def test_init_sets_protected_variables(self, tmp_path):
         plotting_options = plotting_on(tmp_path)
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
         assert plotter._area_str == "sedimentation area {}"
         assert plotter._total_str == "total sedimentation volume"
@@ -87,10 +87,10 @@ class Test_SedimentationAreaPlotter:
 
     def test_plot_areas_with_plotting_plots_areas(self, setup, tmp_path: Path):
         plotting_options = plotting_on(tmp_path)
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
         with (
             patch(
@@ -126,10 +126,10 @@ class Test_SedimentationAreaPlotter:
     ):
         plotting_options = plotting_on(tmp_path)
         plotting_options.saveplot = False
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
         with (
             patch(
@@ -162,10 +162,10 @@ class Test_SedimentationAreaPlotter:
 
     def test_plot_areas_without_plotting_plot_no_areas(self, setup):
         plotting_options = plotting_off()
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
         with (
             patch(
@@ -230,10 +230,10 @@ class Test_ErosionAreaPlotter:
 
     def test_init_sets_protected_variables(self, tmp_path):
         plotting_options = plotting_on(tmp_path)
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = ErosionAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = ErosionAreaPlotter(plotting_options, plot_n, area_data)
 
         assert plotter._area_str == "erosion area {}"
         assert plotter._total_str == "total erosion volume"
@@ -241,10 +241,10 @@ class Test_ErosionAreaPlotter:
 
     def test_plot_areas_with_plotting_plots_areas(self, setup, tmp_path: Path):
         plotting_options = plotting_on(tmp_path)
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = ErosionAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = ErosionAreaPlotter(plotting_options, plot_n, area_data)
 
         with (
             patch(
@@ -280,10 +280,10 @@ class Test_ErosionAreaPlotter:
     ):
         plotting_options = plotting_on(tmp_path)
         plotting_options.saveplot = False
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
         with (
             patch(
@@ -316,10 +316,10 @@ class Test_ErosionAreaPlotter:
 
     def test_plot_areas_without_plotting_plot_no_areas(self, setup):
         plotting_options = plotting_off()
-        area_detector = mock_area_detector()
+        area_data = mock_area_data()
         plot_n = 3
 
-        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_detector)
+        plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
         with (
             patch(

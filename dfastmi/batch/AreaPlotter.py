@@ -36,7 +36,7 @@ from matplotlib.figure import Figure
 
 import dfastmi.kernel.core
 import dfastmi.plotting
-from dfastmi.batch.AreaDetector import AreaDetector
+from dfastmi.batch.AreaDetector import AreaData
 from dfastmi.batch.PlotOptions import PlotOptions
 
 
@@ -53,21 +53,21 @@ class AreaPlotter(ABC):
         self,
         plotting_options: PlotOptions,
         plot_n: int,
-        area_detector: AreaDetector,
+        area_data: AreaData,
     ):
         """
         Arguments
         ---------
         plotting_options : PlotOptions
             Options for plotting.
-        area_detector: AreaDetector
+        area_data: AreaData
             Class which holds the information regarding detected areas.
         plot_n : int
             n for plotting.
         """
         self._plotting_options = plotting_options
         self._plot_n = plot_n
-        self._area_detector = area_detector
+        self._area_data = area_data
 
     def plot_areas(
         self,
@@ -187,7 +187,7 @@ class AreaPlotter(ABC):
         sthresh: numpy.ndarray,
         kmid: numpy.ndarray,
     ):
-        volume_mean = self._area_detector.volume[1:, :].mean(axis=0)
+        volume_mean = self._area_data.volume[1:, :].mean(axis=0)
         sorted_list = numpy.argsort(volume_mean)[::-1]
         if len(sorted_list) <= self._plot_n:
             vol_thresh = 0.0
@@ -226,7 +226,7 @@ class AreaPlotter(ABC):
         sbin_length = sthresh[1] - sthresh[0]
         for ia in indices:
             dzgemi_filtered = dzgemi.copy()
-            dzgemi_filtered[numpy.invert(self._area_detector.area_list[ia])] = 0.0
+            dzgemi_filtered[numpy.invert(self._area_data.area_list[ia])] = 0.0
 
             area_binvol = self._comp_binned_volumes(
                 dzgemi_filtered, areai, wbin, siface, afrac, sbin, wthresh, sthresh
@@ -332,9 +332,9 @@ class SedimentationAreaPlotter(AreaPlotter):
         self,
         plotting_options: PlotOptions,
         plot_n: int,
-        area_detector: AreaDetector,
+        area_data: AreaData,
     ):
-        super().__init__(plotting_options, plot_n, area_detector)
+        super().__init__(plotting_options, plot_n, area_data)
         self._area_str = "sedimentation area {}"
         self._total_str = "total sedimentation volume"
         self._positive_up = True
@@ -349,9 +349,9 @@ class ErosionAreaPlotter(AreaPlotter):
         self,
         plotting_options: PlotOptions,
         plot_n: int,
-        area_detector: AreaDetector,
+        area_data: AreaData,
     ):
-        super().__init__(plotting_options, plot_n, area_detector)
+        super().__init__(plotting_options, plot_n, area_data)
         self._area_str = "erosion area {}"
         self._total_str = "total erosion volume"
         self._positive_up = False

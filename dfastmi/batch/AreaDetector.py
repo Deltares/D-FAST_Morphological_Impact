@@ -26,47 +26,41 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+from dataclasses import dataclass, field
 import math
 from typing import Tuple
 
 import numpy
 
+@dataclass
+class AreaData:
+    """Class for keeping track of area data."""
+
+    area: numpy.ndarray = numpy.zeros(0)
+    """
+    area
+    """
+
+    volume: numpy.ndarray = numpy.zeros(0)
+    """
+    area volume
+    """
+
+    area_list: list[bool] = field(default_factory=list)
+    """
+    List of sub areas
+    """
+
+
+    total_area_weight: numpy.ndarray = numpy.zeros(0)
+    """
+    total area weight
+    """
 
 class AreaDetector:
-
-    @property
-    def area(self) -> numpy.ndarray:
-        """
-        area
-        """
-        return self._area
-
-    @property
-    def volume(self) -> numpy.ndarray:
-        """
-        area volume
-        """
-        return self._volume
-
-    @property
-    def area_list(self) -> list:
-        """
-        List of sub areas
-        """
-        return self._area_list
-
-    @property
-    def total_area_weight(self) -> numpy.ndarray:
-        """
-        total area weight
-        """
-        return self._total_area_weight
-
-    def __init__(self):
-        self._area: numpy.ndarray = numpy.zeros(0)
-        self._volume: numpy.ndarray = numpy.zeros(0)
-        self._area_list: list = []
-        self._total_area_weight: numpy.ndarray = numpy.zeros(0)
+    """
+    Class used to detect area information based on a few different algorithms.
+    """
 
     def detect_areas(
         self,
@@ -81,8 +75,47 @@ class AreaDetector:
         sbin: numpy.ndarray,
         sthresh: numpy.ndarray,
         slength: float,
-    ):
-        self._total_area_weight = numpy.zeros(dzgemi.shape)
+    ) -> AreaData:
+        """
+        Detect area information based on a few different algorithms.
+        Sets the following properties:
+        - area
+        - volume
+        - area_list
+        - total_area_weight
+
+        Arguments
+        ---------
+        dzgemi : numpy.ndarray
+            Array of length M containing the yearly mean bed level change per cell [m].
+        dzmin : float
+            Bed level changes (per cell) less than this threshold value are ignored [m].
+        edgeface_indexes : numpy.ndarray
+            N x 2 array containing the indices of neighbouring faces.
+            Maximum face index is M-1.    
+        areai : numpy.ndarray
+            Array of length M containing the grid cell area [m2].
+        wbin: numpy.ndarray
+            Array of length N containing the index of the target width bin [-].
+        wthresh : numpy.ndarray
+            Array containing the cross-stream coordinate boundaries between the width bins [m].
+        siface : numpy.ndarray
+            Array of length N containing the index of the source cell (range 0 to M-1) [-].
+        afrac : numpy.ndarray
+            Array of length N containing the fraction of the source cell associated with the target chainage bin [-].
+        sbin : numpy.ndarray
+            Array of length N containing the index of the target chainage bin [-].
+        sthresh : numpy.ndarray
+            Threshold values between the chainage bins [m].
+        slength : float
+            The expected yearly impacted sedimentation length [m].
+            
+        Returns
+        -------
+        AreaData : AreaData
+            Class for keeping track of area data.
+        """
+        total_area_weight = numpy.zeros(dzgemi.shape)
 
         sbin_length: float = sthresh[1] - sthresh[0]
         nwidth: float = wthresh[-1] - wthresh[0]
@@ -93,7 +126,7 @@ class AreaDetector:
 
         area = numpy.zeros(n_sub_areas)
         volume = numpy.zeros((3, n_sub_areas))
-        sub_area_list = []
+        sub_area_list : list[bool] = []
 
         for ia in range(n_sub_areas):
             dzgemi_filtered = dzgemi.copy()
@@ -112,7 +145,7 @@ class AreaDetector:
                 slength,
                 sbin_length,
             )
-            self._total_area_weight += wght_area_ia
+            total_area_weight += wght_area_ia
 
             volume[2, ia], area[ia], volume[0, ia] = self._comp_sedimentation_volume2(
                 numpy.maximum(dzgemi_filtered, 0.0), dzmin, areai, slength, nwidth
@@ -122,10 +155,8 @@ class AreaDetector:
         area = area[sorted_list]
         volume = volume[:, sorted_list]
         sub_area_list = [sub_area_list[ia] for ia in sorted_list]
-
-        self._area = area
-        self._volume = volume
-        self._area_list = sub_area_list
+        
+        return AreaData(area, volume, sub_area_list, total_area_weight)
 
     def _comp_sedimentation_volume1(
         self,
