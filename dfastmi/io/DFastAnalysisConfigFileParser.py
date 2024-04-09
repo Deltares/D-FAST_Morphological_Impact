@@ -53,6 +53,9 @@ class DFastAnalysisConfigFileParser:
 
         Returns:
             int: The integer value of the configuration key.
+
+        Raises:
+            Exception: When the given section or key does not exist.
         """
         return self._config_parser.getint(section, key, fallback=fallback)
 
@@ -66,6 +69,9 @@ class DFastAnalysisConfigFileParser:
 
         Returns:
             float: The float value of the configuration key.
+
+        Raises:
+            Exception: When the given section or key does not exist.
         """
         return self._config_parser.getfloat(section, key, fallback=fallback)
 
@@ -79,6 +85,9 @@ class DFastAnalysisConfigFileParser:
 
         Returns:
             bool: The boolean value of the configuration key.
+
+        Raises:
+            Exception: When the given section or key does not exist.
         """
         return self._config_parser.getboolean(section, key, fallback=fallback)
 
