@@ -34,18 +34,19 @@ from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFilePars
 
 
 class TestDFastAnalysisConfigFileParser:
+    section = "random section"
+    key = "random key"
+
     @pytest.mark.parametrize("truthy_value", ["1", "yes", "true", "on", "y", "t"])
     def test_boolean_values_that_parse_to_true(self, truthy_value: str):
         # setup
-        section = "randomSection"
-        key = "randomKey"
         config_parser = ConfigParser()
-        config_parser[section] = {key: truthy_value}
+        config_parser[self.section] = {self.key: truthy_value}
 
         parser = DFastAnalysisConfigFileParser(config_parser)
 
         # call
-        result = parser.getboolean(section, key)
+        result = parser.getboolean(self.section, self.key)
 
         # assert
         assert result is True
@@ -53,15 +54,110 @@ class TestDFastAnalysisConfigFileParser:
     @pytest.mark.parametrize("falsy_value", ["0", "no", "false", "off", "n", "f"])
     def test_boolean_values_that_parse_to_false(self, falsy_value):
         # setup
-        section = "randomSection"
-        key = "randomKey"
         config_parser = ConfigParser()
-        config_parser[section] = {key: falsy_value}
+        config_parser[self.section] = {self.key: falsy_value}
 
         parser = DFastAnalysisConfigFileParser(config_parser)
 
         # call
-        result = parser.getboolean(section, key)
+        result = parser.getboolean(self.section, self.key)
 
         # assert
         assert result is False
+
+    def test_getint_valid_int_value_returns_expected_int_value(self):
+        # setup
+        value = 123
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        result = parser.getint(self.section, self.key)
+
+        # assert
+        assert isinstance(result, int)
+        assert result == value
+
+    def test_getint_unknown_section_without_fallback_returns_default_fallback_value(self):
+        # setup
+        value = 123
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        section_that_does_not_exist = "This section does not exist"
+        result = parser.getint(section_that_does_not_exist, self.key)
+
+        # assert
+        assert isinstance(result, int)
+        default_fallback = 0
+        assert result == default_fallback
+
+    def test_getint_unknown_section_with_fallback_returns_fallback_value(self):
+        # setup
+        value = 123
+        fallback = 456
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        section_that_does_not_exist = "This section does not exist"
+        result = parser.getint(section_that_does_not_exist, self.key, fallback)
+
+        # assert
+        assert isinstance(result, int)
+        assert result == fallback
+
+    def test_getint_unknown_key_without_fallback_returns_default_fallback_value(self):
+        # setup
+        value = 123
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        key_that_does_not_exist = "This key does not exist"
+        result = parser.getint(self.section, key_that_does_not_exist)
+
+        # assert
+        assert isinstance(result, int)
+        default_fallback = 0
+        assert result == default_fallback
+
+    def test_getint_unknown_key_with_fallback_returns_fallback_value(self):
+        # setup
+        section = "randomSection"
+        key = "randomKey"
+        value = 123
+        fallback = 456
+        config_parser = ConfigParser()
+        config_parser[section] = {key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        key_that_does_not_exist = "This key does not exist"
+        result = parser.getint(section, key_that_does_not_exist, fallback)
+
+        # assert
+        assert isinstance(result, int)
+        assert result == fallback
+
+    @pytest.mark.parametrize("non_int_value", ["", "  ", "not an int"])
+    def test_getint_value_not_an_int_raises_error(self, non_int_value: str):
+        # setup
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: non_int_value}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call / assert
+        with pytest.raises(Exception) as e:
+            _ = parser.getint(self.section, self.key)
