@@ -211,7 +211,7 @@ class TestDFastAnalysisConfigFileParser:
 
     def test_getfloat_unknown_key_without_fallback_returns_default_fallback_value(self):
         # setup
-        value = 123
+        value = 123.456
         config_parser = ConfigParser()
         config_parser[self.section] = {self.key: str(value)}
 
@@ -223,7 +223,7 @@ class TestDFastAnalysisConfigFileParser:
 
         # assert
         assert isinstance(result, float)
-        default_fallback = 0
+        default_fallback = 0.0
         assert result == default_fallback
 
     def test_getfloat_unknown_key_with_fallback_returns_fallback_value(self):
@@ -254,3 +254,86 @@ class TestDFastAnalysisConfigFileParser:
         # call / assert
         with pytest.raises(Exception):
             _ = parser.getfloat(self.section, self.key)
+
+    def test_getstring_returns_expected_string_value(self):
+        # setup
+        value = "randomString"
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        result = parser.getstring(self.section, self.key)
+
+        # assert
+        assert isinstance(result, str)
+        assert result == value
+
+    def test_getstring_unknown_section_without_fallback_returns_default_fallback_value(self):
+        # setup
+        value = "randomString"
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        section_that_does_not_exist = "This section does not exist"
+        result = parser.getstring(section_that_does_not_exist, self.key)
+
+        # assert
+        assert isinstance(result, str)
+        default_fallback = ""
+        assert result == default_fallback
+
+    def test_getstring_unknown_section_with_fallback_returns_fallback_value(self):
+        # setup
+        value = "randomString"
+        fallback = "Super awesome fallback value"
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        section_that_does_not_exist = "This section does not exist"
+        result = parser.getstring(section_that_does_not_exist, self.key, fallback)
+
+        # assert
+        assert isinstance(result, str)
+        assert result == fallback
+
+    def test_getstring_unknown_key_without_fallback_returns_default_fallback_value(self):
+        # setup
+        value = "randomString"
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        key_that_does_not_exist = "This key does not exist"
+        result = parser.getstring(self.section, key_that_does_not_exist)
+
+        # assert
+        assert isinstance(result, str)
+        default_fallback = ""
+        assert result == default_fallback
+
+    def test_getstring_unknown_key_with_fallback_returns_fallback_value(self):
+        # setup
+        value = "randomString"
+        fallback = "Super awesome fallback value"
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        key_that_does_not_exist = "This key does not exist"
+        result = parser.getstring(self.section, key_that_does_not_exist, fallback)
+
+        # assert
+        assert isinstance(result, str)
+        assert result == fallback
