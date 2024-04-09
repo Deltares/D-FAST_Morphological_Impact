@@ -48,16 +48,72 @@ class TestDFastRiverConfigFileParser:
         expected_value = 123
         assert value == expected_value
 
+    def test_getint_key_both_in_general_section_and_in_branch_section_returns_value_from_branch_section(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getint("int_key_in_general_and_branch_section", reach)
+
+        # assert
+        assert isinstance(value, int)
+        expected_value = 456
+        assert value == expected_value
+
+    def test_getint_key_in_general_section_and_in_branch_section_and_in_reach_returns_value_from_reach(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getint("int_key_in_general_and_branch_and_reach", reach)
+
+        # assert
+        assert isinstance(value, int)
+        expected_value = 789
+        assert value == expected_value
+
+    def test_getint_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getint("This key does not exist", reach)
+
+        # assert
+        assert isinstance(value, int)
+        default_fallback = 0
+        assert value == default_fallback
+
+    def test_getint_key_not_found_and_fallback_given_returns_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        fallback = 123456
+        value = parser.getint("This key does not exist", reach, fallback)
+
+        # assert
+        assert isinstance(value, int)
+        assert value == fallback
+
     @staticmethod
-    def _get_reach():
-        parent_branch = Branch()
-        reach = Reach()
+    def _get_reach(reach_index: int = 1, branch_name: str = "randomBranchName") -> Reach:
+        parent_branch = Branch(branch_name)
+        reach = Reach("randomReach", reach_index)
         reach.parent_branch = parent_branch
 
         return reach
 
     @staticmethod
-    def _get_config_parser():
+    def _get_config_parser() -> ConfigParser:
         config_content = TestDFastRiverConfigFileParser._get_config_content()
         config_parser = ConfigParser()
         config_parser.read_string(config_content)
@@ -65,8 +121,16 @@ class TestDFastRiverConfigFileParser:
         return config_parser
 
     @staticmethod
-    def _get_config_content():
+    def _get_config_content() -> str:
         return """
         [General]
-        general_int_key = 123       
+        general_int_key = 123   
+        int_key_in_general_and_branch_section = 123
+        int_key_in_general_and_branch_and_reach = 123
+        
+        [Branch1]
+        int_key_in_general_and_branch_section = 456
+        int_key_in_general_and_branch_and_reach = 456
+        
+        int_key_in_general_and_branch_and_reach1 = 789
         """
