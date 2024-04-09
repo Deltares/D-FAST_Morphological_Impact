@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 from configparser import ConfigParser
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 from dfastmi.io.IReach import IReach
@@ -66,8 +66,12 @@ class DFastRiverConfigFileParser:
             int: The retrieved integer value.
         """
         general_value = self._try_get_int_from_general_section(key, fallback)
-        branch_value = self._try_get_int_from_branch_section(key, reach.parent_branch.name, general_value)
-        reach_value = self._try_get_int_from_reach_section(key, reach.parent_branch.name, reach.config_key_index, branch_value)
+        branch_value = self._try_get_int_from_branch_section(
+            key, reach.parent_branch.name, general_value
+        )
+        reach_value = self._try_get_int_from_reach_section(
+            key, reach.parent_branch.name, reach.config_key_index, branch_value
+        )
 
         return reach_value
 
@@ -87,8 +91,12 @@ class DFastRiverConfigFileParser:
             float: The retrieved float value.
         """
         general_value = self._try_get_float_from_general_section(key, fallback)
-        branch_value = self._try_get_float_from_branch_section(key, reach.parent_branch.name, general_value)
-        reach_value = self._try_get_float_from_reach_section(key, reach.parent_branch.name, reach.config_key_index, branch_value)
+        branch_value = self._try_get_float_from_branch_section(
+            key, reach.parent_branch.name, general_value
+        )
+        reach_value = self._try_get_float_from_reach_section(
+            key, reach.parent_branch.name, reach.config_key_index, branch_value
+        )
 
         return reach_value
 
@@ -108,8 +116,12 @@ class DFastRiverConfigFileParser:
             bool: The retrieved boolean value.
         """
         general_value = self._try_get_boolean_from_general_section(key, fallback)
-        branch_value = self._try_get_boolean_from_branch_section(key, reach.parent_branch.name, general_value)
-        reach_value = self._try_get_boolean_from_reach_section(key, reach.parent_branch.name, reach.config_key_index, branch_value)
+        branch_value = self._try_get_boolean_from_branch_section(
+            key, reach.parent_branch.name, general_value
+        )
+        reach_value = self._try_get_boolean_from_reach_section(
+            key, reach.parent_branch.name, reach.config_key_index, branch_value
+        )
 
         return reach_value
 
@@ -129,12 +141,22 @@ class DFastRiverConfigFileParser:
             str: The retrieved string value.
         """
         general_value = self._try_get_string_from_general_section(key, fallback)
-        branch_value = self._try_get_string_from_branch_section(key, reach.parent_branch.name, general_value)
-        reach_value = self._try_get_string_from_reach_section(key, reach.parent_branch.name, reach.config_key_index, branch_value)
+        branch_value = self._try_get_string_from_branch_section(
+            key, reach.parent_branch.name, general_value
+        )
+        reach_value = self._try_get_string_from_reach_section(
+            key, reach.parent_branch.name, reach.config_key_index, branch_value
+        )
 
         return reach_value
 
-    def getfloats(self, key: str, reach: IReach, fallback: Tuple[float, ...] = (), expected_number_of_values: Union[None, int] = None) -> Tuple[float, ...]:
+    def getfloats(
+        self,
+        key: str,
+        reach: IReach,
+        fallback: Tuple[float, ...] = (),
+        expected_number_of_values: Union[None, int] = None,
+    ) -> Tuple[float, ...]:
         """Attempts to retrieve a tuple of floats from the configuration for a specific key and reach.
 
         The retrieval process looks up values in the following order: general section, branch section,
@@ -154,19 +176,38 @@ class DFastRiverConfigFileParser:
             Exception: If the number of retrieved values does not match `expected_number_of_values`.
         """
         general_value = self._try_get_values_from_general_section(key, "")
-        branch_value = self._try_get_values_from_branch_section(key, reach.parent_branch.name, general_value)
-        reach_value = self._try_get_values_from_reach_section(key, reach.parent_branch.name, reach.config_key_index, branch_value)
+        branch_value = self._try_get_values_from_branch_section(
+            key, reach.parent_branch.name, general_value
+        )
+        reach_value = self._try_get_values_from_reach_section(
+            key, reach.parent_branch.name, reach.config_key_index, branch_value
+        )
 
         return_values = self._parse_floats(reach_value)
 
-        if expected_number_of_values is not None and len(return_values) != expected_number_of_values:
-            self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch.name, reach_value, expected_number_of_values)
+        if (
+            expected_number_of_values is not None
+            and len(return_values) != expected_number_of_values
+        ):
+            self._raise_exception_incorrect_value_entries(
+                key,
+                reach.name,
+                reach.parent_branch.name,
+                reach_value,
+                expected_number_of_values,
+            )
         elif expected_number_of_values is None and len(return_values) == 0:
             return fallback
 
         return return_values
 
-    def getstrings(self, key: str, reach: IReach, fallback: Tuple[str, ...] = (), expected_number_of_values: Union[None, int] = None) -> Tuple[str, ...]:
+    def getstrings(
+        self,
+        key: str,
+        reach: IReach,
+        fallback: Tuple[str, ...] = (),
+        expected_number_of_values: Union[None, int] = None,
+    ) -> Tuple[str, ...]:
         """Attempts to retrieve a tuple of strings from the configuration for a specific key and reach.
 
         The retrieval process looks up values in the following order: general section, branch section,
@@ -186,13 +227,26 @@ class DFastRiverConfigFileParser:
             Exception: If the number of retrieved values does not match `expected_number_of_values`.
         """
         general_value = self._try_get_values_from_general_section(key, "")
-        branch_value = self._try_get_values_from_branch_section(key, reach.parent_branch.name, general_value)
-        reach_value = self._try_get_values_from_reach_section(key, reach.parent_branch.name, reach.config_key_index, branch_value)
+        branch_value = self._try_get_values_from_branch_section(
+            key, reach.parent_branch.name, general_value
+        )
+        reach_value = self._try_get_values_from_reach_section(
+            key, reach.parent_branch.name, reach.config_key_index, branch_value
+        )
 
         return_values = self._parse_strings(reach_value)
 
-        if expected_number_of_values is not None and len(return_values) != expected_number_of_values:
-            self._raise_exception_incorrect_value_entries(key, reach.name, reach.parent_branch.name, reach_value, expected_number_of_values)
+        if (
+            expected_number_of_values is not None
+            and len(return_values) != expected_number_of_values
+        ):
+            self._raise_exception_incorrect_value_entries(
+                key,
+                reach.name,
+                reach.parent_branch.name,
+                reach_value,
+                expected_number_of_values,
+            )
         elif expected_number_of_values is None and len(return_values) == 0:
             return fallback
 
@@ -201,46 +255,66 @@ class DFastRiverConfigFileParser:
     def _try_get_int_from_general_section(self, key: str, fallback: int) -> int:
         return self._parser.getint(self._general_section, key, fallback)
 
-    def _try_get_int_from_branch_section(self, key: str, parent_branch: str, fallback: int) -> int:
+    def _try_get_int_from_branch_section(
+        self, key: str, parent_branch: str, fallback: int
+    ) -> int:
         return self._parser.getint(parent_branch, key, fallback)
 
-    def _try_get_int_from_reach_section(self, key: str, branch_name: str, reach_index: int, fallback: int) -> int:
+    def _try_get_int_from_reach_section(
+        self, key: str, branch_name: str, reach_index: int, fallback: int
+    ) -> int:
         return self._parser.getint(branch_name, f"{key}{reach_index}", fallback)
 
     def _try_get_float_from_general_section(self, key: str, fallback: float) -> float:
         return self._parser.getfloat(self._general_section, key, fallback)
 
-    def _try_get_float_from_branch_section(self, key: str, parent_branch: str, fallback: float) -> float:
+    def _try_get_float_from_branch_section(
+        self, key: str, parent_branch: str, fallback: float
+    ) -> float:
         return self._parser.getfloat(parent_branch, key, fallback)
 
-    def _try_get_float_from_reach_section(self, key: str, branch_name: str, reach_index: int, fallback: float) -> float:
+    def _try_get_float_from_reach_section(
+        self, key: str, branch_name: str, reach_index: int, fallback: float
+    ) -> float:
         return self._parser.getfloat(branch_name, f"{key}{reach_index}", fallback)
 
     def _try_get_string_from_general_section(self, key: str, fallback: str) -> str:
         return self._parser.getstring(self._general_section, key, fallback)
 
-    def _try_get_string_from_branch_section(self, key: str, parent_branch: str, fallback: str) -> str:
+    def _try_get_string_from_branch_section(
+        self, key: str, parent_branch: str, fallback: str
+    ) -> str:
         return self._parser.getstring(parent_branch, key, fallback)
 
-    def _try_get_string_from_reach_section(self, key: str, branch_name: str, reach_index: int, fallback: str) -> str:
+    def _try_get_string_from_reach_section(
+        self, key: str, branch_name: str, reach_index: int, fallback: str
+    ) -> str:
         return self._parser.getstring(branch_name, f"{key}{reach_index}", fallback)
 
     def _try_get_boolean_from_general_section(self, key: str, fallback: bool) -> bool:
         return self._parser.getboolean(self._general_section, key, fallback)
 
-    def _try_get_boolean_from_branch_section(self, key: str, parent_branch: str, fallback: bool) -> bool:
+    def _try_get_boolean_from_branch_section(
+        self, key: str, parent_branch: str, fallback: bool
+    ) -> bool:
         return self._parser.getboolean(parent_branch, key, fallback)
 
-    def _try_get_boolean_from_reach_section(self, key: str, branch_name: str, reach_index: int, fallback: bool) -> bool:
+    def _try_get_boolean_from_reach_section(
+        self, key: str, branch_name: str, reach_index: int, fallback: bool
+    ) -> bool:
         return self._parser.getboolean(branch_name, f"{key}{reach_index}", fallback)
 
     def _try_get_values_from_general_section(self, key: str, fallback: str) -> str:
         return self._parser.getstring(self._general_section, key, fallback)
 
-    def _try_get_values_from_branch_section(self, key: str, name: str, fallback: str) -> str:
+    def _try_get_values_from_branch_section(
+        self, key: str, name: str, fallback: str
+    ) -> str:
         return self._parser.getstring(name, key, fallback)
 
-    def _try_get_values_from_reach_section(self, key: str, branch_name: str, reach_index: int, fallback: str) -> str:
+    def _try_get_values_from_reach_section(
+        self, key: str, branch_name: str, reach_index: int, fallback: str
+    ) -> str:
         return self._parser.getstring(branch_name, f"{key}{reach_index}", fallback)
 
     @staticmethod
@@ -251,5 +325,9 @@ class DFastRiverConfigFileParser:
     def _parse_strings(string_values) -> Tuple[str, ...]:
         return tuple(x for x in string_values.split())
 
-    def _raise_exception_incorrect_value_entries(self, key, reach_name, branch_name, entry_value, expected_number_of_values):
-        raise Exception(f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.')
+    def _raise_exception_incorrect_value_entries(
+        self, key, reach_name, branch_name, entry_value, expected_number_of_values
+    ):
+        raise Exception(
+            f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.'
+        )

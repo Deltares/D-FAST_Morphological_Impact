@@ -34,7 +34,7 @@ from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFilePars
 
 
 class TestDFastAnalysisConfigFileParser:
-    @pytest.mark.parametrize("truthy_value", ['1', 'yes', 'true', 'on', 'y', 't'])
+    @pytest.mark.parametrize("truthy_value", ["1", "yes", "true", "on", "y", "t"])
     def test_boolean_values_that_parse_to_true(self, truthy_value: str):
         # setup
         section = "randomSection"
@@ -50,7 +50,7 @@ class TestDFastAnalysisConfigFileParser:
         # assert
         assert result is True
 
-    @pytest.mark.parametrize("falsy_value", ['0', 'no', 'false', 'off', 'n', 'f'])
+    @pytest.mark.parametrize("falsy_value", ["0", "no", "false", "off", "n", "f"])
     def test_boolean_values_that_parse_to_false(self, falsy_value):
         # setup
         section = "randomSection"
