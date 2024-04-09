@@ -80,7 +80,9 @@ class TestDFastAnalysisConfigFileParser:
         assert isinstance(result, int)
         assert result == value
 
-    def test_getint_unknown_section_without_fallback_returns_default_fallback_value(self):
+    def test_getint_unknown_section_without_fallback_returns_default_fallback_value(
+        self,
+    ):
         # setup
         value = 123
         config_parser = ConfigParser()
@@ -175,7 +177,9 @@ class TestDFastAnalysisConfigFileParser:
         assert isinstance(result, float)
         assert result == value
 
-    def test_getfloat_unknown_section_without_fallback_returns_default_fallback_value(self):
+    def test_getfloat_unknown_section_without_fallback_returns_default_fallback_value(
+        self,
+    ):
         # setup
         value = 123.456
         config_parser = ConfigParser()
@@ -270,7 +274,9 @@ class TestDFastAnalysisConfigFileParser:
         assert isinstance(result, str)
         assert result == value
 
-    def test_getstring_unknown_section_without_fallback_returns_default_fallback_value(self):
+    def test_getstring_unknown_section_without_fallback_returns_default_fallback_value(
+        self,
+    ):
         # setup
         value = "randomString"
         config_parser = ConfigParser()
@@ -304,7 +310,9 @@ class TestDFastAnalysisConfigFileParser:
         assert isinstance(result, str)
         assert result == fallback
 
-    def test_getstring_unknown_key_without_fallback_returns_default_fallback_value(self):
+    def test_getstring_unknown_key_without_fallback_returns_default_fallback_value(
+        self,
+    ):
         # setup
         value = "randomString"
         config_parser = ConfigParser()
