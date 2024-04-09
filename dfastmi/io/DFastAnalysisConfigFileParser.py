@@ -141,6 +141,12 @@ class DFastAnalysisConfigFileParser:
             "yes": True,
             "true": True,
             "on": True,
-            "y": True,
             "t": True,
+            "y": True,
+            "0": False,
+            "no": False,
+            "false": False,
+            "off": False,
+            "f": False,
+            "n": False,
         }
