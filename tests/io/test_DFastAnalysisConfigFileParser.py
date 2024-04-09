@@ -337,3 +337,111 @@ class TestDFastAnalysisConfigFileParser:
         # assert
         assert isinstance(result, str)
         assert result == fallback
+
+
+class Test_config_get_range:
+    def given_simple_valid_range_string_key_value_when_config_get_range_then_return_expected_tuple_range_value(
+        self,
+    ):
+        """
+        Setup a simple config with a valid range string key value
+        which can be parsed correctly will return the expected tuple range
+        """
+        config = ConfigParser()
+        myGroup = "GROUP"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "[0.0:10.0]"
+        config[myGroup][myKey] = myVal
+        config_data = DFastAnalysisConfigFileParser(config)
+        assert config_data.get_range(myGroup, myKey, (0.0, 0.0)) == (0.0, 10.0)
+
+    def given_simple_valid_range_string_key_value_with_decending_range_when_config_get_range_then_return_expected_tuple_range_value(
+        self,
+    ):
+        """
+        Setup a simple config with a valid range string key value
+        but with decending range
+        which can be parsed correctly will return the expected tuple range
+        """
+        config = ConfigParser()
+        myGroup = "GROUP"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "[10.0:0.0]"
+        config[myGroup][myKey] = myVal
+        config_data = DFastAnalysisConfigFileParser(config)
+        assert config_data.get_range(myGroup, myKey, (0.0, 0.0)) == (0.0, 10.0)
+
+    def given_simple_valid_range_string_key_with_invalid_value_when_config_get_range_then_throw_exception(
+        self,
+    ):
+        """
+        Setup a simple config with an invalid range string key value
+        will throw an range exception
+        """
+        config = ConfigParser()
+        myGroup = "GROUP"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "0.0-10.0"
+        config[myGroup][
+            myKey
+        ] = myVal  # even on not setting this value we expect the exception
+        config_data = DFastAnalysisConfigFileParser(config)
+        with pytest.raises(Exception) as cm:
+            config_data.get_range(myGroup, myKey, None)
+        assert str(
+            cm.value
+        ) == 'Invalid range specification "{}" for required keyword "{}" in block "{}".'.format(
+            myVal, myKey, myGroup
+        )
+
+    def given_simple_valid_range_string_key_with_invalid_value_but_with_default_value_when_config_get_range_then_return_default(
+        self,
+    ):
+        """
+        Setup a simple config with a valid string key with no value set
+        which can't be parsed correctly because range string value is invalid
+        but because default is provided we expect the default value to be returned
+        """
+        config = ConfigParser()
+        myGroup = "GROUP"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        config_data = DFastAnalysisConfigFileParser(config)
+        assert config_data.get_range(myGroup, myKey, "YES") == "YES"
+
+    def given_simple_valid_but_uncommon_range_string_key_value_when_config_get_range_then_return_expected_tuple_range_value(
+        self,
+    ):
+        """
+        Setup a simple config with a valid range string key value
+        but in uncommon format
+        which can be parsed correctly will return the expected tuple range
+        """
+        config = ConfigParser()
+        myGroup = "GROUP"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "0.0:10.0"
+        config[myGroup][myKey] = myVal
+        config_data = DFastAnalysisConfigFileParser(config)
+        assert config_data.get_range(myGroup, myKey, (0.0, 0.0)) == (0.0, 10.0)
+
+    def given_simple_valid_but_uncommon_range_in_decending_order_string_key_value_when_config_get_range_then_return_expected_tuple_range_value(
+        self,
+    ):
+        """
+        Setup a simple config with a valid range string key value
+        but in uncommon format and in decending order
+        which can be parsed correctly will return the expected tuple range
+        """
+        config = ConfigParser()
+        myGroup = "GROUP"
+        config.add_section(myGroup)
+        myKey = "KEY"
+        myVal = "10.0:0.0"
+        config[myGroup][myKey] = myVal
+        config_data = DFastAnalysisConfigFileParser(config)
+        assert config_data.get_range(myGroup, myKey, (0.0, 0.0)) == (0.0, 10.0)
