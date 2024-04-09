@@ -33,7 +33,7 @@ import pytest
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 
 
-class TestDFastRiverConfigFileParser:
+class TestDFastAnalysisConfigFileParser:
     @pytest.mark.parametrize("truthy_value", ['1', 'yes', 'true', 'on', 'y', 't'])
     def test_boolean_values_that_parse_to_true(self, truthy_value: str):
         # setup
