@@ -168,13 +168,17 @@ class RiversObject:
                 self._initialize_base(river_data, reach)
                 self._initialize_legacy(river_data, reach)
 
-    def _initialize_legacy(self, river_data: DFastRiverConfigFileParser, reach: ReachLegacy):
+    def _initialize_legacy(
+        self, river_data: DFastRiverConfigFileParser, reach: ReachLegacy
+    ):
         reach.proprate_high = river_data.getfloat("PrHigh", reach)
         reach.proprate_low = river_data.getfloat("PrLow", reach)
         reach.qbankfull = river_data.getfloat("QBankfull", reach)
         reach.qmin = river_data.getfloat("QMin", reach)
         reach.qfit = river_data.getfloats("QFit", reach, expected_number_of_values=2)
-        reach.qlevels = river_data.getfloats("QLevels", reach, expected_number_of_values=4)
+        reach.qlevels = river_data.getfloats(
+            "QLevels", reach, expected_number_of_values=4
+        )
         reach.dq = river_data.getfloats("dQ", reach, expected_number_of_values=2)
 
     def _initialize_base(self, river_data: DFastRiverConfigFileParser, reach: IReach):
@@ -221,7 +225,9 @@ class RiversObject:
             reach.celer_object = celerity_properties
         elif reach.celer_form == 2:
             celerity_discharge = CelerDischarge()
-            celerity_discharge.cdisch = river_data.getfloats("CelerQ", reach, (0.0, 0.0), 2)
+            celerity_discharge.cdisch = river_data.getfloats(
+                "CelerQ", reach, (0.0, 0.0), 2
+            )
             reach.celer_object = celerity_discharge
 
     def _verify_checksum_rivers(

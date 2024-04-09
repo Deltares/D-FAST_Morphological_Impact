@@ -37,8 +37,8 @@ from shapely.geometry.linestring import LineString
 
 from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
+from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 
 
@@ -86,7 +86,9 @@ class PlotOptions(BaseModel):
         if self.plotting:
             self.saveplot = data.getboolean("General", "SavePlots", True)
             if kmfile != "":
-                self.saveplot_zoomed = data.getboolean("General", "SaveZoomPlots", False)
+                self.saveplot_zoomed = data.getboolean(
+                    "General", "SaveZoomPlots", False
+                )
                 zoom_km_step = max(
                     1.0, math.floor((self.kmbounds[1] - self.kmbounds[0]) / 10.0)
                 )
@@ -206,7 +208,11 @@ class PlotOptions(BaseModel):
         return kmbounds
 
     def _set_output_figure_dir(
-        self, rootdir: Path, display: bool, data: DFastAnalysisConfigFileParser, saveplot: bool
+        self,
+        rootdir: Path,
+        display: bool,
+        data: DFastAnalysisConfigFileParser,
+        saveplot: bool,
     ) -> Optional[Path]:
         """
         Read from the dfast mi configuration the output directory
@@ -246,7 +252,9 @@ class PlotOptions(BaseModel):
             return figdir
         return None
 
-    def _get_figure_ext(self, data: DFastAnalysisConfigFileParser, saveplot: bool) -> str:
+    def _get_figure_ext(
+        self, data: DFastAnalysisConfigFileParser, saveplot: bool
+    ) -> str:
         """
         Return expected file extensions for plotted figures.
 

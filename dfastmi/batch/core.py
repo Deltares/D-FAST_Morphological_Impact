@@ -388,7 +388,9 @@ def _log_header(report: TextIO) -> None:
     _report_section_break(report)
 
 
-def _get_output_dir(rootdir: str, display: bool, data: DFastAnalysisConfigFileParser) -> Path:
+def _get_output_dir(
+    rootdir: str, display: bool, data: DFastAnalysisConfigFileParser
+) -> Path:
     """
     Will get the string containing the explicit output directory from the dfast configuration.
     If not available it will create an explicit output directory relative to the root directory.
