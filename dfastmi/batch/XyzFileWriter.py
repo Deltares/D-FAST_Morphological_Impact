@@ -8,7 +8,7 @@ class XyzFileWriter:
     """
     Class used to write data to a xyz file.
     """
-    
+
     @staticmethod
     def write_xyz_file(
         wbin_labels: list[str],

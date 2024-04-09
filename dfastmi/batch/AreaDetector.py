@@ -26,11 +26,12 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from dataclasses import dataclass, field
 import math
+from dataclasses import dataclass, field
 from typing import Tuple
 
 import numpy
+
 
 @dataclass
 class AreaData:
@@ -51,11 +52,11 @@ class AreaData:
     List of sub areas
     """
 
-
     total_area_weight: numpy.ndarray = numpy.zeros(0)
     """
     total area weight
     """
+
 
 class AreaDetector:
     """
@@ -92,7 +93,7 @@ class AreaDetector:
             Bed level changes (per cell) less than this threshold value are ignored [m].
         edgeface_indexes : numpy.ndarray
             N x 2 array containing the indices of neighbouring faces.
-            Maximum face index is M-1.    
+            Maximum face index is M-1.
         areai : numpy.ndarray
             Array of length M containing the grid cell area [m2].
         wbin: numpy.ndarray
@@ -109,7 +110,7 @@ class AreaDetector:
             Threshold values between the chainage bins [m].
         slength : float
             The expected yearly impacted sedimentation length [m].
-            
+
         Returns
         -------
         AreaData : AreaData
@@ -126,7 +127,7 @@ class AreaDetector:
 
         area = numpy.zeros(n_sub_areas)
         volume = numpy.zeros((3, n_sub_areas))
-        sub_area_list : list[bool] = []
+        sub_area_list: list[bool] = []
 
         for ia in range(n_sub_areas):
             dzgemi_filtered = dzgemi.copy()
@@ -155,7 +156,7 @@ class AreaDetector:
         area = area[sorted_list]
         volume = volume[:, sorted_list]
         sub_area_list = [sub_area_list[ia] for ia in sorted_list]
-        
+
         return AreaData(area, volume, sub_area_list, total_area_weight)
 
     def _comp_sedimentation_volume1(

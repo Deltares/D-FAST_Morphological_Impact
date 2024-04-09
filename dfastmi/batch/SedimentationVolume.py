@@ -443,7 +443,6 @@ def comp_sedimentation_volume(
         erosion_area_data.area,
         erosion_area_data.volume,
         erosion_area_data.area_list,
-        sedimentation_area_data.total_area_weight
-        + erosion_area_data.total_area_weight,
+        sedimentation_area_data.total_area_weight + erosion_area_data.total_area_weight,
         wbini,
     )
