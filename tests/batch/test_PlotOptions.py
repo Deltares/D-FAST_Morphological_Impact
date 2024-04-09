@@ -5,6 +5,7 @@ from mock import Mock, patch
 from shapely.geometry.linestring import LineString
 
 from dfastmi.batch.PlotOptions import PlotOptions
+from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 
 
@@ -14,7 +15,7 @@ class Test_PlotOptions:
         plot_options = PlotOptions()
         rootdir = tmp_path
         display = True
-        data = Mock(spec=DFastMIConfigParser)
+        data = Mock(spec=DFastAnalysisConfigFileParser)
 
         xykm_mock = Mock(spec=LineString)
         xykm_mock.coords = (0, 3)
@@ -23,7 +24,7 @@ class Test_PlotOptions:
         mocked_xyzoom = []
 
         data.config_get.side_effect = custom_config_get
-        data.config_get_range.return_value = (0, 0)
+        data.get_range.return_value = (0, 0)
 
         with (
             patch(
