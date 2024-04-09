@@ -32,11 +32,7 @@ from typing import Tuple
 
 
 class DFastAnalysisConfigFileParser:
-    """A parser class for parsing DFAST analysis config files.
-
-    Attributes:
-        _config_parser (ConfigParser): An instance of ConfigParser for reading configuration files.
-    """
+    """A parser class for parsing DFAST analysis config files."""
 
     def __init__(self, config_parser: ConfigParser):
         """Initializes the DFastAnalysisConfigFileParser with a ConfigParser instance.
