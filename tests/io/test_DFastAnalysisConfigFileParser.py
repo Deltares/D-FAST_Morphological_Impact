@@ -133,18 +133,16 @@ class TestDFastAnalysisConfigFileParser:
 
     def test_getint_unknown_key_with_fallback_returns_fallback_value(self):
         # setup
-        section = "randomSection"
-        key = "randomKey"
         value = 123
         fallback = 456
         config_parser = ConfigParser()
-        config_parser[section] = {key: str(value)}
+        config_parser[self.section] = {self.key: str(value)}
 
         parser = DFastAnalysisConfigFileParser(config_parser)
 
         # call
         key_that_does_not_exist = "This key does not exist"
-        result = parser.getint(section, key_that_does_not_exist, fallback)
+        result = parser.getint(self.section, key_that_does_not_exist, fallback)
 
         # assert
         assert isinstance(result, int)
@@ -159,5 +157,100 @@ class TestDFastAnalysisConfigFileParser:
         parser = DFastAnalysisConfigFileParser(config_parser)
 
         # call / assert
-        with pytest.raises(Exception) as e:
+        with pytest.raises(Exception):
             _ = parser.getint(self.section, self.key)
+
+    def test_getfloat_valid_float_value_returns_expected_float_value(self):
+        # setup
+        value = 123.456
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        result = parser.getfloat(self.section, self.key)
+
+        # assert
+        assert isinstance(result, float)
+        assert result == value
+
+    def test_getfloat_unknown_section_without_fallback_returns_default_fallback_value(self):
+        # setup
+        value = 123.456
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        section_that_does_not_exist = "This section does not exist"
+        result = parser.getfloat(section_that_does_not_exist, self.key)
+
+        # assert
+        assert isinstance(result, float)
+        default_fallback = 0.0
+        assert result == default_fallback
+
+    def test_getfloat_unknown_section_with_fallback_returns_fallback_value(self):
+        # setup
+        value = 123.456
+        fallback = 456.789
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        section_that_does_not_exist = "This section does not exist"
+        result = parser.getfloat(section_that_does_not_exist, self.key, fallback)
+
+        # assert
+        assert isinstance(result, float)
+        assert result == fallback
+
+    def test_getfloat_unknown_key_without_fallback_returns_default_fallback_value(self):
+        # setup
+        value = 123
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        key_that_does_not_exist = "This key does not exist"
+        result = parser.getfloat(self.section, key_that_does_not_exist)
+
+        # assert
+        assert isinstance(result, float)
+        default_fallback = 0
+        assert result == default_fallback
+
+    def test_getfloat_unknown_key_with_fallback_returns_fallback_value(self):
+        # setup
+        value = 123.456
+        fallback = 456.789
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: str(value)}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call
+        key_that_does_not_exist = "This key does not exist"
+        result = parser.getfloat(self.section, key_that_does_not_exist, fallback)
+
+        # assert
+        assert isinstance(result, float)
+        assert result == fallback
+
+    @pytest.mark.parametrize("non_float_value", ["", "  ", "not a float"])
+    def test_getfloat_value_not_a_float_raises_error(self, non_float_value: str):
+        # setup
+        config_parser = ConfigParser()
+        config_parser[self.section] = {self.key: non_float_value}
+
+        parser = DFastAnalysisConfigFileParser(config_parser)
+
+        # call / assert
+        with pytest.raises(Exception):
+            _ = parser.getfloat(self.section, self.key)
