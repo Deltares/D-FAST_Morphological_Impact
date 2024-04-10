@@ -243,7 +243,10 @@ class AreaPlotter(ABC):
             )
 
             figure_base_name = (
-                self._template_graph_title_of_the_sub_areas.replace(" ", "_").format(ia + 1) + "_volumes"
+                self._template_graph_title_of_the_sub_areas.replace(" ", "_").format(
+                    ia + 1
+                )
+                + "_volumes"
             )
             self._save_figure(fig, ax, figure_base_name)
 
