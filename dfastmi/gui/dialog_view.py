@@ -103,7 +103,7 @@ class DialogView:
     _app: QApplication = None
     _win: QMainWindow = None
     _layout: QBoxLayout = None
-    _case_description : QLineEdit = None
+    _case_description: QLineEdit = None
     _branch: QComboBox = None
     _reach: QComboBox = None
     _qloc: QLabel = None
