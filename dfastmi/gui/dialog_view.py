@@ -84,6 +84,7 @@ class DialogView:
         _app (QApplication): The PyQt application instance.
         _win (QMainWindow): The main window of the GUI.
         _layout (QBoxLayout): The layout of the central widget.
+        _case_description (QLineEdit): Contains the case description.
         _branch (QComboBox): The combo box for selecting the river branch.
         _reach (QComboBox): The combo box for selecting the river reach.
         _qloc (QLabel): The label for displaying the discharge location.
@@ -102,6 +103,7 @@ class DialogView:
     _app: QApplication = None
     _win: QMainWindow = None
     _layout: QBoxLayout = None
+    _case_description : QLineEdit = None
     _branch: QComboBox = None
     _reach: QComboBox = None
     _qloc: QLabel = None
