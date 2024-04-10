@@ -131,22 +131,20 @@ class DialogViewModel(QObject):
         return self.model.plotting
 
     @make_plot.setter
-    def make_plot(self, value:bool):
+    def make_plot(self, value: bool):
         self.model.plotting = value
         self.make_plot_changed.emit(value)
         if self.save_plot:
             self.save_plot_changed.emit(value)
-        
+
     @property
     def save_plot(self) -> bool:
-        return self.model.save_plots;
+        return self.model.save_plots
 
     @save_plot.setter
-    def save_plot(self, value:bool):
+    def save_plot(self, value: bool):
         self.model.save_plots = value
         self.save_plot_changed.emit(value)
-        
-
 
     def get_configuration(self) -> ConfigParser:
         """
