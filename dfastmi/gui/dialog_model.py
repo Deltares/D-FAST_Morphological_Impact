@@ -196,7 +196,7 @@ class DialogModel:
     @property
     def riverkm_file(self) -> str:
         """Get RiverKM file to specify the chainage along the reach of interest."""
-        return self.section["RiverKM"]
+        return self.section.get("RiverKM", "")
 
     def create_configuration(self) -> bool:
         """Create configuration."""
