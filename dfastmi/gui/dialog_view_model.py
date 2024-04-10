@@ -134,7 +134,7 @@ class DialogViewModel(QObject):
         return self.model.plotting
 
     @make_plot.setter
-    def make_plot(self, value:bool):
+    def make_plot(self, value: bool):
         """
         Set of the make plot setting.
         """
@@ -142,7 +142,7 @@ class DialogViewModel(QObject):
         self.make_plot_changed.emit(value)
         if self.save_plot:
             self.save_plot_changed.emit(value)
-        
+
     @property
     def save_plot(self) -> bool:
         """
@@ -151,7 +151,7 @@ class DialogViewModel(QObject):
         return self.model.save_plots
 
     @save_plot.setter
-    def save_plot(self, value:bool):
+    def save_plot(self, value: bool):
         """
         Set of the save plot setting.
         """
@@ -329,7 +329,7 @@ class DialogViewModel(QObject):
 
         self.current_branch = self.model.rivers.get_branch(self.model.branch_name)
         self.current_reach = self.current_branch.get_reach(self.model.reach_name)
-        
+
         self.make_plot = self.model.plotting
 
         return True
