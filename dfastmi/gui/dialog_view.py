@@ -140,6 +140,8 @@ class DialogView:
         # Connect the view model's data_changed signal to update_ui slot
         self._view_model.branch_changed.connect(self._update_branch)
         self._view_model.reach_changed.connect(self._update_reach)
+        self._view_model.make_plot_changed.connect(self._update_enabled_of_make_plot_dependent_view_items)
+        self._view_model.save_plot_changed.connect(self._update_enabled_of_save_plot_dependent_view_items)
         self._update_qvalues_table()
 
     def _update_branch(self, data):
@@ -851,7 +853,7 @@ class DialogView:
                     )
                 )
             else:
-                self._update_enabling_plotting_controls()
+                self._update_enabled_of_make_plot_dependent_view_items(self._view_model.model.plotting)
 
     def _menu_save_configuration(self) -> None:
         """
@@ -1069,32 +1071,32 @@ class DialogView:
         ---------
         None
         """
-        if self._view_model.model.plotting != self._make_plots_edit.isChecked():
-            self._view_model.model.plotting = self._make_plots_edit.isChecked()
-            self._update_enabling_plotting_controls()
+        if self._view_model.make_plot != self._make_plots_edit.isChecked():
+            self._view_model.make_plot = self._make_plots_edit.isChecked()
+    
+    def _update_enabled_of_make_plot_dependent_view_items(self, value:bool):
+        self._save_plots.setEnabled(value)
+        self._save_plots_edit.setEnabled(value)
+        self._close_plots.setEnabled(value)
+        self._close_plots_edit.setEnabled(value)
 
-    def _update_enabling_plotting_controls(self):
-        self._save_plots.setEnabled(self._view_model.model.plotting)
-        self._save_plots_edit.setEnabled(self._view_model.model.plotting)
-        self._close_plots.setEnabled(self._view_model.model.plotting)
-        self._close_plots_edit.setEnabled(self._view_model.model.plotting)
 
+    def _update_enabled_of_save_plot_dependent_view_items(self, value:bool):
+        self._figure_dir.setEnabled(value)
+        self._figure_dir_edit.setEnabled(value)
+        figure_dir_button = self._general_widget.findChild(
+            QPushButton, "figure_dir_edit_button"
+        )
+        figure_dir_button.setEnabled(value)        
+        
     def _update_save_plotting(self) -> None:
         """Update the plotting flags."""
 
         save_plot_gui = (
-            self._save_plots_edit.isChecked() and self._view_model.model.plotting
+            self._save_plots_edit.isChecked() and self._view_model.make_plot
         )
-
-        if self._view_model.model.save_plots != save_plot_gui:
-            self._view_model.model.save_plots = save_plot_gui
-
-        self._figure_dir.setEnabled(self._view_model.model.save_plots)
-        self._figure_dir_edit.setEnabled(self._view_model.model.save_plots)
-        figure_dir_button = self._general_widget.findChild(
-            QPushButton, "figure_dir_edit_button"
-        )
-        figure_dir_button.setEnabled(self._view_model.model.save_plots)
+        
+        self._view_model.save_plot = save_plot_gui
 
     def _update_close_plots(self) -> None:
         """Update the close plot flag."""
