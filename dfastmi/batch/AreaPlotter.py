@@ -60,10 +60,10 @@ class AreaPlotter(ABC):
         ---------
         plotting_options : PlotOptions
             Options for plotting.
-        area_data: AreaData
-            Class which holds the information regarding detected areas.
         plot_n : int
             n for plotting.
+        area_data: AreaData
+            Class which holds the information regarding detected areas.
         """
         self._plotting_options = plotting_options
         self._plot_n = plot_n
