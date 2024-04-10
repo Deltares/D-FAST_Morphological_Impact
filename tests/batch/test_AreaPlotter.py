@@ -81,8 +81,8 @@ class Test_SedimentationAreaPlotter:
 
         plotter = SedimentationAreaPlotter(plotting_options, plot_n, area_data)
 
-        assert plotter._area_str == "sedimentation area {}"
-        assert plotter._total_str == "total sedimentation volume"
+        assert plotter._template_graph_title_of_the_sub_areas == "sedimentation area {}"
+        assert plotter._graph_title_of_the_total_area == "total sedimentation volume"
         assert plotter._positive_up
 
     def test_plot_areas_with_plotting_plots_areas(self, setup, tmp_path: Path):
@@ -235,8 +235,8 @@ class Test_ErosionAreaPlotter:
 
         plotter = ErosionAreaPlotter(plotting_options, plot_n, area_data)
 
-        assert plotter._area_str == "erosion area {}"
-        assert plotter._total_str == "total erosion volume"
+        assert plotter._template_graph_title_of_the_sub_areas == "erosion area {}"
+        assert plotter._graph_title_of_the_total_area == "total erosion volume"
         assert not plotter._positive_up
 
     def test_plot_areas_with_plotting_plots_areas(self, setup, tmp_path: Path):

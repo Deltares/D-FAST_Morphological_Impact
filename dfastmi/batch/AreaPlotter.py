@@ -45,8 +45,8 @@ class AreaPlotter(ABC):
     Abstract class used to plot the area.
     """
 
-    _total_str: str
-    _area_str: str
+    _graph_title_of_the_total_area: str
+    _template_graph_title_of_the_sub_areas: str
     _positive_up: bool
 
     def __init__(
@@ -152,12 +152,12 @@ class AreaPlotter(ABC):
             "chainage [km]",
             binvol,
             "volume [m3] accumulated per {} m bin alongstream".format(sbin_length),
-            self._total_str,
+            self._graph_title_of_the_total_area,
             wbin_labels,
             positive_up=self._positive_up,
         )
 
-        figure_base_name = self._total_str.replace(" ", "_")
+        figure_base_name = self._graph_title_of_the_total_area.replace(" ", "_")
         self._save_figure(fig, ax, figure_base_name)
 
         if self._plot_n > 0:
@@ -237,13 +237,13 @@ class AreaPlotter(ABC):
                 "chainage [km]",
                 area_binvol,
                 "volume [m3] accumulated per {} m bin alongstream".format(sbin_length),
-                self._area_str.format(ia + 1),
+                self._template_graph_title_of_the_sub_areas.format(ia + 1),
                 wbin_labels,
                 positive_up=self._positive_up,
             )
 
             figure_base_name = (
-                self._area_str.replace(" ", "_").format(ia + 1) + "_volumes"
+                self._template_graph_title_of_the_sub_areas.replace(" ", "_").format(ia + 1) + "_volumes"
             )
             self._save_figure(fig, ax, figure_base_name)
 
@@ -335,8 +335,8 @@ class SedimentationAreaPlotter(AreaPlotter):
         area_data: AreaData,
     ):
         super().__init__(plotting_options, plot_n, area_data)
-        self._area_str = "sedimentation area {}"
-        self._total_str = "total sedimentation volume"
+        self._template_graph_title_of_the_sub_areas = "sedimentation area {}"
+        self._graph_title_of_the_total_area = "total sedimentation volume"
         self._positive_up = True
 
 
@@ -352,6 +352,6 @@ class ErosionAreaPlotter(AreaPlotter):
         area_data: AreaData,
     ):
         super().__init__(plotting_options, plot_n, area_data)
-        self._area_str = "erosion area {}"
-        self._total_str = "total erosion volume"
+        self._template_graph_title_of_the_sub_areas = "erosion area {}"
+        self._graph_title_of_the_total_area = "total erosion volume"
         self._positive_up = False
