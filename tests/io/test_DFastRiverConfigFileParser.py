@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from configparser import ConfigParser
 from typing import Any
+
 import pytest
 
 from dfastmi.io.Branch import Branch
@@ -160,7 +161,9 @@ class TestDFastRiverConfigFileParser:
         expected_value = 789.789
         assert value == expected_value
 
-    def test_getfloat_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+    def test_getfloat_key_not_found_and_no_fallback_given_returns_default_fallback(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -236,7 +239,9 @@ class TestDFastRiverConfigFileParser:
         expected_value = True
         assert value == expected_value
 
-    def test_getboolean_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+    def test_getboolean_key_not_found_and_no_fallback_given_returns_default_fallback(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -312,7 +317,9 @@ class TestDFastRiverConfigFileParser:
         expected_value = "ghi"
         assert value == expected_value
 
-    def test_getstring_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+    def test_getstring_key_not_found_and_no_fallback_given_returns_default_fallback(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -388,7 +395,9 @@ class TestDFastRiverConfigFileParser:
         expected_value = (789, 789)
         assert value == expected_value
 
-    def test_getfloats_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+    def test_getfloats_key_not_found_and_no_fallback_given_returns_default_fallback(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -416,7 +425,9 @@ class TestDFastRiverConfigFileParser:
         assert self._is_tuple_of_floats(value)
         assert value == fallback
 
-    def test_getfloats_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exception(self):
+    def test_getfloats_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exception(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -424,9 +435,13 @@ class TestDFastRiverConfigFileParser:
 
         # call
         with pytest.raises(Exception) as e:
-            _ = parser.getfloats("floats_key_in_general_and_branch_and_reach", reach, expected_number_of_values=99)
+            _ = parser.getfloats(
+                "floats_key_in_general_and_branch_and_reach",
+                reach,
+                expected_number_of_values=99,
+            )
 
-        expected_message = "Reading floats_key_in_general_and_branch_and_reach for reach randomReach on Branch1 returns \"789 789\". Expecting 99 values."
+        expected_message = 'Reading floats_key_in_general_and_branch_and_reach for reach randomReach on Branch1 returns "789 789". Expecting 99 values.'
         assert str(e.value) == expected_message
 
     def test_getfloats_empty_value_but_fallback_given_returns_fallback(self):
@@ -491,7 +506,9 @@ class TestDFastRiverConfigFileParser:
         expected_value = ("ghi", "ghi")
         assert value == expected_value
 
-    def test_getstrings_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+    def test_getstrings_key_not_found_and_no_fallback_given_returns_default_fallback(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -519,7 +536,9 @@ class TestDFastRiverConfigFileParser:
         assert self._is_tuple_of_strings(value)
         assert value == fallback
 
-    def test_getstrings_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exception(self):
+    def test_getstrings_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exception(
+        self,
+    ):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -527,9 +546,13 @@ class TestDFastRiverConfigFileParser:
 
         # call
         with pytest.raises(Exception) as e:
-            _ = parser.getstrings("strings_key_in_general_and_branch_and_reach", reach, expected_number_of_values=99)
+            _ = parser.getstrings(
+                "strings_key_in_general_and_branch_and_reach",
+                reach,
+                expected_number_of_values=99,
+            )
 
-        expected_message = "Reading strings_key_in_general_and_branch_and_reach for reach randomReach on Branch1 returns \"ghi ghi\". Expecting 99 values."
+        expected_message = 'Reading strings_key_in_general_and_branch_and_reach for reach randomReach on Branch1 returns "ghi ghi". Expecting 99 values.'
         assert str(e.value) == expected_message
 
     def test_getstrings_empty_value_but_fallback_given_returns_fallback(self):
@@ -545,7 +568,6 @@ class TestDFastRiverConfigFileParser:
         # assert
         assert self._is_tuple_of_strings(value)
         assert value == fallback
-
 
     @staticmethod
     def _get_reach(
@@ -567,11 +589,14 @@ class TestDFastRiverConfigFileParser:
 
     @staticmethod
     def _is_tuple_of_floats(value: Any) -> bool:
-        return isinstance(value, tuple) and all(isinstance(item, float) for item in value)
+        return isinstance(value, tuple) and all(
+            isinstance(item, float) for item in value
+        )
 
     @staticmethod
     def _is_tuple_of_strings(value: Any) -> bool:
         return isinstance(value, tuple) and all(isinstance(item, str) for item in value)
+
     @staticmethod
     def _get_config_content() -> str:
         return """
@@ -623,5 +648,3 @@ class TestDFastRiverConfigFileParser:
         floats_key_in_general_and_branch_and_reach1 = 789 789
         strings_key_in_general_and_branch_and_reach1 = ghi ghi
         """
-
-
