@@ -109,3 +109,32 @@ class Test_AreaDetector:
             assert numpy.isclose(
                 wght_all_dredge.all(), expected_wght_all_dredge.all()
             ), f"Incorrect wght_all_dredge: {wght_all_dredge}"
+
+    def test_comp_sedimentation_volume1(self):
+        dzgem = numpy.array([0.1, 0.2, -0.1, 0.3])
+        dzmin = 0.05
+        area = numpy.array([1.0, 2.0, 3.0, 4.0])
+        wbin = numpy.array([0, 1, 0, 1])
+        siface = numpy.array([0, 1, 0, 1])
+        afrac = numpy.array([0.5, 0.6, 0.7, 0.8])
+        sbin = numpy.array([0.1, 0.2, 0.3, 0.4])
+        wthresh = numpy.array([0.1, 0.2, 0.3])
+        slength = 1.0
+        sbin_length = 1.0
+
+        returned_dredge_vol = 10
+        expected_call_count_comp_sedimentation_volume1_one_width_bin = 2
+        expected_tot_dredge_vol = expected_call_count_comp_sedimentation_volume1_one_width_bin*returned_dredge_vol
+        expected_wght_all_dredge = numpy.array([0.1, 0.2, 0.3, 0.4])
+        
+        with (patch("dfastmi.batch.AreaDetector.AreaDetector._comp_sedimentation_volume1_one_width_bin") as mock_comp_sedimentation_volume1_one_width_bin, 
+              patch("dfastmi.batch.AreaDetector.numpy.bincount", return_value=expected_wght_all_dredge)):
+            mock_comp_sedimentation_volume1_one_width_bin.return_value = (returned_dredge_vol, expected_wght_all_dredge)
+
+            area_detector = AreaDetector()
+            tot_dredge_vol, wght_all_dredge = area_detector._comp_sedimentation_volume1(dzgem, dzmin, area, wbin, siface, afrac, sbin, wthresh, slength, sbin_length)
+            
+            assert mock_comp_sedimentation_volume1_one_width_bin.call_count == expected_call_count_comp_sedimentation_volume1_one_width_bin
+            assert math.isclose(tot_dredge_vol, expected_tot_dredge_vol), f"Incorrect tot_dredge_vol: {tot_dredge_vol}"
+            assert numpy.isclose(wght_all_dredge.all(), expected_wght_all_dredge.all()), f"Incorrect wght_all_dredge: {wght_all_dredge}"
+
