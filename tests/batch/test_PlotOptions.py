@@ -1,11 +1,12 @@
 from pathlib import Path
 
 import numpy
-from mock import Mock, patch, ANY
+from mock import ANY, Mock, patch
 from shapely.geometry.linestring import LineString
 
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
+
 
 class Test_PlotOptions:
 
@@ -55,6 +56,7 @@ class Test_PlotOptions:
         assert plot_options.kmbounds == (0, 0)
         assert plot_options.kmzoom is mocked_kmzoom
         assert plot_options.xyzoom is mocked_xyzoom
+
 
 def custom_getstring(*args, **kwargs):
     if args == ("General", "RiverKM", ""):
