@@ -1,13 +1,11 @@
 from pathlib import Path
 
 import numpy
-from mock import Mock, patch
+from mock import Mock, patch, ANY
 from shapely.geometry.linestring import LineString
 
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
-
 
 class Test_PlotOptions:
 
@@ -23,7 +21,9 @@ class Test_PlotOptions:
         mocked_kmzoom = []
         mocked_xyzoom = []
 
-        data.config_get.side_effect = custom_config_get
+        data.getboolean.return_value = True
+        data.getfloat.return_value = 1.0
+        data.getstring.side_effect = custom_getstring
         data.get_range.return_value = (0, 0)
 
         with (
@@ -56,23 +56,10 @@ class Test_PlotOptions:
         assert plot_options.kmzoom is mocked_kmzoom
         assert plot_options.xyzoom is mocked_xyzoom
 
-
-def custom_config_get(*args, **kwargs):
-    # Check if the arguments match the expected values
-    if args == (str, "General", "RiverKM", ""):
+def custom_getstring(*args, **kwargs):
+    if args == ("General", "RiverKM", ""):
         return "mock_return_value"
-    if args == (bool, "General", "Plotting", False):
-        return True
-    if args == (bool, "General", "SavePlots", True):
-        return True
-    if args == (bool, "General", "SaveZoomPlots", False):
-        return True
-    if args == (float, "General", "ZoomStepKM", 1.0):
-        return 1.0
-    if args == (bool, "General", "ClosePlots", False):
-        return True
-    if args == (str, "General", "FigureExt", ".png"):
+    if args == ("General", "FigureExt", ".png"):
         return ".png"
-    else:
-        # Handle other cases if needed
+    if args == ("General", "FigureDir", ANY):
         return "default_value"

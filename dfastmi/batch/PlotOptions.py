@@ -39,7 +39,6 @@ from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 
 
 class PlotOptions(BaseModel):
