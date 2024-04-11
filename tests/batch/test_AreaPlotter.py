@@ -89,7 +89,7 @@ class Test_SedimentationAreaPlotter:
         plotting_options = plotting_on(tmp_path)
         area_data = mock_area_data()
         plot_n = 3
-        
+
         expected_amount_of_sedimentation_calls = 10
         expected_amount_of_zoom_x_and_save_calls = 10
         expected_amount_of_savefig_calls = 10
@@ -121,8 +121,12 @@ class Test_SedimentationAreaPlotter:
                 self.binvol,
             )
 
-            assert plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
-            assert zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            assert (
+                plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
+            )
+            assert (
+                zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            )
             assert savefig.call_count == expected_amount_of_savefig_calls
 
     def test_plot_areas_with_plotting_without_saving_saves_no_plot_areas(
@@ -132,7 +136,7 @@ class Test_SedimentationAreaPlotter:
         plotting_options.saveplot = False
         area_data = mock_area_data()
         plot_n = 3
-        
+
         expected_amount_of_sedimentation_calls = 10
         expected_amount_of_zoom_x_and_save_calls = 0
         expected_amount_of_savefig_calls = 0
@@ -164,15 +168,19 @@ class Test_SedimentationAreaPlotter:
                 self.binvol,
             )
 
-            assert plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
-            assert zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            assert (
+                plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
+            )
+            assert (
+                zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            )
             assert savefig.call_count == expected_amount_of_savefig_calls
 
     def test_plot_areas_without_plotting_plot_no_areas(self, setup):
         plotting_options = plotting_off()
         area_data = mock_area_data()
         plot_n = 3
-        
+
         expected_amount_of_sedimentation_calls = 0
         expected_amount_of_zoom_x_and_save_calls = 0
         expected_amount_of_savefig_calls = 0
@@ -204,8 +212,12 @@ class Test_SedimentationAreaPlotter:
                 self.binvol,
             )
 
-            assert plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
-            assert zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            assert (
+                plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
+            )
+            assert (
+                zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            )
             assert savefig.call_count == expected_amount_of_savefig_calls
 
 
@@ -255,7 +267,7 @@ class Test_ErosionAreaPlotter:
         plotting_options = plotting_on(tmp_path)
         area_data = mock_area_data()
         plot_n = 3
-        
+
         expected_amount_of_sedimentation_calls = 10
         expected_amount_of_zoom_x_and_save_calls = 10
         expected_amount_of_savefig_calls = 10
@@ -287,8 +299,12 @@ class Test_ErosionAreaPlotter:
                 self.binvol,
             )
 
-            assert plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
-            assert zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            assert (
+                plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
+            )
+            assert (
+                zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            )
             assert savefig.call_count == expected_amount_of_savefig_calls
 
     def test_plot_areas_with_plotting_without_saving_saves_no_plot_areas(
@@ -298,7 +314,7 @@ class Test_ErosionAreaPlotter:
         plotting_options.saveplot = False
         area_data = mock_area_data()
         plot_n = 3
-        
+
         expected_amount_of_sedimentation_calls = 10
         expected_amount_of_zoom_x_and_save_calls = 0
         expected_amount_of_savefig_calls = 0
@@ -330,15 +346,19 @@ class Test_ErosionAreaPlotter:
                 self.binvol,
             )
 
-            assert plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
-            assert zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            assert (
+                plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
+            )
+            assert (
+                zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            )
             assert savefig.call_count == expected_amount_of_savefig_calls
 
     def test_plot_areas_without_plotting_plot_no_areas(self, setup):
         plotting_options = plotting_off()
         area_data = mock_area_data()
         plot_n = 3
-        
+
         expected_amount_of_sedimentation_calls = 0
         expected_amount_of_zoom_x_and_save_calls = 0
         expected_amount_of_savefig_calls = 0
@@ -370,6 +390,10 @@ class Test_ErosionAreaPlotter:
                 self.binvol,
             )
 
-            assert plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
-            assert zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            assert (
+                plot_sedimentation.call_count == expected_amount_of_sedimentation_calls
+            )
+            assert (
+                zoom_x_and_save.call_count == expected_amount_of_zoom_x_and_save_calls
+            )
             assert savefig.call_count == expected_amount_of_savefig_calls
