@@ -201,8 +201,9 @@ class AreaDetector:
 
         Returns
         -------
-        dvol : float
+        tot_dredge_vol : float
             Sedimentation volume [m3].
+        wght_all_dredge : numpy.ndarray
         """
 
         dzgem_filtered = dzgem.copy()
@@ -245,19 +246,6 @@ class AreaDetector:
         sbin_length: float,
         slength: float,
     ) -> Tuple[float, numpy.ndarray]:
-        """
-        Compute the initial year sedimentation volume.
-        Algorithm 1.
-
-        Arguments
-        ---------
-
-
-        Returns
-        -------
-        dvol : float
-            Sedimentation volume [m3].
-        """
         check_sed = dvol > 0.0
         dvol_sed = dvol[check_sed]
         sbin_sed = sbin[check_sed]
@@ -282,23 +270,6 @@ class AreaDetector:
         sbin_length: float,
         slength: float,
     ) -> Tuple[float, numpy.ndarray]:
-        """
-        Compute the initial year sedimentation volume.
-        Algorithm 1.
-
-        Arguments
-        ---------
-
-
-        Returns
-        -------
-        dvol : float
-            Sedimentation volume [m3].
-        sedbinvol : List[Optional[numpy.ndarray]]
-            List of arrays containing the total sedimentation volume per streamwise bin [m3]. List length corresponds to number of width bins.
-        erobinvol : List[Optional[numpy.ndarray]]
-            List of arrays containing the total erosion volume per streamwise bin [m3]. List length corresponds to number of width bins.
-        """
         index = numpy.argsort(sbin)
 
         dredge_vol = 0.0
@@ -353,19 +324,23 @@ class AreaDetector:
         -------
         dvol : float
             Sedimentation volume [m3].
+        area_eq: float
+            part of the area.
+        dvol_eq: float
+            Part of the volume.
         """
         iface = numpy.nonzero(dzgem > dzmin)
         dzgem_clip = dzgem[iface]
         area_clip = area[iface]
 
-        dvol_eq = (dzgem_clip * area_clip).sum()
-        area_eq = area_clip.sum()
-        dz_eq = dvol_eq / area_eq
-        area_1y = slength * nwidth
+        dvol_eq: float = (dzgem_clip * area_clip).sum()
+        area_eq: float  = area_clip.sum()
+        dz_eq: float = dvol_eq / area_eq
+        area_1y: float = slength * nwidth
         if area_eq < area_1y:
-            dvol = dvol_eq
+            dvol: float = dvol_eq
         else:
-            dvol = dz_eq * area_1y
+            dvol: float  = dz_eq * area_1y
 
         print(dzmin)
         print(
