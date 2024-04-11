@@ -340,6 +340,110 @@ class TestDFastRiverConfigFileParser:
         assert isinstance(value, str)
         assert value == fallback
 
+    def test_getfloats_key_only_in_general_section_returns_value_from_general_section(
+        self,
+    ):
+        # setup
+        reach = self._get_reach()
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getfloats("general_floats_key", reach)
+
+        # assert
+        assert self._is_tuple_of_floats(value)
+        expected_value = (123, 123)
+        assert value == expected_value
+
+    def test_getfloats_key_both_in_general_section_and_in_branch_section_returns_value_from_branch_section(
+        self,
+    ):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getfloats("floats_key_in_general_and_branch_section", reach)
+
+        # assert
+        assert self._is_tuple_of_floats(value)
+        expected_value = (456, 456)
+        assert value == expected_value
+
+    def test_getfloats_key_in_general_section_and_in_branch_section_and_in_reach_returns_value_from_reach(
+        self,
+    ):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getfloats("floats_key_in_general_and_branch_and_reach", reach)
+
+        # assert
+        assert self._is_tuple_of_floats(value)
+        expected_value = (789, 789)
+        assert value == expected_value
+
+    def test_getfloats_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getfloats("This key does not exist", reach)
+
+        # assert
+        assert self._is_tuple_of_floats(value)
+        default_fallback = ()
+        assert value == default_fallback
+
+    def test_getfloats_key_not_found_and_fallback_given_returns_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        fallback = (123456, 123456)
+        value = parser.getfloats("This key does not exist", reach, fallback)
+
+        # assert
+        assert self._is_tuple_of_floats(value)
+        assert value == fallback
+
+    def test_getfloats_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exceptio(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        with pytest.raises(Exception) as e:
+            _ = parser.getfloats("floats_key_in_general_and_branch_and_reach", reach, expected_number_of_values=99)
+
+        expected_message = "Reading floats_key_in_general_and_branch_and_reach for reach randomReach on Branch1 returns \"789 789\". Expecting 99 values."
+        assert str(e.value) == expected_message
+
+    def test_getfloats_empty_value_but_fallback_given_returns_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        fallback = (123.123, 123.123, 123.123)
+        value = parser.getfloats("floats_key_empty", reach, fallback)
+
+        # assert
+        assert self._is_tuple_of_floats(value)
+        assert value == fallback
+
+
     @staticmethod
     def _get_reach(
         reach_index: int = 1, branch_name: str = "randomBranchName"
@@ -358,6 +462,9 @@ class TestDFastRiverConfigFileParser:
 
         return config_parser
 
+    @staticmethod
+    def _is_tuple_of_floats(value: Any) -> bool:
+        return isinstance(value, tuple) and all(isinstance(item, float) for item in value)
     @staticmethod
     def _get_config_content() -> str:
         return """
@@ -378,6 +485,11 @@ class TestDFastRiverConfigFileParser:
         str_key_in_general_and_branch_section = abc
         str_key_in_general_and_branch_and_reach = abc
         
+        general_floats_key = 123 123
+        floats_key_in_general_and_branch_section = 123 123
+        floats_key_in_general_and_branch_and_reach = 123 123
+        floats_key_empty = 
+        
         [Branch1]
         int_key_in_general_and_branch_section = 456
         int_key_in_general_and_branch_and_reach = 456
@@ -387,9 +499,14 @@ class TestDFastRiverConfigFileParser:
         bool_key_in_general_and_branch_and_reach = False
         str_key_in_general_and_branch_section = def
         str_key_in_general_and_branch_and_reach = def
+        floats_key_in_general_and_branch_section = 456 456
+        floats_key_in_general_and_branch_and_reach = 456 456
         
         int_key_in_general_and_branch_and_reach1 = 789
         float_key_in_general_and_branch_and_reach1 = 789.789
         bool_key_in_general_and_branch_and_reach1 = True
         str_key_in_general_and_branch_and_reach1 = ghi
+        floats_key_in_general_and_branch_and_reach1 = 789 789
         """
+
+
