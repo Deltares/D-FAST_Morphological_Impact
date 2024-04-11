@@ -334,13 +334,13 @@ class AreaDetector:
         area_clip = area[iface]
 
         dvol_eq: float = (dzgem_clip * area_clip).sum()
-        area_eq: float  = area_clip.sum()
+        area_eq: float = area_clip.sum()
         dz_eq: float = dvol_eq / area_eq
         area_1y: float = slength * nwidth
         if area_eq < area_1y:
             dvol: float = dvol_eq
         else:
-            dvol: float  = dz_eq * area_1y
+            dvol: float = dz_eq * area_1y
 
         print(dzmin)
         print(
