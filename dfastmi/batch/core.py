@@ -48,8 +48,6 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
-from dfastmi.io.DFastRiverConfigFileParser import DFastRiverConfigFileParser
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject

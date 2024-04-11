@@ -28,15 +28,13 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 import zlib
-from typing import List, Tuple
+from typing import List
 
 from packaging.version import Version
-from pydantic import ValidationError
 
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
 from dfastmi.io.DFastRiverConfigFileParser import DFastRiverConfigFileParser
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
