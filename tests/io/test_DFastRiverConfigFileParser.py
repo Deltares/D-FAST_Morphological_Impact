@@ -409,14 +409,14 @@ class TestDFastRiverConfigFileParser:
         parser = DFastRiverConfigFileParser(config)
 
         # call
-        fallback = (123456, 123456)
+        fallback = (123.456, 123.456)
         value = parser.getfloats("This key does not exist", reach, fallback)
 
         # assert
         assert self._is_tuple_of_floats(value)
         assert value == fallback
 
-    def test_getfloats_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exceptio(self):
+    def test_getfloats_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exception(self):
         # setup
         reach = self._get_reach(1, "Branch1")
         config = self._get_config_parser()
@@ -443,6 +443,109 @@ class TestDFastRiverConfigFileParser:
         assert self._is_tuple_of_floats(value)
         assert value == fallback
 
+    def test_getstrings_key_only_in_general_section_returns_value_from_general_section(
+        self,
+    ):
+        # setup
+        reach = self._get_reach()
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getstrings("general_strings_key", reach)
+
+        # assert
+        assert self._is_tuple_of_strings(value)
+        expected_value = ("abc", "abc")
+        assert value == expected_value
+
+    def test_getstrings_key_both_in_general_section_and_in_branch_section_returns_value_from_branch_section(
+        self,
+    ):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getstrings("strings_key_in_general_and_branch_section", reach)
+
+        # assert
+        assert self._is_tuple_of_strings(value)
+        expected_value = ("def", "def")
+        assert value == expected_value
+
+    def test_getstrings_key_in_general_section_and_in_branch_section_and_in_reach_returns_value_from_reach(
+        self,
+    ):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getstrings("strings_key_in_general_and_branch_and_reach", reach)
+
+        # assert
+        assert self._is_tuple_of_strings(value)
+        expected_value = ("ghi", "ghi")
+        assert value == expected_value
+
+    def test_getstrings_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getstrings("This key does not exist", reach)
+
+        # assert
+        assert self._is_tuple_of_strings(value)
+        default_fallback = ()
+        assert value == default_fallback
+
+    def test_getstrings_key_not_found_and_fallback_given_returns_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        fallback = ("abcdef", "abcdef")
+        value = parser.getstrings("This key does not exist", reach, fallback)
+
+        # assert
+        assert self._is_tuple_of_strings(value)
+        assert value == fallback
+
+    def test_getstrings_number_of_values_parsed_not_equal_to_expected_number_of_values_raises_exception(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        with pytest.raises(Exception) as e:
+            _ = parser.getstrings("strings_key_in_general_and_branch_and_reach", reach, expected_number_of_values=99)
+
+        expected_message = "Reading strings_key_in_general_and_branch_and_reach for reach randomReach on Branch1 returns \"ghi ghi\". Expecting 99 values."
+        assert str(e.value) == expected_message
+
+    def test_getstrings_empty_value_but_fallback_given_returns_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        fallback = ("abc", "abc", "abc")
+        value = parser.getstrings("strings_key_empty", reach, fallback)
+
+        # assert
+        assert self._is_tuple_of_strings(value)
+        assert value == fallback
+
 
     @staticmethod
     def _get_reach(
@@ -465,6 +568,10 @@ class TestDFastRiverConfigFileParser:
     @staticmethod
     def _is_tuple_of_floats(value: Any) -> bool:
         return isinstance(value, tuple) and all(isinstance(item, float) for item in value)
+
+    @staticmethod
+    def _is_tuple_of_strings(value: Any) -> bool:
+        return isinstance(value, tuple) and all(isinstance(item, str) for item in value)
     @staticmethod
     def _get_config_content() -> str:
         return """
@@ -490,6 +597,11 @@ class TestDFastRiverConfigFileParser:
         floats_key_in_general_and_branch_and_reach = 123 123
         floats_key_empty = 
         
+        general_strings_key = abc abc
+        strings_key_in_general_and_branch_section = abc abc
+        strings_key_in_general_and_branch_and_reach = abc abc
+        strings_key_empty = 
+        
         [Branch1]
         int_key_in_general_and_branch_section = 456
         int_key_in_general_and_branch_and_reach = 456
@@ -501,12 +613,15 @@ class TestDFastRiverConfigFileParser:
         str_key_in_general_and_branch_and_reach = def
         floats_key_in_general_and_branch_section = 456 456
         floats_key_in_general_and_branch_and_reach = 456 456
+        strings_key_in_general_and_branch_section = def def
+        strings_key_in_general_and_branch_and_reach = def def
         
         int_key_in_general_and_branch_and_reach1 = 789
         float_key_in_general_and_branch_and_reach1 = 789.789
         bool_key_in_general_and_branch_and_reach1 = True
         str_key_in_general_and_branch_and_reach1 = ghi
         floats_key_in_general_and_branch_and_reach1 = 789 789
+        strings_key_in_general_and_branch_and_reach1 = ghi ghi
         """
 
 
