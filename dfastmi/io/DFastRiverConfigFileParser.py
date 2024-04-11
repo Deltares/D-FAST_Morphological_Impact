@@ -184,6 +184,8 @@ class DFastRiverConfigFileParser:
         )
 
         return_values = self._parse_floats(reach_value)
+        if len(return_values) == 0 and fallback is not None:
+            return_values = fallback
 
         if (
             expected_number_of_values is not None
@@ -196,8 +198,6 @@ class DFastRiverConfigFileParser:
                 reach_value,
                 expected_number_of_values,
             )
-        elif expected_number_of_values is None and len(return_values) == 0:
-            return fallback
 
         return return_values
 
@@ -235,6 +235,8 @@ class DFastRiverConfigFileParser:
         )
 
         return_values = self._parse_strings(reach_value)
+        if len(return_values) == 0 and fallback is not None:
+            return_values = fallback
 
         if (
             expected_number_of_values is not None
@@ -247,8 +249,6 @@ class DFastRiverConfigFileParser:
                 reach_value,
                 expected_number_of_values,
             )
-        elif expected_number_of_values is None and len(return_values) == 0:
-            return fallback
 
         return return_values
 
