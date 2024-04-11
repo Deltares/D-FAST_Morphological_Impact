@@ -169,7 +169,7 @@ class TestDFastRiverConfigFileParser:
 
         # assert
         assert isinstance(value, float)
-        default_fallback = 0
+        default_fallback = 0.0
         assert value == default_fallback
 
     def test_getfloat_key_not_found_and_fallback_given_returns_fallback(self):
@@ -184,6 +184,82 @@ class TestDFastRiverConfigFileParser:
 
         # assert
         assert isinstance(value, float)
+        assert value == fallback
+
+    def test_getboolean_key_only_in_general_section_returns_value_from_general_section(
+        self,
+    ):
+        # setup
+        reach = self._get_reach()
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getboolean("general_bool_key", reach)
+
+        # assert
+        assert isinstance(value, bool)
+        expected_value = True
+        assert value == expected_value
+
+    def test_getboolean_key_both_in_general_section_and_in_branch_section_returns_value_from_branch_section(
+        self,
+    ):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getboolean("bool_key_in_general_and_branch_section", reach)
+
+        # assert
+        assert isinstance(value, bool)
+        expected_value = True
+        assert value == expected_value
+
+    def test_getboolean_key_in_general_section_and_in_branch_section_and_in_reach_returns_value_from_reach(
+        self,
+    ):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getboolean("bool_key_in_general_and_branch_and_reach", reach)
+
+        # assert
+        assert isinstance(value, bool)
+        expected_value = True
+        assert value == expected_value
+
+    def test_getboolean_key_not_found_and_no_fallback_given_returns_default_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        value = parser.getboolean("This key does not exist", reach)
+
+        # assert
+        assert isinstance(value, bool)
+        default_fallback = False
+        assert value == default_fallback
+
+    def test_getboolean_key_not_found_and_fallback_given_returns_fallback(self):
+        # setup
+        reach = self._get_reach(1, "Branch1")
+        config = self._get_config_parser()
+        parser = DFastRiverConfigFileParser(config)
+
+        # call
+        fallback = True
+        value = parser.getboolean("This key does not exist", reach, fallback)
+
+        # assert
+        assert isinstance(value, bool)
         assert value == fallback
 
     @staticmethod
@@ -210,18 +286,25 @@ class TestDFastRiverConfigFileParser:
         [General]
         general_int_key = 123   
         int_key_in_general_and_branch_section = 123
-        int_key_in_general_and_branch_and_reach = 123
+        int_key_in_general_and_branch_and_reach1 = 123
         
         general_float_key = 123.123   
         float_key_in_general_and_branch_section = 123.123
-        float_key_in_general_and_branch_and_reach = 123.123
+        float_key_in_general_and_branch_and_reach1 = 123.123
+        
+        general_bool_key = True
+        bool_key_in_general_and_branch_section = False
+        bool_key_in_general_and_branch_and_reach1 = True
         
         [Branch1]
         int_key_in_general_and_branch_section = 456
         int_key_in_general_and_branch_and_reach = 456
         float_key_in_general_and_branch_section = 456.456
         float_key_in_general_and_branch_and_reach = 456.456
+        bool_key_in_general_and_branch_section = True
+        bool_key_in_general_and_branch_and_reach = False
         
         int_key_in_general_and_branch_and_reach1 = 789
         float_key_in_general_and_branch_and_reach1 = 789.789
+        bool_key_in_general_and_branch_and_reach1 = True
         """
