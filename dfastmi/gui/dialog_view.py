@@ -149,6 +149,7 @@ class DialogView:
             self._update_enabled_of_save_plot_dependent_view_items
         )
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
+        self._view_model.output_dir_changed.connect(self._update_output_directory_input)
         self._update_qvalues_table()
 
     def _update_branch(self, data):
@@ -1091,6 +1092,10 @@ class DialogView:
         )
         figure_dir_button.setEnabled(value)
         
+    def _update_output_directory_input(self, value: str):
+        self._output_dir.setText(value)
+        self._view_model.model.output_dir = value
+
     def _update_figure_directory_input(self, value: str):
         self._figure_dir_edit.setText(value)
         self._view_model.model.figure_dir = value
