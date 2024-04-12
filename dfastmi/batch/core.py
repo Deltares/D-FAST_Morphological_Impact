@@ -47,7 +47,7 @@ from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
+from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
@@ -119,7 +119,7 @@ def batch_mode_core(
         Flag indicating whether the analysis could be completed successfully.
     """
     display = False
-    data = DFastMIConfigParser(config)
+    data = DFastAnalysisConfigFileParser(config)
 
     # check outputdir
     rootdir = _get_root_dir(rootdir)
@@ -386,7 +386,9 @@ def _log_header(report: TextIO) -> None:
     _report_section_break(report)
 
 
-def _get_output_dir(rootdir: str, display: bool, data: DFastMIConfigParser) -> Path:
+def _get_output_dir(
+    rootdir: str, display: bool, data: DFastAnalysisConfigFileParser
+) -> Path:
     """
     Will get the string containing the explicit output directory from the dfast configuration.
     If not available it will create an explicit output directory relative to the root directory.
@@ -398,7 +400,7 @@ def _get_output_dir(rootdir: str, display: bool, data: DFastMIConfigParser) -> P
         Reference directory for default folders.
     display : bool
         Flag indicating text output to stdout.
-    data : DFastMIConfigParser
+    data : DFastAnalysisConfigFileParser
         DFast MI application config file.
 
     Return
@@ -407,7 +409,7 @@ def _get_output_dir(rootdir: str, display: bool, data: DFastMIConfigParser) -> P
         A Path object to the output directory location.
     """
     outputdir = Path(
-        data.config_get(str, "General", "OutputDir", Path(rootdir).joinpath("output"))
+        data.getstring("General", "OutputDir", str(Path(rootdir).joinpath("output")))
     )
     if outputdir.exists():
         if display:
@@ -500,7 +502,7 @@ def get_filenames(
 
 def _analyse_and_report(
     config: ConfigParser,
-    data: DFastMIConfigParser,
+    data: DFastAnalysisConfigFileParser,
     cfg_version: Version,
     reach: IReach,
     branch: Branch,
@@ -520,7 +522,7 @@ def _analyse_and_report(
     ---------
     config : ConfigParser
         The variable containing the configuration.
-    data : DFastMIConfigParser
+    data : DFastAnalysisConfigFileParser
         DFast MI application config file.
     cfg_version : Version,
         Version object extracted from the configuration file.

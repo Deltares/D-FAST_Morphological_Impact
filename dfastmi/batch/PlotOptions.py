@@ -38,7 +38,7 @@ from shapely.geometry.linestring import LineString
 from dfastmi.batch.DFastUtils import get_zoom_extends
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
-from dfastmi.io.DFastMIConfigParser import DFastMIConfigParser
+from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 
 
 class PlotOptions(BaseModel):
@@ -58,7 +58,7 @@ class PlotOptions(BaseModel):
     xyzoom: List[Tuple[float, float, float, float]] = []
 
     def set_plotting_flags(
-        self, rootdir: Path, display: bool, data: DFastMIConfigParser
+        self, rootdir: Path, display: bool, data: DFastAnalysisConfigFileParser
     ):
         """
         Set dictionary key values to be used in the analysis runner.
@@ -69,7 +69,7 @@ class PlotOptions(BaseModel):
             Reference directory for default output folders.
         display : bool
             Flag indicating text output to stdout.
-        data : DFastMIConfigParser
+        data : DFastAnalysisConfigFileParser
             DFast MI application config file.
         """
         zoom_km_step = 1.0
@@ -81,19 +81,17 @@ class PlotOptions(BaseModel):
             display, data, len(kmfile) > 0, xykline
         )
 
-        self.plotting = data.config_get(bool, "General", "Plotting", False)
+        self.plotting = data.getboolean("General", "Plotting", False)
         if self.plotting:
-            self.saveplot = data.config_get(bool, "General", "SavePlots", True)
+            self.saveplot = data.getboolean("General", "SavePlots", True)
             if kmfile != "":
-                self.saveplot_zoomed = data.config_get(
-                    bool, "General", "SaveZoomPlots", False
+                self.saveplot_zoomed = data.getboolean(
+                    "General", "SaveZoomPlots", False
                 )
                 zoom_km_step = max(
                     1.0, math.floor((self.kmbounds[1] - self.kmbounds[0]) / 10.0)
                 )
-                zoom_km_step = data.config_get(
-                    float, "General", "ZoomStepKM", zoom_km_step
-                )
+                zoom_km_step = data.getfloat("General", "ZoomStepKM", zoom_km_step)
 
             if zoom_km_step < 0.01:
                 self.saveplot_zoomed = False
@@ -103,7 +101,7 @@ class PlotOptions(BaseModel):
                     self.kmbounds[0], self.kmbounds[1], zoom_km_step, xykline
                 )
 
-            self.closeplot = data.config_get(bool, "General", "ClosePlots", False)
+            self.closeplot = data.getboolean("General", "ClosePlots", False)
 
         # as appropriate check output dir for figures and file format
         self.figure_save_directory = self._set_output_figure_dir(
@@ -111,7 +109,7 @@ class PlotOptions(BaseModel):
         )
         self.plot_extension = self._get_figure_ext(data, self.saveplot)
 
-    def _get_riverkm_file(self, data: DFastMIConfigParser) -> str:
+    def _get_riverkm_file(self, data: DFastAnalysisConfigFileParser) -> str:
         """
         Get the file specifying chainage along the reach of
         interest is needed for estimating the initial year dredging volumes.
@@ -120,7 +118,7 @@ class PlotOptions(BaseModel):
         ---------
         display : bool
             Flag indicating text output to stdout.
-        data : DFastMIConfigParser
+        data : DFastAnalysisConfigFileParser
             DFast MI application config file.
 
         Return
@@ -128,7 +126,7 @@ class PlotOptions(BaseModel):
         kmfile : str
             A string to the RiverKM file location.
         """
-        kmfile = data.config_get(str, "General", "RiverKM", "")
+        kmfile = data.getstring("General", "RiverKM", "")
         return kmfile
 
     def _get_riverkm_linestring(self, kmfile: str) -> LineString:
@@ -174,7 +172,7 @@ class PlotOptions(BaseModel):
     def _get_riverkm_boundaries(
         self,
         display: bool,
-        data: DFastMIConfigParser,
+        data: DFastAnalysisConfigFileParser,
         kmfile_exists: bool,
         xykline: numpy.ndarray,
     ) -> Tuple[float, float]:
@@ -186,7 +184,7 @@ class PlotOptions(BaseModel):
         ---------
         display : bool
             Flag indicating text output to stdout.
-        data : DFastMIConfigParser
+        data : DFastAnalysisConfigFileParser
             DFast MI application config file.
         kmfile_exists : bool
             A boolean stating a RiverKM file is provided in the dfast mi configuration.
@@ -201,9 +199,7 @@ class PlotOptions(BaseModel):
         kmbounds = (-math.inf, math.inf)
         if kmfile_exists:
             kline = xykline[:, 2]
-            kmbounds = data.config_get_range(
-                "General", "Boundaries", (min(kline), max(kline))
-            )
+            kmbounds = data.get_range("General", "Boundaries", (min(kline), max(kline)))
             if display:
                 ApplicationSettingsHelper.log_text(
                     "clip_interest", dict={"low": kmbounds[0], "high": kmbounds[1]}
@@ -211,7 +207,11 @@ class PlotOptions(BaseModel):
         return kmbounds
 
     def _set_output_figure_dir(
-        self, rootdir: Path, display: bool, data: DFastMIConfigParser, saveplot: bool
+        self,
+        rootdir: Path,
+        display: bool,
+        data: DFastAnalysisConfigFileParser,
+        saveplot: bool,
     ) -> Optional[Path]:
         """
         Read from the dfast mi configuration the output directory
@@ -224,7 +224,7 @@ class PlotOptions(BaseModel):
             Reference directory for default output folders.
         display : bool
             Flag indicating text output to stdout.
-        data : DFastMIConfigParser
+        data : DFastAnalysisConfigFileParser
             DFast MI application config file.
 
         Return
@@ -235,7 +235,7 @@ class PlotOptions(BaseModel):
         if saveplot:
             default_figure_dir = rootdir.joinpath("figure")
             figdir = Path(
-                data.config_get(str, "General", "FigureDir", default_figure_dir)
+                data.getstring("General", "FigureDir", str(default_figure_dir))
             )
             if display:
                 ApplicationSettingsHelper.log_text(
@@ -251,13 +251,15 @@ class PlotOptions(BaseModel):
             return figdir
         return None
 
-    def _get_figure_ext(self, data: DFastMIConfigParser, saveplot: bool) -> str:
+    def _get_figure_ext(
+        self, data: DFastAnalysisConfigFileParser, saveplot: bool
+    ) -> str:
         """
         Return expected file extensions for plotted figures.
 
         Arguments
         ---------
-        data : DFastMIConfigParser
+        data : DFastAnalysisConfigFileParser
             Configuration of the analysis to be run.
         report : TextIO
             Text stream for log file.
@@ -268,7 +270,7 @@ class PlotOptions(BaseModel):
         """
 
         if saveplot:
-            plot_ext = data.config_get(str, "General", "FigureExt", ".png")
+            plot_ext = data.getstring("General", "FigureExt", ".png")
         else:
             plot_ext = ".png"
         return plot_ext
