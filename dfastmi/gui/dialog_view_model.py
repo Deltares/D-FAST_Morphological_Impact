@@ -50,6 +50,7 @@ class DialogViewModel(QObject):
     reach_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
+    figure_dir_changed = pyqtSignal(str)
     _reference_files: Dict[float, str] = {}
     _measure_files: Dict[float, str] = {}
     model: DialogModel
@@ -157,6 +158,21 @@ class DialogViewModel(QObject):
         """
         self.model.save_plots = value
         self.save_plot_changed.emit(value)
+        
+    @property
+    def figure_dir(self) -> str:
+        """
+        Get the figure directory.
+        """
+        return self.model.figure_dir
+
+    @figure_dir.setter
+    def figure_dir(self, value: str):
+        """
+        Set the figure directory.
+        """
+        self.model.figure_dir = value
+        self.figure_dir_changed.emit(value)
 
     def get_configuration(self) -> ConfigParser:
         """
@@ -331,6 +347,8 @@ class DialogViewModel(QObject):
         self.current_reach = self.current_branch.get_reach(self.model.reach_name)
 
         self.make_plot = self.model.plotting
+        self.save_plot = self.model.save_plots
+        self.figure_dir = self.model.figure_dir
 
         return True
 

@@ -148,6 +148,7 @@ class DialogView:
         self._view_model.save_plot_changed.connect(
             self._update_enabled_of_save_plot_dependent_view_items
         )
+        self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._update_qvalues_table()
 
     def _update_branch(self, data):
@@ -1003,8 +1004,7 @@ class DialogView:
         folder = QFileDialog.getExistingDirectory(caption=gui_text("select_directory"))
 
         if key == "figure_dir_edit":
-            self._figure_dir_edit.setText(folder)
-            self._view_model.model.figure_dir = folder
+            self._view_model.figure_dir = folder
         elif key == "output_dir":
             self._output_dir.setText(folder)
             self._view_model.model.output_dir = folder
@@ -1090,6 +1090,10 @@ class DialogView:
             QPushButton, "figure_dir_edit_button"
         )
         figure_dir_button.setEnabled(value)
+        
+    def _update_figure_directory_input(self, value: str):
+        self._figure_dir_edit.setText(value)
+        self._view_model.model.figure_dir = value
 
     def _update_save_plotting(self) -> None:
         """Update the plotting flags."""
