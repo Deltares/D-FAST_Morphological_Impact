@@ -1007,8 +1007,7 @@ class DialogView:
         if key == "figure_dir_edit":
             self._view_model.figure_dir = folder
         elif key == "output_dir":
-            self._output_dir.setText(folder)
-            self._view_model.model.output_dir = folder
+            self._view_model.output_dir = folder
 
     def _set_file_in_condition_table(self, key: str, file: str) -> None:
         """
