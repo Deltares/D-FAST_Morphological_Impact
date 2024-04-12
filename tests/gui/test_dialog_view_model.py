@@ -12,8 +12,6 @@ from dfastmi.io.RiversObject import RiversObject
 pytestmark = pytest.mark.qt_api("pyqt5")
 from unittest.mock import MagicMock
 
-from PyQt5.QtCore import pyqtSignal
-
 from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_view_model import DialogViewModel
 
@@ -137,6 +135,8 @@ def test_load_configuration(dialog_view_model, mock_model):
     mock_model.config.sections.return_value = ["section1"]
     mock_model.config["section1"].getfloat.return_value = 10.0
     mock_model.config["section1"].get.return_value = "reference_file", "measure_file"
+    mock_model.figure_dir = "mocked_figure_directory"
+    mock_model.output_dir = "mocked_output_directory"
 
     mock_branch = mock.create_autospec(spec=IBranch)
     mock_branch.name = "myBranch"
