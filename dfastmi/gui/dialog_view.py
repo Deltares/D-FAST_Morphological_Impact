@@ -1093,11 +1093,9 @@ class DialogView:
 
     def _update_output_directory_input(self, value: str):
         self._output_dir.setText(value)
-        self._view_model.model.output_dir = value
 
     def _update_figure_directory_input(self, value: str):
         self._figure_dir_edit.setText(value)
-        self._view_model.model.figure_dir = value
 
     def _update_save_plotting(self) -> None:
         """Update the plotting flags."""
