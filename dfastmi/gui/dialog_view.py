@@ -1090,7 +1090,7 @@ class DialogView:
             QPushButton, "figure_dir_edit_button"
         )
         figure_dir_button.setEnabled(value)
-        
+
     def _update_output_directory_input(self, value: str):
         self._output_dir.setText(value)
         self._view_model.model.output_dir = value
