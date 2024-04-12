@@ -134,11 +134,11 @@ class DFastAnalysisConfigFileParser:
                 val = (vallist[1], vallist[0])
             else:
                 val = (vallist[0], vallist[1])
-        except:
+        except ValueError:
             if fallback is not None:
                 val = fallback
             else:
-                raise Exception(
+                raise ValueError(
                     f'Invalid range specification "{ini_value}" for required keyword "{key}" in block "{section}".'
                 )
 

@@ -434,7 +434,7 @@ class TestDFastRiverConfigFileParser:
         parser = DFastRiverConfigFileParser(config)
 
         # call
-        with pytest.raises(Exception) as e:
+        with pytest.raises(ValueError) as e:
             _ = parser.getfloats(
                 "floats_key_in_general_and_branch_and_reach",
                 reach,
@@ -545,7 +545,7 @@ class TestDFastRiverConfigFileParser:
         parser = DFastRiverConfigFileParser(config)
 
         # call
-        with pytest.raises(Exception) as e:
+        with pytest.raises(ValueError) as e:
             _ = parser.getstrings(
                 "strings_key_in_general_and_branch_and_reach",
                 reach,

@@ -159,7 +159,7 @@ class TestDFastAnalysisConfigFileParser:
         parser = DFastAnalysisConfigFileParser(config_parser)
 
         # call / assert
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             _ = parser.getint(self.section, self.key)
 
     def test_getfloat_valid_float_value_returns_expected_float_value(self):
@@ -256,7 +256,7 @@ class TestDFastAnalysisConfigFileParser:
         parser = DFastAnalysisConfigFileParser(config_parser)
 
         # call / assert
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             _ = parser.getfloat(self.section, self.key)
 
     def test_getstring_returns_expected_string_value(self):
@@ -397,7 +397,7 @@ class Test_config_get_range:
             myKey
         ] = myVal  # even on not setting this value we expect the exception
         config_data = DFastAnalysisConfigFileParser(config)
-        with pytest.raises(Exception) as cm:
+        with pytest.raises(ValueError) as cm:
             config_data.get_range(myGroup, myKey, None)
         assert str(
             cm.value

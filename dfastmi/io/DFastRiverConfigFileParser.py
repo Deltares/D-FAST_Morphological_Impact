@@ -328,6 +328,6 @@ class DFastRiverConfigFileParser:
     def _raise_exception_incorrect_value_entries(
         self, key, reach_name, branch_name, entry_value, expected_number_of_values
     ):
-        raise Exception(
+        raise ValueError(
             f'Reading {key} for reach {reach_name} on {branch_name} returns "{entry_value}". Expecting {expected_number_of_values} values.'
         )
