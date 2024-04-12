@@ -158,7 +158,7 @@ class DialogViewModel(QObject):
         """
         self.model.save_plots = value
         self.save_plot_changed.emit(value)
-        
+
     @property
     def figure_dir(self) -> str:
         """
