@@ -207,7 +207,7 @@ class DialogView:
             )
 
         file_dictionary = self._view_model.measure_files.copy()
-        for ( condition_discharge, measure_file ) in file_dictionary.items():
+        for condition_discharge, measure_file in file_dictionary.items():
             self._update_condition_file_field(
                 with_measure_label, condition_discharge, measure_file
             )
@@ -501,7 +501,7 @@ class DialogView:
         """
         self._update_file_or_folder_validation(line_edit)
         self._set_file_in_condition_table(line_edit.objectName(), line_edit.text())
-    
+
     def _update_file_or_folder_validation(self, line_edit) -> None:
         """
         Update file or folder validation.
