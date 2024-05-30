@@ -291,18 +291,17 @@ class DialogModel:
         measure_files: List,
     ) -> None:
         """Get condition configuration."""
-        num_files = min(len(reference_files), len(measure_files))
-
-        for i, discharge in enumerate(reach.hydro_q[:num_files]):
-            if discharge in reference_files.keys():
+        for i, discharge in enumerate(reach.hydro_q):
+            qstr = str(discharge)
+            if qstr in reference_files.keys() or qstr in measure_files.keys():
                 cond = f"C{i+1}"
                 condition = ConditionConfig(
                     Discharge=discharge, Reference="", WithMeasure=""
                 )
-                if i < len(reference_files):
-                    condition.Reference = reference_files[discharge]
-                if i < len(measure_files):
-                    condition.WithMeasure = measure_files[discharge]
+                if qstr in reference_files.keys():
+                    condition.Reference = reference_files[qstr]
+                if qstr in measure_files.keys():
+                    condition.WithMeasure = measure_files[qstr]
 
                 config[cond] = condition.model_dump()
 

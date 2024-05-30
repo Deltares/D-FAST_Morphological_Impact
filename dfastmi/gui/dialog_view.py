@@ -192,16 +192,22 @@ class DialogView:
         self._update_condition_files()
 
     def _update_condition_files(self):
-        """Update the condition files."""
+        """
+        Update the condition files.
+        Use local copy of the dictionary because the callbacks from
+        the GUI updates will cause updates of the original dictionaries.
+        """
+        file_dictionary = self._view_model.reference_files.copy()
         for (
             condition_discharge,
             reference_file,
-        ) in self._view_model.reference_files.items():
+        ) in file_dictionary.items():
             self._update_condition_file_field(
                 reference_label, condition_discharge, reference_file
             )
 
-        for condition_discharge, measure_file in self._view_model.measure_files.items():
+        file_dictionary = self._view_model.measure_files.copy()
+        for condition_discharge, measure_file in file_dictionary.items():
             self._update_condition_file_field(
                 with_measure_label, condition_discharge, measure_file
             )
@@ -222,8 +228,6 @@ class DialogView:
         input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
         if input_textbox:
             input_textbox.setText(reference_file)
-            state = input_textbox.validator.validate(input_textbox.text(), 0)[0]
-            input_textbox.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
 
     def _update_qvalues_table(self):
         """Update the Q values table."""
@@ -484,6 +488,20 @@ class DialogView:
         if not invalid():
             setattr(self._view_model, view_model_variable, value())
 
+    def _updated_condition_file(self, line_edit) -> None:
+        """
+        Simulation file name has been updated in the GUI.
+        Store it in the model, and check whether it's valid.
+
+        Args:
+            line_edit: Line edit to validate.
+
+        Returns:
+            None
+        """
+        self._update_file_or_folder_validation(line_edit)
+        self._set_file_in_condition_table(line_edit.objectName(), line_edit.text())
+
     def _update_file_or_folder_validation(self, line_edit) -> None:
         """
         Update file or folder validation.
@@ -735,15 +753,16 @@ class DialogView:
         q1_reference.setPlaceholderText("Enter reference file path")
         q1_reference.setEnabled(enabled)
         q1_reference.textChanged.connect(
-            partial(self._update_file_or_folder_validation, q1_reference)
+            partial(self._updated_condition_file, q1_reference)
         )
+
         q1_reference.setObjectName(prefix + reference_label)
         # get the file with measure
         q1_with_measure = ValidatingLineEdit(FileExistValidator(), self._win)
         q1_with_measure.setPlaceholderText("Enter with measure file path")
         q1_with_measure.setEnabled(enabled)
         q1_with_measure.textChanged.connect(
-            partial(self._update_file_or_folder_validation, q1_with_measure)
+            partial(self._updated_condition_file, q1_with_measure)
         )
         q1_with_measure.setObjectName(prefix + with_measure_label)
 

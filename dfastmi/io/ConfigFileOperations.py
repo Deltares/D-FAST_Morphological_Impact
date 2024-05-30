@@ -263,9 +263,12 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         relative_path = config.get(section, key, fallback="")
-        relative_path_converted_to_absolute_path = str(
-            Path(rootdir).joinpath(Path(relative_path))
-        )
+        if len(relative_path) > 0:
+            relative_path_converted_to_absolute_path = str(
+                Path(rootdir).joinpath(Path(relative_path))
+            )
+        else:
+            relative_path_converted_to_absolute_path = ""
         config.set(section, key, relative_path_converted_to_absolute_path)
 
 
