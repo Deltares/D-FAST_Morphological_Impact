@@ -121,7 +121,7 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
 
     parser.add_argument(
         "--reduced_output",
-        help=help=argparse.SUPPRESS,
+        help=argparse.SUPPRESS,
         action="store_true",
     )
     parser.set_defaults(reduced_output=False)
