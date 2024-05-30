@@ -94,30 +94,34 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
     parser = argparse.ArgumentParser(description="D-FAST Morphological Impact.")
 
     parser.add_argument(
-        "--language", help="display language 'NL' or 'UK' (UK is default)"
+        "--language",
+        choices=["UK","NL"],
+        default="UK",
+        help=argparse.SUPPRESS,
     )
-    parser.set_defaults(language="UK")
 
     parser.add_argument(
-        "--mode", help="run mode 'BATCH', 'CLI' or 'GUI' (GUI is default)"
+        "--mode",
+        choices=["CLI","BATCH","GUI"],
+        default="GUI",
+        help="run mode 'BATCH' or 'GUI' (%(default)s is default)",
     )
-    parser.set_defaults(mode="GUI")
 
     parser.add_argument(
         "--config",
-        help="name of analysis configuration file ('dfastmi.cfg' is default)",
+        default="dfastmi.cfg",
+        help="name of analysis configuration file ('%(default)s' is default)",
     )
-    parser.set_defaults(config="dfastmi.cfg")
 
     parser.add_argument(
         "--rivers",
-        help="name of rivers configuration file ('Dutch_rivers.ini' is default)",
+        default="unspecified",
+        help="name of rivers configuration file ('Dutch_rivers_v2.ini' is default)",
     )
-    parser.set_defaults(rivers="unspecified")
 
     parser.add_argument(
         "--reduced_output",
-        help="write reduced M/N range (structured model only)",
+        help=help=argparse.SUPPRESS,
         action="store_true",
     )
     parser.set_defaults(reduced_output=False)
