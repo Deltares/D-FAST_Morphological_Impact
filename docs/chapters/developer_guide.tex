@@ -97,47 +97,47 @@ Each of these packages typically requires several other packages; we don't list 
 	\textbf{Package} & \textbf{Remark} \\ \hline
 	\endhead
 	%
-	numpy (1.26.3)                & NumPy is the fundamental package for scientific computing with Python.\\ \hline
-	netCDF4 (1.6.5)               & This module can read and write netCDF files. \\ \hline
-	Fiona (1.9.0)                 & Fiona streams simple feature data to and from GIS formats like GeoPackage and Shapefile.
+	\href{https://pypi.org/project/numpy/}{numpy} (1.26.3)                & NumPy is the fundamental package for scientific computing with Python.\\ \hline
+	\href{https://pypi.org/project/netCDF4/}{netCDF4} (1.6.5)               & This module can read and write netCDF files. \\ \hline
+	\href{https://pypi.org/project/fiona/}{fiona} (1.9.0)                 & Fiona streams simple feature data to and from GIS formats like GeoPackage and Shapefile.
 Fiona can read and write real-world data using multi-layered GIS formats, zipped and in-memory virtual file systems, from files on your hard drive (or in cloud storage).
 Fiona depends on GDAL but is different from GDAL’s own bindings.
 Fiona is designed to be highly productive and to make it easy to write code which is easy to read. \\ \hline
-	pandas (1.5.3)                & Python data analysis toolkit. \\ \hline
-	pyproj (3.6.1)                & Python interface to PROJ (cartographic projections and coordinate transformations library). \\ \hline
-	PyQt5 (5.15.10)               & Qt is set of cross-platform C++ libraries that implement high-level APIs for accessing many aspects of modern desktop. 
+	\href{https://pypi.org/project/pandas/}{pandas} (1.5.3)                & Python data analysis toolkit. \\ \hline
+	\href{https://pypi.org/project/pyproj/}{pyproj} (3.6.1)                & Python interface to PROJ (cartographic projections and coordinate transformations library). \\ \hline
+	\href{https://pypi.org/project/PyQt5/}{PyQt5} (5.15.10)               & Qt is set of cross-platform C++ libraries that implement high-level APIs for accessing many aspects of modern desktop. 
 These include traditional UI development.
 
 PyQt5 is a comprehensive set of Python bindings for Qt v5. 
 It is implemented as more than 35 extension modules and enables Python to be used as an alternative application development language \\ \hline
-	PyQt5-Qt5 (5.15.2)            & This package contains the subset of a Qt installation that is required by PyQt5. \\ \hline
-	ordered-set (4.1.0)           & An OrderedSet is a custom MutableSet that remembers its order. \\ \hline
-	cftime (1.3.0)                & Time-handling functionality from netcdf4-python. \\ \hline
-	tbb (2021.7.1)                & Intel® oneAPI Threading Building Blocks (oneTBB). \\ \hline
-	mkl (2021.4.0)                & Intel® oneAPI Math Kernel Library (Intel® oneMKL) is a computing math library. \\ \hline
-	geopandas (0.14.2)            & GeoPandas is a project to add support for geographic data to pandas objects.
+	\href{https://pypi.org/project/PyQt5-Qt/}{PyQt5-Qt5} (5.15.2)            & This package contains the subset of a Qt installation that is required by PyQt5. \\ \hline
+	\href{https://pypi.org/project/ordered-set/}{ordered-set} (4.1.0)           & An OrderedSet is a custom MutableSet that remembers its order. \\ \hline
+	\href{https://pypi.org/project/cftime/}{cftime} (1.3.0)                & Time-handling functionality from netcdf4-python. \\ \hline
+	\href{https://pypi.org/project/tbb/}{tbb} (2021.7.1)                & Intel® oneAPI Threading Building Blocks (oneTBB). \\ \hline
+	\href{https://pypi.org/project/mkl/}{mkl} (2021.4.0)                & Intel® oneAPI Math Kernel Library (Intel® oneMKL) is a computing math library. \\ \hline
+	\href{https://pypi.org/project/geopandas/}{geopandas} (0.14.2)            & GeoPandas is a project to add support for geographic data to pandas objects.
 
 The goal of GeoPandas is to make working with geospatial data in Python easier.
 It combines the capabilities of pandas and shapely, providing geospatial operations in pandas and a high-level interface to multiple geometries to shapely.
 GeoPandas enables you to easily do operations in Python that would otherwise require a spatial database such as PostGIS.                \\ \hline
-	matplotlib (3.8.2)            & Python plotting package. \\ \hline
-	shapely (2.0.2)               & Shapely is a package for manipulation and analysis of planar geometric objects. \\ \hline
-	pydantic (2.6.0)              & Data validation using Python type hints. \\ \hline \hline
-	Nuitka (1.9.7)                & Nuitka is the Python compiler. It is written in Python.
+	\href{https://pypi.org/project/matplotlib/}{matplotlib} (3.8.2)            & Python plotting package. \\ \hline
+	\href{https://pypi.org/project/shapely/}{shapely} (2.0.2)               & Shapely is a package for manipulation and analysis of planar geometric objects. \\ \hline
+	\href{https://pypi.org/project/pydantic/}{pydantic} (2.6.0)              & Data validation using Python type hints. \\ \hline \hline
+	\href{https://pypi.org/project/Nuitka/}{Nuitka} (1.9.7)                & Nuitka is the Python compiler. It is written in Python.
 It is a seamless replacement or extension to the Python interpreter and compiles every construct that CPython when itself run with that Python version.
 
 It then executes uncompiled code and compiled code together in an extremely compatible manner.
 
 Nuitka translates the Python modules of \dfastmi into a C level program that then uses libpython and static C files of its own to execute in the same way as CPython does. \\ \hline
-  imageio (2.34.0)              & Library for reading and writing a wide range of image, video, scientific, and volumetric data formats. \\ \hline
-	pytest (7.4.4)                & The pytest framework makes it easy to write small tests, yet scales to support complex functional testing for applications and libraries. \\ \hline
-	pytest-cov (4.1.0)            & This plugin produces coverage reports. \\ \hline
-	pytest-mock (3.14.0)          & Thin-wrapper around the mock package for easier use with pytest. \\ \hline
-	pytest-qt (4.4.0)             & pytest support for PyQt and PySide applications. \\ \hline
-	teamcity-messages (1.32)      & Send test results to TeamCity continuous integration server from unittest, nose, py.test, twisted trial, behave. \\ \hline
-	mock (5.1.0)                  & Rolling backport of unittest.mock for all Pythons. \\ \hline
-	black (24.3.0)               & A Python code formatter. \\ \hline
-	isort (5.13.2)                & A Python utility / library to sort Python imports. \\ \hline
+  \href{https://pypi.org/project/imageio/}{imageio} (2.34.0)              & Library for reading and writing a wide range of image, video, scientific, and volumetric data formats. \\ \hline
+	\href{https://pypi.org/project/pytest/}{pytest} (7.4.4)                & The pytest framework makes it easy to write small tests, yet scales to support complex functional testing for applications and libraries. \\ \hline
+	\href{https://pypi.org/project/pytest-cov/}{pytest-cov} (4.1.0)            & This plugin produces coverage reports. \\ \hline
+	\href{https://pypi.org/project/pytest-mock/}{pytest-mock} (3.14.0)          & Thin-wrapper around the mock package for easier use with pytest. \\ \hline
+	\href{https://pypi.org/project/pytest-qt/}{pytest-qt} (4.4.0)             & pytest support for PyQt and PySide applications. \\ \hline
+	\href{https://pypi.org/project/teamcity-messages/}{teamcity-messages} (1.32)      & Send test results to TeamCity continuous integration server from unittest, nose, py.test, twisted trial, behave. \\ \hline
+	\href{https://pypi.org/project/mock/}{mock} (5.1.0)                  & Rolling backport of unittest.mock for all Pythons. \\ \hline
+	\href{https://pypi.org/project/black/}{black} (24.3.0)               & A Python code formatter. \\ \hline
+	\href{https://pypi.org/project/isort/}{isort} (5.13.2)                & A Python utility / library to sort Python imports. \\ \hline
 \end{longtable}
 
 \subsection{Utility / install scripts}
@@ -158,12 +158,6 @@ To do this we install the following extensions.
 	\textbf{VS Code extension} & \textbf{Remark} \\ \hline
 	\endfirsthead
 	%
-	\multicolumn{2}{c}%
-	{{\bfseries Extensions for developing with VS Code \thetable\ continued from previous page}} \\
-	\hline
-	\textbf{VS Code extension} & \textbf{Remark} \\ \hline
-	\endhead
-	%
 	Cameron.vscode-pytest & VS Code Pytest Extension. \\ \hline
 	donjayamanne.python-environment-manager & A Visual Studio Code extension that provides the ability to via and manage all of your Python environments \& packages from a single place. \\ \hline
 	ms-python.pylint & A Visual Studio Code extension with support for the Pylint linter.
@@ -174,7 +168,7 @@ To do this we install the following extensions.
 \end{longtable}
 
 
-\subsection{VS Code userfiles}
+\subsection{VS Code user files}
 The user files can be found in subfolder \textbf{.vscode}
 
 \begin{enumerate}

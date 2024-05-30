@@ -42,7 +42,10 @@ Found 10 errors in 6 files (checked 8 source files)
 The final two errors reported for \keyw{dfastmi\textbackslash{}gui.py} (line:491) are caused by a statement to switch the configparser to case sensitive mode while creating the data structure to be saved to file; most likely the data type is not properly set in the configparser definition.
 That code line conforms to the configparser documentation and works properly as is.
 
-A consistent coding style is enforced by means of the \emph{Black Code Formatter}.
+A consistent coding style is enforced by means of the \href{https://pypi.org/project/black/}{black} code formatter.
+This formatter is implemented as a GitHub Action such that code is automatically formatted after each push.
+The same process also uses \href{https://pypi.org/project/isort/}{isort} for automatically sorting all imports.
+To run the code formatter locally, perform 
 
 \begin{Verbatim}
     > pip install black
