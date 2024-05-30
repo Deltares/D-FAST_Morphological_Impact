@@ -13,7 +13,7 @@ The software distinguishes 6 files:
 
 Each file type is addressed separately in the following subsections.
 
-\section{rivers configuration file}
+\section{Rivers configuration file}
 
 The rivers configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
@@ -28,7 +28,7 @@ The \keyw{[General]} block may contain default values for the various parameters
 Further details follow below.
 
 \begin{longtable}{l|l|p{8cm}}
-\caption{xxx} \\
+\caption{Description of rivers configuration version 2} \\
 Block & Keyword & Description \\ \hline
 \endfirsthead
 \multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
@@ -115,7 +115,7 @@ Only \keyw{NWidth} and \keyw{PRLow} vary depending on the reach selected.
         ... continued ...
 \end{Verbatim}
 
-\section{dialog text file}
+\section{Dialog text file}
 
 The dialog text file uses the block labels enclosed by square brackets of the common ini-file format, but the lines in between the blocks are treated verbatim and don't list keyword/value pairs.
 Every print statement in the program is associated with a short descriptive identifier.
@@ -171,7 +171,7 @@ The header string contains one placeholder, namely \keyw{{version}} for the the 
     ... continued ...
 \end{Verbatim}
 
-\section{analysis configuration file}\label{app:config}
+\section{Analysis configuration file}\label{app:config}
 
 The analysis configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
@@ -237,7 +237,7 @@ Only the \keyw{Version}, \keyw{Branch}, \keyw{Reach}, \keyw{Reference} and \keyw
       WithMeasure = Measure42/Q3/Updated/DFM_OUTPUT_Q3/Q3_map.nc
 \end{Verbatim}
 
-\section{simulation result files}
+\section{Simulation result files}
 
 The WAQUA program writes the simulation results in a proprietary SDS file format.
 The content of these result files can't be accessed directly from Python, so they need to be exported to a more accessible file format.
@@ -279,14 +279,14 @@ x,y,z,m,n,id
 \end{Verbatim}
 
 
-\section{report file}
+\section{Report file}
 
 \dfastmi will write a report of the analysis.
 This report file is a simple text file consistent with the earlier reports written by WAQMORF.
 The length and content of the report vary depending on the availability of the simulation result files and the language selected.
 
 
-\section{spatial output file}
+\section{Spatial output file}
 
 \dfastmi generates one UGRID netCDF file containing the spatial results of the analysis.
 The mesh information is copied from the D-Flow FM map file and the three data fields (erosion and sedimentation patterns for mean, minimum, and maximum impact) follow standardized conventions for data stored at cell centres (\keyw{face}-values) on an unstructured mesh.

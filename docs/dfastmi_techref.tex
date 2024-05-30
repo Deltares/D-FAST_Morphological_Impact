@@ -2,10 +2,14 @@
 
 \usepackage{tikz}
 \usepackage[pipeTables=true]{markdown}
+\usepackage{verbatimbox}
+%\usepackage{enumitem}
 
 %------------------------------------------------------------------------------
 \newcommand{\dfastmi}{\textrm{D-FAST~Morphological~Impact}\xspace}
+\newcommand{\dfmi}{\textrm{D-FAST~MI}\xspace}
 \newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
+\newcommand{\sobek}{\textrm{SOBEK}\xspace}
 
 \hypersetup
 {
@@ -30,8 +34,9 @@
 \include{chapters/intro_tech}
 
 \include{chapters/requirements}
-\include{chapters/code_structure}
 \include{chapters/software_maintenance}
+\include{chapters/developer_guide}
+\include{chapters/code_structure}
 \include{chapters/testing}
 %\markdownInput{techref.md}
 
@@ -40,6 +45,7 @@
 
 \appendix
 \include{chapters/file_formats}
+\include{chapters/backward_compatibility}
 
 %\pagestyle{empty}
 %\cleardoublepage

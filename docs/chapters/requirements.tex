@@ -10,6 +10,8 @@ The detailed list of requirements is given below.
 
 \section{Functional Requirements} \label{Sec:FuncReq}
 
+The functional requirements at the time of the development of \dfastmi 2.0 were:
+
 \begin{enumerate}
 \item This program must give the same results for the same data as WAQMORF.
 \item Users must be able to run this program in batch mode from the command line.
@@ -28,9 +30,20 @@ The detailed list of requirements is given below.
 \item It would be nice if the software would be able to run besides Dutch also in English.
 \end{enumerate}
 
-All requirements are addressed by \dfastmi.
+All requirements were addressed in the initial development.
+For version 3.0 of \dfastmi, the functional requirements have changed.
+
+\begin{enumerate}
+\setcounter{enumi}{12} % Using enumitem option [resume] is nicer, but changes spacing
+\item \dfastmi version 3 implements a new algorithm using more than 3 discharge.
+\item The report output needs to reflect \emph{all} input settings.
+\item The support for the Dutch language isn't a requirement anymore since the user manual and other tools, such as the simulation engines, only use English.
+\end{enumerate}
+
 
 \section{Non-functional requirements}
+
+The non-functional requirements at the time of the development of \dfastmi 2.0 were:
 
 \begin{enumerate}
 \item The performance of the tools must be similar to that of WAQMORF, i.e.~it must run within seconds.
@@ -46,3 +59,25 @@ All requirements are addressed by \dfastmi.
 \end{enumerate}
 
 All requirements are addressed by \dfastmi although the testing has been carried out on the Windows platform only.
+
+For version 3.0 of \dfastmi, this list has been extended with:
+
+\begin{enumerate}
+\item The code coverage should be above 90\%.
+\item The code should be modular.
+\item The code needs to be subject to SIG analysis.
+\end{enumerate}
+
+\section{Choice of coding language}
+
+The original WAQMORF code was developed in Fortran.
+For \dfastmi we have selected Python because
+
+\begin{itemize}
+\item More domain specialists and users are familiar with Python and it's therefore easier for development cycle.
+\item Adding a graphical user interface (GUI) is easier in other languages than Fortran and by using the same language for kernel and GUI makes the code more consistent and reusable.
+\item The algorithm doesn't require large amounts of computations, so a native language isn't needed for adequate performance.
+\item The Python environment is available for free contrary to MATLAB which is also widely used in this community.
+\item Python supposedly allows for the creation of relatively small redistributable binaries.
+\item Python combines well with the open source nature of this software and other developments in the Delft3D / D-HYDRO environment.
+\end{itemize}
