@@ -17,3 +17,22 @@ Based on these data the algorithm determines one, two or three characteristic di
 Based on these spatial data, the algorithm provides spatial estimates of the minimum, mean and maximum impact of the measure on the bed levels after one year.
 The original WAQMORF tool performs the morphological analysis based on results exported from WAQUA simulations (hence the name WAQMORF).
 The new \dfastmi tool performs the analysis based on either WAQUA or D-Flow FM simulation results.
+
+The program can run in three modes of which only two (\keyw{batch} and \keyw{gui}) are documented in the user manual\footnote{\label{fn:backward1}The program still includes a third mode for backward compatibility, the so-called command line interface, activated by means of \keyw{-{}-mode cli} on the command line.
+This option is described in \Autoref{Chp:backward}.}.
+The full list of command line arguments reads:
+
+\begin{tabular}{l|l|p{8cm}}
+short & long & description \\ \hline
+\keyw{-h} & \keyw{-{}-help} & show help text and exit \\
+ & \keyw{-{}-mode} & run mode \keyw{batch}, \keyw{cli}\footref{fn:backward1} or \keyw{gui} (default: \keyw{gui} \\
+ & \keyw{-{}-language} & language selection: \keyw{UK}.
+The alternative \keyw{NL} is only included for the \keyw{CLI} backward compatibility mode. \\
+ & \keyw{-{}-rivers} & name of river configuration file.
+The \keyw{GUI} run mode requires a version 2 river configuration file.
+The backward compatibility mode \keyw{CLI} requires a version 1 file.
+The \keyw{BATCH} mode supports either format and adjusts accordingly.
+The default file for the \keyw{BATCH} and \keyw{GUI} is the \keyw{Dutch\_rivers\_v2.ini} file.
+The \keyw{CLI} mode defaults to \keyw{Dutch\_rivers\_v1.ini}. \\
+ & \keyw{-{}-config} & name of analysis configuration file \\
+\end{tabular}

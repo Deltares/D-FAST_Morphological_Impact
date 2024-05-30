@@ -1,7 +1,9 @@
 \chapter{Backward compatibility} \label{Chp:backward}
 
-\dfastmi may be run in \emph{cli mode} backward compatible with WAQMORF: in this (legacy) mode the configuration for the analysis is obtained by asking the user questions via a command line interface which support simulation results from WAQUA only.
+\dfastmi may be run in \keyw{cli} mode for backward compatible with WAQMORF: in this (legacy) mode the configuration for the analysis is obtained by asking the user questions via a command line interface which support simulation results from WAQUA only.
 The input and output as well as the description of the conceptual framework of that version is described in this appendix.
+
+\dfastmi can also be run in backward compatible \keyw{batch} mode by specifying version 1 files for the rivers configuration and analysis configuration.
 
 \section{Running in interactive command line mode}
 
@@ -12,8 +14,8 @@ The program should be started with the run mode set to \keyw{cli} on the command
 > dfastmi --mode cli
 \end{Verbatim}
 
-You may choose to run the program in either Dutch \keyw{-{}-language NL} or English \keyw{-{}-language UK}; the latter is the default.
-Please note that the language does not only affect the text in the report, but also the names of the output files as indicated in the opening section of this chapter.
+You may choose to run the program in either Dutch \keyw{-{}-language NL} (like the original WAQMORF) or English \keyw{-{}-language UK}; the latter is the default.
+Please note that the language not only affects the text in the report, but also the names of the output files as indicated in the opening section of this chapter.
 You may also choose to select the \keyw{-{}-reduced\_output} option for smaller SIMONA BOX file output.
 Although this is an interactive run mode, you may use this mode also as a batch mode by redirecting standard input to read from file as follows
 

@@ -1,49 +1,66 @@
-\chapter{Developer Guide}
+\chapter{Developer Guide}\label{Chp:DevGuides}
 
 \section{Introduction}
 
-This chapter gives an overview of how \dfastmi can be setup for development. After following this guide the developer should be able to run the software, run unit tests, generate the code coverage and debug through the tests and software using tools and development programs.
+This chapter gives an overview of how \dfastmi can be setup for development.
+After following this guide the developer should be able to run the software, run unit tests, generate the code coverage and debug through the tests and software using tools and development programs.
 
-The development setup and configuration is done for usage of the visual studio code IDE. More information about \href{https://code.visualstudio.com/}{visual studio code} can be found on the internet.
-The development of python code project within Deltares is mostly done with this tool. Visual Studio Code is free for private or commercial use. See the \href{https://code.visualstudio.com/license}{product license} for details.
+The development setup and configuration is done for usage of the Visual Studio Code IDE.
+More information about \href{https://code.visualstudio.com/}{Visual Studio Code} can be found on the internet.
+The development of Python code project within Deltares is mostly done with this tool.
+Visual Studio Code is free for private and commercial use.
+See the \href{https://code.visualstudio.com/license}{product license} for details.
 
 \begin{Remark}
-	\item This configuration can not be used to build a standalone executable with nuitka tooling. It is for development purposes only.
+	\item This configuration cannot be used to build a standalone executable with Nuitka tooling.
+	It is for development purposes only.
 \end{Remark}
 
 \section{Configuration}
-The DFAST Morphological Impact developer environment can be configured with a batch script. This script will configure and install recommended tools. User input is required to download and install these tools. The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
+The \dfastmi developer environment can be configured with a batch script.
+This script will configure and install recommended tools.
+User input is required to download and install these tools.
+The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
 
-The batch file will check for installed tooling for anaconda/miniconda. If not installed it will ask the user to install the anaconda/miniconda tooling for you. 
+The batch file will check for installed tooling for Anaconda/Miniconda.
+If not installed it will ask the user to install the Anaconda/Miniconda tooling for you. 
 
-\begin{Remark}
-	\item \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the conda tooling for the command line and powershell (used in VSCode).
-\end{Remark}
+\begin{Note}
+You need to close the command line and re-open/restart the batch script as it needs to initialize the Conda tooling for the command line and PowerShell (used in VS Code).
+\end{Note}
 
-The batch file will check for installed tooling for VSCode. If not installed it will ask the user to install the VSCode tooling for you. 
+The batch file will check for installed tooling for VS Code.
+If not installed it will ask the user to install the VS Code tooling for you. 
 
-\begin{Remark}
-	\item \textbf{PLEASE NOTE:} you need to close the command line and re-open / restart the batch script as it needs to initialize the VS Code tooling for the command line.
-\end{Remark}
+\begin{Note}
+You need to close the command line and re-open / restart the batch script as it needs to initialize the VS Code tooling for the command line.
+\end{Note}
 
-After checking (and installing if needed) the VSCode code development application the batch script will install several important VSCode extensions needed for quick development.
-
+After checking (and installing if needed) the VS Code code development application the batch script will install several important VS Code extensions needed for quick development.
 
 \section{Configuration files}
-As stated earlier we use conda to create a clean python environment to develop the \dfastmi application in. We also use poetry to setup the needed packages for the development environment. Poetry uses a toml\footnote{TOML : Tom's Obvious Minimal Language. A config file format file} file for the configuration (\textbf{poetry.toml}) and a lock file (\textbf{poetry.lock}) which means we ran the install command of poetry before with these settings. More information about the poetry.lock can be found here: \href{https://python-poetry.org/docs/basic-usage/#installing-without-poetrylock}. Also we use a \textbf{setup.py} file used by the setup tools package to setup the application for development. And last but not least a python tools / interpreter configuration \textbf{pyproject.toml}. This file configures the way python packages should behave.
+As stated earlier we use Conda to create a clean Python environment to develop the \dfastmi application in.
+We also use Poetry, a Python dependency management and packaging tool, to setup the needed packages for the development environment.
+Poetry uses TOML\footnote{TOML : Tom's Obvious Minimal Language. A common format for configuration files.} files for the configuration (\textbf{poetry.toml}) and a lock file (\textbf{poetry.lock}) which store all information about the packages that we use for building \dfastmi.
+More information about poetry.lock can be found on the \href{https://python-poetry.org/docs/basic-usage/#installing-without-poetrylock}{Poetry website}.
+Also we use a \textbf{setup.py} file used by the setup tools package to setup the application for development.
+And last but not least a Python tools / interpreter configuration \textbf{pyproject.toml}.
+This file configures the way Python packages should behave.
 
 \subsection{Conda environment}
-We setup a conda environment so we have the python interpreter we expect to be used by developers.
-We do this so the developer always can create isolated environments that contain a specific version of Python and all the required dependencies for DFast MI. This prevents conflicts between packages and ensures that DFast MI development environment is reproducible.
+We setup a Conda environment so we have the Python interpreter we expect to be used by developers.
+We do this so the developer always can create isolated environments that contain a specific version of Python and all the required dependencies for \dfmi.
+This prevents conflicts between packages and ensures that \dfmi development environment is reproducible.
+
 \begin{table}[]
-	\caption{Default installed packages for conda environment with python interpreter v3.9.13, installed by conda.}
-	\begin{tabular}{|l|l|}
+	\caption{Default packages installed by Conda with Python interpreter v3.9.13.}
+	\begin{tabular}{|p{4cm}|p{10cm}|}
 		\hline
 		\textbf{Package}    & \textbf{Remark} \\ \hline
 		ca-certificates     & Certificates for use with other packages.\\ \hline
 		openssl             & OpenSSL is an open-source implementation of the SSL and TLS protocols. \\ \hline
 		pip                 & PyPA recommended tool for installing Python packages. \\ \hline
-		python              & General purpose programming language. V3.9.13 \\ \hline
+		python              & General purpose programming language. \\ \hline
 		setuptools          & Download, build, install, upgrade, and uninstall Python packages. \\ \hline
 		sqlite              & Implements a self-contained, zero-configuration, SQL database engine \\ \hline
 		tzdata              & The Time Zone Database (called tz, tzdb or zoneinfo) data. \\ \hline
@@ -54,8 +71,21 @@ We do this so the developer always can create isolated environments that contain
 	\end{tabular}
 \end{table}
 
+\section{Tooling}
+For \dfastmi development we are using:
+
+\begin{enumerate}
+\item \emph{Anaconda, Miniconda, or Conda} to setup the Python environment.
+Currently, we build using Python 3.9.12.
+\item \emph{Poetry} to install the Python packages for the environment.
+\item \emph{Visual Studio Code} to edit Python files, run the created (unit)tests, see/visualize the test coverage.
+\end{enumerate}
+
 \subsubsection{Conda / Python packages needed for \dfastmi}
-\begin{longtable}{|l|l|}
+This paragraph shows a list of the primary package dependencies which matches the specifications of the \textbf{pyproject.toml} file.
+Each of these packages typically requires several other packages; we don't list those to simplify maintenance.
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
 	\caption{Packages for developing.} \\
 	\hline
 	\textbf{Package} & \textbf{Remark} \\ \hline
@@ -67,115 +97,62 @@ We do this so the developer always can create isolated environments that contain
 	\textbf{Package} & \textbf{Remark} \\ \hline
 	\endhead
 	%
-	click (8.1.7)                 &                 \\ \hline
-	colorama (0.4.6)              &                 \\ \hline
-	six (1.16.0)                  &                 \\ \hline
-	attrs (23.2.0)                &                 \\ \hline
-	certifi (2023.11.17)          &                 \\ \hline
-	click-plugins (1.1.1)         &                 \\ \hline
-	cligj (0.7.2)                 &                 \\ \hline
-	exceptiongroup (1.2.0)        &                 \\ \hline
-	iniconfig (2.0.0)             &                 \\ \hline
-	munch (4.0.0)                 &                 \\ \hline
-	numpy (1.26.3)                & NumPy is the fundamental package for scientific computing
-	\\ & with Python.\\ \hline
-	packaging (23.2)              &                 \\ \hline
-	pluggy (1.3.0)                &                 \\ \hline
-	python-dateutil (2.8.2)       &                 \\ \hline
-	pytz (2023.3.post1)           &                 \\ \hline
-	tomli (2.0.1)                 &                 \\ \hline
-	zipp (3.17.0)                 &                 \\ \hline
-	cftime (1.3.0)                &                 \\ \hline
-	contourpy (1.2.0)             &                 \\ \hline
-	coverage (7.4.0)              & Code coverage measurement for Python. \\ \hline
-	fiona (1.9.0)                 & Fiona streams simple feature data to and from GIS formats like 
-	\\ & GeoPackage and Shapefile.
-	\\ & Fiona can read and write real-world data using 
-	\\ & multi-layered GIS formats, zipped and in-memory 
-	\\ & virtual file systems, from files on your hard 
-	\\ & drive( or in cloud storage).	
-	\\ & Fiona depends on GDAL but is different from GDAL’s
-	\\ &  own bindings. Fiona is designed to be highly 
-	\\ & productive and to make it easy to write code 
-	\\ & which is easy to read. \\ \hline
-	fonttools (4.47.2)            &                 \\ \hline
-	importlib-resources (6.1.1)   &                 \\ \hline
-	cycler (0.12.1)               &                 \\ \hline
-	intel-openmp (2021.4.0)       &                 \\ \hline
-	kiwisolver (1.4.5)            &                 \\ \hline
+	numpy (1.26.3)                & NumPy is the fundamental package for scientific computing with Python.\\ \hline
+	netCDF4 (1.6.5)               & This module can read and write netCDF files. \\ \hline
+	Fiona (1.9.0)                 & Fiona streams simple feature data to and from GIS formats like GeoPackage and Shapefile.
+Fiona can read and write real-world data using multi-layered GIS formats, zipped and in-memory virtual file systems, from files on your hard drive (or in cloud storage).
+Fiona depends on GDAL but is different from GDAL’s own bindings.
+Fiona is designed to be highly productive and to make it easy to write code which is easy to read. \\ \hline
 	pandas (1.5.3)                & Python data analysis toolkit. \\ \hline
-	ordered-set (4.1.0)           &                 \\ \hline
-	mypy-extensions (1.0.0)       &                 \\ \hline
-	pathspec (0.12.1)             &                 \\ \hline
-	pillow (10.2.0)               &                 \\ \hline
-	platformdirs (4.1.0)          &                 \\ \hline
-	pyparsing (3.1.1)             &                 \\ \hline
-	pyproj (3.6.1)                &                 \\ \hline
-	pyqt5-qt5 (5.15.2)            & This package contains the subset of a Qt installation that is
-	\\ & required by PyQt5. \\ \hline
-	pyqt5-sip (12.13.0)           &                 \\ \hline
-	pytest (7.4.4)                & The pytest framework makes it easy to write small tests,
-	\\ & yet scales to support complex functional testing
-	\\ & for applications and libraries. \\ \hline
-	shapely (2.0.2)               & Shapely is a package for manipulation and analysis of planar 
-	\\ & geometric objects. \\ \hline
-	tbb (2021.7.1)                &                 \\ \hline
-	typing-extensions (4.9.0)     &                 \\ \hline
-	zstandard (0.22.0)            &                 \\ \hline
-	black (22.12.0)               & A Python code formatter. \\ \hline
-	geopandas (0.14.2)            & GeoPandas is a project to add support for geographic data to 
-	\\ & pandas objects.
-	\\ & 
-	\\ & The goal of GeoPandas is to make working with geospatial data 
-	\\ & in python easier. It combines the capabilities of pandas and shapely, 
-	\\ & providing geospatial operations in pandas and a high-level interface 
-	\\ & to multiple geometries to shapely. GeoPandas enables you to easily 
-	\\ & do operations in python that would otherwise require a spatial 
-	\\ & database such as PostGIS.                \\ \hline
-	matplotlib (3.8.2)            &                 \\ \hline
-	mkl (2021.4.0)                & Intel® oneAPI Math Kernel Library (Intel® oneMKL) is a computing 
-	\\ & math library. \\ \hline
-	nuitka (1.9.7)                & Nuitka is the Python compiler. It is written in Python. It is a seamless
-	\\ & replacement or extension to the Python interpreter and compiles 
-	\\ & every construct that CPython when itself run with that Python version.
-	\\ &
-	\\ & It then executes uncompiled code and compiled code together in an
-	\\ & extremely compatible manner.
-	\\ &
-	\\ & Nuitka translates the Python modules of \dfastmi into
-	\\ & a C level program that then uses libpython and static C files  
-	\\ & of its own to execute in the same way as CPython does. \\ \hline
-	pyqt5 (5.15.10)               & Qt is set of cross-platform C++ libraries that implement high-level APIs 
-	\\ & for accessing many aspects of modern desktop. 
-	\\ & These include traditional UI development.
-	\\ &
-	\\ & PyQt5 is a comprehensive set of Python bindings for Qt v5. 
-	\\ & It is implemented as more than 35 extension modules and enables 
-	\\ & Python to be used as an alternative application development language \\ \hline
-	netcdf4 (1.6.5)               & This module can read and write netCDF files. \\ \hline
-	pytest-cov (4.1.0)            & This plugin produces coverage reports. \\ \hline
-	teamcity-messages (1.32)      & \\ \hline
-\end{longtable}
+	pyproj (3.6.1)                & Python interface to PROJ (cartographic projections and coordinate transformations library). \\ \hline
+	PyQt5 (5.15.10)               & Qt is set of cross-platform C++ libraries that implement high-level APIs for accessing many aspects of modern desktop. 
+These include traditional UI development.
 
-\section{Tooling}
-DFAST Morphological Impact is using:
-\begin{enumerate}
-\item \keyw{anaconda} / \keyw{miniconda} /\keyw{conda} to setup its python environment. 
-\item \keyw{poetry} to install the python packages for the environment
-\item \keyw{VSCode} to edit python files, run the created (unit)tests, see/visualize the test coverage
-\end{enumerate}
+PyQt5 is a comprehensive set of Python bindings for Qt v5. 
+It is implemented as more than 35 extension modules and enables Python to be used as an alternative application development language \\ \hline
+	PyQt5-Qt5 (5.15.2)            & This package contains the subset of a Qt installation that is required by PyQt5. \\ \hline
+	ordered-set (4.1.0)           & An OrderedSet is a custom MutableSet that remembers its order. \\ \hline
+	cftime (1.3.0)                & Time-handling functionality from netcdf4-python. \\ \hline
+	tbb (2021.7.1)                & Intel® oneAPI Threading Building Blocks (oneTBB). \\ \hline
+	mkl (2021.4.0)                & Intel® oneAPI Math Kernel Library (Intel® oneMKL) is a computing math library. \\ \hline
+	geopandas (0.14.2)            & GeoPandas is a project to add support for geographic data to pandas objects.
+
+The goal of GeoPandas is to make working with geospatial data in Python easier.
+It combines the capabilities of pandas and shapely, providing geospatial operations in pandas and a high-level interface to multiple geometries to shapely.
+GeoPandas enables you to easily do operations in Python that would otherwise require a spatial database such as PostGIS.                \\ \hline
+	matplotlib (3.8.2)            & Python plotting package. \\ \hline
+	shapely (2.0.2)               & Shapely is a package for manipulation and analysis of planar geometric objects. \\ \hline
+	pydantic (2.6.0)              & Data validation using Python type hints. \\ \hline \hline
+	Nuitka (1.9.7)                & Nuitka is the Python compiler. It is written in Python.
+It is a seamless replacement or extension to the Python interpreter and compiles every construct that CPython when itself run with that Python version.
+
+It then executes uncompiled code and compiled code together in an extremely compatible manner.
+
+Nuitka translates the Python modules of \dfastmi into a C level program that then uses libpython and static C files of its own to execute in the same way as CPython does. \\ \hline
+  imageio (2.34.0)              & Library for reading and writing a wide range of image, video, scientific, and volumetric data formats. \\ \hline
+	pytest (7.4.4)                & The pytest framework makes it easy to write small tests, yet scales to support complex functional testing for applications and libraries. \\ \hline
+	pytest-cov (4.1.0)            & This plugin produces coverage reports. \\ \hline
+	pytest-mock (3.14.0)          & Thin-wrapper around the mock package for easier use with pytest. \\ \hline
+	pytest-qt (4.4.0)             & pytest support for PyQt and PySide applications. \\ \hline
+	teamcity-messages (1.32)      & Send test results to TeamCity continuous integration server from unittest, nose, py.test, twisted trial, behave. \\ \hline
+	mock (5.1.0)                  & Rolling backport of unittest.mock for all Pythons. \\ \hline
+	black (24.3.0)               & A Python code formatter. \\ \hline
+	isort (5.13.2)                & A Python utility / library to sort Python imports. \\ \hline
+\end{longtable}
 
 \subsection{Utility / install scripts}
 We use several other batch scripts.
+
 \begin{itemize}
-	\item \keyw{CondaInstall.bat} used to install miniconda, you need to restart the main script (DevelopDfastmi.bat) in a \textbf{new} command line prompt because the command line prompt environment is
-	 updated after install.
-	\item \keyw{VSCodeInstall.bat} used to install visual studio code on the client pc, you need to restart the main script (DevelopDfastmi.bat) in a \textbf{new} command line prompt because the command line prompt environment is updated after install.
+	\item \keyw{CondaInstall.bat} used to install Miniconda, you need to restart the main script (\keyw{DevelopDfastmi.bat}) in a \emph{new} command line prompt because the command line prompt environment is updated after install.
+	\item \keyw{VSCodeInstall.bat} used to install visual studio code on the client pc, you need to restart the main script (\keyw{DevelopDfastmi.bat}) in a \emph{new} command line prompt because the command line prompt environment is updated after install.
 \end{itemize}
 
-\subsection{VSCode Extensions}
-In VSCode we use extensions to find python unit test, visualize coverage and debug our code. To do this we install the following extensions.
-\begin{longtable}{|l|l|}
+\subsection{Visual Studio Code Extensions}
+In VS Code we use extensions to find Python unit test, visualize coverage and debug our code.
+To do this we install the following extensions.
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
 	\caption{Extensions for developing with VS Code.} \\
 	\hline
 	\textbf{VS Code extension} & \textbf{Remark} \\ \hline
@@ -187,23 +164,19 @@ In VSCode we use extensions to find python unit test, visualize coverage and deb
 	\textbf{VS Code extension} & \textbf{Remark} \\ \hline
 	\endhead
 	%
-	Cameron.vscode-pytest                 		& VS Code Pytest Extension. \\ \hline
-	donjayamanne.  & A Visual Studio Code extension that provides the ability \\
-	python-environment-manager & to via and manage all of your Python environments \& 
-	\\ & packages from a single place. \\ \hline
-	ms-python.pylint                 			& A Visual Studio Code extension with support for the Pylint linter. 
-	\\ & For more information on Pylint, see \href{https://pylint.readthedocs.io/}{pylint documentation}. \\ \hline
-	ms-python.python                 			& A Visual Studio Code extension with rich support for the
-	\\ & Python language including features such 
-	\\ & as code navigation, code formatting, refactoring, variable explorer. \\ \hline
-	ms-python.vscode-pylance                 	& To provide performant Python language support. \\ \hline
-	ryanluker.vscode-coverage-gutters           & Display test coverage generated by lcov or xml in your editor 
-	\\ & over your developed code. \\ \hline
+	Cameron.vscode-pytest & VS Code Pytest Extension. \\ \hline
+	donjayamanne.python-environment-manager & A Visual Studio Code extension that provides the ability to via and manage all of your Python environments \& packages from a single place. \\ \hline
+	ms-python.pylint & A Visual Studio Code extension with support for the Pylint linter.
+	For more information on Pylint, see the \href{https://pylint.readthedocs.io/}{Pylint documentation}. \\ \hline
+	ms-python.python & A Visual Studio Code extension with rich support for the Python language including features such as code navigation, code formatting, refactoring, variable explorer. \\ \hline
+	ms-python.vscode-pylance & To provide performant Python language support. \\ \hline
+	ryanluker.vscode-coverage-gutters & Display test coverage generated by lcov or xml in your editor over your developed code. \\ \hline
 \end{longtable}
 
 
-\subsection{VSCode userfiles}
+\subsection{VS Code userfiles}
 The user files can be found in subfolder \textbf{.vscode}
+
 \begin{enumerate}
 	\item \keyw{extensions.json} will reference the expected and recommended visual studio code extensions. It will not install them but inform the user what is missing to start developing.
 	\item \keyw{launch.json} will configure VS Code what to do when an user will debug unit tests or start debugging the application.
@@ -211,12 +184,14 @@ The user files can be found in subfolder \textbf{.vscode}
 \end{enumerate}
 
 \subsection{TOML}
-This filetype is used by the python interpreter to configure the application. The TOML file itself has nothing to do with python, poetry or VS Code but it is a configuration file which is easy to read. For more information see \href{https://coverage.readthedocs.io/en/latest/config.html#toml-syntax}.
+This file type is used by the Python interpreter to configure the application.
+The TOML file format itself has nothing to do with Python, Poetry or VS Code but it is a configuration file which is easy to read.
+For more information see \href{https://coverage.readthedocs.io/en/latest/config.html#toml-syntax}{TOML syntax website}.
 Added configuration settings to the \textbf{pyproject.toml} file
-\begin{enumerate}
-	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS code / python / python coverage tooling where to expect the coverage to apply to.
-	\item In section [tool.pytest.ini\_options] \keyw{addopts = "---cov ---cov-report=term 
-		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS code / python / python test tooling to apply coverage and generate output report to.
-\end{enumerate}
 
+\begin{enumerate}
+	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS Code/Python/Python coverage tooling where to expect the coverage to apply to.
+	\item In section [tool.pytest.ini\_options] \keyw{addopts = "---cov ---cov-report=term 
+		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS Code/Python/Python test tooling to apply coverage and generate output report to.
+\end{enumerate}
 

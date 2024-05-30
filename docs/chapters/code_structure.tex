@@ -1,18 +1,8 @@
 \chapter{Code structure}
 
+\todo{This chapter still needs rewriting ...}
+
 \section{Introduction}
-
-The original WAQMORF code was developed in FORTRAN.
-For \dfastmi we have selected Python because
-
-\begin{itemize}
-\item More domain specialists and users are familiar with Python and it's therefore easier for development cycle.
-\item Adding a graphical user interface (GUI) is easier in other languages than FORTRAN and by using the same language for kernel and GUI makes the code more consistent and reusable.
-\item The algorithm doesn't require large amounts of computations, so a native language isn't needed for adequate performance.
-\item The Python environment is available for free contrary to MATLAB which is also widely used in this community.
-\item Python supposedly allows for the creation of relatively small redistributable binaries.
-\item Python combines well with the open source nature of this software and other developments in the Delft3D / D-HYDRO environment.
-\end{itemize}
 
 The software uses a number of Python modules for specific functionality.
 Most importantly the code builds on
