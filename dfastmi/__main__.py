@@ -95,14 +95,14 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
 
     parser.add_argument(
         "--language",
-        choices=["UK","NL"],
+        choices=["UK", "NL"],
         default="UK",
         help=argparse.SUPPRESS,
     )
 
     parser.add_argument(
         "--mode",
-        choices=["CLI","BATCH","GUI"],
+        choices=["CLI", "BATCH", "GUI"],
         default="GUI",
         help="run mode 'BATCH' or 'GUI' (%(default)s is default)",
     )
