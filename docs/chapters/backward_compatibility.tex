@@ -896,7 +896,10 @@ The impact of the plan on river maintenance can be determined based on the avail
 \label{App.Fig14c}
 \end{figure}
 
-\section{rivers configuration file}\label{app-v1:rivers}
+\pagebreak[4]
+\section{Old file formats}\label{app-v1:old-formats}
+
+\subsection{Rivers configuration file}\label{app-v1:rivers}
 
 The rivers configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
@@ -911,7 +914,7 @@ The \keyw{[General]} block may contain default values for the
 Further details follow below.
 
 \begin{longtable}{l|l|p{8cm}}
-\caption{xxx} \\
+\caption{Description of rivers configuration version 1} \\
 Block & Keyword & Description \\ \hline
 \endfirsthead
 Block & Keyword & Description \\ \hline
@@ -980,7 +983,7 @@ Only \keyw{NWidth} and \keyw{PRLow} vary depending on the reach selected.
         ... continued ...
 \end{Verbatim}
 
-\section{analysis configuration file}\label{app-v1:config}
+\subsection{Analysis configuration file}\label{app-v1:config}
 
 The analysis configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
@@ -1048,7 +1051,7 @@ Only the \keyw{Version}, \keyw{Branch}, \keyw{Reach}, \keyw{Reference} and \keyw
 \end{Verbatim}
 
 
-\section{spatial output file}
+\subsection{Spatial output file}
 
 The WAQMORF program wrote the spatial output in SIMONA BOX-file format which could be visualize when combined with the curvilinear grid of the original simulation.
 \dfastmi still generates such files when run based on WAQUA results.
