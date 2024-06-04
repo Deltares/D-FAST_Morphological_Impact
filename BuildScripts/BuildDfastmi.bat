@@ -1,8 +1,20 @@
 @echo off
 
+if %1=="--no-console" (
+
+set cmd_box_args=--windows-force-stderr-spec=%PROGRAM%logs.txt ^
+ --windows-force-stdout-spec=%PROGRAM%output.txt ^
+ --windows-disable-console ^
+ dfastmi
+ 
+) else (
+
+set cmd_box_args=dfastmi
+
+)
+
 cd %~dp0
 cd..
-set cmd_box_args=dfastmi
 START /B /WAIT poetry run nuitka ^
  --standalone ^
  --assume-yes-for-downloads ^
