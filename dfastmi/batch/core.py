@@ -192,8 +192,7 @@ def _report_analysis_configuration(
         branch,
         reach,
         branch.qlocation,
-        initialized_config.q_threshold,
-        initialized_config.slength,
+        initialized_config,
         report,
     )
     _report_critical_velocity(initialized_config.ucrit, report)
@@ -217,16 +216,15 @@ def _report_basic_analysis_configuration(
     branch: Branch,
     reach: Reach,
     qlocation: str,
-    q_threshold: float,
-    slength: float,
+    initialized_config: AConfigurationInitializerBase,
     report: TextIO,
 ):
     settings = {
         "branch": branch.name,
         "reach": reach.name,
         "location": qlocation,
-        "q_threshold": q_threshold,
-        "slength": int(slength),
+        "q_threshold": initialized_config.q_threshold,
+        "slength": int(initialized_config.slength),
     }
     ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict=settings)
 
