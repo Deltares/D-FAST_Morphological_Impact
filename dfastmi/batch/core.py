@@ -191,14 +191,14 @@ def _report_analysis_configuration(
     _report_basic_analysis_configuration(
         branch,
         reach,
+        branch.qlocation,
         initialized_config.q_threshold,
-        initialized_config.ucrit,
         initialized_config.slength,
         report,
     )
-    _report_discharge_branch_location(branch.qlocation, report)
+    _report_critical_velocity(initialized_config.ucrit, report)
     _report_analysis_conditions_header(report)
-    _report_used_file_names(config, report)
+    _report_used_file_names(config, initialized_config.q_threshold, report)
     _report_section_break(report)
 
 
@@ -216,30 +216,30 @@ def _report_analysis_settings_header(report: TextIO):
 def _report_basic_analysis_configuration(
     branch: Branch,
     reach: Reach,
+    qlocation: str,
     q_threshold: float,
-    ucrit: float,
     slength: float,
     report: TextIO,
 ):
     settings = {
         "branch": branch.name,
         "reach": reach.name,
+        "location": qlocation,
         "q_threshold": q_threshold,
-        "u_critical": ucrit,
         "slength": int(slength),
     }
     ApplicationSettingsHelper.log_text("analysis_settings", file=report, dict=settings)
 
 
-def _report_discharge_branch_location(
-    qlocation: str,
+def _report_critical_velocity(
+    ucrit: float,
     report: TextIO,
 ):
     settings = {
-        "location": qlocation,
+        "u_critical": ucrit,
     }
     ApplicationSettingsHelper.log_text(
-        "analysis_settings_discharge_location", file=report, dict=settings
+        "analysis_settings_critical_velocity", file=report, dict=settings
     )
 
 
@@ -247,15 +247,22 @@ def _report_analysis_conditions_header(report: TextIO):
     ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
 
 
-def _report_used_file_names(config: ConfigParser, report: TextIO):
+def _report_used_file_names(config: ConfigParser, q_threshold: float, report: TextIO):
     for section in config:
-        if section[0].lower() == "c":
-            discharge_file_name = config.get(section, "Discharge", fallback="")
-            reference_file_name = _get_file_name(config, section, "Reference")
-            measure_file_name = _get_file_name(config, section, "WithMeasure")
-            _report_analysis_conditions_values(
-                discharge_file_name, reference_file_name, measure_file_name, report
-            )
+        if section[0].lower() == "c" or section[0].lower() == "q":
+            discharge_str = config.get(section, "Discharge", fallback="")
+            discharge = float(discharge_str)
+            condition = "{:7.1f} m3/s".format(discharge)
+            if discharge <= q_threshold:
+                _report_analysis_conditions_values(
+                    condition, '---', '---     (measure not active)', report
+                )
+            else:
+                reference_file_name = _get_file_name(config, section, "Reference")
+                measure_file_name = _get_file_name(config, section, "WithMeasure")
+                _report_analysis_conditions_values(
+                    condition, reference_file_name, measure_file_name, report
+                )
 
 
 def _get_file_name(config: ConfigParser, section: str, value_name: str) -> str:
@@ -265,10 +272,10 @@ def _get_file_name(config: ConfigParser, section: str, value_name: str) -> str:
 
 
 def _report_analysis_conditions_values(
-    discharge: str, reference: str, measure: str, report: TextIO
+    condition: str, reference: str, measure: str, report: TextIO
 ):
     settings = {
-        "discharge": discharge,
+        "condition": condition,
         "reference": reference,
         "measure": measure,
     }

@@ -33,6 +33,7 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=dfastmi/Dutch_rivers_v2.ini=dfastmi/Dutch_rivers_v2.ini ^
  --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini ^
  --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini ^
+ --include-data-files=dfastmi/D-FASTMI.png=dfastmi/D-FASTMI.png ^
  --include-data-files=dfastmi/open.png=dfastmi/open.png ^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
  --windows-force-stderr-spec=%PROGRAM%logs.txt ^
