@@ -1,10 +1,10 @@
 from configparser import ConfigParser
-from packaging.version import Version
 from typing import Dict
 from unittest.mock import MagicMock
 
 import pytest
 from mock import patch
+from packaging.version import Version
 
 from dfastmi.gui.dialog_model import DialogModel, GeneralConfig
 from dfastmi.io.AReach import AReach
