@@ -1,3 +1,3 @@
 @echo off
 
-BuildDfastmi --no-console
+BuildDfastmi.bat --no-console
