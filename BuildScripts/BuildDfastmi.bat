@@ -2,7 +2,7 @@
 
 cd %~dp0
 cd..
-
+set cmd_box_args=dfastmi
 START /B /WAIT poetry run nuitka ^
  --standalone ^
  --assume-yes-for-downloads ^
@@ -37,6 +37,6 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=dfastmi/D-FASTMI.png=dfastmi/D-FASTMI.png ^
  --include-data-files=dfastmi/open.png=dfastmi/open.png ^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
- dfastmi
+ %cmd_box_args%
 
 rem end of build
