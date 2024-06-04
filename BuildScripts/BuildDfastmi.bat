@@ -1,8 +1,20 @@
 @echo off
 
+if "%1" == "--no-console" (
+
+set cmd_box_args=--windows-force-stderr-spec=%PROGRAM%logs.txt ^
+ --windows-force-stdout-spec=%PROGRAM%output.txt ^
+ --windows-disable-console ^
+ dfastmi
+ 
+) else (
+
+set cmd_box_args=dfastmi
+
+)
+
 cd %~dp0
 cd..
-
 START /B /WAIT poetry run nuitka ^
  --standalone ^
  --assume-yes-for-downloads ^
@@ -31,12 +43,12 @@ START /B /WAIT poetry run nuitka ^
  --copyright="Copyright (C) 2024 Stichting Deltares." ^
  --windows-icon-from-ico=dfastmi/D-FASTMI.png ^
  --include-data-files=dfastmi/Dutch_rivers_v1.ini=dfastmi/Dutch_rivers_v1.ini ^
- --include-data-files=dfastmi/Dutch_rivers_v2.ini=dfastmi/Dutch_rivers_v2.ini ^
+ --include-data-files=dfastmi/Dutch_rivers_v3.ini=dfastmi/Dutch_rivers_v3.ini ^
  --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini ^
  --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini ^
  --include-data-files=dfastmi/D-FASTMI.png=dfastmi/D-FASTMI.png ^
  --include-data-files=dfastmi/open.png=dfastmi/open.png ^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
- dfastmi
+ %cmd_box_args%
 
 rem end of build

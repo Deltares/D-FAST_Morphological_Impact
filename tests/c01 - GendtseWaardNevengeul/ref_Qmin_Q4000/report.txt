@@ -38,13 +38,15 @@ Configuration settings used for computation:
 Case description                    : 
 Branch                              : Bovenrijn & Waal
 Reach                               : Boven-Waal                   km  868-886
-Minimum Flow-carying Discharge      : 4000.0 m3/s
-Critical flow velocity              : 0.3 m/s
+Discharge location                  : Lobith
+Minimum flow-carrying discharge     : 4000.0 m3/s
 Impacted length                     : 299 m
 
-Discharge location  	            : Lobith
+Critical flow velocity              : 0.3 m/s
 
-Discharge [m3/s]|Reference file (without measure)       |File with measure
+Condition             | Reference file (without measure)       | File with measure
+ 4000.0 m3/s          | ---                                    | ---     (measure not active)          
+ 6000.0 m3/s          | reference-Q3_map.nc                    | measure-Q3_map.nc                     
 
 ================================================================================
 

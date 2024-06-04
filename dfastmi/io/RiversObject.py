@@ -85,7 +85,7 @@ class RiversObject:
         river_data = DFastRiverConfigFileParser(config)
 
         # initialize rivers dictionary
-        iversion = self._validate_version_in_file(filename, config)
+        self.version = self._validate_version_in_file(filename, config)
 
         self._verify_checksum_rivers(config, filename)
 
@@ -94,16 +94,16 @@ class RiversObject:
         self._parse_branches(config)
 
         # parse reaches and discharge locations
-        self._parse_reaches(config, iversion)
+        self._parse_reaches(config, self.version)
 
         # call the specific reader for the file version
-        if iversion == 1:
+        if self.version == Version("1"):
             self._read_rivers_legacy(river_data)
 
-        else:  # iversion == 2
+        else:
             self._read_rivers(river_data)
 
-    def _parse_reaches(self, config: configparser.ConfigParser, iversion):
+    def _parse_reaches(self, config: configparser.ConfigParser, version: Version):
         for branch in self.branches:
             i = 0
             while True:
@@ -111,7 +111,7 @@ class RiversObject:
                 try:
                     reach_config_key_name = "Reach" + str(i)
                     reach_name = config[branch.name][reach_config_key_name]
-                    if iversion == 1:
+                    if self.version == Version("1"):
                         reach = ReachLegacy(reach_name, i)
                     else:
                         reach = Reach(reach_name, i)
@@ -134,23 +134,19 @@ class RiversObject:
             branch.qlocation = config[branch.name]["QLocation"]
             self.branches.append(branch)
 
-    def _validate_version_in_file(self, filename, config):
+    def _validate_version_in_file(self, filename, config) -> Version:
         try:
             file_version = config["General"]["Version"]
         except:
             raise Exception("No version information in the file {}!".format(filename))
 
-        if Version(file_version) == Version("1"):
-            iversion = 1
-        elif Version(file_version) == Version("2"):
-            iversion = 2
-        else:
+        if Version(file_version) not in [Version("1"), Version("2"), Version("3")]:
             raise Exception(
                 "Unsupported version number {} in the file {}!".format(
                     file_version, filename
                 )
             )
-        return iversion
+        return Version(file_version)
 
     def _read_rivers_legacy(self, river_data: DFastRiverConfigFileParser):
         """
@@ -160,7 +156,6 @@ class RiversObject:
         and their associated default parameter settings.
         """
 
-        self.version = Version("1.0")
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize_base(river_data, reach)
@@ -196,7 +191,6 @@ class RiversObject:
         river_data : DFastRiverConfigFileParser
             The read data from the river configuration file.
         """
-        self.version = Version("2.0")
         for branch in self.branches:
             for reach in branch.reaches:
                 self._initialize_base(river_data, reach)

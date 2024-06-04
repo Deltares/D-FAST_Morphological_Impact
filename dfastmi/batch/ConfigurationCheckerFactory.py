@@ -74,8 +74,7 @@ class ConfigurationCheckerFactory:
         )
 
 
-legacy_version = Version("1.0")
-ConfigurationCheckerFactory.register_creator(legacy_version, ConfigurationCheckerLegacy)
+ConfigurationCheckerFactory.register_creator(Version("1.0"), ConfigurationCheckerLegacy)
 
-correct_version = Version("2.0")
-ConfigurationCheckerFactory.register_creator(correct_version, ConfigurationChecker)
+ConfigurationCheckerFactory.register_creator(Version("2.0"), ConfigurationChecker)
+ConfigurationCheckerFactory.register_creator(Version("3.0"), ConfigurationChecker)
