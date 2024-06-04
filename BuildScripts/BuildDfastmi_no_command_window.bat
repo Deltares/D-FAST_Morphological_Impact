@@ -1,3 +1,3 @@
 @echo off
 
-BuildDfastmi.bat --no-console
+"%~dp0\BuildDfastmi.bat" --no-console
