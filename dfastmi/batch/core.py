@@ -255,7 +255,7 @@ def _report_used_file_names(config: ConfigParser, q_threshold: float, report: Te
             condition = "{:7.1f} m3/s".format(discharge)
             if discharge <= q_threshold:
                 _report_analysis_conditions_values(
-                    condition, '---', '---     (measure not active)', report
+                    condition, "---", "---     (measure not active)", report
                 )
             else:
                 reference_file_name = _get_file_name(config, section, "Reference")
