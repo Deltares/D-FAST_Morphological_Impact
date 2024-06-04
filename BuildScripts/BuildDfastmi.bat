@@ -43,7 +43,7 @@ START /B /WAIT poetry run nuitka ^
  --copyright="Copyright (C) 2024 Stichting Deltares." ^
  --windows-icon-from-ico=dfastmi/D-FASTMI.png ^
  --include-data-files=dfastmi/Dutch_rivers_v1.ini=dfastmi/Dutch_rivers_v1.ini ^
- --include-data-files=dfastmi/Dutch_rivers_v2.ini=dfastmi/Dutch_rivers_v3.ini ^
+ --include-data-files=dfastmi/Dutch_rivers_v3.ini=dfastmi/Dutch_rivers_v3.ini ^
  --include-data-files=dfastmi/messages.NL.ini=dfastmi/messages.NL.ini ^
  --include-data-files=dfastmi/messages.UK.ini=dfastmi/messages.UK.ini ^
  --include-data-files=dfastmi/D-FASTMI.png=dfastmi/D-FASTMI.png ^
