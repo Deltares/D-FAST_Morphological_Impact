@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from configparser import ConfigParser, SectionProxy
 from typing import List, Optional
 
+from packaging.version import Version
 from pydantic import BaseModel
 
 import dfastmi
@@ -41,7 +42,7 @@ from dfastmi.io.RiversObject import RiversObject
 class GeneralConfig(BaseModel):
     """Represents the general configuration settings."""
 
-    Version: str = "2.0"
+    Version: str = "3.0"
     CaseDescription: str = ""
     Branch: str = ""
     Reach: str = ""
@@ -266,6 +267,7 @@ class DialogModel:
         config.optionxform = str
         config.add_section("General")
         config["General"] = GeneralConfig(
+            Version=str(self.rivers.version),
             CaseDescription=self.case_description,
             Branch=branch.name,
             Reach=reach.name,

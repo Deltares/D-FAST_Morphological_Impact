@@ -248,9 +248,9 @@ class Test_batch_mode:
         refdir = tstdir + os.sep + "ref_Qmin_Q4000_rkm"
         try:
             os.chdir(tstdir)
-            rivers = RiversObject("rivers_Q4000_v2_tide.ini")
+            rivers = RiversObject("rivers_Q4000_v3_tide.ini")
             with captured_output() as (out, err):
-                dfastmi.batch.core.batch_mode("Qmin_4000_v2_tide.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode("Qmin_4000_v3_tide.cfg", rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)

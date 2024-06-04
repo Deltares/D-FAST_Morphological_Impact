@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from packaging.version import Version
 from typing import Dict
 from unittest.mock import MagicMock
 
@@ -50,7 +51,9 @@ def mock_reach() -> MagicMock:
 @pytest.fixture
 def mock_rivers_object() -> MagicMock:
     """Fixture for creating a MagicMock object of RiversObject."""
-    return MagicMock(RiversObject)
+    rivers = MagicMock(RiversObject)
+    rivers.version = Version("3.0")
+    return rivers
 
 
 @pytest.fixture

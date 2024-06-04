@@ -115,7 +115,7 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
     parser.add_argument(
         "--rivers",
         default="unspecified",
-        help="name of rivers configuration file ('Dutch_rivers_v2.ini' is default)",
+        help="name of rivers configuration file ('Dutch_rivers_v3.ini' is default)",
     )
 
     parser.add_argument(
@@ -135,7 +135,7 @@ def parse_arguments() -> Tuple[str, str, Optional[str], str, bool]:
         if runmode == "CLI":
             rivers_file = "Dutch_rivers_v1.ini"
         else:
-            rivers_file = "Dutch_rivers_v2.ini"
+            rivers_file = "Dutch_rivers_v3.ini"
 
     if language not in ["NL", "UK"]:
         raise LookupError(

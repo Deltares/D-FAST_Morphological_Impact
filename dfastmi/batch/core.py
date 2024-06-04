@@ -131,7 +131,7 @@ def batch_mode_core(
     with report_path.open(mode="w", encoding="utf-8") as report:
         _log_header(report)
 
-        cfg_version = _get_verion(rivers, config)
+        cfg_version = _get_version(rivers, config)
 
         branch_name = config.get("General", "Branch", fallback="")
         branch = rivers.get_branch(branch_name)
@@ -337,7 +337,7 @@ def _report_mode_usage(imode: int, report: TextIO) -> int:
         )
 
 
-def _get_verion(rivers: RiversObject, config: ConfigParser) -> Version:
+def _get_version(rivers: RiversObject, config: ConfigParser) -> Version:
     """
     Will get the stated version string from the application config
     and convert this to a Version object.

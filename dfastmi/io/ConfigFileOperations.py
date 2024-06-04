@@ -198,6 +198,7 @@ class ConfigFileOperations:
         if not (
             Version(file_version) == Version("1")
             or Version(file_version) == Version("2")
+            or Version(file_version) == Version("3")
         ):
             raise ValueError(f"Unsupported version number {file_version} in the file!")
 

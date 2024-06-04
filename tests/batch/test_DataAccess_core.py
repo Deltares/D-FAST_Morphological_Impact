@@ -177,10 +177,10 @@ class Test_batch_check_configuration:
             config.set("Q3", "Reference", "")
             config.set("Q3", "WithMeasure", "")
 
-    class Test_check_configuration_v2:
+    class Test_check_configuration_v3:
         @pytest.fixture
         def rivers(self):
-            return RiversObject("dfastmi/Dutch_rivers_v2.ini")
+            return RiversObject("dfastmi/Dutch_rivers_v3.ini")
 
         @pytest.fixture
         def config(self):

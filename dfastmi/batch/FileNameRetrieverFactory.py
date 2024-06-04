@@ -82,10 +82,9 @@ class FileNameRetrieverFactory:
             return FileNameRetrieverUnsupported()
 
 
-legacy_version = Version("1.0")
 FileNameRetrieverFactory.register_creator(
-    legacy_version, lambda needs_tide: FileNameRetrieverLegacy()
+    Version("1.0"), lambda needs_tide: FileNameRetrieverLegacy()
 )
 
-correct_version = Version("2.0")
-FileNameRetrieverFactory.register_creator(correct_version, FileNameRetriever)
+FileNameRetrieverFactory.register_creator(Version("2.0"), FileNameRetriever)
+FileNameRetrieverFactory.register_creator(Version("3.0"), FileNameRetriever)
