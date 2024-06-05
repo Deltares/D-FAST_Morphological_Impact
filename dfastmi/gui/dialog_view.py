@@ -26,7 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import subprocess
+import os
 import sys
 from functools import partial
 from pathlib import Path
@@ -70,6 +70,27 @@ from dfastmi.resources import DFAST_LOGO
 # View
 reference_label = "reference"
 with_measure_label = "with_measure"
+
+
+class MyMainWindow(QMainWindow):
+    _view_model: DialogViewModel = None
+    _config_file: Optional[str] = None
+    _first_time: bool = True
+
+    def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
+        self._view_model = view_model
+        self._config_file = config_file
+        super(MyMainWindow, self).__init__(None)
+
+    def eventFilter(self, obj, event):
+        if event.type() == PyQt5.QtCore.QEvent.ActivationChange and self._first_time:
+            self._first_time = False
+            if self._config_file:
+                self._view_model.load_configuration(self._config_file)
+            return True
+        else:
+            # standard event processing
+            return PyQt5.QtCore.QObject.eventFilter(self, obj, event)
 
 
 class DialogView:
@@ -123,7 +144,7 @@ class DialogView:
     _close_plots: QLabel = None
     _close_plots_edit: QCheckBox = None
 
-    def __init__(self, view_model: DialogViewModel):
+    def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
         """
         Initialize the DialogView.
 
@@ -134,7 +155,7 @@ class DialogView:
 
         # Initialize GUI components
         self._create_qt_application()
-        self._create_dialog()
+        self._create_dialog(config_file)
         self._create_menus()
         self._create_central_widget()
         self._create_general_widgets()
@@ -163,7 +184,9 @@ class DialogView:
         self._case_description.setText(self._view_model.model.case_description)
 
         # Update branch and reach selection
+        self._branch.blockSignals(True)
         self._branch.setCurrentText(data)
+        self._branch.blockSignals(False)
         self._reach.clear()
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
@@ -182,7 +205,9 @@ class DialogView:
             data: The data for the reach.
         """
         # Update reach label
+        self._reach.blockSignals(True)
         self._reach.setCurrentText(data)
+        self._reach.blockSignals(False)
 
         # Update labels and text fields
         self._qthr.setText(str(self._view_model.model.qthreshold))
@@ -262,7 +287,7 @@ class DialogView:
         self._app = QApplication(sys.argv)
         self._app.setStyle("fusion")
 
-    def _create_dialog(self) -> None:
+    def _create_dialog(self, config_file: Optional[str] = None) -> None:
         """
         Construct the D-FAST Morphological Impact user interface.
 
@@ -270,10 +295,11 @@ class DialogView:
         ---------
         None
         """
-        self._win = QMainWindow()
+        self._win = MyMainWindow(self._view_model, config_file)
         self._win.setGeometry(200, 200, 800, 300)
         self._win.setWindowTitle("D-FAST Morphological Impact")
         self._win.setWindowIcon(DialogView._get_dfast_icon())
+        self._win.installEventFilter(self._win)
 
     def _create_menus(self) -> None:
         """
@@ -313,7 +339,7 @@ class DialogView:
         Returns:
             None
         """
-        central_widget = QWidget()
+        central_widget = QWidget(self._win)
         self._layout = QBoxLayout(2, central_widget)
         self._win.setCentralWidget(central_widget)
 
@@ -406,9 +432,7 @@ class DialogView:
         )
         layout.addRow(
             self._figure_dir,
-            self._open_folder_layout(
-                self._win, self._figure_dir_edit, "figure_dir_edit", False
-            ),
+            self._open_folder_layout(self._figure_dir_edit, "figure_dir_edit", False),
         )
 
     def _create_save_plots_input_checkbox(self, layout: QBoxLayout) -> None:
@@ -470,7 +494,7 @@ class DialogView:
         )
         layout.addRow(
             gui_text("outputDir"),
-            self._open_folder_layout(self._win, self._output_dir, "output_dir", True),
+            self._open_folder_layout(self._output_dir, "output_dir", True),
         )
 
     def _update_view_model(self, view_model_variable: str, value, invalid) -> None:
@@ -525,7 +549,7 @@ class DialogView:
         Returns:
             None
         """
-        group_box = QGroupBox(gui_text("condition_group_name"))
+        group_box = QGroupBox(gui_text("condition_group_name"), self._win)
         group_box_layout = QVBoxLayout(group_box)
         group_box.setStyleSheet(
             """
@@ -544,13 +568,13 @@ class DialogView:
         # Add widgets to the group box
 
         # Create a grid layout
-        self._grid_layout = QGridLayout()
+        self._grid_layout = QGridLayout(self._win)
         self._grid_layout.setObjectName("discharge_conditions_grid")
 
         # Add widgets to the form layout
-        discharge_column_label = QLabel(gui_text("qval"))
-        reference_column__label = QLabel(gui_text("reference"))
-        measure_column_label = QLabel(gui_text("measure"))
+        discharge_column_label = QLabel(gui_text("qval"), self._win)
+        reference_column__label = QLabel(gui_text("reference"), self._win)
+        measure_column_label = QLabel(gui_text("measure"), self._win)
 
         # Add widgets to the form layout with labels
         self._grid_layout.addWidget(discharge_column_label, 1, 0)
@@ -766,20 +790,18 @@ class DialogView:
         )
         q1_with_measure.setObjectName(prefix + with_measure_label)
 
-        discharge_value_label = QLabel(discharge_name)
+        discharge_value_label = QLabel(discharge_name, self._win)
         discharge_value_label.setEnabled(enabled)
         row_count = self._grid_layout.rowCount()
         self._grid_layout.addWidget(discharge_value_label, row_count, 0)
         self._grid_layout.addWidget(
-            self._open_file_layout(
-                self._win, q1_reference, prefix + reference_label, enabled
-            ),
+            self._open_file_layout(q1_reference, prefix + reference_label, enabled),
             row_count,
             1,
         )
         self._grid_layout.addWidget(
             self._open_file_layout(
-                self._win, q1_with_measure, prefix + with_measure_label, enabled
+                q1_with_measure, prefix + with_measure_label, enabled
             ),
             row_count,
             2,
@@ -933,16 +955,14 @@ class DialogView:
         ---------
         None
         """
-        subprocess.Popen(self._view_model.manual_filename, shell=True)
+        os.startfile(self._view_model.manual_filename)
 
-    def _open_file_layout(self, win, my_widget, key: str, enabled: bool):
+    def _open_file_layout(self, my_widget, key: str, enabled: bool):
         """
         Add an open line to the dialog.
 
         Arguments
         ---------
-        win
-            Main window of the dialog.
         my_widget
             Line edit widget to display the file name.
         key : str
@@ -950,14 +970,14 @@ class DialogView:
         enabled : bool
             If the widgets should be enabled.
         """
-        parent = QWidget()
+        parent = QWidget(self._win)
         gridly = QGridLayout(parent)
         gridly.setContentsMargins(0, 0, 0, 0)
         gridly.addWidget(my_widget, 0, 0)
 
         progloc = str(Path(__file__).parent.parent.absolute())
         open_file = QPushButton(
-            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", win
+            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", self._win
         )
         open_file.clicked.connect(partial(self._select_file, key))
         open_file.setObjectName(key + "_button")
@@ -981,14 +1001,12 @@ class DialogView:
         if fil[0] != "":
             self._set_file_in_condition_table(key, fil[0])
 
-    def _open_folder_layout(self, win, my_widget, key: str, enabled: bool):
+    def _open_folder_layout(self, my_widget, key: str, enabled: bool):
         """
         Add an open line to the dialog.
 
         Arguments
         ---------
-        win
-            Main window of the dialog.
         my_widget
             Line edit widget to display the folder name.
         key : str
@@ -996,14 +1014,14 @@ class DialogView:
         enabled : bool
             If the widgets should be enabled.
         """
-        parent = QWidget()
+        parent = QWidget(self._win)
         gridly = QGridLayout(parent)
         gridly.setContentsMargins(0, 0, 0, 0)
         gridly.addWidget(my_widget, 0, 0)
 
         progloc = str(Path(__file__).parent.parent.absolute())
         open_folder = QPushButton(
-            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", win
+            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", self._win
         )
         open_folder.clicked.connect(partial(self._select_folder, key))
         open_folder.setObjectName(key + "_button")
@@ -1150,13 +1168,13 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
         config_file (Optional[str], optional): The configuration file path. Defaults to None.
     """
     # Create Model instance
-    model = DialogModel(rivers_configuration, config_file)
+    model = DialogModel(rivers_configuration)
 
     # Create ViewModel instance with the Model
     view_model = DialogViewModel(model)
 
     # Create View instance with the ViewModel
-    view = DialogView(view_model)
+    view = DialogView(view_model, config_file)
 
     # Initialize the user interface and run the program
     view.activate_dialog()

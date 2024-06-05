@@ -69,11 +69,9 @@ def mock_measure_files() -> Dict[float, str]:
 
 
 @pytest.fixture
-def dialog_model(
-    mock_rivers_object: MagicMock, mock_config_parser: MagicMock
-) -> DialogModel:
+def dialog_model(mock_rivers_object: MagicMock) -> DialogModel:
     """Fixture for creating a DialogModel instance."""
-    return DialogModel(mock_rivers_object, mock_config_parser)
+    return DialogModel(mock_rivers_object)
 
 
 @pytest.fixture
@@ -224,17 +222,13 @@ def test_load_configuration_init(mock_rivers_object: MagicMock, mocker) -> None:
     Test case for loading configuration initialization.
 
     given: A DialogModel instance, mock RiversObject, and mocker.
-    when: Initializing the DialogModel with a configuration file.
+    when: Initializing the DialogModel.
     then: The configuration object is not None.
     """
-    filename = "test.cfg"
     config = ConfigParser()
     config["General"] = {}
-    mock_load_config = mocker.patch.object(
-        ConfigFileOperations, "load_configuration_file", return_value=config
-    )
-    model = DialogModel(mock_rivers_object, filename)
-    mock_load_config.assert_called_once_with(filename)
+    model = DialogModel(mock_rivers_object)
+
     assert model.config is not None
 
 

@@ -26,9 +26,10 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-
 from configparser import ConfigParser
 from typing import Tuple
+
+from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
 
 
 class DFastAnalysisConfigFileParser:
@@ -145,17 +146,4 @@ class DFastAnalysisConfigFileParser:
         return val
 
     def _configure_booleans(self):
-        self._config_parser.BOOLEAN_STATES = {
-            "1": True,
-            "yes": True,
-            "true": True,
-            "on": True,
-            "t": True,
-            "y": True,
-            "0": False,
-            "no": False,
-            "false": False,
-            "off": False,
-            "f": False,
-            "n": False,
-        }
+        self._config_parser.BOOLEAN_STATES = BOOLEAN_STATES
