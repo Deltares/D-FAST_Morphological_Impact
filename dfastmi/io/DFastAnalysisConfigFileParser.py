@@ -31,6 +31,7 @@ from typing import Tuple
 
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
 
+
 class DFastAnalysisConfigFileParser:
     """A parser class for parsing DFAST analysis config files."""
 

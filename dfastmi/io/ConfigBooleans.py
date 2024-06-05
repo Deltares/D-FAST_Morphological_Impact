@@ -28,16 +28,16 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 BOOLEAN_STATES = {
-        "1": True,
-        "yes": True,
-        "true": True,
-        "on": True,
-        "t": True,
-        "y": True,
-        "0": False,
-        "no": False,
-        "false": False,
-        "off": False,
-        "f": False,
-        "n": False,
-    }
+    "1": True,
+    "yes": True,
+    "true": True,
+    "on": True,
+    "t": True,
+    "y": True,
+    "0": False,
+    "no": False,
+    "false": False,
+    "off": False,
+    "f": False,
+    "n": False,
+}
