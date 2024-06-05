@@ -26,7 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import subprocess
+import os
 import sys
 from functools import partial
 from pathlib import Path
@@ -955,7 +955,7 @@ class DialogView:
         ---------
         None
         """
-        subprocess.Popen(self._view_model.manual_filename, shell=True)
+        os.startfile(self._view_model.manual_filename)
 
     def _open_file_layout(self, my_widget, key: str, enabled: bool):
         """
