@@ -71,16 +71,17 @@ from dfastmi.resources import DFAST_LOGO
 reference_label = "reference"
 with_measure_label = "with_measure"
 
+
 class MyMainWindow(QMainWindow):
     _view_model: DialogViewModel = None
     _config_file: Optional[str] = None
     _first_time: bool = True
-    
+
     def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
         self._view_model = view_model
         self._config_file = config_file
         super(MyMainWindow, self).__init__(None)
-        
+
     def eventFilter(self, obj, event):
         if event.type() == PyQt5.QtCore.QEvent.ActivationChange and self._first_time:
             self._first_time = False
@@ -90,6 +91,7 @@ class MyMainWindow(QMainWindow):
         else:
             # standard event processing
             return PyQt5.QtCore.QObject.eventFilter(self, obj, event)
+
 
 class DialogView:
     """
@@ -430,9 +432,7 @@ class DialogView:
         )
         layout.addRow(
             self._figure_dir,
-            self._open_folder_layout(
-                self._figure_dir_edit, "figure_dir_edit", False
-            ),
+            self._open_folder_layout(self._figure_dir_edit, "figure_dir_edit", False),
         )
 
     def _create_save_plots_input_checkbox(self, layout: QBoxLayout) -> None:
@@ -549,7 +549,7 @@ class DialogView:
         Returns:
             None
         """
-        group_box = QGroupBox(gui_text("condition_group_name"),self._win)
+        group_box = QGroupBox(gui_text("condition_group_name"), self._win)
         group_box_layout = QVBoxLayout(group_box)
         group_box.setStyleSheet(
             """
@@ -795,9 +795,7 @@ class DialogView:
         row_count = self._grid_layout.rowCount()
         self._grid_layout.addWidget(discharge_value_label, row_count, 0)
         self._grid_layout.addWidget(
-            self._open_file_layout(
-                q1_reference, prefix + reference_label, enabled
-            ),
+            self._open_file_layout(q1_reference, prefix + reference_label, enabled),
             row_count,
             1,
         )

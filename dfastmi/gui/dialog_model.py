@@ -71,9 +71,7 @@ class DialogModel:
     section: SectionProxy = None
     case_description: str = ""
 
-    def __init__(
-        self, rivers_configuration: RiversObject
-    ):
+    def __init__(self, rivers_configuration: RiversObject):
         """
         Initialize the DialogModel.
 

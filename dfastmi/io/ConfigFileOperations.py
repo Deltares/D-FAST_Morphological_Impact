@@ -207,41 +207,64 @@ class ConfigFileOperations:
         return ConfigFileOperations._config_to_absolute_paths(rootdir, config)
 
     @staticmethod
-    def _config_case_check(config: configparser.ConfigParser) -> configparser.ConfigParser:
-        config = ConfigFileOperations._config_case_check_section(config,"General")
-        for key in ["Version","CaseDescription","Branch","Reach","Qthreshold","Ucrit","OutputDir","Plotting","SavePlots","FigureDir","ClosePlots","RiverKM"]:
-            config = ConfigFileOperations._config_case_check_key(config,"General",key)
+    def _config_case_check(
+        config: configparser.ConfigParser,
+    ) -> configparser.ConfigParser:
+        config = ConfigFileOperations._config_case_check_section(config, "General")
+        for key in [
+            "Version",
+            "CaseDescription",
+            "Branch",
+            "Reach",
+            "Qthreshold",
+            "Ucrit",
+            "OutputDir",
+            "Plotting",
+            "SavePlots",
+            "FigureDir",
+            "ClosePlots",
+            "RiverKM",
+        ]:
+            config = ConfigFileOperations._config_case_check_key(config, "General", key)
 
         return config
-        
+
     @staticmethod
-    def _config_case_check_section(config: configparser.ConfigParser, section: str) -> configparser.ConfigParser:
+    def _config_case_check_section(
+        config: configparser.ConfigParser, section: str
+    ) -> configparser.ConfigParser:
         lower_section = section.lower()
         if not config.has_section(section):
-            matching_sections = [s for s in config.sections() if s.lower() == lower_section]
+            matching_sections = [
+                s for s in config.sections() if s.lower() == lower_section
+            ]
             if len(matching_sections) == 0:
-                raise LookupError("No "+section+" block in the file!")
-            elif len(matching_sections) > 1: 
-                raise LookupError("Multiple "+section+" blocks in the file!")
+                raise LookupError("No " + section + " block in the file!")
+            elif len(matching_sections) > 1:
+                raise LookupError("Multiple " + section + " blocks in the file!")
             else:
                 config[section] = config[matching_sections[0]]
                 config.remove_section(matching_sections[0])
 
         return config
-        
+
     @staticmethod
-    def _config_case_check_key(config: configparser.ConfigParser, section: str, key: str) -> configparser.ConfigParser:
+    def _config_case_check_key(
+        config: configparser.ConfigParser, section: str, key: str
+    ) -> configparser.ConfigParser:
         sec = config[section]
         lower_key = key.lower()
-        if not config.has_option(section,key):
+        if not config.has_option(section, key):
             matching_keys = [k for k in sec.keys() if k.lower() == lower_key]
             if len(matching_keys) == 0:
-                return config # all keys considered optional at this level
-            elif len(matching_keys) > 1: 
-                raise LookupError("Multiple keys "+key+" found in the block "+section+"!")
+                return config  # all keys considered optional at this level
+            elif len(matching_keys) > 1:
+                raise LookupError(
+                    "Multiple keys " + key + " found in the block " + section + "!"
+                )
             else:
                 sec[key] = sec[matching_keys[0]]
-                config.remove_option(section,matching_keys[0])
+                config.remove_option(section, matching_keys[0])
 
         return config
 

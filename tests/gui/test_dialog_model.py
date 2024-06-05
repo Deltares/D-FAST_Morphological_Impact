@@ -69,9 +69,7 @@ def mock_measure_files() -> Dict[float, str]:
 
 
 @pytest.fixture
-def dialog_model(
-    mock_rivers_object: MagicMock
-) -> DialogModel:
+def dialog_model(mock_rivers_object: MagicMock) -> DialogModel:
     """Fixture for creating a DialogModel instance."""
     return DialogModel(mock_rivers_object)
 
@@ -230,7 +228,7 @@ def test_load_configuration_init(mock_rivers_object: MagicMock, mocker) -> None:
     config = ConfigParser()
     config["General"] = {}
     model = DialogModel(mock_rivers_object)
-    
+
     assert model.config is not None
 
 
