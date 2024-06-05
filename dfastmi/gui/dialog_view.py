@@ -550,7 +550,6 @@ class DialogView:
             None
         """
         group_box = QGroupBox(gui_text("condition_group_name"), self._win)
-        group_box_layout = QVBoxLayout(group_box)
         group_box.setStyleSheet(
             """
             QGroupBox {
@@ -568,7 +567,7 @@ class DialogView:
         # Add widgets to the group box
 
         # Create a grid layout
-        self._grid_layout = QGridLayout(self._win)
+        self._grid_layout = QGridLayout(group_box)
         self._grid_layout.setObjectName("discharge_conditions_grid")
 
         # Add widgets to the form layout
@@ -580,8 +579,6 @@ class DialogView:
         self._grid_layout.addWidget(discharge_column_label, 1, 0)
         self._grid_layout.addWidget(reference_column__label, 1, 1)
         self._grid_layout.addWidget(measure_column_label, 1, 2)
-
-        group_box_layout.addLayout(self._grid_layout)
 
         # Add group box to the main layout
         layout.addRow(group_box)
