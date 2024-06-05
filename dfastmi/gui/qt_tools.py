@@ -76,5 +76,7 @@ def remove_widget(widget: QWidget):
     widget : QWidget
         The widget to be removed.
     """
+    # first hide the widget to avoid a dummy parent flash up ...
+    widget.setVisible(False)
     widget.setParent(None)
     widget.deleteLater()

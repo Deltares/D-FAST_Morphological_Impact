@@ -72,22 +72,17 @@ class DialogModel:
     case_description: str = ""
 
     def __init__(
-        self, rivers_configuration: RiversObject, config_file: Optional[str] = None
+        self, rivers_configuration: RiversObject
     ):
         """
         Initialize the DialogModel.
 
         Args:
             rivers_configuration (RiversObject): Configuration of rivers.
-            config_file (Optional[str], optional): Configuration file. Defaults to None.
         """
         self.rivers = rivers_configuration
 
-        if config_file:
-            self.load_configuration(config_file)
-
-        if not self.config:
-            self.create_configuration()
+        self.create_configuration()
 
         BOOLEAN_STATES = {
             "1": True,
@@ -202,6 +197,7 @@ class DialogModel:
     def create_configuration(self) -> bool:
         """Create configuration."""
         self.config = ConfigParser()
+        self.config.optionxform = str
         self.config["General"] = GeneralConfig().model_dump()
         self.section = self.config["General"]
 
