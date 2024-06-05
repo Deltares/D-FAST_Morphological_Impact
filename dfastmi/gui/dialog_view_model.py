@@ -359,8 +359,15 @@ class DialogViewModel(QObject):
                 self._reference_files[cond_discharge] = section.get("Reference", "")
                 self._measure_files[cond_discharge] = section.get("WithMeasure", "")
 
-        self.current_branch = self.model.rivers.get_branch(self.model.branch_name)
-        self.current_reach = self.current_branch.get_reach(self.model.reach_name)
+        branch = self.model.rivers.get_branch(self.model.branch_name)
+        if not branch:
+            branch = self.model.rivers.branches[0]
+        self.current_branch = branch
+
+        reach = self.current_branch.get_reach(self.model.reach_name)
+        if not reach:
+            reach = self._current_branch.reaches[0]
+        self.current_reach = reach
 
         self.make_plot = self.model.plotting
         self.save_plot = self.model.save_plots
