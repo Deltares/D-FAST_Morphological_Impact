@@ -352,9 +352,7 @@ class Test_popup:
         dialog_view._menu_open_manual()
 
         # Assert that subprocess.Popen was called with the expected arguments
-        mock_startfile.assert_called_once_with(
-            dialog_view._view_model.manual_filename
-        )
+        mock_startfile.assert_called_once_with(dialog_view._view_model.manual_filename)
 
 
 class Test_select:
