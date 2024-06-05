@@ -360,7 +360,7 @@ class DialogViewModel(QObject):
                 self._measure_files[cond_discharge] = section.get("WithMeasure", "")
 
         branch = self.model.rivers.get_branch(self.model.branch_name)
-        if not branch: 
+        if not branch:
             branch = self.model.rivers.branches[0]
         self.current_branch = branch
 
