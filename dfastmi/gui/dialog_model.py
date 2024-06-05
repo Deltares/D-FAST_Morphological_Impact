@@ -35,6 +35,7 @@ from pydantic import BaseModel
 import dfastmi
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
+from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 from dfastmi.io.RiversObject import RiversObject
 
@@ -82,20 +83,6 @@ class DialogModel:
 
         self.create_configuration()
 
-        BOOLEAN_STATES = {
-            "1": True,
-            "yes": True,
-            "true": True,
-            "on": True,
-            "t": True,
-            "y": True,
-            "0": False,
-            "no": False,
-            "false": False,
-            "off": False,
-            "f": False,
-            "n": False,
-        }
         self.config.BOOLEAN_STATES = BOOLEAN_STATES
 
     @property
