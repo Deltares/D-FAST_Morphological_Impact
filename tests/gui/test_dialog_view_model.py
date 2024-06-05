@@ -209,7 +209,7 @@ def test_load_configuration_with_unknown_key_value_save_and_load_unknown_are_ret
         dialog_view_model.load_configuration(config_file)
         file_location = tmp_path.joinpath("test.cfg")
         dialog_view_model.save_configuration(file_location)
-        dialog_view_model.model = DialogModel(rivers, None)
+        dialog_view_model.model = DialogModel(rivers)
         dialog_view_model.load_configuration(file_location)
         assert dialog_view_model.model.config.has_option("General", "UnknownKey")
         assert dialog_view_model.model.config["General"]["UnknownKey"] == "unkown value"

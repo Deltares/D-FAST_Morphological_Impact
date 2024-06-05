@@ -345,15 +345,15 @@ class Test_popup:
         when  : opening the user manual menu
         then  : the user manual should be opened correctly
         """
-        # Mock subprocess.Popen
-        mock_popen = MagicMock()
-        monkeypatch.setattr("subprocess.Popen", mock_popen)
+        # Mock os.startfile
+        mock_startfile = MagicMock()
+        monkeypatch.setattr("os.startfile", mock_startfile)
 
         dialog_view._menu_open_manual()
 
         # Assert that subprocess.Popen was called with the expected arguments
-        mock_popen.assert_called_once_with(
-            dialog_view._view_model.manual_filename, shell=True
+        mock_startfile.assert_called_once_with(
+            dialog_view._view_model.manual_filename
         )
 
 
