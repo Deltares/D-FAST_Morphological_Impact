@@ -158,9 +158,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
 
         return celerity
 
-    def _set_fraction_times(
-        self, reach: Reach
-    ) -> None:
+    def _set_fraction_times(self, reach: Reach) -> None:
         """
         Will set s vector of values each representing the fraction of the year during which
         the discharge is given by the corresponding entry in Q [-].

@@ -245,16 +245,20 @@ def _report_analysis_conditions_header(report: TextIO):
     ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
 
 
-def _report_used_file_names(config: ConfigParser, initialized_config: AConfigurationInitializerBase, report: TextIO):
+def _report_used_file_names(
+    config: ConfigParser,
+    initialized_config: AConfigurationInitializerBase,
+    report: TextIO,
+):
     imode = _get_mode_usage(config)
     filenames = get_filenames(imode, initialized_config.needs_tide, config)
-    for i,q in enumerate(initialized_config.discharges):
-        if not q: # should only happen for version 1 files
+    for i, q in enumerate(initialized_config.discharges):
+        if not q:  # should only happen for version 1 files
             continue
         if 0 in filenames:
             key = i
         elif initialized_config.needs_tide:
-            key = (q,initialized_config.tide_bc[i])
+            key = (q, initialized_config.tide_bc[i])
         else:
             key = q
         condition = "{:7.1f} m3/s".format(q)

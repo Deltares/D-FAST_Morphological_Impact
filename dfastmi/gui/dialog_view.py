@@ -28,11 +28,11 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import os
 import sys
+import traceback
 from functools import partial
 from pathlib import Path
 from typing import Iterator, Optional, Tuple
 
-import traceback
 import PyQt5.QtCore
 import PyQt5.QtGui
 from PyQt5.QtGui import QDoubleValidator, QFontDatabase, QIcon
@@ -220,7 +220,7 @@ class DialogView:
         """
         # Update the threshold discharge in the GUI
         self._qthr.setText(str(self._view_model.model.qthreshold))
-        
+
         # Update labels and text fields
         self._ucrit.setText(str(self._view_model.model.ucritical))
         self._slength.setText(self._view_model.slength)
@@ -739,7 +739,9 @@ class DialogView:
             None
         """
         if self._qthr.hasAcceptableInput():
-            new_qthreshold = max(float(self._qthr.text()),self._view_model.current_reach.qstagnant)
+            new_qthreshold = max(
+                float(self._qthr.text()), self._view_model.current_reach.qstagnant
+            )
             self._view_model.qthreshold = new_qthreshold
 
     def _updated_ucritical(self) -> None:
@@ -839,7 +841,10 @@ class DialogView:
             try:
                 success = self._view_model.run_analysis()
             except:
-                self._show_error("A run-time exception occurred. Press 'Show Details...' for the full stack trace.",traceback.format_exc())
+                self._show_error(
+                    "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
+                    traceback.format_exc(),
+                )
                 return
 
             if success:

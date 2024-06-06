@@ -133,11 +133,11 @@ class DialogViewModel(QObject):
         """
         self._qthreshold = value
         self.model.qthreshold = value
-        
+
         self._update_slength()
         # Notify the view of the change
         self.qthreshold_changed.emit(self._qthreshold)
-        
+
     @property
     def reference_files(self) -> Dict[float, str]:
         """
@@ -235,7 +235,7 @@ class DialogViewModel(QObject):
         Returns:
             bool: True if analysis is successful, False otherwise.
         """
-        return self.model.run_analysis(gui = True)
+        return self.model.run_analysis(gui=True)
 
     @property
     def manual_filename(self) -> str:

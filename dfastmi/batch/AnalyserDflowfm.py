@@ -265,7 +265,10 @@ class AnalyserDflowfm:
         self, filenames: Dict[Any, Tuple[str, str]]
     ) -> Optional[str]:
         for i in range(3):
-            if self._discharges[i] is not None and self._discharges[i] > self._q_threshold:
+            if (
+                self._discharges[i] is not None
+                and self._discharges[i] > self._q_threshold
+            ):
                 return filenames[i][0]
         return None
 

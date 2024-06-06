@@ -67,7 +67,7 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
             qthresh = reach.qstagnant
         self._time_mi = tuple(
             (
-                0.
+                0.0
                 if self.discharges[i] is None or self.discharges[i] <= qthresh
                 else self.time_fractions_of_the_year[i]
             )

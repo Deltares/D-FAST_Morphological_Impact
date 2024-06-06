@@ -1,18 +1,16 @@
 import os
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import mock
 import pytest
 
+from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_model import DialogModel
+from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
 from dfastmi.io.RiversObject import RiversObject
-
-from unittest.mock import MagicMock
-
-from dfastmi.batch.DFastUtils import get_progloc
-from dfastmi.gui.dialog_view_model import DialogViewModel
 
 
 @pytest.fixture

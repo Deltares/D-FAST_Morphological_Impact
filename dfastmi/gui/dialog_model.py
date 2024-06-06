@@ -26,12 +26,12 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import traceback
 from configparser import ConfigParser, SectionProxy
 from typing import List, Optional
 
 from packaging.version import Version
 from pydantic import BaseModel
-import traceback
 
 import dfastmi
 from dfastmi.io.AReach import AReach
@@ -224,7 +224,7 @@ class DialogModel:
             If thrown, analysis has failed.
         """
         success = dfastmi.batch.core.batch_mode_core(
-            self.rivers, False, self.config, gui = gui
+            self.rivers, False, self.config, gui=gui
         )
         return success
 
