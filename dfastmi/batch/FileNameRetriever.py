@@ -71,30 +71,28 @@ class FileNameRetriever(AFileNameRetriever):
         """
         filenames: Dict[Any, Tuple[str, str]]
         key: Union[Tuple[float, int], float]
+
         filenames = {}
-        i = 0
-        while True:
-            i = i + 1
-            CSTR = f"C{i}"
-            if CSTR in config:
-                q_string = self._cfg_get(config, CSTR, "Discharge")
+        for section in config.sections():
+            if section[0].lower() != "c":
+                continue
 
-                try:
-                    Q = float(q_string)
-                except ValueError as exc:
-                    raise TypeError(
-                        f"{q_string} from Discharge could now be handled as a float."
-                    ) from exc
+            q_string = self._cfg_get(config, section, "Discharge")
 
-                reference = self._cfg_get(config, CSTR, "Reference")
-                measure = self._cfg_get(config, CSTR, "WithMeasure")
-                if self.needs_tide:
-                    T = self._cfg_get(config, CSTR, "TideBC")
-                    key = (Q, T)
-                else:
-                    key = Q
-                filenames[key] = (reference, measure)
+            try:
+                Q = float(q_string)
+            except ValueError as exc:
+                raise TypeError(
+                    f"{q_string} from Discharge could not be handled as a float."
+                ) from exc
+
+            reference = self._cfg_get(config, section, "Reference")
+            measure = self._cfg_get(config, section, "WithMeasure")
+            if self.needs_tide:
+                T = self._cfg_get(config, section, "TideBC")
+                key = (Q, T)
             else:
-                break
+                key = Q
+            filenames[key] = (reference, measure)
 
         return filenames

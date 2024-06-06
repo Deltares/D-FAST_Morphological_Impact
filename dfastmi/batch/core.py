@@ -197,7 +197,7 @@ def _report_analysis_configuration(
     )
     _report_critical_velocity(initialized_config.ucrit, report)
     _report_analysis_conditions_header(report)
-    _report_used_file_names(config, initialized_config.q_threshold, report)
+    _report_used_file_names(config, initialized_config, report)
     _report_section_break(report)
 
 
@@ -245,26 +245,37 @@ def _report_analysis_conditions_header(report: TextIO):
     ApplicationSettingsHelper.log_text("analysis_settings_conditions_header", report)
 
 
-def _report_used_file_names(config: ConfigParser, q_threshold: float, report: TextIO):
-    for section in config:
-        if section[0].lower() == "c" or section[0].lower() == "q":
-            discharge_str = config.get(section, "Discharge", fallback="")
-            discharge = float(discharge_str)
-            condition = "{:7.1f} m3/s".format(discharge)
-            if discharge <= q_threshold:
-                _report_analysis_conditions_values(
-                    condition, "---", "---     (measure not active)", report
-                )
-            else:
-                reference_file_name = _get_file_name(config, section, "Reference")
-                measure_file_name = _get_file_name(config, section, "WithMeasure")
-                _report_analysis_conditions_values(
-                    condition, reference_file_name, measure_file_name, report
-                )
+def _report_used_file_names(config: ConfigParser, initialized_config: AConfigurationInitializerBase, report: TextIO):
+    imode = _get_mode_usage(config)
+    filenames = get_filenames(imode, initialized_config.needs_tide, config)
+    for i,q in enumerate(initialized_config.discharges):
+        if not q: # should only happen for version 1 files
+            continue
+        if 0 in filenames:
+            key = i
+        elif initialized_config.needs_tide:
+            key = (q,initialized_config.tide_bc[i])
+        else:
+            key = q
+        condition = "{:7.1f} m3/s".format(q)
+        if q <= initialized_config.q_threshold:
+            _report_analysis_conditions_values(
+                condition, "---", "---     (measure not active)", report
+            )
+        elif key in filenames:
+            files = filenames[key]
+            reference_file_name = _get_file_name(files[0])
+            measure_file_name = _get_file_name(files[1])
+            _report_analysis_conditions_values(
+                condition, reference_file_name, measure_file_name, report
+            )
+        else:
+            _report_analysis_conditions_values(
+                condition, "xxx", "xxx     (not specified)", report
+            )
 
 
-def _get_file_name(config: ConfigParser, section: str, value_name: str) -> str:
-    location = config.get(section, value_name, fallback="")
+def _get_file_name(location: str) -> str:
     path = Path(location)
     return path.name
 

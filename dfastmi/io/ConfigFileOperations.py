@@ -153,15 +153,16 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only relative paths.
         """
         absolute_path = config.get(section, key, fallback="")
+
         if len(absolute_path) == 0:
-            absolute_path = rootdir
-
-        absolute_path_converted_to_relative_path = str(
-            os.path.relpath(absolute_path, rootdir)
-        )
-
-        if absolute_path_converted_to_relative_path == ".":
             absolute_path_converted_to_relative_path = ""
+        else:
+            try:
+                absolute_path_converted_to_relative_path = str(
+                    os.path.relpath(absolute_path, rootdir)
+                )
+            except ValueError:
+                absolute_path_converted_to_relative_path = absolute_path
 
         config.set(section, key, absolute_path_converted_to_relative_path)
 
@@ -327,12 +328,14 @@ class ConfigFileOperations:
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
         relative_path = config.get(section, key, fallback="")
-        if len(relative_path) > 0:
-            relative_path_converted_to_absolute_path = str(
-                Path(rootdir).joinpath(Path(relative_path))
-            )
-        else:
+
+        if len(relative_path) == 0:
             relative_path_converted_to_absolute_path = ""
+        else:
+            relative_path_converted_to_absolute_path = str(
+                Path(rootdir).joinpath(Path(relative_path)).resolve()
+            )
+
         config.set(section, key, relative_path_converted_to_absolute_path)
 
 

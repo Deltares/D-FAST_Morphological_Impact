@@ -199,7 +199,7 @@ class AnalyserDflowfm:
 
     def _determine_dzq(self, dzq: numpy.ndarray) -> numpy.ndarray:
         if self._tstag > 0:
-            return (dzq[0], dzq[0], dzq[1], dzq[2])
+            return (dzq[0], 0, dzq[1], dzq[2])
         return dzq
 
     def _get_time_fractions_of_the_year(self) -> Vector:
@@ -242,8 +242,9 @@ class AnalyserDflowfm:
         return "minimum value of bed level change without dredging"
 
     def _get_first_fm_data_filename(self, filenames: Dict[Any, Tuple[str, str]]) -> str:
-        self._missing_data = False
         one_fm_filename: Union[None, str] = None
+        self._missing_data = False
+
         # determine the name of the first FM data file that will be used
         if 0 in filenames.keys():  # the keys are 0,1,2
             one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(
@@ -264,7 +265,7 @@ class AnalyserDflowfm:
         self, filenames: Dict[Any, Tuple[str, str]]
     ) -> Optional[str]:
         for i in range(3):
-            if self._discharges[i] is not None:
+            if self._discharges[i] is not None and self._discharges[i] > self._q_threshold:
                 return filenames[i][0]
         return None
 
@@ -320,14 +321,18 @@ class AnalyserDflowfm:
     ) -> numpy.ndarray:
         dzq = [None] * len(self._discharges)
         for i in range(3):
-            if not self._missing_data and self._discharges[i] is not None:
+            if self._discharges[i] is None:
+                # ignore period
+                dzq[i] = 0
+            elif self._discharges[i] <= self._q_threshold:
+                # measure inactive, so zero-effect for this period
+                dzq[i] = numpy.zeros_like(iface, dtype=float)
+            else:
                 dzq[i] = self._get_values_fm(
                     self._discharges[i], filenames[i], self._n_fields, dxi, dyi, iface
                 )
                 if dzq[i] is None:
                     self._missing_data = True
-            else:
-                dzq[i] = 0
         return dzq
 
     def _get_dzq_based_on_conditions_keys(
@@ -339,11 +344,14 @@ class AnalyserDflowfm:
     ) -> numpy.ndarray:
         dzq = [None] * len(self._discharges)
         for i in range(len(self._discharges)):
-            if not self._missing_data and self._discharges[i] is not None:
+            if self._discharges[i] is None:
+                # ignore period
+                dzq[i] = 0
+            else:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
-                if self._rsigma[i] == 1:
-                    # no celerity, so ignore field
-                    dzq[i] = 0
+                if q <= self._q_threshold:
+                    # measure inactive, so zero-effect for this period
+                    dzq[i] = numpy.zeros_like(iface, dtype=float)
                 elif key in filenames.keys():
                     if t:
                         n_fields_request = self._n_fields
@@ -355,8 +363,6 @@ class AnalyserDflowfm:
                 else:
                     self._reporter.report_missing_calculation_dzq_values(q, t)
                     self._missing_data = True
-            else:
-                dzq[i] = 0
         return dzq
 
     def _get_condition_key(self, discharges: Vector, tide_bc: Tuple[str, ...], i: int):

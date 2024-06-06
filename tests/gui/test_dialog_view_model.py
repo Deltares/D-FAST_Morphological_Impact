@@ -9,7 +9,6 @@ from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
 from dfastmi.io.RiversObject import RiversObject
 
-pytestmark = pytest.mark.qt_api("pyqt5")
 from unittest.mock import MagicMock
 
 from dfastmi.batch.DFastUtils import get_progloc

@@ -251,7 +251,7 @@ class Test_AnalyserDflowfm:
                 zmax_str,
                 zmin_str,
             )
-            assert dzq_from_du_and_h.call_count == 3
+            assert dzq_from_du_and_h.call_count == 2
             assert main_computation.call_count == 1
 
     @pytest.mark.parametrize("display", [True, False])
@@ -314,7 +314,7 @@ class Test_AnalyserDflowfm:
                 zmax_str,
                 zmin_str,
             )
-            assert dzq_from_du_and_h.call_count == 3
+            assert dzq_from_du_and_h.call_count == 2
             assert main_computation.call_count == 1
 
     @pytest.mark.parametrize("display", [True, False])
@@ -378,5 +378,5 @@ class Test_AnalyserDflowfm:
                 zmax_str,
                 zmin_str,
             )
-            assert dzq_from_du_and_h.call_count == 3
+            assert dzq_from_du_and_h.call_count == 2
             assert main_computation.call_count == 1

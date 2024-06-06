@@ -42,7 +42,7 @@ class Test_FileNameRetriever:
         key = "Discharge"
         chap = "C1"
         expected_exception_message = (
-            f"{not_a_float_string} from Discharge could now be handled as a float."
+            f"{not_a_float_string} from Discharge could not be handled as a float."
         )
 
         config = ConfigParser()

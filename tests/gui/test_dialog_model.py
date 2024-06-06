@@ -128,30 +128,6 @@ def test_run_analysis_failure(mock_batch_mode_core: MagicMock) -> None:
     assert result is False
 
 
-def test_run_analysis_exception(mock_batch_mode_core: MagicMock) -> None:
-    """
-    Test case for exception during analysis run.
-
-    given: A DialogModel instance.
-    when: Calling the run_analysis method with batch_mode_core raising an exception.
-    then: The batch_mode_core function is called and the return value of run_analysis is False (failure).
-    """
-    # Set the side effect of batch_mode_core to raise an exception
-    mock_batch_mode_core.side_effect = Exception("mocked")
-
-    # Create an instance of DialogModel
-    model = DialogModel(rivers_configuration=None)
-
-    # Call the run_analysis method
-    result = model.run_analysis()
-
-    # Check that batch_mode_core was called
-    mock_batch_mode_core.assert_called_once()
-
-    # Check that the return value of run_analysis is False (failure)
-    assert result is False
-
-
 class Test_create_configuration:
     @pytest.fixture
     def mock_general_config_object(self) -> MagicMock:

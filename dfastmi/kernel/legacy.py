@@ -158,7 +158,7 @@ def char_times(
         A tuple of 3 values each representing the number of days during which the discharge is given by the corresponding entry in Q.
     rsigma : Vector
         A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
-    """
+    """    
     if q_stagnant > q_fit[0]:
         t_stagnant_yr = 1 - math.exp((q_fit[0] - q_stagnant) / q_fit[1])
     else:
