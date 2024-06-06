@@ -62,16 +62,19 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self._q_threshold = self._get_q_threshold_from_config(config)
 
         self._set_discharges(reach, config, celerity_hg, celerity_lw)
+        qthresh = self.q_threshold
+        if qthresh is None:
+            qthresh = reach.qstagnant
         self._time_mi = tuple(
             (
-                0
-                if self.discharges[i] is None or self.discharges[i] <= reach.qstagnant
+                0.0
+                if self.discharges[i] is None or self.discharges[i] <= qthresh
                 else self.time_fractions_of_the_year[i]
             )
             for i in range(len(self.time_fractions_of_the_year))
         )
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
-        self._set_slenght()
+        self._set_slength()
 
     def _set_discharges(
         self,
@@ -152,14 +155,9 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         """
         q_list = list(three_characteristic_discharges)
         for iq in range(3):
-            if apply_q[iq]:
-                discharge = config.get(f"Q{iq + 1}", "Discharge", fallback="")
-                if self._is_float_str(discharge):
-                    q_list[iq] = float(discharge)
-                else:
-                    q_list[iq] = None
-            else:
-                q_list[iq] = None
+            discharge = config.get(f"Q{iq + 1}", "Discharge", fallback="")
+            if self._is_float_str(discharge):
+                q_list[iq] = float(discharge)
         return q_list
 
     def _get_q_bankfull_from_config(
@@ -198,6 +196,8 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         ---------
         config : ConfigParser
             Configuration of the analysis to be run.
+        qstagnant : float
+            Discharge below which the flow is largely stagnant.
 
         Results
         -------

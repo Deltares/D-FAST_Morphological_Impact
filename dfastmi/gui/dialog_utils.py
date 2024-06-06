@@ -84,7 +84,7 @@ class FolderExistsValidator(QValidator):
         Tuple[int, str, int]
             A tuple containing the validation state, the input string, and the cursor position.
         """
-        if Path(input_str).is_dir():
+        if len(input_str) > 0 and Path(input_str).is_dir():
             return (QValidator.Acceptable, input_str, pos)
         return (QValidator.Invalid, input_str, pos)
 

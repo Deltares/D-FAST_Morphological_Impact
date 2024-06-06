@@ -103,6 +103,10 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
                 tmi.append(0.0)
         celerity = [celerity_lw, celerity_hg, celerity_hg]
         slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
+        if slength > 1:
+            nlength = int(slength)
+        else:
+            nlength = slength
 
         if have_files:
             # determine critical flow velocity
@@ -144,10 +148,6 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
             )
 
             if success:
-                if slength > 1:
-                    nlength = int(slength)
-                else:
-                    nlength = slength
                 ApplicationSettingsHelper.log_text("")
                 ApplicationSettingsHelper.log_text(
                     "length_estimate", dict={"nlength": nlength}

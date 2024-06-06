@@ -48,6 +48,7 @@ class DialogViewModel(QObject):
 
     branch_changed = pyqtSignal(str)
     reach_changed = pyqtSignal(str)
+    qthreshold_changed = pyqtSignal(float)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
@@ -67,6 +68,7 @@ class DialogViewModel(QObject):
         super().__init__()
         self._current_branch: Branch = model.rivers.branches[0]
         self._current_reach: AReach = self._current_branch.reaches[0]
+        self._qthreshold: float = 0.0
         self.model = model
         self._initialize_qthreshold()
         self._initialize_ucritical()
@@ -110,9 +112,31 @@ class DialogViewModel(QObject):
         self._current_reach = value
         self._initialize_qthreshold()
         self._initialize_ucritical()
-        self._update_qvalues()
         # Notify the view of the change
         self.reach_changed.emit(self._current_reach.name)
+
+    @property
+    def qthreshold(self) -> float:
+        """
+        The current threshold discharge.
+        """
+        return self._qthreshold
+
+    @qthreshold.setter
+    def qthreshold(self, value: float):
+        """
+        Setter for the current threshold discharge.
+        After set notify the view of the change.
+
+        Arguments:
+            value (float): The threshold discharge to set.
+        """
+        self._qthreshold = value
+        self.model.qthreshold = value
+
+        self._update_slength()
+        # Notify the view of the change
+        self.qthreshold_changed.emit(self._qthreshold)
 
     @property
     def reference_files(self) -> Dict[float, str]:
@@ -211,7 +235,7 @@ class DialogViewModel(QObject):
         Returns:
             bool: True if analysis is successful, False otherwise.
         """
-        return self.model.run_analysis()
+        return self.model.run_analysis(gui=True)
 
     @property
     def manual_filename(self) -> str:
@@ -261,6 +285,7 @@ class DialogViewModel(QObject):
         """
         if self.model.qthreshold < self.current_reach.qstagnant:
             self.model.qthreshold = self.current_reach.qstagnant
+        self.qthreshold = self.model.qthreshold
 
     def updated_reach(self, reach_name: str) -> None:
         """
@@ -274,9 +299,9 @@ class DialogViewModel(QObject):
         if reach_name:
             self.current_reach = self._current_branch.get_reach(reach_name)
 
-    def _update_qvalues(self) -> None:
+    def _update_slength(self) -> None:
         """
-        Update the GUI for characteristic discharges.
+        Update the sedimentation length.
 
         Arguments:
             None
@@ -286,8 +311,8 @@ class DialogViewModel(QObject):
             if self.current_reach.auto_time:
                 _, time_mi = ConfigurationInitializer.set_times(
                     self._current_reach.hydro_q,
-                    self.current_reach.qfit,
-                    self.current_reach.qstagnant,
+                    self._current_reach.qfit,
+                    self._current_reach.qstagnant,
                     self.model.qthreshold,
                 )
             else:
@@ -307,7 +332,7 @@ class DialogViewModel(QObject):
             slength = dfastmi.kernel.core.estimate_sedimentation_length(
                 time_mi, celerity
             )
-            self.slength = "{:.0f}".format(slength)
+            self.slength = str(int(slength))
         except:
             self.slength = "---"
 
@@ -348,7 +373,7 @@ class DialogViewModel(QObject):
 
         self._initialize_qthreshold()
         self._initialize_ucritical()
-        self._update_qvalues()
+        self._update_slength()
 
         self._reference_files = {}
         self._measure_files = {}

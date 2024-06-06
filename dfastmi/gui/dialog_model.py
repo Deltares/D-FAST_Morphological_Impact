@@ -26,6 +26,7 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import traceback
 from configparser import ConfigParser, SectionProxy
 from typing import List, Optional
 
@@ -205,14 +206,15 @@ class DialogModel:
         config = self.get_configuration(branch, reach, reference_files, measure_files)
         return check_configuration(self.rivers, config)
 
-    def run_analysis(self) -> bool:
+    def run_analysis(self, gui: bool = False) -> bool:
         # Logic to run analysis based on configuration
         """
         Run the D-FAST Morphological Impact analysis based on settings in the GUI.
 
         Arguments
         ---------
-        None
+        gui : bool
+            Flag indicating whether this routine is called from the GUI.
 
         Return
         ---------
@@ -221,12 +223,9 @@ class DialogModel:
             We call batch_mode_core which can throw and log an exception.
             If thrown, analysis has failed.
         """
-        try:
-            success = dfastmi.batch.core.batch_mode_core(
-                self.rivers, False, self.config
-            )
-        except:
-            success = False
+        success = dfastmi.batch.core.batch_mode_core(
+            self.rivers, False, self.config, gui=gui
+        )
         return success
 
     def get_configuration(

@@ -155,7 +155,7 @@ class AConfigurationInitializerBase(ABC):
         ucrit = max(ucrit_min, ucrit)
         self._ucrit = ucrit
 
-    def _set_slenght(self) -> None:
+    def _set_slength(self) -> None:
         """
         Should only be called AFTER(!) init.
         Set the expected yearly impacted sedimentation length

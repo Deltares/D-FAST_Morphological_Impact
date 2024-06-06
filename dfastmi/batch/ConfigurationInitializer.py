@@ -63,7 +63,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         self._set_q_threshold(config, reach.qstagnant)
         self._discharges = reach.hydro_q
         self._apply_q = (True,) * len(self.discharges)
-        self._set_fraction_times(reach, self.q_threshold, self.discharges)
+        self._set_fraction_times(reach)
 
         # determine the bed celerity based on the input settings
         self._celerity = self.get_bed_celerity(reach, self.discharges)
@@ -81,7 +81,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         self._needs_tide = reach.use_tide
         if self.needs_tide:
             self._tide_bc = reach.tide_boundary_condition
-        self._set_slenght()
+        self._set_slength()
 
     def _get_tide(self, reach: Reach, config: ConfigParser) -> int:
         """
@@ -158,9 +158,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
 
         return celerity
 
-    def _set_fraction_times(
-        self, reach: Reach, q_threshold: float, discharges: Vector
-    ) -> None:
+    def _set_fraction_times(self, reach: Reach) -> None:
         """
         Will set s vector of values each representing the fraction of the year during which
         the discharge is given by the corresponding entry in Q [-].
@@ -171,10 +169,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         ---------
         reach : Reach
             The reach we want to get the levels from.
-        q_threshold : float
-            Threshold discharge above which the measure is active.
-        discharges : Vector
-            A vector of discharges (Q) included in hydrograph [m3/s].
 
         Return
         ------
@@ -183,14 +177,17 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
 
         if reach.auto_time:
             self._time_fractions_of_the_year, self._time_mi = self.set_times(
-                discharges, reach.qfit, reach.qstagnant, q_threshold
+                self.discharges, reach.qfit, reach.qstagnant, self.q_threshold
             )
         else:
             self._time_fractions_of_the_year = self.get_time_fractions_of_the_year(
                 reach.hydro_t
             )
+            qthresh = self.q_threshold
+            if qthresh is None:
+                qthresh = reach.qstagnant
             self._time_mi = self.calculate_time_mi(
-                q_threshold, discharges, self.time_fractions_of_the_year
+                qthresh, self.discharges, self.time_fractions_of_the_year
             )
 
     @staticmethod
@@ -239,7 +236,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
         """
         return tuple(
-            0 if discharges[i] < q_threshold else time_fractions_of_the_year[i]
+            0 if discharges[i] <= q_threshold else time_fractions_of_the_year[i]
             for i in range(len(time_fractions_of_the_year))
         )
 
@@ -260,12 +257,9 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         None
         """
         if "Qthreshold" in config["General"]:
-            try:
-                q_threshold = float(config.get("General", "Qthreshold", fallback=""))
-            except ValueError:
-                q_threshold = q_stagnant  # Or should I raise ValueError exception?
+            q_threshold = float(config.get("General", "Qthreshold", fallback=""))
         else:
-            q_threshold = q_stagnant
+            q_threshold = None
         self._q_threshold = q_threshold
 
     @staticmethod
@@ -301,11 +295,14 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         qvec = numpy.array(discharges)
         sorted_qvec = numpy.argsort(qvec)
         q = qvec[sorted_qvec]
+        qthresh = q_threshold
+        if qthresh is None:
+            qthresh = q_stagnant
 
         t = numpy.zeros(q.shape)
         tmi = numpy.zeros(q.shape)
         p_do = 1.0
-        p_th = math.exp(min(0.0, q_fit[0] - max(q_stagnant, q_threshold)) / q_fit[1])
+        p_th = math.exp(min(0.0, q_fit[0] - qthresh) / q_fit[1])
 
         for i, discharge in enumerate(q):
             if discharge <= q_stagnant:
@@ -322,7 +319,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
 
             t[i] = p_do - p_up
 
-            if discharge <= q_threshold:
+            if discharge <= qthresh:
                 tmi[i] = max(0.0, p_th - p_up)
             else:
                 tmi[i] = min(p_th, p_do) - p_up
