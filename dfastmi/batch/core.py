@@ -37,12 +37,12 @@ from packaging.version import InvalidVersion, Version
 
 import dfastmi.kernel.core
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
+from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.config.ConfigurationInitializerFactory import (
     ConfigurationInitializerFactory,
 )
-from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
-from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigFileOperations import ConfigFileOperations
