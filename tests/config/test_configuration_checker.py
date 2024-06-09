@@ -4,7 +4,7 @@ from unittest.mock import create_autospec, patch
 
 import pytest
 
-from dfastmi.batch.ConfigurationChecker import ConfigurationChecker
+from dfastmi.config.ConfigurationChecker import ConfigurationChecker
 from dfastmi.io.Branch import Branch
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject

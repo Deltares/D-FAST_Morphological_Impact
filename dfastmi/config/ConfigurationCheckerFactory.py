@@ -30,9 +30,9 @@ from typing import Callable
 
 from packaging.version import Version
 
-from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
-from dfastmi.batch.ConfigurationChecker import ConfigurationChecker
-from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
+from dfastmi.config.AConfigurationChecker import AConfigurationCheckerBase
+from dfastmi.config.ConfigurationChecker import ConfigurationChecker
+from dfastmi.config.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
 
 
 class ConfigurationCheckerFactory:

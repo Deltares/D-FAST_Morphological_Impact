@@ -3,7 +3,7 @@ from unittest.mock import create_autospec
 
 import pytest
 
-from dfastmi.batch.ConfigurationCheckerLegacy import (
+from dfastmi.config.ConfigurationCheckerLegacy import (
     DFLOWFM_MAP,
     WAQUA_EXPORT,
     ConfigurationCheckerLegacy,

@@ -37,8 +37,8 @@ from packaging.version import InvalidVersion, Version
 
 import dfastmi.kernel.core
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
-from dfastmi.batch.ConfigurationInitializerFactory import (
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.config.ConfigurationInitializerFactory import (
     ConfigurationInitializerFactory,
 )
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory

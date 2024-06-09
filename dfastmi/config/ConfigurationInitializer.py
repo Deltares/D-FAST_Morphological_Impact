@@ -32,7 +32,7 @@ from typing import List, Tuple
 
 import numpy
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.Reach import Reach
 from dfastmi.kernel.core import relax_factors
 from dfastmi.kernel.typehints import Vector
