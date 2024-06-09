@@ -36,7 +36,6 @@ import matplotlib
 from packaging.version import InvalidVersion, Version
 
 import dfastmi.kernel.core
-import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
 from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.ConfigurationInitializerFactory import (
