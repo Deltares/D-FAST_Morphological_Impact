@@ -35,11 +35,11 @@ import numpy
 from dfastmi.batch.DflowfmReporters import ReporterDflowfmReporter
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
+from dfastmi.batch.plotting import plot_overview, savefig, zoom_xy_and_save
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.map_file import MapFile
-from dfastmi.batch.plotting import plot_overview, savefig, zoom_xy_and_save
 
 
 class ReporterDflowfm:

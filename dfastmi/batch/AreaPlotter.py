@@ -34,8 +34,8 @@ import numpy
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-import dfastmi.kernel.core
 import dfastmi.batch.plotting
+import dfastmi.kernel.core
 from dfastmi.batch.AreaDetector import AreaData
 from dfastmi.batch.PlotOptions import PlotOptions
 
