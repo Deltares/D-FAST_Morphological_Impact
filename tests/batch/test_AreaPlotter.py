@@ -103,7 +103,9 @@ class Test_SedimentationAreaPlotter:
             patch(
                 "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.zoom_x_and_save"
             ) as zoom_x_and_save,
-            patch("dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig") as savefig,
+            patch(
+                "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig"
+            ) as savefig,
         ):
             plot_sedimentation.return_value = (Mock(spec=Figure), Mock(spec=Axes))
 
@@ -150,7 +152,9 @@ class Test_SedimentationAreaPlotter:
             patch(
                 "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.zoom_x_and_save"
             ) as zoom_x_and_save,
-            patch("dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig") as savefig,
+            patch(
+                "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig"
+            ) as savefig,
         ):
             plot_sedimentation.return_value = (Mock(spec=Figure), Mock(spec=Axes))
 
@@ -194,7 +198,9 @@ class Test_SedimentationAreaPlotter:
             patch(
                 "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.zoom_x_and_save"
             ) as zoom_x_and_save,
-            patch("dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig") as savefig,
+            patch(
+                "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig"
+            ) as savefig,
         ):
             plot_sedimentation.return_value = (Mock(spec=Figure), Mock(spec=Axes))
 
@@ -281,7 +287,9 @@ class Test_ErosionAreaPlotter:
             patch(
                 "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.zoom_x_and_save"
             ) as zoom_x_and_save,
-            patch("dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig") as savefig,
+            patch(
+                "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig"
+            ) as savefig,
         ):
             plot_sedimentation.return_value = (Mock(spec=Figure), Mock(spec=Axes))
 
@@ -328,7 +336,9 @@ class Test_ErosionAreaPlotter:
             patch(
                 "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.zoom_x_and_save"
             ) as zoom_x_and_save,
-            patch("dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig") as savefig,
+            patch(
+                "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig"
+            ) as savefig,
         ):
             plot_sedimentation.return_value = (Mock(spec=Figure), Mock(spec=Axes))
 
@@ -372,7 +382,9 @@ class Test_ErosionAreaPlotter:
             patch(
                 "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.zoom_x_and_save"
             ) as zoom_x_and_save,
-            patch("dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig") as savefig,
+            patch(
+                "dfastmi.batch.AreaPlotter.dfastmi.batch.plotting.savefig"
+            ) as savefig,
         ):
             plot_sedimentation.return_value = (Mock(spec=Figure), Mock(spec=Axes))
 
