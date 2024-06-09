@@ -64,8 +64,7 @@ class Test_basic:
             "  --config CONFIG  name of analysis configuration file ('dfastmi.cfg' is",
             "                   default)",
             "  --rivers RIVERS  name of rivers configuration file ('Dutch_rivers_v3.ini' is",
-            "                   default)'] != ['usage: dfastmi.exe [-h] [--language LANGUAGE] [--mode MODE] [--config CONFIG]",
-            "                   [--rivers RIVERS] [--reduced_output]",
+            "                   default)",
             "",
         ]
 
