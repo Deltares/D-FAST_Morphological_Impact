@@ -1,9 +1,9 @@
 import pytest
 from packaging.version import Version
 
-from dfastmi.batch.ConfigurationChecker import ConfigurationChecker
-from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
-from dfastmi.batch.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
+from dfastmi.config.ConfigurationChecker import ConfigurationChecker
+from dfastmi.config.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+from dfastmi.config.ConfigurationCheckerLegacy import ConfigurationCheckerLegacy
 
 
 class Test_configuration_checker_factory:

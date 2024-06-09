@@ -9,7 +9,7 @@ from unittest.mock import patch
 import mock
 import pytest
 
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+from dfastmi.config.ConfigFileOperations import ConfigFileOperations
 
 
 @contextmanager

@@ -6,10 +6,13 @@ import pytest
 from mock import patch
 from packaging.version import Version
 
+from dfastmi.config.ConfigFileOperations import (
+    ConfigFileOperations,
+    check_configuration,
+)
 from dfastmi.gui.dialog_model import DialogModel, GeneralConfig
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 from dfastmi.io.RiversObject import RiversObject
 
 

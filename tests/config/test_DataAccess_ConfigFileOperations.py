@@ -3,7 +3,7 @@ import sys
 from contextlib import contextmanager
 from io import StringIO
 
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
+from dfastmi.config.ConfigFileOperations import ConfigFileOperations
 
 
 @contextmanager

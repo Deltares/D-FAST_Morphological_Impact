@@ -7,8 +7,8 @@ import netCDF4
 import pytest
 
 import dfastmi.batch.core
+from dfastmi.config.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import Vector
 

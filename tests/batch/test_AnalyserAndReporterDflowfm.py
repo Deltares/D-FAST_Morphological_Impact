@@ -11,9 +11,9 @@ from matplotlib import pyplot as plt
 from mock import Mock
 
 from dfastmi.batch import AnalyserAndReporterDflowfm
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
 from dfastmi.io.map_file import MapFile

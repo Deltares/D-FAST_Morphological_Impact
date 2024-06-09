@@ -3,7 +3,7 @@ from unittest.mock import create_autospec
 
 import pytest
 
-from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
+from dfastmi.config.ConfigurationInitializer import ConfigurationInitializer
 from dfastmi.io.CelerObject import CelerDischarge, CelerProperties
 from dfastmi.io.Reach import Reach
 

@@ -32,10 +32,10 @@ from typing import Any, Dict, TextIO, Tuple
 
 import shapely
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 
 
 def analyse_and_report_dflowfm(

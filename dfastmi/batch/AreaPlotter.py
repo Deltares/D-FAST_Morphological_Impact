@@ -34,8 +34,8 @@ import numpy
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+import dfastmi.batch.plotting
 import dfastmi.kernel.core
-import dfastmi.plotting
 from dfastmi.batch.AreaDetector import AreaData
 from dfastmi.batch.PlotOptions import PlotOptions
 
@@ -147,7 +147,7 @@ class AreaPlotter(ABC):
         if not self._plotting_options.plotting:
             return
 
-        fig, ax = dfastmi.plotting.plot_sedimentation(
+        fig, ax = dfastmi.batch.plotting.plot_sedimentation(
             kmid,
             "chainage [km]",
             binvol,
@@ -232,7 +232,7 @@ class AreaPlotter(ABC):
                 dzgemi_filtered, areai, wbin, siface, afrac, sbin, wthresh, sthresh
             )
 
-            fig, ax = dfastmi.plotting.plot_sedimentation(
+            fig, ax = dfastmi.batch.plotting.plot_sedimentation(
                 kmid,
                 "chainage [km]",
                 area_binvol,
@@ -256,7 +256,7 @@ class AreaPlotter(ABC):
 
         figbase = self._plotting_options.figure_save_directory / figure_base_name
         if self._plotting_options.saveplot_zoomed:
-            dfastmi.plotting.zoom_x_and_save(
+            dfastmi.batch.plotting.zoom_x_and_save(
                 fig,
                 ax,
                 figbase,
@@ -264,7 +264,7 @@ class AreaPlotter(ABC):
                 self._plotting_options.kmzoom,
             )
         figfile = figbase.with_suffix(self._plotting_options.plot_extension)
-        dfastmi.plotting.savefig(fig, figfile)
+        dfastmi.batch.plotting.savefig(fig, figfile)
 
     def _comp_binned_volumes(
         self,

@@ -5,8 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from dfastmi.batch.ConfigurationCheckerLegacy import DFLOWFM_MAP, WAQUA_EXPORT
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
+from dfastmi.config.ConfigFileOperations import (
+    ConfigFileOperations,
+    check_configuration,
+)
+from dfastmi.config.ConfigurationCheckerLegacy import DFLOWFM_MAP, WAQUA_EXPORT
 from dfastmi.io.RiversObject import RiversObject
 
 

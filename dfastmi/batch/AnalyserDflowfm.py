@@ -34,12 +34,12 @@ from typing import Any, Dict, List, Optional, TextIO, Tuple, Union
 import numpy
 from shapely.geometry.linestring import LineString
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.batch.DflowfmReporters import AnalyserDflowfmReporter
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
 from dfastmi.batch.XykmData import XykmData
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.map_file import MapFile
 from dfastmi.kernel.core import dzq_from_du_and_h, main_computation
 from dfastmi.kernel.typehints import BoolVector, Vector

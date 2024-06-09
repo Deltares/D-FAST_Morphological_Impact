@@ -33,7 +33,7 @@ from pathlib import Path
 
 from packaging.version import Version
 
-from dfastmi.batch.ConfigurationCheckerFactory import ConfigurationCheckerFactory
+from dfastmi.config.ConfigurationCheckerFactory import ConfigurationCheckerFactory
 from dfastmi.io.RiversObject import RiversObject
 
 

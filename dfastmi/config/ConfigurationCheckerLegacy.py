@@ -28,9 +28,9 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 
-from dfastmi.batch.AConfigurationChecker import AConfigurationCheckerBase
-from dfastmi.batch.ConfigurationCheckerValidator import ConfigurationCheckerValidator
-from dfastmi.batch.ConfigurationInitializerLegacy import ConfigurationInitializerLegacy
+from dfastmi.config.AConfigurationChecker import AConfigurationCheckerBase
+from dfastmi.config.ConfigurationCheckerValidator import ConfigurationCheckerValidator
+from dfastmi.config.ConfigurationInitializerLegacy import ConfigurationInitializerLegacy
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject

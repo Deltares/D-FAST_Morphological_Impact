@@ -36,17 +36,16 @@ import matplotlib
 from packaging.version import InvalidVersion, Version
 
 import dfastmi.kernel.core
-import dfastmi.plotting
 from dfastmi.batch import AnalyserAndReporterDflowfm, AnalyserAndReporterWaqua
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
-from dfastmi.batch.ConfigurationInitializerFactory import (
-    ConfigurationInitializerFactory,
-)
 from dfastmi.batch.FileNameRetrieverFactory import FileNameRetrieverFactory
 from dfastmi.batch.PlotOptions import PlotOptions
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.config.ConfigFileOperations import ConfigFileOperations
+from dfastmi.config.ConfigurationInitializerFactory import (
+    ConfigurationInitializerFactory,
+)
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.Branch import Branch
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Reach import Reach

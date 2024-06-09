@@ -31,9 +31,9 @@ from typing import Callable, TypeVar
 
 from packaging.version import Version
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
-from dfastmi.batch.ConfigurationInitializer import ConfigurationInitializer
-from dfastmi.batch.ConfigurationInitializerLegacy import ConfigurationInitializerLegacy
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.config.ConfigurationInitializer import ConfigurationInitializer
+from dfastmi.config.ConfigurationInitializerLegacy import ConfigurationInitializerLegacy
 from dfastmi.io.IReach import IReach
 
 T = TypeVar("T")  # Define a type variable

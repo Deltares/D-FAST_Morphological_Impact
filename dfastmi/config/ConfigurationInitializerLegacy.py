@@ -29,7 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 from configparser import ConfigParser
 from typing import List, Optional
 
-from dfastmi.batch.AConfigurationInitializerBase import AConfigurationInitializerBase
+from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.kernel.legacy import char_discharges, char_times
 from dfastmi.kernel.typehints import BoolVector, QRuns
