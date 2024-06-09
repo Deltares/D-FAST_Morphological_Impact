@@ -65,7 +65,6 @@ class Test_basic:
             "                   default)",
             "  --rivers RIVERS  name of rivers configuration file ('Dutch_rivers_v3.ini' is",
             "                   default)",
-            "",
         ]
 
     def test_basic_gui(self):
