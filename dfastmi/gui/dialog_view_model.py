@@ -35,11 +35,11 @@ from PyQt5.QtCore import QObject, pyqtSignal
 import dfastmi
 from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.config.ConfigurationInitializer import ConfigurationInitializer
+from dfastmi.config.ConfigFileOperations import ConfigFileOperations
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations
 from dfastmi.io.IBranch import IBranch
 
 

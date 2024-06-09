@@ -34,10 +34,10 @@ from packaging.version import Version
 from pydantic import BaseModel
 
 import dfastmi
+from dfastmi.config.ConfigFileOperations import ConfigFileOperations, check_configuration
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
-from dfastmi.io.ConfigFileOperations import ConfigFileOperations, check_configuration
 from dfastmi.io.RiversObject import RiversObject
 
 
