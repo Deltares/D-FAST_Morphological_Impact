@@ -1,8 +1,10 @@
-import pytest
 from pathlib import Path
+
+import pytest
 
 # dfast binary path relative to root
 dfastdir = "dfastmi.dist/"
+
 
 class Test_files_included:
 
@@ -17,7 +19,7 @@ class Test_files_included:
             "dfastmi/Dutch_rivers_v1.ini",
             "dfastmi/Dutch_rivers_v3.ini",
             "dfastmi/messages.UK.ini",
-        ]
+        ],
     )
     def test_included(self, filename: str):
         """
