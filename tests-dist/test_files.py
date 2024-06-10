@@ -19,7 +19,7 @@ class Test_files_included:
             "dfastmi/messages.UK.ini",
         ]
     )
-    def test_included(self):
+    def test_included(self, filename: str):
         """
         Test whether a specific file is included.
         """
