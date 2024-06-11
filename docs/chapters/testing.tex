@@ -228,11 +228,11 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Start from Test 2.
 \item Specify "Test 3" as the Case description
 \item Select branch "Maas"
-\item Verify that the selected reach switches to Grensmaas, that the discharge location switches to Borgharen, and the impacted length becomes \SI{1}{\metre}.
+\item Verify that the selected reach switches to Grensmaas, that the discharge location switches to Borgharen, and the (rounded) impacted length becomes \SI{0}{\metre}.
 \item Select reach "Grave-Lith"
-\item Verify that the impacted length becomes \SI{66}{\metre}.
+\item Verify that the impacted length becomes \SI{65}{\metre}.
 \item Set the minimum flow-carrying discharge to \SI{2100}{\metre\cubed\per\second}
-\item Verify that entry boxes for all discharges less or equal to 2100 are greyed-out.
+\item Verify that the impacted length reduces to \SI{8}{\metre}, and that the entry boxes for all discharges less or equal to 2100 are greyed-out.
 \item Select the files listed in \autoref{fig:test3.png} for the discharges of \SI{2500}{\metre\cubed\per\second} and \SI{3200}{\metre\cubed\per\second} with and without measure.
 \item Verify that the red outline of the edit fields turns grey when valid file names are specified.
 \item Select the output directory as \keyw{d:\textbackslash}.
@@ -252,7 +252,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \begin{enumerate}
 \item Start from Test 3.
 \item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as "test4.cfg".
-\item Verify that a file "test4.cfg" has been created and that the content matches
+\item Verify that a file "test4.cfg" has been created and that the content matches the following listing, but note that the relative paths may differ dependent on the work folder used
 
 \verbfilenobox[\scriptsize]{figures/test4.cfg}
 \end{enumerate}
@@ -273,7 +273,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 
 \subsubsection{Test 7: view manual and about Windows}
 \begin{enumerate}
-\item Start from Test 7.
+\item Start from Test 6.
 \item Select \menu{Help} \textrightarrow \menu{Open User Manual} and verify that the user manual is opened.
 \item Select \menu{Help} \textrightarrow \menu{Version} and verify that the about box shown matches the image stored as "test7\_about.png" except for the version number (which should match the version being tested) and the copyright year (which should match the year of the latest code update).
 \item Verify that pressing the \button{Show Details...} button reveal a text box stating "This software is distributed under the conditions of the GNU Lesser General Public License Version 2.1; see the LICENSE.md file for details."
@@ -284,15 +284,33 @@ The following sections describe a workflow of 9 phases to test the interactive w
 
 \subsubsection{Test 8: run \dflowfm analysis}
 \begin{enumerate}
-\item Start from Test 8.
+\item Start from Test 7.
 \item Open the configuration file ...
 \item Press the \button{Compute} button.
 \item Verify that the analysis completes successfully.
+The generated figure should correspond to \autoref{fig:report_Figure1.png}.
+The content of the \keyw{report.txt} file in the output folder, should be equal to the following listing.
+The "year-averaged bed level change without dredging" should correspond to \autoref{fig:report_Figure1_QP.png} when plotted using QUICKPLOT from the \keyw{dfastmi\_results.nc} file using default settings.
+\begin{figure}[H]
+\center
+\includegraphics[width=12cm]{figures/report_Figure1.png}
+\caption{Analysis results as plotted by D-FAST MI}
+\label{fig:report_Figure1.png}
+\end{figure}
 \end{enumerate}
+
+\verbfilenobox[\scriptsize]{figures/report.txt}
+
+\begin{figure}[H]
+\center
+\includegraphics[width=12cm]{figures/report_Figure1_QP.png}
+\caption{Analysis results as plotted using QUICKPLOT}
+\label{fig:report_Figure1_QP.png}
+\end{figure}
 
 \subsubsection{Test 9: closing the software}
 \begin{enumerate}
-\item Start from 9.
+\item Start from 8.
 \item Close the program by one of the following methods:
 \begin{itemize}
 \item Select \menu{File} \textrightarrow \menu{Exit}.
@@ -322,7 +340,7 @@ Test & Description & Success / Comments \\ \hline
 6 & load modified configuration file & OK \\
 7 & view manual and about Windows & OK \\
 8 & run \dflowfm analysis & OK \\
-8 & closing the software & OK \\
+9 & closing the software & OK \\
 \end{tabular}
 
 
@@ -335,75 +353,76 @@ Note that the \keyw{\_\_main\_\_} module code is only executed in the binary tes
 ---------- coverage: platform win32, python 3.9.13-final-0 -----------
 Name                                               Stmts   Miss  Cover
 ----------------------------------------------------------------------
-dfastmi\__init__.py                                    4      0   100%
-dfastmi\__main__.py                                   54     54     0%
-dfastmi\batch\AConfigurationChecker.py                37      3    92%
-dfastmi\batch\AConfigurationInitializerBase.py        76      0   100%
-dfastmi\batch\AFileNameRetriever.py                   12      0   100%
-dfastmi\batch\AnalyserAndReporterDflowfm.py           16      0   100%
-dfastmi\batch\AnalyserAndReporterWaqua.py             12      0   100%
-dfastmi\batch\AnalyserDflowfm.py                     213     12    94%
-dfastmi\batch\AnalyserWaqua.py                       150      1    99%
-dfastmi\batch\AreaDetector.py                        108      0   100%
-dfastmi\batch\AreaPlotter.py                          78      0   100%
-dfastmi\batch\ConfigurationChecker.py                 59     11    81%
-dfastmi\batch\ConfigurationCheckerFactory.py          22      0   100%
-dfastmi\batch\ConfigurationCheckerLegacy.py           55      4    93%
-dfastmi\batch\ConfigurationCheckerValidator.py        13      0   100%
-dfastmi\batch\ConfigurationInitializer.py            101      7    93%
-dfastmi\batch\ConfigurationInitializerFactory.py      25      1    96%
-dfastmi\batch\ConfigurationInitializerLegacy.py       52      0   100%
-dfastmi\batch\DFastUtils.py                           49     38    22%
-dfastmi\batch\DflowfmReporters.py                     95     33    65%
-dfastmi\batch\Distance.py                             54      6    89%
-dfastmi\batch\Face.py                                 69      3    96%
-dfastmi\batch\FileNameRetriever.py                    27      1    96%
-dfastmi\batch\FileNameRetrieverFactory.py             23      0   100%
-dfastmi\batch\FileNameRetrieverLegacy.py              14      0   100%
-dfastmi\batch\FileNameRetrieverUnsupported.py          7      0   100%
-dfastmi\batch\OutputDataDflowfm.py                    60      0   100%
-dfastmi\batch\OutputDataWaqua.py                       9      0   100%
-dfastmi\batch\PlotOptions.py                          81      3    96%
-dfastmi\batch\Projection.py                           56     16    71%
-dfastmi\batch\ReporterDflowfm.py                     108      0   100%
-dfastmi\batch\ReporterWaqua.py                        20      0   100%
-dfastmi\batch\SedimentationData.py                    11      0   100%
-dfastmi\batch\SedimentationVolume.py                 125      3    98%
-dfastmi\batch\XykmData.py                            115      1    99%
-dfastmi\batch\XyzFileWriter.py                        15      0   100%
-dfastmi\batch\core.py                                200     11    94%
-dfastmi\cli.py                                       235     70    70%
-dfastmi\cmd.py                                        28     28     0%
-dfastmi\gui\dialog_model.py                          143      1    99%
-dfastmi\gui\dialog_utils.py                           56      0   100%
-dfastmi\gui\dialog_view.py                           431     25    94%
-dfastmi\gui\dialog_view_model.py                     145      1    99%
-dfastmi\gui\qt_tools.py                               19      6    68%
-dfastmi\io\AReach.py                                  20      0   100%
-dfastmi\io\ApplicationSettingsHelper.py               43      0   100%
-dfastmi\io\Branch.py                                  33      1    97%
-dfastmi\io\CelerObject.py                             53      1    98%
-dfastmi\io\ConfigFileOperations.py                    92      3    97%
-dfastmi\io\DFastAnalysisConfigFileParser.py           33      0   100%
-dfastmi\io\DFastRiverConfigFileParser.py              87      0   100%
-dfastmi\io\DataTextFileOperations.py                  65      1    98%
-dfastmi\io\IBranch.py                                 16      0   100%
-dfastmi\io\IReach.py                                  13      0   100%
-dfastmi\io\ObservableList.py                          25      0   100%
-dfastmi\io\Reach.py                                   48      0   100%
-dfastmi\io\ReachLegacy.py                             11      0   100%
-dfastmi\io\RiversObject.py                           125      2    98%
-dfastmi\io\map_file.py                               138      3    98%
-dfastmi\kernel\BedLevelCalculator.py                  60      0   100%
-dfastmi\kernel\core.py                                30      0   100%
-dfastmi\kernel\legacy.py                              55      0   100%
-dfastmi\kernel\typehints.py                            6      0   100%
-dfastmi\plotting.py                                  121     50    59%
-dfastmi\resources.py                                   4      0   100%
-----------------------------------------------------------------------
-TOTAL                                               4360    400    91%
+dfastmi\__init__.py                                     4      0   100%
+dfastmi\__main__.py                                    50     50     0%
+dfastmi\batch\AFileNameRetriever.py                    12      0   100%
+dfastmi\batch\AnalyserAndReporterDflowfm.py            16      0   100%
+dfastmi\batch\AnalyserAndReporterWaqua.py              12      0   100%
+dfastmi\batch\AnalyserDflowfm.py                      215     12    94%
+dfastmi\batch\AnalyserWaqua.py                        150      1    99%
+dfastmi\batch\AreaDetector.py                         108      0   100%
+dfastmi\batch\AreaPlotter.py                           78      0   100%
+dfastmi\batch\DFastUtils.py                            49     38    22%
+dfastmi\batch\DflowfmReporters.py                      95     33    65%
+dfastmi\batch\Distance.py                              54      6    89%
+dfastmi\batch\Face.py                                  69      3    96%
+dfastmi\batch\FileNameRetriever.py                     25      0   100%
+dfastmi\batch\FileNameRetrieverFactory.py              22      0   100%
+dfastmi\batch\FileNameRetrieverLegacy.py               14      0   100%
+dfastmi\batch\FileNameRetrieverUnsupported.py           7      0   100%
+dfastmi\batch\OutputDataDflowfm.py                     60      0   100%
+dfastmi\batch\OutputDataWaqua.py                        9      0   100%
+dfastmi\batch\PlotOptions.py                           81      3    96%
+dfastmi\batch\Projection.py                            56     16    71%
+dfastmi\batch\ReporterDflowfm.py                      108      0   100%
+dfastmi\batch\ReporterWaqua.py                         20      0   100%
+dfastmi\batch\SedimentationData.py                     11      0   100%
+dfastmi\batch\SedimentationVolume.py                  125      3    98%
+dfastmi\batch\XykmData.py                             115      1    99%
+dfastmi\batch\XyzFileWriter.py                         15      0   100%
+dfastmi\batch\core.py                                 211     12    94%
+dfastmi\batch\plotting.py                             121     50    59%
+dfastmi\cli.py                                        235     70    70%
+dfastmi\cmd.py                                         28     28     0%
+dfastmi\config\AConfigurationChecker.py                37      3    92%
+dfastmi\config\AConfigurationInitializerBase.py        76      0   100%
+dfastmi\config\ConfigFileOperations.py                127     16    87%
+dfastmi\config\ConfigurationChecker.py                 59     11    81%
+dfastmi\config\ConfigurationCheckerFactory.py          21      0   100%
+dfastmi\config\ConfigurationCheckerLegacy.py           55      4    93%
+dfastmi\config\ConfigurationCheckerValidator.py        13      0   100%
+dfastmi\config\ConfigurationInitializer.py            104      5    95%
+dfastmi\config\ConfigurationInitializerFactory.py      24      1    96%
+dfastmi\config\ConfigurationInitializerLegacy.py       52      0   100%
+dfastmi\gui\dialog_model.py                           140      1    99%
+dfastmi\gui\dialog_utils.py                            56      0   100%
+dfastmi\gui\dialog_view.py                            456     34    93%
+dfastmi\gui\dialog_view_model.py                      162      4    98%
+dfastmi\gui\qt_tools.py                                20      6    70%
+dfastmi\io\AReach.py                                   20      0   100%
+dfastmi\io\ApplicationSettingsHelper.py                43      0   100%
+dfastmi\io\Branch.py                                   33      1    97%
+dfastmi\io\CelerObject.py                              53      1    98%
+dfastmi\io\ConfigBooleans.py                            2      0   100%
+dfastmi\io\DFastAnalysisConfigFileParser.py            34      0   100%
+dfastmi\io\DFastRiverConfigFileParser.py               87      0   100%
+dfastmi\io\DataTextFileOperations.py                   65      1    98%
+dfastmi\io\IBranch.py                                  16      0   100%
+dfastmi\io\IReach.py                                   13      0   100%
+dfastmi\io\ObservableList.py                           25      0   100%
+dfastmi\io\Reach.py                                    48      0   100%
+dfastmi\io\ReachLegacy.py                              11      0   100%
+dfastmi\io\RiversObject.py                            120      2    98%
+dfastmi\io\map_file.py                                138      3    98%
+dfastmi\kernel\BedLevelCalculator.py                   60      0   100%
+dfastmi\kernel\core.py                                 30      0   100%
+dfastmi\kernel\legacy.py                               55      0   100%
+dfastmi\kernel\typehints.py                             6      0   100%
+dfastmi\resources.py                                    4      0   100%
+-----------------------------------------------------------------------
+TOTAL                                                4440    419    91%
 
-====================== 456 passed, 35 warnings in 46.88s ======================
+====================== 455 passed, 33 warnings in 39.77s ======================
 \end{Verbatim}
 
 \section{Code check}
@@ -443,10 +462,10 @@ See \autoref{fig:code_issues}.
 \end{figure}
 
 \subsection{Sigrid report}
-The overall maintainability is scored at 3.6, with an architecture score of 3.7.
+The overall maintainability is scored at 3.6, with an architecture score of 3.4 (the latter is slightly lower than reported earlier, because we shifted some routines to a separate folder such that all component dependencies are now one way, see \autoref{fig:sigrid_architecture_comm}).
 The total amount of code represents 11 person months.
-The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 93 \%).
-The code depends on 60 open source libraries of which 7 (cftime, Fiona, intel-openmp, mkl, pandas, pyQt5, tbb) are marked as high risk since the version used is more than 1 year old.
+The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 92 \%).
+The code depends on 60 open source libraries of which 5 (cftime, click-plugins, intel-openmp, mkl, tbb) are marked as high risk since the version used is more than 1 year old.
 There is 1 critical security issue.
 This is related to the opening the user manual by starting a shell process; someone might exploit this by starting some other process.
 
@@ -455,4 +474,18 @@ This is related to the opening the user manual by starting a shell process; some
 \includegraphics[width=\textwidth]{figures/sigrid.png}
 \caption{Sigrid Overview}
 \label{fig:sigrid_overview}
+\end{figure}
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{figures/sigrid-architecture.png}
+\caption{Sigrid summary of architecture aspects}
+\label{fig:sigrid_architecture_overview}
+\end{figure}
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{figures/sigrid-arch-communication.png}
+\caption{Sigrid evaluation of communication centralization}
+\label{fig:sigrid_architecture_comm}
 \end{figure}
