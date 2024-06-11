@@ -371,10 +371,6 @@ class DialogViewModel(QObject):
         """
         self.model.load_configuration(filename)
 
-        self._initialize_qthreshold()
-        self._initialize_ucritical()
-        self._update_slength()
-
         self._reference_files = {}
         self._measure_files = {}
         for section_name in self.model.config.sections():
@@ -393,6 +389,10 @@ class DialogViewModel(QObject):
         if not reach:
             reach = self._current_branch.reaches[0]
         self.current_reach = reach
+
+        self._initialize_qthreshold()
+        self._initialize_ucritical()
+        self._update_slength()
 
         self.make_plot = self.model.plotting
         self.save_plot = self.model.save_plots
