@@ -29,6 +29,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 # ViewModel
 from configparser import ConfigParser
 from typing import Dict
+from dfastmi.kernel.typehints import FilenameDict
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -53,8 +54,8 @@ class DialogViewModel(QObject):
     save_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
-    _reference_files: Dict[float, str] = {}
-    _measure_files: Dict[float, str] = {}
+    _reference_files: FilenameDict = {}
+    _measure_files: FilenameDict = {}
     model: DialogModel
     slength: str = ""
 
@@ -139,16 +140,16 @@ class DialogViewModel(QObject):
         self.qthreshold_changed.emit(self._qthreshold)
 
     @property
-    def reference_files(self) -> Dict[float, str]:
+    def reference_files(self) -> FilenameDict:
         """
-        Dict[float, str]: The reference files.
+        FilenameDict: The reference files.
         """
         return self._reference_files
 
     @property
-    def measure_files(self) -> Dict[float, str]:
+    def measure_files(self) -> FilenameDict:
         """
-        Dict[float, str]: The measurement files.
+        FilenameDict: The measurement files.
         """
         return self._measure_files
 

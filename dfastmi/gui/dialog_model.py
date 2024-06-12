@@ -28,7 +28,8 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import traceback
 from configparser import ConfigParser, SectionProxy
-from typing import List, Optional
+from typing import Optional
+from dfastmi.kernel.typehints import FilenameDict
 
 from packaging.version import Version
 from pydantic import BaseModel
@@ -203,7 +204,7 @@ class DialogModel:
         return True
 
     def check_configuration(
-        self, branch: Branch, reach: AReach, reference_files: List, measure_files: List
+        self, branch: Branch, reach: AReach, reference_files: FilenameDict, measure_files: FilenameDict
     ) -> bool:
         """Check configuration."""
         config = self.get_configuration(branch, reach, reference_files, measure_files)
@@ -232,7 +233,7 @@ class DialogModel:
         return success
 
     def get_configuration(
-        self, branch: Branch, reach: AReach, reference_files: List, measure_files: List
+        self, branch: Branch, reach: AReach, reference_files: FilenameDict, measure_files: FilenameDict
     ) -> ConfigParser:
         """
         Extract a configuration from the GUI.
@@ -272,8 +273,8 @@ class DialogModel:
         self,
         config: ConfigParser,
         reach: AReach,
-        reference_files: List,
-        measure_files: List,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> None:
         """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
