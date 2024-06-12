@@ -31,7 +31,6 @@ import traceback
 # ViewModel
 from configparser import ConfigParser
 from typing import Dict
-from dfastmi.kernel.typehints import FilenameDict
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
