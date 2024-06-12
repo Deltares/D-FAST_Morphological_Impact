@@ -16,4 +16,4 @@ Vector = List[float]
 BoolVector = List[bool]
 
 # Filename dictionary
-FilenameDict = Dict[Union[int, str, Tuple[float, str]], str]
+FilenameDict = Dict[Union[int,str,Tuple[float,str]],str]
