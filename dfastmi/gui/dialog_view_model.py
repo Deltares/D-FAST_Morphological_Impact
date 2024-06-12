@@ -29,7 +29,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 # ViewModel
 from configparser import ConfigParser
 from typing import Dict
-from dfastmi.kernel.typehints import FilenameDict
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -42,6 +41,7 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.IBranch import IBranch
+from dfastmi.kernel.typehints import FilenameDict
 
 
 class DialogViewModel(QObject):

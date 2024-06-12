@@ -29,7 +29,6 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import traceback
 from configparser import ConfigParser, SectionProxy
 from typing import Optional
-from dfastmi.kernel.typehints import FilenameDict
 
 from packaging.version import Version
 from pydantic import BaseModel
@@ -43,6 +42,7 @@ from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 
 
 class GeneralConfig(BaseModel):
@@ -204,7 +204,11 @@ class DialogModel:
         return True
 
     def check_configuration(
-        self, branch: Branch, reach: AReach, reference_files: FilenameDict, measure_files: FilenameDict
+        self,
+        branch: Branch,
+        reach: AReach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> bool:
         """Check configuration."""
         config = self.get_configuration(branch, reach, reference_files, measure_files)
@@ -233,7 +237,11 @@ class DialogModel:
         return success
 
     def get_configuration(
-        self, branch: Branch, reach: AReach, reference_files: FilenameDict, measure_files: FilenameDict
+        self,
+        branch: Branch,
+        reach: AReach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> ConfigParser:
         """
         Extract a configuration from the GUI.
