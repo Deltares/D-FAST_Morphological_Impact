@@ -1,0 +1,186 @@
+\documentclass{deltares_memo}
+
+%------------------------------------------------------------------------------
+\newcommand{\dfastmi}{\textrm{D-FAST~Morphological~Impact}\xspace}
+\newcommand{\dfmi}{\textrm{D-FAST~MI}\xspace}
+\newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
+\newcommand{\sobek}{\textrm{SOBEK}\xspace}
+
+\begin{document}
+
+\memoTo{\dfastmi users}
+\memoConfidentialUntil{}
+\memoDate{\today}
+\memoVersion{3.0.0}
+\memoFrom{}
+\memoTelephone{+31\,88\,335\,81\,00}
+\memoEmail{software.support@deltares.nl}
+\memoSubject{\dfmi Release Notes}
+\memoCopy{}
+
+\deltarestitle
+%------------------------------------------------------------------------------
+\section{Release 3.0.0}
+
+\subsection{Key changes}
+
+The key changes of this completely revised version are:
+
+\begin{itemize}
+\item The number of discharge level used for \dfmi analysis has changed from typically 3 to 6.
+The discharge levels no longer depend on the characteristics of the measures.
+They are fixed per branch/reach, although you don't have to provide results below the threshold discharge of the measure.
+\item The new analysis algorithm only supports simulation results stored in netCDF UGRID files, such as the \dflowfm map-file.
+\item Complete overview of analysis settings included in the report.
+\item The tool is no longer supported in the Dutch language.
+\item The WAQMORF compatible \keyw{cli} mode is no longer supported.
+\item Configuration files of \dfmi version 2 are no longer supported by the GUI.
+\end{itemize}
+
+\subsection{Known issues}
+
+The known issues are:
+
+\begin{itemize}
+\item Fourier output files of \dflowfm are not yet supported.
+\end{itemize}
+
+\subsection{Overview of all issues}
+
+An overview of all closed issues since the release of version 2.0.10 is given in the table below.
+
+\begin{longtable}{l|l|p{8cm}}
+\caption{List of resolved issues for version 3.0.0} \\
+Type & Number & Description \\ \hline
+\endfirsthead
+\multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
+Type & Number & Description \\ \hline
+\endhead
+\hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
+\endfoot
+\endlastfoot
+Bug & DFAST-211 & Include LICENSE.md file as referrenced in the Version dialog \\
+Bug & DFAST-210 & Mismatch between files reported and files used \\
+Bug & DFAST-209 & configuration file should contain one set of keywords \\
+Improvement & DFAST-207 & Increase version number in rivers and configuration file to 3.0 to align with major software update \\
+Bug & DFAST-206 & Adjust the report of the configuration settings \\
+Bug & DFAST-205 & D-FAST MI doesn't write names of simulation files to config file \\
+Task & DFAST-203 & Update TC configurations that use CentOS7 to use Alma8 \\
+Bug & DFAST-202 & Graphs are not saved to correct location when loading config twice \\
+Bug & DFAST-201 & When disabling make figures with save figures enabled, the figure directory stays editable in the GUI \\
+Bug & DFAST-200 & App crashes when RiverKM key is not in general section of DFAST MI config file \\
+Bug & DFAST-199 & When loading DFast MI configuration and checkbox make plots is set not all plot controls are enabled \\
+Bug & DFAST-198 & Retain sections and keys unknown in gui \\
+Bug & DFAST-197 & Safely retrieve keys from config \\
+Bug & DFAST-196 & QThreshold is not read correctly or not used correctly \\
+Improvement & DFAST-195 & Remove second branch discharge location from GUI \\
+Improvement & DFAST-194 & Improve performance update branch selection \\
+Bug & DFAST-193 & Saving a loaded configuration file for RiverKM and ClosePlot does not result in the same file \\
+Bug & DFAST-192 & Crash when saving a configuration file at a different location \\
+Bug & DFAST-191 & Crash when saving config file in output directory \\
+Bug & DFAST-190 & Resolve Fallout DFAST-123 \\
+Bug & DFAST-188 & "Open user manual" option in GUI does not work \\
+Improvement & DFAST-185 & improve cognitive complexity of \_clear\_conditions \\
+Bug & DFAST-181 & Application crashes when selecting typing text into 'Uitvoer map' field \\
+Bug & DFAST-180 & Application crashes when selecting MaakFiguren \\
+Bug & DFAST-179 & Load of .cfg causes a crash in the GUI \\
+Bug & DFAST-178 & Resolve failing build config on Teamcity \\
+Task & DFAST-176 & [Investigate] Problem with teamcity in which tests passed and artifacts are not generated and shown \\
+Bug & DFAST-175 & Resolve Fallout DFAST-125  \\
+Improvement & DFAST-174 & Refactor gui to MVVM \\
+Improvement & DFAST-170 & Write conditions and simulation files to the report file \\
+Improvement & DFAST-169 & Write description to the report file \\
+Improvement & DFAST-168 & Write basic analysis settings to the report file \\
+Improvement & DFAST-161 & Use Select Directory dialog when appropriate \\
+Improvement & DFAST-160 & Grey out fields if Q < Q\_threshold \\
+Improvement & DFAST-159 & Add a case description \\
+Improvement & DFAST-158 & Use D-FAST MI logo in Window bar of GUI \\
+Bug & DFAST-156 & [Investigate] Crashing dfastmi application \\
+Task & DFAST-148 & Ignore test result directories \\
+Task & DFAST-147 & Fix package name in pyproject.toml \\
+Improvement & DFAST-145 & Use ConfigParser getint, getfloat, getboolean instead of DFastMIConfigParser \\
+Bug & DFAST-144 & crash in line 284 of AnalyserAndReporterDflowfm \\
+Improvement & DFAST-143 & verify basic usage of DFAST-MI works without extra admin rights in virtual machine \\
+Improvement & DFAST-142 & Update year in D-FAST MI version/about screen to 2024 \\
+Bug & DFAST-141 & Resolve small fallout of DFAST-104 \\
+Task & DFAST-140 & Refine determine how to align the Rkm values in the reach list \\
+Improvement & DFAST-139 & Modify GUI layout \\
+Improvement & DFAST-138 & Suppress the command window \\
+Improvement & DFAST-136 & Use LookupException when provided language is not as expected \\
+Improvement & DFAST-135 & Add coverage html report in Teamcity unit test configuration as result \\
+Task & DFAST-133 & Use new logo for DFAST-MI the .exe \\
+Task & DFAST-131 & Configure black package for automating formatting \\
+Task & DFAST-130 & [Investigate] Using pydantic to replace validation \\
+Task & DFAST-129 & [Investigate] Reuse of modules from Hydrolib Core \\
+Improvement & DFAST-127 & Include SIG analysis in CI workflow \\
+Bug & DFAST-126 & During RiverObject refactoring relinking new functionality is not good connected \\
+Improvement & DFAST-125 & Refactor batch.core.py and add/update related tests \\
+Improvement & DFAST-124 & Refactor DetectAndPlot.py and add/update related tests \\
+Improvement & DFAST-123 & Refactor analyserAndReportDflowfm.py and add/update related tests \\
+Improvement & DFAST-122 & Refactor analyserAndReportWaqua.py and add/update related tests \\
+Improvement & DFAST-121 & Refactor FileNameRetriever.py and add/update related tests \\
+Improvement & DFAST-120 & Refactor ConfigurationChecker.py and add/update related tests \\
+Improvement & DFAST-119 & Resolve leftover change from DFAST-115 \\
+Improvement & DFAST-118 & Add Distribution test to test that the Gui can startup \\
+Bug & DFAST-115 & Resolve dfastmi.exe not starting after gui v2 update \\
+Improvement & DFAST-114 & Debug with arguments DFAST in VSCode \\
+Improvement & DFAST-113 & Refactor RiversObject and related tests \\
+Improvement & DFAST-112 & Refactor RiverParameterData and related tests \\
+Improvement & DFAST-111 & Refactor GridOperations and related tests \\
+Improvement & DFAST-110 & Refactor FileUtils and related tests \\
+Improvement & DFAST-105 & Add a test case using version 2 configuration files \\
+Improvement & DFAST-104 & Adapt new structure for batch \\
+Improvement & DFAST-103 & [Investigate] Refactoring batch \\
+Improvement & DFAST-102 & Improve code coverage of the batch \\
+Bug & DFAST-99 & Failing batch file 00 is because it is using wrong river file \\
+Bug & DFAST-98 & Signing certificate shows bank erosion instead of morphological impact \\
+Improvement & DFAST-97 & Resolve codesmells in kernel.py \\
+Improvement & DFAST-96 & Investigate Refactoring IO \\
+Improvement & DFAST-95 & [Investigate] Remove or refactor estimate\_sedimentation\_length method \\
+Improvement & DFAST-94 & Refactor char\_discharge and char\_times in kernel into a new class \\
+Improvement & DFAST-92 & Refactor the main\_computation method in Kernel into the BedLevelCalculator class \\
+Improvement & DFAST-91 & Refactor the RiversObject.py \\
+Improvement & DFAST-90 & investigate and adapt new structure for IO \\
+Improvement & DFAST-89 & investigate and adapt new structure for kernel \\
+Improvement & DFAST-87 & Investigate Refactoring Kernel \\
+Improvement & DFAST-86 & Refactor unit \& unit test names for IO \\
+Improvement & DFAST-85 & Refactor existing unit tests \& unit test names for Kernel \\
+Improvement & DFAST-84 & Update nuitka build config with extra information and nofollow-import-to \\
+Improvement & DFAST-83 & Update nuitka build config with include-data-files \\
+Improvement & DFAST-82 & Update nuitka build config to include icon for .exe \\
+Improvement & DFAST-81 & Update nuitka build config to include details/company information \\
+Improvement & DFAST-79 & Improve code coverage of the Kernel  \\
+Improvement & DFAST-77 & Clean and setup debug and coverage \\
+Bug & DFAST-76 & Resolve bug with crash during compute with empty input \\
+Improvement & DFAST-75 & Improve code coverage of the IO \\
+Improvement & DFAST-74 & Improve code coverage of the IO  \\
+Improvement & DFAST-72 & Investigate if github action sonarcloud run is interesting after unit test have been revised \\
+Improvement & DFAST-71 & Resolve issue with running the dfastmi.exe \\
+Task & DFAST-70 & Add user documentation \\
+Task & DFAST-69 & Setup a changelog document for users \\
+Task & DFAST-68 & Resolve SonarCloud issues \\
+Task & DFAST-67 & Refine API \\
+Documentation & DFAST-66 & Document API and publish it on/via the GitHub page \\
+Improvement & DFAST-65 & Investigate unit test coverage \\
+Improvement & DFAST-64 & Investigate unit tests of gui.py \\
+Improvement & DFAST-63 & Investigate unit tests of cmd.py \\
+Improvement & DFAST-62 & Investigate unit tests of kernel.py \\
+Improvement & DFAST-61 & Investigate unit tests of io.py \\
+Improvement & DFAST-60 &  Investigate unit tests of cli.py \\
+Improvement & DFAST-59 & Investigate unit tests of batch.py \\
+Improvement & DFAST-58 & Update unit tests to also be able to debug through the tests \\
+Improvement & DFAST-49 & Update gui to add new features \\
+Improvement & DFAST-48 & Implement acceptation tests \\
+Improvement & DFAST-47 & Update batch tests \\
+Improvement & DFAST-46 & Update unit tests \\
+Improvement & DFAST-45 & Merge feature/developments-2021 into the master branch \\
+Improvement & DFAST-44 & Create developer starting guide \\
+Improvement & DFAST-43 & [Investigate] Multiple language support \\
+Improvement	& DFAST-42 & Setup Sonarcloud for D-Fast MI \\
+Task & DFAST-40 & [Investigation] Steps needed for professionalization D-FAST MI \\
+Task & DFAST-35 & Consider implementing SonarCloud  \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\LastPage
+\end{document}
