@@ -3,11 +3,11 @@
 \section{Introduction}
 
 This chapter gives an overview of how \dfastmi can be setup for development.
-After following this guide the developer should be able to run the software, run unit tests, generate the code coverage and debug through the tests and software using tools and development programs.
+After following this guide the developer should be able to run the software, run unit tests, generate the code coverage and debug through the tests and software using (code) analysis tools and development tools.
 
-The development setup and configuration is done for usage of the Visual Studio Code IDE.
+The development setup and configuration below is aimed at the use of the Visual Studio Code IDE.
 More information about \href{https://code.visualstudio.com/}{Visual Studio Code} can be found on the internet.
-The development of Python code project within Deltares is mostly done with this tool.
+The development of Python code within Deltares is mostly done with this tool.
 Visual Studio Code is free for private and commercial use.
 See the \href{https://code.visualstudio.com/license}{product license} for details.
 
@@ -18,12 +18,12 @@ See the \href{https://code.visualstudio.com/license}{product license} for detail
 
 \section{Configuration}
 The \dfastmi developer environment can be configured with a batch script.
-This script will configure and install recommended tools.
+This script will configure and install the recommended tools.
 User input is required to download and install these tools.
 The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
 
 The batch file will check for installed tooling for Anaconda/Miniconda.
-If not installed it will ask the user to install the Anaconda/Miniconda tooling for you. 
+If not installed it will prompt to install the Anaconda/Miniconda tooling for you. 
 
 \begin{Note}
 You need to close the command line and re-open/restart the batch script as it needs to initialize the Conda tooling for the command line and PowerShell (used in VS Code).
@@ -40,7 +40,7 @@ After checking (and installing if needed) the VS Code code development applicati
 
 \section{Configuration files}
 As stated earlier we use Conda to create a clean Python environment to develop the \dfastmi application in.
-We also use Poetry, a Python dependency management and packaging tool, to setup the needed packages for the development environment.
+We also use Poetry, a Python dependency management and packaging tool, to setup the necessary packages for the development environment.
 Poetry uses TOML\footnote{TOML : Tom's Obvious Minimal Language. A common format for configuration files.} files for the configuration (\textbf{poetry.toml}) and a lock file (\textbf{poetry.lock}) which store all information about the packages that we use for building \dfastmi.
 More information about poetry.lock can be found on the \href{https://python-poetry.org/docs/basic-usage/#installing-without-poetrylock}{Poetry website}.
 Also we use a \textbf{setup.py} file used by the setup tools package to setup the application for development.
@@ -179,13 +179,13 @@ The user files can be found in subfolder \textbf{.vscode}
 
 \subsection{TOML}
 This file type is used by the Python interpreter to configure the application.
-The TOML file format itself has nothing to do with Python, Poetry or VS Code but it is a configuration file which is easy to read.
+The TOML file format itself is not specific for Python, Poetry or VS Code, but it is a configuration file which is easy to read.
 For more information see \href{https://coverage.readthedocs.io/en/latest/config.html#toml-syntax}{TOML syntax website}.
 Added configuration settings to the \textbf{pyproject.toml} file
 
 \begin{enumerate}
-	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS Code/Python/Python coverage tooling where to expect the coverage to apply to.
+	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS Code/Python coverage tooling where to expect the coverage to apply to.
 	\item In section [tool.pytest.ini\_options] \keyw{addopts = "---cov ---cov-report=term 
-		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS Code/Python/Python test tooling to apply coverage and generate output report to.
+		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS Code/Python test tooling to apply coverage tooling and generate an output report too.
 \end{enumerate}
 

@@ -22,11 +22,12 @@ For the verification of \dfastmi 2.0 four sets of input files for the Nederrijn 
 \end{enumerate}
 
 For the verification of \dfastmi 3.0 applications on Nederrijn, Pannerdensch Kanaal and Meuse have been used.
+The argumentation is reported separately (in a `Validation report').
 
 
 \section{Regression}
 
-Regression testing happens at different levels:
+Regression testing is applied at different levels:
 
 \begin{itemize}
 \item \textbf{Unit} tests are designed to test specific functional elements.
@@ -41,7 +42,7 @@ Depending on the testing phase (source code, or binary, see below) the system te
 \item \textbf{Acceptance} tests are designed to test that the system works for specific use cases (the acceptance models).
 \end{itemize}
 
-The regression testing happens at two times:
+The regression testing is applied two times:
 
 \begin{itemize}
 \item \textbf{Source code} The first regression test bench runs from the source code within Python.
@@ -136,7 +137,7 @@ tests-dist/test\_batch.py & 5 \\
 tests-dist/test\_cli.py & 2 \\
 \end{longtable}
 
-\section{Acceptance testing}
+\section{Compatibility with the Requirements}
 
 In \autoref{Sec:FuncReq} the 15 functional requirements were listed.
 They are repeated below and for every requirement it is indicated how it is tested.
@@ -198,10 +199,10 @@ Although the multi-language feature is still included in the source code for bac
 The unit and system tests focus on running the software in the English mode.
 \end{enumerate}
 
-\subsection{Manual system tests} \label{Sec:GuiTests}
+\section{Manual system tests} \label{Sec:GuiTests}
 The following sections describe a workflow of 9 phases to test the interactive work with the graphical user interface.
 
-\subsubsection{Test 1: starting blank}
+\subsection{Test 1: starting blank}
 \begin{enumerate}
 \item Open \dfastmi without command line arguments.
 \item Verify that the program starts without errors or warnings.
@@ -214,7 +215,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \end{figure}
 \end{enumerate}
 
-\subsubsection{Test 2: save default configuration file}
+\subsection{Test 2: save default configuration file}
 \begin{enumerate}
 \item Start from Test 1.
 \item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as "test2".
@@ -223,7 +224,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \verbfilenobox[\scriptsize]{figures/test2.cfg}
 \end{enumerate}
 
-\subsubsection{Test 3: modify settings}
+\subsection{Test 3: modify settings}
 \begin{enumerate}
 \item Start from Test 2.
 \item Specify "Test 3" as the Case description
@@ -248,7 +249,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \end{figure}
 \end{enumerate}
 
-\subsubsection{Test 4: save modified configuration file}
+\subsection{Test 4: save modified configuration file}
 \begin{enumerate}
 \item Start from Test 3.
 \item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as "test4.cfg".
@@ -257,21 +258,21 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \verbfilenobox[\scriptsize]{figures/test4.cfg}
 \end{enumerate}
 
-\subsubsection{Test 5: load default configuration file}
+\subsection{Test 5: load default configuration file}
 \begin{enumerate}
 \item Start from Test 4.
 \item Select \menu{File} \textrightarrow \menu{Load}, and select the configuration file "test2.cfg".
 \item Verify that the dialog matches \autoref{fig:test1.png}.
 \end{enumerate}
 
-\subsubsection{Test 6: load modified configuration file}
+\subsection{Test 6: load modified configuration file}
 \begin{enumerate}
 \item Start from Test 5.
 \item Select \menu{File} \textrightarrow \menu{Load}, and select the configuration file "test4.cfg".
 \item Verify that the dialog matches \autoref{fig:test3.png}.
 \end{enumerate}
 
-\subsubsection{Test 7: view manual and about Windows}
+\subsection{Test 7: view manual and about Windows}
 \begin{enumerate}
 \item Start from Test 6.
 \item Select \menu{Help} \textrightarrow \menu{Open User Manual} and verify that the user manual is opened.
@@ -282,7 +283,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Close the about Qt box by pressing \button{OK}.
 \end{enumerate}
 
-\subsubsection{Test 8: run \dflowfm analysis}
+\subsection{Test 8: run \dflowfm analysis}
 \begin{enumerate}
 \item Start from Test 7.
 \item Open the configuration file ...
@@ -308,7 +309,7 @@ The "year-averaged bed level change without dredging" should correspond to \auto
 \label{fig:report_Figure1_QP.png}
 \end{figure}
 
-\subsubsection{Test 9: closing the software}
+\subsection{Test 9: closing the software}
 \begin{enumerate}
 \item Start from 8.
 \item Close the program by one of the following methods:
@@ -324,7 +325,7 @@ The "year-averaged bed level change without dredging" should correspond to \auto
 %-------------------------------
 \chapter{Test Report} \label{Chp:TestReport}
 
-The test plan describes manual tests (the graphical user interface tests as part of the system testing), the automated testing, and the code quality checks.
+The test plan describes (automated) regression tests, manual tests and the code quality checks.
 
 \section{Manual tests}
 
@@ -429,7 +430,7 @@ TOTAL                                                4440    419    91%
 The quality of the \dfastmi source code and the code coverage is tracked by \href{https://sonarcloud.io/project/overview?id=Deltares_D-FAST_Morphological_Impact}{SonarCloud} and \href{https://sigrid-says.com/deltares/dfast-mi/-/overview}{Sigrid}.
 
 \subsection{SonarCloud reports}
-Since the beginning of this year, the number of code lines has doubled.
+During the development of D-FAST MI 3.0.0, the number of code lines has doubled.
 There is no duplication in the code anymore, see \autoref{fig:code_duplication}.
 At the time of the first upload about 40\% of the code was covered by a limited set of about 65 tests.
 The code coverage was still relatively high due to a few system tests that touched a lot of lines of code.
@@ -462,8 +463,8 @@ See \autoref{fig:code_issues}.
 \end{figure}
 
 \subsection{Sigrid report}
-The overall maintainability is scored at 3.6, with an architecture score of 3.4 (the latter is slightly lower than reported earlier, because we shifted some routines to a separate folder such that all component dependencies are now one way, see \autoref{fig:sigrid_architecture_comm}).
-The total amount of code represents 11 person months.
+The overall maintainability is scored at 3.6, with an architecture score of 3.4.
+The total amount of code represents 11 person months (to develop).
 The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 92 \%).
 The code depends on 60 open source libraries of which 5 (cftime, click-plugins, intel-openmp, mkl, tbb) are marked as high risk since the version used is more than 1 year old.
 There is 1 critical security issue.

@@ -1,4 +1,4 @@
-\documentclass{deltares_manual}
+\documentclass[git]{deltares_manual}
 
 \usepackage{tikz}
 \usepackage[pipeTables=true]{markdown}
@@ -14,7 +14,7 @@
 {
     pdfauthor   = {Deltares},
     pdftitle    = {\dfastmi},
-    pdfkeywords = {Deltares User Manual \dfastmi}
+    pdfkeywords = {Deltares User Manual \dfmi}
 }
 
 %------------------------------------------------------------------------------
@@ -31,10 +31,12 @@
 \title{D-FAST\\ Morphological Impact}
 \subtitle{}
 \manualtype{User Manual}
-\version{1.0}
+\distribution{Released for: \newline \phantom{M} \dfmi version 3.0 or higher}
+\version{\the\year.\the\month}
 
 \author{ }
 
+\setgitdirectory{../.git}
 \deltarestitle
 %
 \include{chapters/intro}
