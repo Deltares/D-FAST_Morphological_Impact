@@ -89,9 +89,9 @@ class DialogViewModel(QObject):
         Arguments:
             value (IBranch): The branch to set.
         """
-        if(value is self._current_branch):
+        if value is self._current_branch:
             return
-        
+
         self._current_branch = value
         # Notify the view of the change
         self.branch_changed.emit(self._current_branch.name)
@@ -112,9 +112,9 @@ class DialogViewModel(QObject):
         Arguments:
             value (AReach): The reach to set.
         """
-        if(value is self._current_reach):
+        if value is self._current_reach:
             return
-        
+
         self._current_reach = value
         self._initialize_qthreshold()
         self._initialize_ucritical()
