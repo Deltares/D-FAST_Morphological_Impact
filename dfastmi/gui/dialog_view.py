@@ -165,9 +165,7 @@ class DialogView:
         self._case_description.setText(self._view_model.model.case_description)
 
         # Update branch and reach selection
-        self._branch.blockSignals(True)
         self._branch.setCurrentText(data)
-        self._branch.blockSignals(False)
         self._reach.clear()
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
@@ -186,16 +184,11 @@ class DialogView:
             data: The data for the reach.
         """
         # Update reach label
-        self._reach.blockSignals(True)
         self._reach.setCurrentText(data)
-        self._reach.blockSignals(False)
 
-    def _update_qthreshold(self, data):
+    def _update_qthreshold(self):
         """
         Update the GUI components when the reach changes.
-
-        Args:
-            data: The data for the reach.
         """
         # Update the threshold discharge in the GUI
         self._qthr.setText(str(self._view_model.model.qthreshold))
