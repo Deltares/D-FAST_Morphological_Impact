@@ -72,7 +72,6 @@ from dfastmi.resources import DFAST_LOGO
 reference_label = "reference"
 with_measure_label = "with_measure"
 
-
 class DialogView:
     """
     D-FAST Morphological Impact GUI View
