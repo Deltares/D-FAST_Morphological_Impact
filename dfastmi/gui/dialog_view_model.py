@@ -433,12 +433,20 @@ class DialogViewModel(QObject):
             if section_name.lower().startswith("c"):
                 section = self.model.config[section_name]
                 cond_discharge = section.getfloat("Discharge", 0.0)
-                
-                self._reference_files[cond_discharge] = Path(section.get("Reference", ""))
-                self.reference_files_changed.emit("reference", cond_discharge, self._reference_files[cond_discharge])
-                
-                self._measure_files[cond_discharge] = Path(section.get("WithMeasure", ""))
-                self.measure_files_changed.emit("with_measure", cond_discharge, self._measure_files[cond_discharge])
+
+                self._reference_files[cond_discharge] = Path(
+                    section.get("Reference", "")
+                )
+                self.reference_files_changed.emit(
+                    "reference", cond_discharge, self._reference_files[cond_discharge]
+                )
+
+                self._measure_files[cond_discharge] = Path(
+                    section.get("WithMeasure", "")
+                )
+                self.measure_files_changed.emit(
+                    "with_measure", cond_discharge, self._measure_files[cond_discharge]
+                )
 
     def check_configuration(self) -> bool:
         """
