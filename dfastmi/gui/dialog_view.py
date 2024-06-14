@@ -72,6 +72,7 @@ from dfastmi.resources import DFAST_LOGO
 reference_label = "reference"
 with_measure_label = "with_measure"
 
+
 class DialogView:
     """
     D-FAST Morphological Impact GUI View
@@ -424,7 +425,9 @@ class DialogView:
         )
         layout.addRow(
             self._figure_dir,
-            self._open_folder_layout(self._figure_dir_edit, "figure_dir_edit", self._view_model.save_plot),
+            self._open_folder_layout(
+                self._figure_dir_edit, "figure_dir_edit", self._view_model.save_plot
+            ),
         )
 
     def _create_save_plots_input_checkbox(self, layout: QBoxLayout) -> None:
