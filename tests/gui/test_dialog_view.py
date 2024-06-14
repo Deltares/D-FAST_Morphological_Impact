@@ -525,7 +525,9 @@ class Test_view_model_updates:
         assert dialog_view._slength.text() == dialog_view._view_model.slength
 
 
-def test_update_condition_files_with_load_configuration(dialog_view: DialogView, tmp_path : Path):
+def test_update_condition_files_with_load_configuration(
+    dialog_view: DialogView, tmp_path: Path
+):
     """
     given : dialog_view
     when  : updating condition files
@@ -536,11 +538,11 @@ def test_update_condition_files_with_load_configuration(dialog_view: DialogView,
     reference_file_4000 = "reference_file_20.txt"
     measure_file_3000 = "measure_file_10.txt"
     measure_file_4000 = "measure_file_20.txt"
-    
-    expected_reference_file_3000 = str(tmp_path /"reference_file_10.txt")
-    expected_reference_file_4000 = str(tmp_path /"reference_file_20.txt")
-    expected_measure_file_3000 = str(tmp_path /"measure_file_10.txt")
-    expected_measure_file_4000 = str(tmp_path /"measure_file_20.txt")
+
+    expected_reference_file_3000 = str(tmp_path / "reference_file_10.txt")
+    expected_reference_file_4000 = str(tmp_path / "reference_file_20.txt")
+    expected_measure_file_3000 = str(tmp_path / "measure_file_10.txt")
+    expected_measure_file_4000 = str(tmp_path / "measure_file_20.txt")
 
     config_file_data = f"""
     [General]
@@ -560,7 +562,7 @@ def test_update_condition_files_with_load_configuration(dialog_view: DialogView,
   Reference   = {reference_file_4000}
   WithMeasure = {measure_file_4000}
     """
-    
+
     config_file = tmp_path / "config.cfg"
     config_file.write_text(config_file_data)
 
