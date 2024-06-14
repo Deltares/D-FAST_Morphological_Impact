@@ -152,9 +152,12 @@ class DialogView:
         )
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
+        
+        self._view_model.reference_files_changed.connect(self._update_condition_file_field)
+        self._view_model.measure_files_changed.connect(self._update_condition_file_field)
+        
         self._view_model.analysis_exception.connect(self._show_error)
         self._update_qvalues_table()
-        self._update_condition_files()
 
     def _update_branch(self, data):
         """
@@ -202,31 +205,9 @@ class DialogView:
         self._ucrit.setText(str(self._view_model.model.ucritical))
         self._slength.setText(self._view_model.slength)
         self._update_qvalues_table()
-        self._update_condition_files()
-
-    def _update_condition_files(self):
-        """
-        Update the condition files.
-        Use local copy of the dictionary because the callbacks from
-        the GUI updates will cause updates of the original dictionaries.
-        """
-        file_dictionary = self._view_model.reference_files.copy()
-        for (
-            condition_discharge,
-            reference_file,
-        ) in file_dictionary.items():
-            self._update_condition_file_field(
-                reference_label, condition_discharge, reference_file
-            )
-
-        file_dictionary = self._view_model.measure_files.copy()
-        for condition_discharge, measure_file in file_dictionary.items():
-            self._update_condition_file_field(
-                with_measure_label, condition_discharge, measure_file
-            )
 
     def _update_condition_file_field(
-        self, field_postfix: str, condition_discharge, reference_file
+        self, field_postfix: str, condition_discharge, file_location : Path
     ):
         """
         Update the condition file field.
@@ -234,13 +215,13 @@ class DialogView:
         Args:
             field_postfix (str): The postfix for the field.
             condition_discharge: The condition discharge.
-            reference_file: The reference file.
+            file_location (Path): The file location.
         """
         prefix = str(condition_discharge) + "_"
         key = prefix + field_postfix
         input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
         if input_textbox:
-            input_textbox.setText(reference_file)
+            input_textbox.setText(str(file_location))
 
     def _update_qvalues_table(self):
         """Update the Q values table."""
@@ -755,22 +736,18 @@ class DialogView:
         enabled = self._view_model.model.qthreshold < discharge
 
         # get the reference file
-        q1_reference = ValidatingLineEdit(FileExistValidator(), self._win)
-        q1_reference.setPlaceholderText("Enter reference file path")
-        q1_reference.setEnabled(enabled)
-        q1_reference.textChanged.connect(
-            partial(self._updated_condition_file, q1_reference)
-        )
-
-        q1_reference.setObjectName(prefix + reference_label)
+        q1_reference = self._create_condition_validating_line_edit(prefix,
+                                     discharge,
+                                     enabled,
+                                     self._view_model.reference_files,
+                                     reference_label)
+        
         # get the file with measure
-        q1_with_measure = ValidatingLineEdit(FileExistValidator(), self._win)
-        q1_with_measure.setPlaceholderText("Enter with measure file path")
-        q1_with_measure.setEnabled(enabled)
-        q1_with_measure.textChanged.connect(
-            partial(self._updated_condition_file, q1_with_measure)
-        )
-        q1_with_measure.setObjectName(prefix + with_measure_label)
+        q1_with_measure = self._create_condition_validating_line_edit(prefix,
+                                     discharge,
+                                     enabled,
+                                     self._view_model.measure_files,
+                                     with_measure_label)
 
         discharge_value_label = QLabel(discharge_name, self._win)
         discharge_value_label.setEnabled(enabled)
@@ -788,6 +765,27 @@ class DialogView:
             row_count,
             2,
         )
+        
+    def _create_condition_validating_line_edit(self,
+                                     prefix : str,
+                                     discharge : float,
+                                     enabled: bool,
+                                     files : dict[float, Path],
+                                     label_suffix : str):
+        line_edit = ValidatingLineEdit(FileExistValidator(), self._win)
+        
+        placeholder_text = "Enter reference file path"
+        line_edit.setPlaceholderText(placeholder_text)
+        line_edit.setEnabled(enabled)
+        line_edit.textChanged.connect(partial(self._updated_condition_file, line_edit))
+        
+        file_path = files.get(discharge, None)
+        if file_path:
+            line_edit.setText(str(file_path))
+        
+        line_edit.setObjectName(prefix + label_suffix)
+    
+        return line_edit
 
     def _create_button_bar(self) -> None:
         """
