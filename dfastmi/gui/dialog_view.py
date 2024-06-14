@@ -72,28 +72,6 @@ from dfastmi.resources import DFAST_LOGO
 reference_label = "reference"
 with_measure_label = "with_measure"
 
-
-class MyMainWindow(QMainWindow):
-    _view_model: DialogViewModel = None
-    _config_file: Optional[str] = None
-    _first_time: bool = True
-
-    def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
-        self._view_model = view_model
-        self._config_file = config_file
-        super(MyMainWindow, self).__init__(None)
-
-    def eventFilter(self, obj, event):
-        if event.type() == PyQt5.QtCore.QEvent.ActivationChange and self._first_time:
-            self._first_time = False
-            if self._config_file:
-                self._view_model.load_configuration(self._config_file)
-            return True
-        else:
-            # standard event processing
-            return PyQt5.QtCore.QObject.eventFilter(self, obj, event)
-
-
 class DialogView:
     """
     D-FAST Morphological Impact GUI View
@@ -145,7 +123,7 @@ class DialogView:
     _close_plots: QLabel = None
     _close_plots_edit: QCheckBox = None
 
-    def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
+    def __init__(self, view_model: DialogViewModel):
         """
         Initialize the DialogView.
 
@@ -156,7 +134,7 @@ class DialogView:
 
         # Initialize GUI components
         self._create_qt_application()
-        self._create_dialog(config_file)
+        self._create_dialog()
         self._create_menus()
         self._create_central_widget()
         self._create_general_widgets()
@@ -174,6 +152,7 @@ class DialogView:
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
         self._update_qvalues_table()
+        self._update_condition_files()
 
     def _update_branch(self, data):
         """
@@ -298,7 +277,7 @@ class DialogView:
         self._app = QApplication(sys.argv)
         self._app.setStyle("fusion")
 
-    def _create_dialog(self, config_file: Optional[str] = None) -> None:
+    def _create_dialog(self) -> None:
         """
         Construct the D-FAST Morphological Impact user interface.
 
@@ -306,11 +285,10 @@ class DialogView:
         ---------
         None
         """
-        self._win = MyMainWindow(self._view_model, config_file)
+        self._win = QMainWindow()
         self._win.setGeometry(200, 200, 800, 300)
         self._win.setWindowTitle("D-FAST Morphological Impact")
         self._win.setWindowIcon(DialogView._get_dfast_icon())
-        self._win.installEventFilter(self._win)
 
     def _create_menus(self) -> None:
         """
@@ -409,10 +387,11 @@ class DialogView:
             None
         """
         self._close_plots = QLabel(gui_text("closePlots"), self._win)
-        self._close_plots.setEnabled(False)
+        self._close_plots.setEnabled(self._view_model.make_plot)
         self._close_plots_edit = QCheckBox(self._win)
         self._close_plots_edit.setToolTip(gui_text("closePlots_tooltip"))
-        self._close_plots_edit.setEnabled(False)
+        self._close_plots_edit.setEnabled(self._view_model.make_plot)
+        self._close_plots_edit.setChecked(self._view_model.model.close_plots)
         self._close_plots_edit.stateChanged.connect(self._updated_close_plots)
         layout.addRow(self._close_plots, self._close_plots_edit)
 
@@ -427,13 +406,14 @@ class DialogView:
             None
         """
         self._figure_dir = QLabel(gui_text("figureDir"), self._win)
-        self._figure_dir.setEnabled(False)
+        self._figure_dir.setEnabled(self._view_model.save_plot)
         self._figure_dir_edit = ValidatingLineEdit(FolderExistsValidator(), self._win)
         self._figure_dir_edit.setPlaceholderText("Enter file path")
-        self._figure_dir_edit.setEnabled(False)
+        self._figure_dir_edit.setEnabled(self._view_model.save_plot)
         self._figure_dir_edit.textChanged.connect(
             partial(self._updated_file_or_folder_validation, self._figure_dir_edit)
         )
+        self._figure_dir_edit.setText(self._view_model.figure_dir)
         self._figure_dir_edit.editingFinished.connect(
             partial(
                 self._update_view_model,
@@ -444,7 +424,7 @@ class DialogView:
         )
         layout.addRow(
             self._figure_dir,
-            self._open_folder_layout(self._figure_dir_edit, "figure_dir_edit", False),
+            self._open_folder_layout(self._figure_dir_edit, "figure_dir_edit", self._view_model.save_plot),
         )
 
     def _create_save_plots_input_checkbox(self, layout: QBoxLayout) -> None:
@@ -458,11 +438,12 @@ class DialogView:
             None
         """
         self._save_plots = QLabel(gui_text("savePlots"), self._win)
-        self._save_plots.setEnabled(False)
+        self._save_plots.setEnabled(self._view_model.make_plot)
         self._save_plots_edit = QCheckBox(self._win)
         self._save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
+        self._save_plots_edit.setChecked(self._view_model.save_plot)
         self._save_plots_edit.stateChanged.connect(self._updated_save_plotting)
-        self._save_plots_edit.setEnabled(False)
+        self._save_plots_edit.setEnabled(self._view_model.make_plot)
         layout.addRow(self._save_plots, self._save_plots_edit)
 
     def _create_make_plots_input_checkbox(self, layout: QBoxLayout) -> None:
@@ -478,6 +459,7 @@ class DialogView:
         make_plots = QLabel(gui_text("makePlots"), self._win)
         self._make_plots_edit = QCheckBox(self._win)
         self._make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
+        self._make_plots_edit.setChecked(self._view_model.model.plotting)
         self._make_plots_edit.stateChanged.connect(self._updated_plotting)
         layout.addRow(make_plots, self._make_plots_edit)
 
@@ -496,6 +478,7 @@ class DialogView:
         self._output_dir.textChanged.connect(
             partial(self._updated_file_or_folder_validation, line_edit=self._output_dir)
         )
+        self._output_dir.setText(self._view_model.output_dir)
         self._output_dir.editingFinished.connect(
             partial(
                 self._update_view_model,
@@ -1185,9 +1168,10 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
 
     # Create ViewModel instance with the Model
     view_model = DialogViewModel(model)
+    view_model.load_configuration(config_file)
 
     # Create View instance with the ViewModel
-    view = DialogView(view_model, config_file)
+    view = DialogView(view_model)
 
     # Initialize the user interface and run the program
     view.activate_dialog()
