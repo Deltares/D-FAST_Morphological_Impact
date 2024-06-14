@@ -525,39 +525,64 @@ class Test_view_model_updates:
         assert dialog_view._slength.text() == dialog_view._view_model.slength
 
 
-def test_update_condition_files(dialog_view: DialogView):
+def test_update_condition_files_with_load_configuration(dialog_view: DialogView, tmp_path : Path):
     """
     given : dialog_view
     when  : updating condition files
     then  : the condition files should be updated correctly
     """
     # Mock the reference files and measure files
-    reference_files = {3000.0: "reference_file_10.txt", 4000.0: "reference_file_20.txt"}
-    measure_files = {3000.0: "measure_file_10.txt", 4000.0: "measure_file_20.txt"}
+    reference_file_3000 = "reference_file_10.txt"
+    reference_file_4000 = "reference_file_20.txt"
+    measure_file_3000 = "measure_file_10.txt"
+    measure_file_4000 = "measure_file_20.txt"
+    
+    expected_reference_file_3000 = str(tmp_path /"reference_file_10.txt")
+    expected_reference_file_4000 = str(tmp_path /"reference_file_20.txt")
+    expected_measure_file_3000 = str(tmp_path /"measure_file_10.txt")
+    expected_measure_file_4000 = str(tmp_path /"measure_file_20.txt")
 
-    # Set the mocked data
-    dialog_view._view_model._reference_files = reference_files
-    dialog_view._view_model._measure_files = measure_files
+    config_file_data = f"""
+    [General]
+  Version     = 3.0
+  Branch      = Bovenrijn & Waal
+  Reach       = Boven-Waal                   km  868-886
+
+[C1]
+  Discharge   = 3000.0
+  TideBC      = 0
+  Reference   = {reference_file_3000}
+  WithMeasure = {measure_file_3000}
+
+[C2]
+  Discharge   = 4000.0
+  TideBC      = 0
+  Reference   = {reference_file_4000}
+  WithMeasure = {measure_file_4000}
+    """
+    
+    config_file = tmp_path / "config.cfg"
+    config_file.write_text(config_file_data)
 
     # Trigger the method to be tested
-    dialog_view._update_condition_files()
+    dialog_view._view_model.load_configuration(config_file)
 
     # Assertions
     # Assuming your UI components are correctly updated, you can assert their properties
     # For example, assert that the QLineEdit objects representing the file paths have been updated
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "3000.0_reference").text()
-        == "reference_file_10.txt"
+        == expected_reference_file_3000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "3000.0_with_measure").text()
-        == "measure_file_10.txt"
+        == expected_measure_file_3000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "4000.0_reference").text()
-        == "reference_file_20.txt"
+        == expected_reference_file_4000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "4000.0_with_measure").text()
-        == "measure_file_20.txt"
+        == expected_measure_file_4000
     )
