@@ -14,6 +14,7 @@ from dfastmi.gui.dialog_model import DialogModel, GeneralConfig
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 
 
 @pytest.fixture
@@ -60,15 +61,15 @@ def mock_rivers_object() -> MagicMock:
 
 
 @pytest.fixture
-def mock_reference_files() -> Dict[float, str]:
+def mock_reference_files() -> FilenameDict:
     """Fixture for creating mock reference files."""
-    return {"80.1": "reference1.txt", "80.2": "reference2.txt"}
+    return {80.1: "reference1.txt", 80.2: "reference2.txt"}
 
 
 @pytest.fixture
-def mock_measure_files() -> Dict[float, str]:
+def mock_measure_files() -> FilenameDict:
     """Fixture for creating mock measurement files."""
-    return {"80.1": "measure1.txt", "80.2": "measure2.txt"}
+    return {80.1: "measure1.txt", 80.2: "measure2.txt"}
 
 
 @pytest.fixture
@@ -305,8 +306,8 @@ def test_get_configuration(
     dialog_model: DialogModel,
     mock_branch: MagicMock,
     mock_reach: MagicMock,
-    mock_reference_files: Dict[float, str],
-    mock_measure_files: Dict[float, str],
+    mock_reference_files: FilenameDict,
+    mock_measure_files: FilenameDict,
 ) -> None:
     """
     Test case for getting configuration.
@@ -338,13 +339,13 @@ def test_get_configuration(
     assert general_section["FigureDir"] == dialog_model.figure_dir
     assert general_section.getboolean("ClosePlots") == dialog_model.close_plots
 
-    # Check if the condition configurations are added correctly
-    num_conditions = len(mock_reach.hydro_q)
+    # Check if the condition configurations are added correctly, based on the length of the mocked files.
+    num_conditions = min(len(mock_reference_files), len(mock_measure_files))
     for i in range(1, num_conditions + 1):
         condition_key = f"C{i}"
         assert condition_key in config_parser
         condition_section = config_parser[condition_key]
         discharge = list(mock_reference_files.keys())[i - 1]
-        assert condition_section["Discharge"] == discharge
+        assert float(condition_section["Discharge"]) == discharge
         assert condition_section["Reference"] == mock_reference_files[discharge]
         assert condition_section["WithMeasure"] == mock_measure_files[discharge]

@@ -38,9 +38,9 @@ from dfastmi.config.ConfigFileOperations import (
     ConfigFileOperations,
     check_configuration,
 )
-from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import FilenameDict
 
@@ -206,7 +206,7 @@ class DialogModel:
     def check_configuration(
         self,
         branch: Branch,
-        reach: AReach,
+        reach: Reach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
     ) -> bool:
@@ -239,7 +239,7 @@ class DialogModel:
     def get_configuration(
         self,
         branch: Branch,
-        reach: AReach,
+        reach: Reach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
     ) -> ConfigParser:
@@ -280,22 +280,20 @@ class DialogModel:
     def _get_condition_configuration(
         self,
         config: ConfigParser,
-        reach: AReach,
+        reach: Reach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
     ) -> None:
         """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
-            qstr = str(discharge)
-            if qstr in reference_files.keys() or qstr in measure_files.keys():
+            if discharge in reference_files.keys() or discharge in measure_files.keys():
                 cond = f"C{i+1}"
+                
                 condition = ConditionConfig(
-                    Discharge=discharge, Reference="", WithMeasure=""
+                    Discharge=discharge, 
+                    Reference=reference_files.get(discharge, ""),
+                    WithMeasure=measure_files.get(discharge, "")
                 )
-                if qstr in reference_files.keys():
-                    condition.Reference = reference_files[qstr]
-                if qstr in measure_files.keys():
-                    condition.WithMeasure = measure_files[qstr]
 
                 config[cond] = condition.model_dump()
 

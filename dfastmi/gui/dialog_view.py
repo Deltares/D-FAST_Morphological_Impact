@@ -1073,11 +1073,11 @@ class DialogView:
             input_textbox.setText(file)
 
             if "_" + reference_label in key:
-                key_without_suffix = key.replace("_" + reference_label, "")
+                key_without_suffix = float(key.replace("_" + reference_label, ""))
                 self._view_model.reference_files[key_without_suffix] = file
 
             if "_" + with_measure_label in key:
-                key_without_suffix = key.replace("_" + with_measure_label, "")
+                key_without_suffix = float(key.replace("_" + with_measure_label, ""))
                 self._view_model.measure_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
