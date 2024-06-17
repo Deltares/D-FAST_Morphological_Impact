@@ -288,11 +288,11 @@ class DialogModel:
         for i, discharge in enumerate(reach.hydro_q):
             if discharge in reference_files.keys() or discharge in measure_files.keys():
                 cond = f"C{i+1}"
-                
+
                 condition = ConditionConfig(
-                    Discharge=discharge, 
+                    Discharge=discharge,
                     Reference=reference_files.get(discharge, ""),
-                    WithMeasure=measure_files.get(discharge, "")
+                    WithMeasure=measure_files.get(discharge, ""),
                 )
 
                 config[cond] = condition.model_dump()
