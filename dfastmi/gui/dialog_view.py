@@ -742,7 +742,7 @@ class DialogView:
             enabled,
             self._view_model.reference_files,
             reference_label,
-            "Enter reference file path"
+            "Enter reference file path",
         )
 
         # get the file with measure
@@ -752,7 +752,7 @@ class DialogView:
             enabled,
             self._view_model.measure_files,
             with_measure_label,
-            "Enter with measure file path"
+            "Enter with measure file path",
         )
 
         discharge_value_label = QLabel(discharge_name, self._win)
@@ -779,7 +779,7 @@ class DialogView:
         enabled: bool,
         files: dict[float, Path],
         label_suffix: str,
-        placeholder_text : str
+        placeholder_text: str,
     ):
         line_edit = ValidatingLineEdit(FileExistValidator(), self._win)
 
