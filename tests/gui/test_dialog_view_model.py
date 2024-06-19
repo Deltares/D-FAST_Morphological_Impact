@@ -34,6 +34,7 @@ def dialog_view_model(mock_model):
     # Create a DialogViewModel instance with the mock model
     return DialogViewModel(mock_model)
 
+
 @pytest.fixture
 def mock_batch_mode_core() -> MagicMock:
     """Fixture for mocking the batch_mode_core function."""
@@ -41,8 +42,11 @@ def mock_batch_mode_core() -> MagicMock:
         # Set the return value of batch_mode_core to True (success)
         mock_batch_mode_core.return_value = True
         yield mock_batch_mode_core
-        
-def test_run_analysis_success(dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock) -> None:
+
+
+def test_run_analysis_success(
+    dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock
+) -> None:
     """
     Test case for successful analysis run.
 
@@ -60,7 +64,9 @@ def test_run_analysis_success(dialog_view_model: DialogViewModel, mock_batch_mod
     assert result is True
 
 
-def test_run_analysis_failure(dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock) -> None:
+def test_run_analysis_failure(
+    dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock
+) -> None:
     """
     Test case for failed analysis run.
 
@@ -76,10 +82,11 @@ def test_run_analysis_failure(dialog_view_model: DialogViewModel, mock_batch_mod
 
     # Check that batch_mode_core was called
     mock_batch_mode_core.assert_called_once()
-    
-    #Check that the return value of run_analysis is False (failure)
+
+    # Check that the return value of run_analysis is False (failure)
     assert result is False
-        
+
+
 def test_run_analysis_exception(
     dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock, qtbot
 ) -> None:
@@ -182,6 +189,7 @@ def test_get_configuration(dialog_view_model, mock_model):
     config_parser = MagicMock()
     mock_model.get_configuration.return_value = config_parser
     assert dialog_view_model.get_configuration() == config_parser
+
 
 def test_load_configuration(dialog_view_model, mock_model):
     """

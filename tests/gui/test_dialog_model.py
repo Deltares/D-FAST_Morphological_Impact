@@ -76,6 +76,7 @@ def dialog_model(mock_rivers_object: MagicMock) -> DialogModel:
     """Fixture for creating a DialogModel instance."""
     return DialogModel(mock_rivers_object)
 
+
 class Test_create_configuration:
     @pytest.fixture
     def mock_general_config_object(self) -> MagicMock:
