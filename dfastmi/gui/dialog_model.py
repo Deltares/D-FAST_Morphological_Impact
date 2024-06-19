@@ -207,7 +207,7 @@ class DialogModel:
     ) -> bool:
         """Check configuration."""
         config = self.get_configuration(branch, reach, reference_files, measure_files)
-        return check_configuration(self.rivers, config)    
+        return check_configuration(self.rivers, config)
 
     def get_configuration(
         self, branch: Branch, reach: AReach, reference_files: List, measure_files: List

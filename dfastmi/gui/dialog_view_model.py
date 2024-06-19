@@ -26,9 +26,10 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import traceback
+
 # ViewModel
 from configparser import ConfigParser
-import traceback
 from typing import Dict
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -249,10 +250,13 @@ class DialogViewModel(QObject):
         except:
             stackTrace = traceback.format_exc()
             # Notify the view of the change
-            self.analysis_exception.emit( "A run-time exception occurred. Press 'Show Details...' for the full stack trace.", stackTrace)
-        
+            self.analysis_exception.emit(
+                "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
+                stackTrace,
+            )
+
         return False
-		
+
     @property
     def manual_filename(self) -> str:
         """
