@@ -60,6 +60,7 @@ def mock_areach() -> MagicMock:
     reach.name = "MyReach"
     return reach
 
+
 @pytest.fixture
 def mock_rivers_object() -> MagicMock:
     """Fixture for creating a MagicMock object of RiversObject."""
@@ -352,7 +353,8 @@ def test_get_configuration(
     for i in range(1, num_conditions + 1):
         condition_key = f"C{i}"
         assert condition_key not in config_parser
-        
+
+
 def test_get_configuration_with_reach(
     dialog_model: DialogModel,
     mock_branch: MagicMock,
