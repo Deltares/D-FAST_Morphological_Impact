@@ -195,6 +195,7 @@ class Test_create_configuration:
         assert dialog_model.figure_dir == "/path/to/figures"
         assert not dialog_model.close_plots
 
+
 def test_load_configuration(dialog_model: DialogModel, mocker) -> None:
     """
     Test case for loading configuration.
