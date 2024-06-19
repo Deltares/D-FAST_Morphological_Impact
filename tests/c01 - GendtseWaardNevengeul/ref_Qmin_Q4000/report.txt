@@ -45,8 +45,8 @@ Impacted length                     : 299 m
 Critical flow velocity              : 0.3 m/s
 
 Condition             | Reference file (without measure)       | File with measure
- 4000.0 m3/s          | ---                                    | ---     (measure not active)          
- 6000.0 m3/s          | reference-Q3_map.nc                    | measure-Q3_map.nc                     
+ 4000.0 m3/s          | ---                                    | ---                                        (measure not active)
+ 6000.0 m3/s          | reference-Q3_map.nc                    | measure-Q3_map.nc                          
 
 ================================================================================
 
