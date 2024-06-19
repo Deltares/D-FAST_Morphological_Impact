@@ -722,7 +722,7 @@ class DialogView:
             None
         """
         if self._qthr.hasAcceptableInput():
-            self._view_model.qthreshold = float(self._qthr.text())            
+            self._view_model.qthreshold = float(self._qthr.text())
 
     def _updated_ucritical(self) -> None:
         """

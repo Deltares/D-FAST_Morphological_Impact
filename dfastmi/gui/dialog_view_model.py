@@ -142,7 +142,7 @@ class DialogViewModel(QObject):
         """
         if self._qthreshold == value:
             return
-        
+
         value = max(value, self.current_reach.qstagnant)
         self._qthreshold = value
         self.model.qthreshold = value
