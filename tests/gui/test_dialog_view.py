@@ -172,7 +172,7 @@ class Test_dialog_inputs:
         assert dialog_view._view_model.model.qthreshold == float(
             new_value
         )  # Input should not change
-        
+
         # Reset to inital value
         dialog_view._qthr.setText(initial_value)
         dialog_view._qthr.editingFinished.emit()
@@ -210,7 +210,7 @@ class Test_dialog_inputs:
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
         assert dialog_view._view_model.model.ucritical == float(new_value)
-        
+
         # Reset to inital value
         dialog_view._ucrit.setText(initial_value)
         dialog_view._ucrit.editingFinished.emit()
