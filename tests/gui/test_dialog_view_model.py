@@ -3,8 +3,8 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import mock
-from mock import patch
 import pytest
+from mock import patch
 
 from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_model import DialogModel
@@ -34,6 +34,7 @@ def dialog_view_model(mock_model):
     # Create a DialogViewModel instance with the mock model
     return DialogViewModel(mock_model)
 
+
 @pytest.fixture
 def mock_batch_mode_core() -> MagicMock:
     """Fixture for mocking the batch_mode_core function."""
@@ -42,7 +43,10 @@ def mock_batch_mode_core() -> MagicMock:
         mock_batch_mode_core.return_value = True
         yield mock_batch_mode_core
 
-def test_run_analysis_exception(dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock, qtbot) -> None:
+
+def test_run_analysis_exception(
+    dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock, qtbot
+) -> None:
     """
     Test case for exception during analysis run.
     given: A DialogModel instance.
@@ -52,16 +56,22 @@ def test_run_analysis_exception(dialog_view_model: DialogViewModel, mock_batch_m
     # Set the side effect of batch_mode_core to raise an exception
     mock_batch_mode_core.side_effect = Exception("mocked")
 
-    with qtbot.waitSignal(dialog_view_model.analysis_exception, raising=True) as blocker:
+    with qtbot.waitSignal(
+        dialog_view_model.analysis_exception, raising=True
+    ) as blocker:
         # Call the run_analysis method
         assert dialog_view_model.run_analysis() == False
-    
+
     assert blocker.signal_triggered
-    assert blocker.args[0] == "A run-time exception occurred. Press 'Show Details...' for the full stack trace."
+    assert (
+        blocker.args[0]
+        == "A run-time exception occurred. Press 'Show Details...' for the full stack trace."
+    )
     assert "mocked" in blocker.args[1]
 
     # Check that batch_mode_core was called
     mock_batch_mode_core.assert_called_once()
+
 
 def test_initialization(dialog_view_model, mock_model):
     """

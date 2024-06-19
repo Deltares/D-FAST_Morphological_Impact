@@ -245,7 +245,7 @@ class DialogViewModel(QObject):
         try:
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, self.model.config, gui=True
-            )            
+            )
         except:
             stackTrace = traceback.format_exc()
             # Notify the view of the change
