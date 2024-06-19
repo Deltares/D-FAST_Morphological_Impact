@@ -38,9 +38,9 @@ from dfastmi.config.ConfigFileOperations import (
     ConfigFileOperations,
     check_configuration,
 )
+from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
-from dfastmi.io.AReach import AReach
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import FilenameDict
@@ -275,7 +275,9 @@ class DialogModel:
         ).model_dump()
 
         if isinstance(reach, Reach):
-            self._get_condition_configuration(config, reach, reference_files, measure_files)
+            self._get_condition_configuration(
+                config, reach, reference_files, measure_files
+            )
         self._add_unknown_read_config_key_values(config)
         return config
 
@@ -286,7 +288,7 @@ class DialogModel:
         reference_files: FilenameDict,
         measure_files: FilenameDict,
     ) -> None:
-        """Get condition configuration."""            
+        """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
             if discharge in reference_files.keys() or discharge in measure_files.keys():
                 cond = f"C{i+1}"
