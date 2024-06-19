@@ -173,6 +173,7 @@ class DialogView:
         )
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
+        self._view_model.analysis_exception.connect(self._show_error)
         self._update_qvalues_table()
 
     def _update_branch(self, data):

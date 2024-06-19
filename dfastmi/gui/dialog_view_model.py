@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 # ViewModel
 from configparser import ConfigParser
+import traceback
 from typing import Dict
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -53,6 +54,7 @@ class DialogViewModel(QObject):
     save_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
+    analysis_exception = pyqtSignal(str, str)
     _reference_files: Dict[float, str] = {}
     _measure_files: Dict[float, str] = {}
     model: DialogModel
@@ -232,11 +234,25 @@ class DialogViewModel(QObject):
         """
         Run the analysis.
 
-        Returns:
-            bool: True if analysis is successful, False otherwise.
+        Return
+        ---------
+        succes : bool
+            If the analysis could be run successfully.
+            We call batch_mode_core which can throw and log an exception.
+            If thrown, analysis has failed.
         """
-        return self.model.run_analysis(gui=True)
-
+        try:
+            success = dfastmi.batch.core.batch_mode_core(
+                self.model.rivers, False, self.model.config, gui=True
+            )
+            return success
+        except:
+            stackTrace = traceback.format_exc()
+            # Notify the view of the change
+            self.analysis_exception.emit( "A run-time exception occurred. Press 'Show Details...' for the full stack trace.", stackTrace)
+        
+        return False
+		
     @property
     def manual_filename(self) -> str:
         """
