@@ -451,7 +451,7 @@ class Test_select:
 
 
 class Test_view_model_updates:
-    def test_update_branch(self, dialog_view: DialogView, mocker):
+    def test_update_branch(self, dialog_view: DialogView):
         """
         given : dialog_view
         when  : updating the branch
