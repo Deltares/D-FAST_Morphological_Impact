@@ -135,7 +135,11 @@ class Test_dialog_inputs:
         given : dialog_view
         when  : updating the qthreshold QLineEdit
         then  : the qthreshold value should be updated correctly
-        """
+        """        
+        # Test updating the test_qthreshold_update QLineEdit
+        initial_value = dialog_view._qthr.text()
+        assert initial_value == "800.0"
+        
         # Test valid input, but less than qstagnant
         new_value = "10.0"
         dialog_view._qthr.setText(new_value)
@@ -168,6 +172,10 @@ class Test_dialog_inputs:
         assert dialog_view._view_model.model.qthreshold == float(
             new_value
         )  # Input should not change
+        
+        # Reset to inital value
+        dialog_view._qthr.setText(initial_value)
+        dialog_view._qthr.editingFinished.emit()
 
     def test_ucritical_update(self, dialog_view: DialogView):
         """
@@ -198,6 +206,10 @@ class Test_dialog_inputs:
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
         assert dialog_view._view_model.model.ucritical == float(new_value)
+        
+        # Reset to inital value
+        dialog_view._ucrit.setText(initial_value)
+        dialog_view._ucrit.editingFinished.emit()
 
     def test_branch_and_reach_selection(self, dialog_view: DialogView):
         """
