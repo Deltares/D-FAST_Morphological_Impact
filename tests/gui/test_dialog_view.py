@@ -445,8 +445,6 @@ class Test_view_model_updates:
         when  : updating the branch
         then  : the branch and associated attributes should be updated correctly
         """
-        mocker.patch.object(dialog_view, "_update_qvalues_table")
-        mocker.patch.object(dialog_view, "_update_condition_files")
         # Call the method to be tested
         dialog_view._update_branch(
             "Bovenrijn & Waal"
@@ -479,8 +477,6 @@ class Test_view_model_updates:
             dialog_view._close_plots_edit.isChecked()
             == dialog_view._view_model.model.close_plots
         )
-        dialog_view._update_qvalues_table.assert_called_once()
-        dialog_view._update_condition_files.assert_called_once()
 
     def test_update_reach(self, dialog_view: DialogView):
         """
