@@ -329,15 +329,17 @@ class ConfigFileOperations:
         """
         relative_path = config.get(section, key, fallback="")
 
-        absolute_path = ConfigFileOperations._get_absolute_path_from_relative_path(rootdir, relative_path)
+        absolute_path = ConfigFileOperations._get_absolute_path_from_relative_path(
+            rootdir, relative_path
+        )
 
         config.set(section, key, absolute_path)
 
     @staticmethod
-    def _get_absolute_path_from_relative_path(rootdir : str, relative_path : str) -> str:
+    def _get_absolute_path_from_relative_path(rootdir: str, relative_path: str) -> str:
         if len(relative_path) == 0:
             return relative_path
-        
+
         absolute_path = str(Path(rootdir).joinpath(Path(relative_path)).resolve())
         return absolute_path
 
