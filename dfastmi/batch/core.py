@@ -260,16 +260,23 @@ def _report_used_file_names(
             key = (q, initialized_config.tide_bc[i])
         else:
             key = q
-            
-        condition, reference_file_name, measure_file_name, comment = get_analysis_condition_values_for_logging(initialized_config, filenames, q, key)
+
+        condition, reference_file_name, measure_file_name, comment = (
+            get_analysis_condition_values_for_logging(
+                initialized_config, filenames, q, key
+            )
+        )
 
         _report_analysis_conditions_values(
             condition, reference_file_name, measure_file_name, comment, report
         )
 
-def get_analysis_condition_values_for_logging(initialized_config : AConfigurationInitializerBase, filenames, q, key):
+
+def get_analysis_condition_values_for_logging(
+    initialized_config: AConfigurationInitializerBase, filenames, q, key
+):
     condition = "{:7.1f} m3/s".format(q)
-    
+
     if q <= initialized_config.q_threshold:
         reference_file_name = "---"
         measure_file_name = "---"
@@ -283,7 +290,7 @@ def get_analysis_condition_values_for_logging(initialized_config : AConfiguratio
         reference_file_name = "xxx"
         measure_file_name = "xxx"
         comment = "(not specified)"
-        
+
     return condition, reference_file_name, measure_file_name, comment
 
 
@@ -293,7 +300,7 @@ def _get_file_name(location: str) -> str:
 
 
 def _report_analysis_conditions_values(
-    condition: str, reference: str, measure: str, comment : str, report: TextIO
+    condition: str, reference: str, measure: str, comment: str, report: TextIO
 ):
     settings = {
         "condition": condition,
