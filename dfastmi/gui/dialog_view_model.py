@@ -140,6 +140,9 @@ class DialogViewModel(QObject):
         Arguments:
             value (float): The threshold discharge to set.
         """
+        if self._qthreshold == value:
+            return
+        
         self._qthreshold = value
         self.model.qthreshold = value
 
