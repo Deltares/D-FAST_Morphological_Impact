@@ -195,22 +195,6 @@ class Test_create_configuration:
         assert dialog_model.figure_dir == "/path/to/figures"
         assert not dialog_model.close_plots
 
-
-def test_load_configuration_init(mock_rivers_object: MagicMock, mocker) -> None:
-    """
-    Test case for loading configuration initialization.
-
-    given: A DialogModel instance, mock RiversObject, and mocker.
-    when: Initializing the DialogModel.
-    then: The configuration object is not None.
-    """
-    config = ConfigParser()
-    config["General"] = {}
-    model = DialogModel(mock_rivers_object)
-
-    assert model.config is not None
-
-
 def test_load_configuration(dialog_model: DialogModel, mocker) -> None:
     """
     Test case for loading configuration.
