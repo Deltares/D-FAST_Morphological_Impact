@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import mock
+from mock import patch
 import pytest
 
 from dfastmi.batch.DFastUtils import get_progloc
@@ -33,6 +34,34 @@ def dialog_view_model(mock_model):
     # Create a DialogViewModel instance with the mock model
     return DialogViewModel(mock_model)
 
+@pytest.fixture
+def mock_batch_mode_core() -> MagicMock:
+    """Fixture for mocking the batch_mode_core function."""
+    with patch("dfastmi.batch.core.batch_mode_core") as mock_batch_mode_core:
+        # Set the return value of batch_mode_core to True (success)
+        mock_batch_mode_core.return_value = True
+        yield mock_batch_mode_core
+
+def test_run_analysis_exception(dialog_view_model: DialogViewModel, mock_batch_mode_core: MagicMock, qtbot) -> None:
+    """
+    Test case for exception during analysis run.
+    given: A DialogModel instance.
+    when: Calling the run_analysis method with batch_mode_core raising an exception.
+    then: The batch_mode_core function is called and the return value of run_analysis is False (failure).
+    """
+    # Set the side effect of batch_mode_core to raise an exception
+    mock_batch_mode_core.side_effect = Exception("mocked")
+
+    with qtbot.waitSignal(dialog_view_model.analysis_exception, raising=True) as blocker:
+        # Call the run_analysis method
+        assert dialog_view_model.run_analysis() == False
+    
+    assert blocker.signal_triggered
+    assert blocker.args[0] == "A run-time exception occurred. Press 'Show Details...' for the full stack trace."
+    assert "mocked" in blocker.args[1]
+
+    # Check that batch_mode_core was called
+    mock_batch_mode_core.assert_called_once()
 
 def test_initialization(dialog_view_model, mock_model):
     """

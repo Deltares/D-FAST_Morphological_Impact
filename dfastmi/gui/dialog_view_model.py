@@ -243,10 +243,9 @@ class DialogViewModel(QObject):
             If thrown, analysis has failed.
         """
         try:
-            success = dfastmi.batch.core.batch_mode_core(
+            return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, self.model.config, gui=True
-            )
-            return success
+            )            
         except:
             stackTrace = traceback.format_exc()
             # Notify the view of the change
