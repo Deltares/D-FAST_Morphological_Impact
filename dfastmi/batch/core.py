@@ -260,22 +260,31 @@ def _report_used_file_names(
             key = (q, initialized_config.tide_bc[i])
         else:
             key = q
-        condition = "{:7.1f} m3/s".format(q)
-        if q <= initialized_config.q_threshold:
-            _report_analysis_conditions_values(
-                condition, "---", "---     (measure not active)", report
-            )
-        elif key in filenames:
-            files = filenames[key]
-            reference_file_name = _get_file_name(files[0])
-            measure_file_name = _get_file_name(files[1])
-            _report_analysis_conditions_values(
-                condition, reference_file_name, measure_file_name, report
-            )
-        else:
-            _report_analysis_conditions_values(
-                condition, "xxx", "xxx     (not specified)", report
-            )
+            
+        condition, reference_file_name, measure_file_name, comment = get_analysis_condition_values_for_logging(initialized_config, filenames, q, key)
+
+        _report_analysis_conditions_values(
+            condition, reference_file_name, measure_file_name, comment, report
+        )
+
+def get_analysis_condition_values_for_logging(initialized_config : AConfigurationInitializerBase, filenames, q, key):
+    condition = "{:7.1f} m3/s".format(q)
+    
+    if q <= initialized_config.q_threshold:
+        reference_file_name = "---"
+        measure_file_name = "---"
+        comment = "(measure not active)"
+    elif key in filenames:
+        files = filenames[key]
+        reference_file_name = _get_file_name(files[0])
+        measure_file_name = _get_file_name(files[1])
+        comment = ""
+    else:
+        reference_file_name = "xxx"
+        measure_file_name = "xxx"
+        comment = "(not specified)"
+        
+    return condition, reference_file_name, measure_file_name, comment
 
 
 def _get_file_name(location: str) -> str:
@@ -284,12 +293,13 @@ def _get_file_name(location: str) -> str:
 
 
 def _report_analysis_conditions_values(
-    condition: str, reference: str, measure: str, report: TextIO
+    condition: str, reference: str, measure: str, comment : str, report: TextIO
 ):
     settings = {
         "condition": condition,
         "reference": reference,
         "measure": measure,
+        "comment": comment,
     }
     ApplicationSettingsHelper.log_text(
         "analysis_settings_conditions_values", file=report, dict=settings
