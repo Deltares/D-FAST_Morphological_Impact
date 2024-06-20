@@ -215,28 +215,6 @@ class DialogModel:
         config = self.get_configuration(branch, reach, reference_files, measure_files)
         return check_configuration(self.rivers, config)
 
-    def run_analysis(self, gui: bool = False) -> bool:
-        # Logic to run analysis based on configuration
-        """
-        Run the D-FAST Morphological Impact analysis based on settings in the GUI.
-
-        Arguments
-        ---------
-        gui : bool
-            Flag indicating whether this routine is called from the GUI.
-
-        Return
-        ---------
-        succes : bool
-            If the analysis could be run successfully.
-            We call batch_mode_core which can throw and log an exception.
-            If thrown, analysis has failed.
-        """
-        success = dfastmi.batch.core.batch_mode_core(
-            self.rivers, False, self.config, gui=gui
-        )
-        return success
-
     def get_configuration(
         self,
         branch: Branch,
