@@ -177,6 +177,10 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(initial_value)
         dialog_view._qthr.editingFinished.emit()
 
+        # Reset to inital value
+        dialog_view._qthr.setText(initial_value)
+        dialog_view._qthr.editingFinished.emit()
+
     def test_ucritical_update(self, dialog_view: DialogView):
         """
         given : dialog_view
@@ -206,6 +210,10 @@ class Test_dialog_inputs:
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
         assert dialog_view._view_model.model.ucritical == float(new_value)
+
+        # Reset to inital value
+        dialog_view._ucrit.setText(initial_value)
+        dialog_view._ucrit.editingFinished.emit()
 
         # Reset to inital value
         dialog_view._ucrit.setText(initial_value)

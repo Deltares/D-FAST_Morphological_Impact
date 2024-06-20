@@ -188,12 +188,15 @@ class DialogView:
         # Update reach label
         self._reach.setCurrentText(data)
 
-    def _update_qthreshold(self):
+    def _update_qthreshold(self, data):
         """
-        Update the GUI components when the reach changes.
+        Update the GUI components when the discharge threshold changes.
+
+        Args:
+            data: The dischage threshold.
         """
         # Update the threshold discharge in the GUI
-        self._qthr.setText(str(self._view_model.model.qthreshold))
+        self._qthr.setText(str(data))
 
         # Update labels and text fields
         self._ucrit.setText(str(self._view_model.model.ucritical))
@@ -719,10 +722,7 @@ class DialogView:
             None
         """
         if self._qthr.hasAcceptableInput():
-            new_qthreshold = max(
-                float(self._qthr.text()), self._view_model.current_reach.qstagnant
-            )
-            self._view_model.qthreshold = new_qthreshold
+            self._view_model.qthreshold = float(self._qthr.text())
 
     def _updated_ucritical(self) -> None:
         """
