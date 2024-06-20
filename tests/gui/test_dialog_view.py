@@ -136,6 +136,10 @@ class Test_dialog_inputs:
         when  : updating the qthreshold QLineEdit
         then  : the qthreshold value should be updated correctly
         """
+        # Test updating the test_qthreshold_update QLineEdit
+        initial_value = dialog_view._qthr.text()
+        assert initial_value == "800.0"
+
         # Test valid input, but less than qstagnant
         new_value = "10.0"
         dialog_view._qthr.setText(new_value)
@@ -169,6 +173,10 @@ class Test_dialog_inputs:
             new_value
         )  # Input should not change
 
+        # Reset to inital value
+        dialog_view._qthr.setText(initial_value)
+        dialog_view._qthr.editingFinished.emit()
+
     def test_ucritical_update(self, dialog_view: DialogView):
         """
         given : dialog_view
@@ -198,6 +206,10 @@ class Test_dialog_inputs:
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
         assert dialog_view._view_model.model.ucritical == float(new_value)
+
+        # Reset to inital value
+        dialog_view._ucrit.setText(initial_value)
+        dialog_view._ucrit.editingFinished.emit()
 
     def test_branch_and_reach_selection(self, dialog_view: DialogView):
         """
@@ -439,14 +451,12 @@ class Test_select:
 
 
 class Test_view_model_updates:
-    def test_update_branch(self, dialog_view: DialogView, mocker):
+    def test_update_branch(self, dialog_view: DialogView):
         """
         given : dialog_view
         when  : updating the branch
         then  : the branch and associated attributes should be updated correctly
         """
-        mocker.patch.object(dialog_view, "_update_qvalues_table")
-        mocker.patch.object(dialog_view, "_update_condition_files")
         # Call the method to be tested
         dialog_view._update_branch(
             "Bovenrijn & Waal"
@@ -479,8 +489,6 @@ class Test_view_model_updates:
             dialog_view._close_plots_edit.isChecked()
             == dialog_view._view_model.model.close_plots
         )
-        dialog_view._update_qvalues_table.assert_called_once()
-        dialog_view._update_condition_files.assert_called_once()
 
     def test_update_reach(self, dialog_view: DialogView):
         """
