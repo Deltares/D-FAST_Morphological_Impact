@@ -213,8 +213,8 @@ def test_check_configuration(
     dialog_model: DialogModel,
     mock_branch: MagicMock,
     mock_areach: MagicMock,
-    mock_reference_files: Dict[float, str],
-    mock_measure_files: Dict[float, str],
+    mock_reference_files: FilenameDict,
+    mock_measure_files: FilenameDict,
 ) -> None:
     """
     Test case for checking configuration.
