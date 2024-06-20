@@ -432,7 +432,7 @@ class Test_select:
 
         input_box = dialog_view._general_widget.findChild(QLineEdit, key)
         assert input_box.text() == "/path/to/file"
-        assert dialog_view._view_model.reference_files["3000.0"] == "/path/to/file"
+        assert dialog_view._view_model.reference_files[3000.0] == "/path/to/file"
 
     def test_selectFile_with_measure_edit(self, dialog_view: DialogView, monkeypatch):
         """
@@ -453,7 +453,7 @@ class Test_select:
         input_box = dialog_view._general_widget.findChild(QLineEdit, key)
         assert input_box.text() == "/path/to/file_with_measure"
         assert (
-            dialog_view._view_model.measure_files["4000.0"]
+            dialog_view._view_model.measure_files[4000.0]
             == "/path/to/file_with_measure"
         )
 

@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import traceback
 from configparser import ConfigParser, SectionProxy
-from typing import List, Optional
+from typing import Optional
 
 from packaging.version import Version
 from pydantic import BaseModel
@@ -41,7 +41,9 @@ from dfastmi.config.ConfigFileOperations import (
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 
 
 class GeneralConfig(BaseModel):
@@ -203,14 +205,22 @@ class DialogModel:
         return True
 
     def check_configuration(
-        self, branch: Branch, reach: AReach, reference_files: List, measure_files: List
+        self,
+        branch: Branch,
+        reach: AReach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> bool:
         """Check configuration."""
         config = self.get_configuration(branch, reach, reference_files, measure_files)
         return check_configuration(self.rivers, config)
 
     def get_configuration(
-        self, branch: Branch, reach: AReach, reference_files: List, measure_files: List
+        self,
+        branch: Branch,
+        reach: AReach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> ConfigParser:
         """
         Extract a configuration from the GUI.
@@ -242,29 +252,30 @@ class DialogModel:
             RiverKM=self.riverkm_file,
         ).model_dump()
 
-        self._get_condition_configuration(config, reach, reference_files, measure_files)
+        if isinstance(reach, Reach):
+            self._get_condition_configuration(
+                config, reach, reference_files, measure_files
+            )
         self._add_unknown_read_config_key_values(config)
         return config
 
     def _get_condition_configuration(
         self,
         config: ConfigParser,
-        reach: AReach,
-        reference_files: List,
-        measure_files: List,
+        reach: Reach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> None:
         """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
-            qstr = str(discharge)
-            if qstr in reference_files.keys() or qstr in measure_files.keys():
+            if discharge in reference_files.keys() or discharge in measure_files.keys():
                 cond = f"C{i+1}"
+
                 condition = ConditionConfig(
-                    Discharge=discharge, Reference="", WithMeasure=""
+                    Discharge=discharge,
+                    Reference=reference_files.get(discharge, ""),
+                    WithMeasure=measure_files.get(discharge, ""),
                 )
-                if qstr in reference_files.keys():
-                    condition.Reference = reference_files[qstr]
-                if qstr in measure_files.keys():
-                    condition.WithMeasure = measure_files[qstr]
 
                 config[cond] = condition.model_dump()
 
