@@ -30,7 +30,6 @@ import traceback
 
 # ViewModel
 from configparser import ConfigParser
-from typing import Dict
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -57,6 +56,8 @@ class DialogViewModel(QObject):
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
     analysis_exception = pyqtSignal(str, str)
+    reference_files_changed = pyqtSignal(str, float, str)
+    measure_files_changed = pyqtSignal(str, float, str)
     _reference_files: FilenameDict = {}
     _measure_files: FilenameDict = {}
     model: DialogModel
@@ -401,15 +402,6 @@ class DialogViewModel(QObject):
         """
         self.model.load_configuration(filename)
 
-        self._reference_files = {}
-        self._measure_files = {}
-        for section_name in self.model.config.sections():
-            if section_name.lower().startswith("c"):
-                section = self.model.config[section_name]
-                cond_discharge = section.getfloat("Discharge", 0.0)
-                self._reference_files[cond_discharge] = section.get("Reference", "")
-                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
-
         branch = self.model.rivers.get_branch(self.model.branch_name)
         if not branch:
             branch = self.model.rivers.branches[0]
@@ -423,6 +415,7 @@ class DialogViewModel(QObject):
         self._initialize_qthreshold()
         self._initialize_ucritical()
         self._update_slength()
+        self._initialize_reference_and_measure()
 
         self.make_plot = self.model.plotting
         self.save_plot = self.model.save_plots
@@ -430,6 +423,24 @@ class DialogViewModel(QObject):
         self.output_dir = self.model.output_dir
 
         return True
+
+    def _initialize_reference_and_measure(self):
+        self._reference_files = {}
+        self._measure_files = {}
+        for section_name in self.model.config.sections():
+            if section_name.lower().startswith("c"):
+                section = self.model.config[section_name]
+                cond_discharge = section.getfloat("Discharge", 0.0)
+
+                self._reference_files[cond_discharge] = section.get("Reference", "")
+                self.reference_files_changed.emit(
+                    "reference", cond_discharge, self._reference_files[cond_discharge]
+                )
+
+                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
+                self.measure_files_changed.emit(
+                    "with_measure", cond_discharge, self._measure_files[cond_discharge]
+                )
 
     def check_configuration(self) -> bool:
         """
