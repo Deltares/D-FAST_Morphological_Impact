@@ -30,7 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import sys
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Optional, TextIO, Tuple
+from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
 import matplotlib
 from packaging.version import InvalidVersion, Version
@@ -273,8 +273,8 @@ def _report_used_file_names(
 
 
 def get_analysis_condition_values_for_logging(
-    initialized_config: AConfigurationInitializerBase, filenames, q, key
-):
+    initialized_config: AConfigurationInitializerBase, filenames : Dict[Any, Tuple[str, str]], q : float, key : Union[int, tuple[float, str], float]
+) -> Tuple[str, str, str, str]:
     condition = "{:7.1f} m3/s".format(q)
 
     if q <= initialized_config.q_threshold:
