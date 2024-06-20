@@ -273,7 +273,10 @@ def _report_used_file_names(
 
 
 def get_analysis_condition_values_for_logging(
-    initialized_config: AConfigurationInitializerBase, filenames : Dict[Any, Tuple[str, str]], q : float, key : Union[int, tuple[float, str], float]
+    initialized_config: AConfigurationInitializerBase,
+    filenames: Dict[Any, Tuple[str, str]],
+    q: float,
+    key: Union[int, tuple[float, str], float],
 ) -> Tuple[str, str, str, str]:
     condition = "{:7.1f} m3/s".format(q)
 
