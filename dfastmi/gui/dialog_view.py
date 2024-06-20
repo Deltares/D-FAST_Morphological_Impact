@@ -188,7 +188,7 @@ class DialogView:
         # Update reach label
         self._reach.setCurrentText(data)
 
-    def _update_qthreshold(self):
+    def _update_qthreshold(self, data):
         """
         Update the GUI components when the discharge threshold changes.
 
