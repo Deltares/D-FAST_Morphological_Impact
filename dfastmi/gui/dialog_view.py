@@ -66,6 +66,7 @@ from dfastmi.gui.dialog_utils import (
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.qt_tools import clear_layout_item
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 from dfastmi.resources import DFAST_LOGO
 
 # View
@@ -207,7 +208,7 @@ class DialogView:
         self._update_qvalues_table()
 
     def _update_condition_file_field(
-        self, field_postfix: str, condition_discharge, file_location: Path
+        self, field_postfix: str, condition_discharge : float, file_location: str
     ):
         """
         Update the condition file field.
@@ -215,13 +216,13 @@ class DialogView:
         Args:
             field_postfix (str): The postfix for the field.
             condition_discharge: The condition discharge.
-            file_location (Path): The file location.
+            file_location (str): The file location.
         """
         prefix = str(condition_discharge) + "_"
         key = prefix + field_postfix
         input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
         if input_textbox:
-            input_textbox.setText(str(file_location))
+            input_textbox.setText(file_location)
 
     def _update_qvalues_table(self):
         """Update the Q values table."""
@@ -777,7 +778,7 @@ class DialogView:
         prefix: str,
         discharge: float,
         enabled: bool,
-        files: dict[float, Path],
+        files: FilenameDict,
         label_suffix: str,
         placeholder_text: str,
     ):
@@ -789,7 +790,7 @@ class DialogView:
 
         file_path = files.get(discharge, None)
         if file_path:
-            line_edit.setText(str(file_path))
+            line_edit.setText(file_path)
 
         line_edit.setObjectName(prefix + label_suffix)
 

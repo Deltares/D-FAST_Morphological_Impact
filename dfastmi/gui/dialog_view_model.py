@@ -30,8 +30,6 @@ import traceback
 
 # ViewModel
 from configparser import ConfigParser
-from pathlib import Path
-from typing import Dict
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -58,8 +56,8 @@ class DialogViewModel(QObject):
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
     analysis_exception = pyqtSignal(str, str)
-    reference_files_changed = pyqtSignal(str, float, Path)
-    measure_files_changed = pyqtSignal(str, float, Path)
+    reference_files_changed = pyqtSignal(str, float, str)
+    measure_files_changed = pyqtSignal(str, float, str)
     _reference_files: FilenameDict = {}
     _measure_files: FilenameDict = {}
     model: DialogModel
@@ -434,16 +432,12 @@ class DialogViewModel(QObject):
                 section = self.model.config[section_name]
                 cond_discharge = section.getfloat("Discharge", 0.0)
 
-                self._reference_files[cond_discharge] = Path(
-                    section.get("Reference", "")
-                )
+                self._reference_files[cond_discharge] = section.get("Reference", "")
                 self.reference_files_changed.emit(
                     "reference", cond_discharge, self._reference_files[cond_discharge]
                 )
 
-                self._measure_files[cond_discharge] = Path(
-                    section.get("WithMeasure", "")
-                )
+                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
                 self.measure_files_changed.emit(
                     "with_measure", cond_discharge, self._measure_files[cond_discharge]
                 )
