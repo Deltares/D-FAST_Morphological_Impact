@@ -153,10 +153,14 @@ class DialogView:
         )
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
-        
-        self._view_model.reference_files_changed.connect(self._update_condition_file_field)
-        self._view_model.measure_files_changed.connect(self._update_condition_file_field)
-        
+
+        self._view_model.reference_files_changed.connect(
+            self._update_condition_file_field
+        )
+        self._view_model.measure_files_changed.connect(
+            self._update_condition_file_field
+        )
+
         self._view_model.analysis_exception.connect(self._show_error)
         self._update_qvalues_table()
 
@@ -192,7 +196,7 @@ class DialogView:
         # Update reach label
         self._reach.setCurrentText(data)
 
-    def _update_qthreshold(self, data : float):
+    def _update_qthreshold(self, data: float):
         """
         Update the GUI components when the discharge threshold changes.
 
@@ -208,7 +212,7 @@ class DialogView:
         self._update_qvalues_table()
 
     def _update_condition_file_field(
-        self, field_postfix: str, condition_discharge : float, file_location: str
+        self, field_postfix: str, condition_discharge: float, file_location: str
     ):
         """
         Update the condition file field.
