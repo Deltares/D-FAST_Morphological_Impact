@@ -77,60 +77,6 @@ def dialog_model(mock_rivers_object: MagicMock) -> DialogModel:
     return DialogModel(mock_rivers_object)
 
 
-@pytest.fixture
-def mock_batch_mode_core() -> MagicMock:
-    """Fixture for mocking the batch_mode_core function."""
-    with patch("dfastmi.batch.core.batch_mode_core") as mock_batch_mode_core:
-        # Set the return value of batch_mode_core to True (success)
-        mock_batch_mode_core.return_value = True
-        yield mock_batch_mode_core
-
-
-def test_run_analysis_success(mock_batch_mode_core: MagicMock) -> None:
-    """
-    Test case for successful analysis run.
-
-    given: A DialogModel instance.
-    when: Calling the run_analysis method.
-    then: The batch_mode_core function is called and the return value of run_analysis is True (success).
-    """
-    # Create an instance of DialogModel
-    model = DialogModel(rivers_configuration=None)
-
-    # Call the run_analysis method
-    result = model.run_analysis()
-
-    # Check that batch_mode_core was called
-    mock_batch_mode_core.assert_called_once()
-
-    # Check that the return value of run_analysis is True (success)
-    assert result is True
-
-
-def test_run_analysis_failure(mock_batch_mode_core: MagicMock) -> None:
-    """
-    Test case for failed analysis run.
-
-    given: A DialogModel instance.
-    when: Calling the run_analysis method with batch_mode_core returning False.
-    then: The batch_mode_core function is called and the return value of run_analysis is False (failure).
-    """
-    # Set the return value of batch_mode_core to False (failure)
-    mock_batch_mode_core.return_value = False
-
-    # Create an instance of DialogModel
-    model = DialogModel(rivers_configuration=None)
-
-    # Call the run_analysis method
-    result = model.run_analysis()
-
-    # Check that batch_mode_core was called
-    mock_batch_mode_core.assert_called_once()
-
-    # Check that the return value of run_analysis is False (failure)
-    assert result is False
-
-
 class Test_create_configuration:
     @pytest.fixture
     def mock_general_config_object(self) -> MagicMock:
