@@ -329,14 +329,19 @@ class ConfigFileOperations:
         """
         relative_path = config.get(section, key, fallback="")
 
-        if len(relative_path) == 0:
-            relative_path_converted_to_absolute_path = ""
-        else:
-            relative_path_converted_to_absolute_path = str(
-                Path(rootdir).joinpath(Path(relative_path)).resolve()
-            )
+        absolute_path = ConfigFileOperations._get_absolute_path_from_relative_path(
+            rootdir, relative_path
+        )
 
-        config.set(section, key, relative_path_converted_to_absolute_path)
+        config.set(section, key, absolute_path)
+
+    @staticmethod
+    def _get_absolute_path_from_relative_path(rootdir: str, relative_path: str) -> str:
+        if len(relative_path) == 0:
+            return relative_path
+
+        absolute_path = str(Path(rootdir).joinpath(Path(relative_path)).resolve())
+        return absolute_path
 
 
 def check_configuration(rivers: RiversObject, config: ConfigParser) -> bool:
