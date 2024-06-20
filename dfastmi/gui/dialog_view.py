@@ -191,7 +191,7 @@ class DialogView:
         # Update reach label
         self._reach.setCurrentText(data)
 
-    def _update_qthreshold(self):
+    def _update_qthreshold(self, data):
         """
         Update the GUI components when the discharge threshold changes.
 
@@ -742,7 +742,28 @@ class DialogView:
             enabled,
             self._view_model.reference_files,
             reference_label,
-            "Enter reference file path",
+        )
+
+        # get the file with measure
+        q1_with_measure = self._create_condition_validating_line_edit(
+            prefix,
+            discharge,
+            enabled,
+            self._view_model.measure_files,
+            with_measure_label,
+        )
+
+        discharge_value_label = QLabel(discharge_name, self._win)
+        discharge_value_label.setEnabled(enabled)
+        row_count = self._grid_layout.rowCount()
+        self._grid_layout.addWidget(discharge_value_label, row_count, 0)
+        self._grid_layout.addWidget(
+            self._open_file_layout(q1_reference, prefix + reference_label, enabled),
+            row_count,
+            1,
+        )
+        self._grid_layout.addWidget(
+            self._open_file_la            "Enter reference file path",
         )
 
         # get the file with measure
@@ -783,30 +804,7 @@ class DialogView:
     ):
         line_edit = ValidatingLineEdit(FileExistValidator(), self._win)
 
-        line_edit.setPlaceholderText(placeholder_text)
-        line_edit.setEnabled(enabled)
-        line_edit.textChanged.connect(partial(self._updated_condition_file, line_edit))
-
-        file_path = files.get(discharge, None)
-        if file_path:
-            line_edit.setText(str(file_path))
-
-        line_edit.setObjectName(prefix + label_suffix)
-
-        return line_edit
-
-    def _create_button_bar(self) -> None:
-        """
-        Create button bar with run and close buttons.
-
-        Returns:
-            None
-        """
-        # Logic to create button bar
-        button_bar = QWidget(self._win)
-        button_bar_layout = QBoxLayout(QBoxLayout.LeftToRight, button_bar)
-        button_bar_layout.setContentsMargins(0, 0, 0, 0)
-        self._layout.addWidget(button_bar)
+ar)
 
         run = QPushButton(gui_text("action_run"), self._win)
         run.clicked.connect(self._run_analysis)
