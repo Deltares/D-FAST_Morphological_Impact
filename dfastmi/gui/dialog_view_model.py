@@ -51,6 +51,7 @@ class DialogViewModel(QObject):
     branch_changed = pyqtSignal(str)
     reach_changed = pyqtSignal(str)
     qthreshold_changed = pyqtSignal(float)
+    slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
@@ -123,6 +124,7 @@ class DialogViewModel(QObject):
         self._current_reach = value
         self._initialize_qthreshold()
         self._initialize_ucritical()
+        self._update_slength()
         # Notify the view of the change
         self.reach_changed.emit(self.current_reach.name)
 
@@ -366,6 +368,8 @@ class DialogViewModel(QObject):
             self.slength = str(int(slength))
         except:
             self.slength = "---"
+        
+        self.slength_changed.emit(self.slength)
 
     def save_configuration(self, filename: str) -> None:
         """
