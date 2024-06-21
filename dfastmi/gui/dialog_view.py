@@ -196,7 +196,7 @@ class DialogView:
         """
         # Update reach label
         self._reach.setCurrentText(data)
-    
+
     def _update_sedimentation_length(self, slength: str):
         """
         Update the GUI components when the sedimentation length changes.
@@ -206,7 +206,7 @@ class DialogView:
         """
         # Update the sedimentation length in the GUI
         self._slength.setText(slength)
-        
+
     def _update_qthreshold(self, data: float):
         """
         Update the GUI components when the discharge threshold changes.

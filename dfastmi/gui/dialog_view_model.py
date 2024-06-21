@@ -368,7 +368,7 @@ class DialogViewModel(QObject):
             self.slength = str(int(slength))
         except:
             self.slength = "---"
-        
+
         self.slength_changed.emit(self.slength)
 
     def save_configuration(self, filename: str) -> None:
