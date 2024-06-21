@@ -234,7 +234,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Verify that the impacted length becomes \SI{65}{\metre}.
 \item Set the minimum flow-carrying discharge to \SI{2100}{\metre\cubed\per\second}
 \item Verify that the impacted length reduces to \SI{8}{\metre}, and that the entry boxes for all discharges less or equal to 2100 are greyed-out.
-\item Select the files listed in \autoref{fig:test3.png} for the discharges of \SI{2500}{\metre\cubed\per\second} and \SI{3200}{\metre\cubed\per\second} with and without measure.
+\item Select the files listed in \autoref{fig:test3.png} for the discharges of \SI{2500}{\metre\cubed\per\second} and \SI{3200}{\metre\cubed\per\second} with and without measure. (from the test folder \textit{c01 - GendtseWaardNevengeul} reference-Q1\_map.nc \& reference-Q2\_map.nc for reference files and measure-Q1\_map.nc \& measure-Q2\_map.nc for the measure files)
 \item Verify that the red outline of the edit fields turns grey when valid file names are specified.
 \item Select the output directory as \keyw{d:\textbackslash}.
 \item Verify that the red outline of the edit field turns grey to signal that an existing path is specified.
@@ -276,22 +276,35 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \begin{enumerate}
 \item Start from Test 6.
 \item Select \menu{Help} \textrightarrow \menu{Open User Manual} and verify that the user manual is opened.
-\item Select \menu{Help} \textrightarrow \menu{Version} and verify that the about box shown matches the image stored as "test7\_about.png" except for the version number (which should match the version being tested) and the copyright year (which should match the year of the latest code update).
+\item Select \menu{Help} \textrightarrow \menu{Version} and verify that the about box shown matches the image stored as "test7\_about.png" \autoref{fig:manual_system_test_7_about_dfastmi.png} except for the version number (which should match the version being tested) and the copyright year (which should match the year of the latest code update).
+\begin{figure}[H]
+	\center
+	\includegraphics{figures/manual_system_test_7_about_dfastmi.png}
+	\caption{About box D-FAST MI}
+	\label{fig:manual_system_test_7_about_dfastmi.png}
+\end{figure}
 \item Verify that pressing the \button{Show Details...} button reveal a text box stating "This software is distributed under the conditions of the GNU Lesser General Public License Version 2.1; see the LICENSE.md file for details."
 \item Close the about box by pressing \button{OK}.
-\item Select \menu{Help} \textrightarrow \menu{About Qt} and verify that the about box shown matches the image stored as "test7\_qt.png".
+\item Select \menu{Help} \textrightarrow \menu{About Qt} and verify that the about box shown matches the image stored as "test7\_qt.png" \autoref{fig:manual_system_test_7_about_qt.png}.
+\begin{figure}[H]
+	\center
+	\includegraphics[width=12cm]{figures/manual_system_test_7_about_qt.png}
+	\caption{About box QT}
+	\label{fig:manual_system_test_7_about_qt.png}
+\end{figure}
 \item Close the about Qt box by pressing \button{OK}.
 \end{enumerate}
+
+
 
 \subsection{Test 8: run \dflowfm analysis}
 \begin{enumerate}
 \item Start from Test 7.
-\item Open the configuration file ...
 \item Press the \button{Compute} button.
 \item Verify that the analysis completes successfully.
-The generated figure should correspond to \autoref{fig:report_Figure1.png}.
-The content of the \keyw{report.txt} file in the output folder, should be equal to the following listing.
-The "year-averaged bed level change without dredging" should correspond to \autoref{fig:report_Figure1_QP.png} when plotted using QUICKPLOT from the \keyw{dfastmi\_results.nc} file using default settings.
+\item The generated figure should correspond to \autoref{fig:report_Figure1.png}.
+\item The content of the \keyw{report.txt} file in the output folder, should be equal to the following \hyperlink{code-report}{listing}.
+\item The "year-averaged bed level change without dredging" should correspond to \autoref{fig:report_Figure1_QP.png} when plotted using QUICKPLOT from the \keyw{dfastmi\_results.nc} file using default settings. See \autoref{fig:manual_system_test_8_quickplot_usage.png} for detailed step in QUICKPLOT.
 \begin{figure}[H]
 \center
 \includegraphics[width=12cm]{figures/report_Figure1.png}
@@ -300,7 +313,15 @@ The "year-averaged bed level change without dredging" should correspond to \auto
 \end{figure}
 \end{enumerate}
 
-\verbfilenobox[\scriptsize]{figures/report.txt}
+\hypertarget{code-report}{\verbfilenobox[\scriptsize]{figures/report.txt}}
+
+
+\begin{figure}[H]
+	\center
+	\includegraphics[width=12cm]{figures/manual_system_test_8_quickplot_usage.png}
+	\caption{Analysis results using QUICKPLOT step}
+	\label{fig:manual_system_test_8_quickplot_usage.png}
+\end{figure}
 
 \begin{figure}[H]
 \center
@@ -309,12 +330,13 @@ The "year-averaged bed level change without dredging" should correspond to \auto
 \label{fig:report_Figure1_QP.png}
 \end{figure}
 
+
 \subsection{Test 9: closing the software}
 \begin{enumerate}
 \item Start from 8.
 \item Close the program by one of the following methods:
 \begin{itemize}
-\item Select \menu{File} \textrightarrow \menu{Exit}.
+\item Select \menu{File} \textrightarrow \menu{Close}.
 \item Press the \texttt{x} in the upper-right corner.
 \item Press the \button{Close} button.
 \end{itemize}
