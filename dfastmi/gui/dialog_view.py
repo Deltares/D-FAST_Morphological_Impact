@@ -145,6 +145,7 @@ class DialogView:
         self._view_model.branch_changed.connect(self._update_branch)
         self._view_model.reach_changed.connect(self._update_reach)
         self._view_model.qthreshold_changed.connect(self._update_qthreshold)
+        self._view_model.slength_changed.connect(self._update_sedimentation_length)
         self._view_model.make_plot_changed.connect(
             self._update_enabled_of_make_plot_dependent_view_items
         )
@@ -196,6 +197,16 @@ class DialogView:
         # Update reach label
         self._reach.setCurrentText(data)
 
+    def _update_sedimentation_length(self, slength: str):
+        """
+        Update the GUI components when the sedimentation length changes.
+
+        Args:
+            slength: The sedimentation length.
+        """
+        # Update the sedimentation length in the GUI
+        self._slength.setText(slength)
+
     def _update_qthreshold(self, data: float):
         """
         Update the GUI components when the discharge threshold changes.
@@ -208,7 +219,6 @@ class DialogView:
 
         # Update labels and text fields
         self._ucrit.setText(str(self._view_model.model.ucritical))
-        self._slength.setText(self._view_model.slength)
         self._update_qvalues_table()
 
     def _update_condition_file_field(
