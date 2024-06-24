@@ -358,6 +358,10 @@
 \AtEndDocument{\ifdefined\there@is@a@actie\label{actie:was:used:in:doc}\fi}%
 \newcommand{\conditionalLoToDo}{\@ifundefined{r@actie:was:used:in:doc}{}{{\renewcommand{\addvspace}[1]{}\listofActies\adjustmtc}}}%
 
+\AtEndEnvironment{numnote}{\gdef\there@is@a@numnote{}}%
+\AtEndDocument{\ifdefined\there@is@a@numnote\label{numnote:was:used:in:doc}\fi}%
+\newcommand{\conditionalLoNumNotes}{\@ifundefined{r@numnote:was:used:in:doc}{}{{\renewcommand{\addvspace}[1]{}\listofNumNotes\adjustmtc}}}%
+
 \AtEndDocument{\ifdefined\there@is@a@NomenClature\label{nom:was:used:in:doc}\fi}%
 \newcommand{\conditionalNomenclature}{\@ifundefined{r@nom:was:used:in:doc}{}{{\renewcommand{\addvspace}[1]{}\printnomenclature\adjustmtc}}}%
 
@@ -1281,6 +1285,7 @@
     \conditionalLoP% Conditionally insert List of Photos
     \conditionalNomenclature% Conditionally insert List of To Do's
     \conditionalLoToDo% Conditionally insert List of To Do's
+    \conditionalLoNumNotes% Conditionally insert List of Numbered Notes
     \mainmatter
 
     % At this point document title is known for sure.
@@ -1468,6 +1473,67 @@
           {\end{singleplural}}
     \fi
 \fi
+%
+%=================================
+%\setlength{\intextsep}{0pt}
+%\setlength{\abovecaptionskip}{0pt}
+%\setlength{\belowcaptionskip}{0pt}
+%\setlength{\parskip}{0pt}
+
+\newcounter{numnote}% the counter for numbered notes
+\renewcommand*\thenumnote{\arabic{numnote}}% the default format for the counter
+\newcommand*\fps@numnote{tbp}% default floating options
+\newcommand*\ftype@numnote{4}% float type number, needs to be a power of 2;
+% \ftype@figure=1, \ftype@table=2
+\newcommand*\ext@numnote{lod}% extension of file for the list of numbered notes
+\newcommand*\fnum@numnote{\numnotename\nobreakspace\thenumnote}% used in caption
+\if@dutch
+    \newcommand*\numnotename{Note\ }% the name
+    \def\@listnumnotename{Lijst van notities}
+\else
+    \if@spanish
+        \newcommand*\numnotename{Comprobar\ }% the name
+        \def\@listnumnotename{Lista de comprobar}
+    \else
+        \newcommand*\numnotename{Note\ }% the name
+        \def\@listnumnotename{List of Notes}
+    \fi
+\fi
+
+\newenvironment{numnote}{\@float{numnote}}{\end@float}% the environment
+\newenvironment{numnote*}{\@dblfloat{numnote}}{\end@dblfloat}% the starred
+% version for twocolumn documents
+\newcommand\listofNumNotes{%
+    \if@twocolumn
+      \@restonecoltrue\onecolumn
+    \else
+      \@restonecolfalse
+    \fi
+    \begingroup
+        \nonumchapter{\@listnumnotename}%
+          \@mkboth{\@listnumnotename}%
+                  {\@listnumnotename}%
+          \parskip\z@%
+        \@starttoc{\ext@numnote}%
+        \if@restonecol\twocolumn\fi
+    \endgroup
+    }
+\let\l@numnote\l@figure % layout of list is the same as for figures
+
+%------------------------------------------------------------------------------
+%
+\DeclareCaptionFormat{myformat}{\normalsize\selectfont#1#2#3}
+\newcommand{\NumNote}[1]{%
+    \captionsetup{labelfont={bf},textfont={rm},format=myformat,margin=0cm,singlelinecheck=false}%
+    {\gdef\there@is@a@numnote{}}%
+    \begin{numnote}[H]
+    {\marginnote%
+        { {\vspace{-1\baselineskip}\includegraphics[height=1.5\baselineskip]{pictures/margin_note.pdf}} }%
+    }
+    \caption{#1}%
+    \end{numnote}
+    \vspace{-\parskip}%
+}
 %
 \newcommand{\Note}%
     {\marginnote%
@@ -2400,40 +2466,53 @@
 \def\@setgitdirectory{-{}-{}-{}-}
 \def\setgitdirectory#1{\gdef\@setgitdirectory{#1}\gitcontent}
 \def\@gitrepository{-{}-{}-{}-}
-\def\@branch{-{}-{}-{}-}
+\def\@gitbranch{-{}-{}-{}-}
 \def\@githashlong{-{}-{}-{}-}
-\def\@githashshort{-{}-{}-{}-}
+\def\@githashshort{-{}-{}-{}-default-{}-{}-{}-}
+%
+\IfFileExists{gitsettings}{%   
+    \input{gitsettings}
+    \typeout{--- Git repository: \@gitrepository.}
+    \typeout{--- Git branch: \@gitbranch.}
+    \typeout{--- Git long hash: \@githashlong.}
+    \typeout{--- Git short hash: \@githashshort.}
+}{}
 %
 \def\gitcontent{
-    \IfFileExists{\@setgitdirectory/HEAD.}{%   
-        \CatchFileDef{\headfull}{\@setgitdirectory/HEAD.}{}   
-        \StrGobbleRight{\headfull}{1}[\head]    
-        \StrBehind[2]{\head}{/}[\@branch] 
-        \typeout{JanM 0: \@branch}
-        \IfFileExists{\@setgitdirectory/refs/heads/\@branch.}{%
-            \CatchFileDef{\@githashlong}{\@setgitdirectory/refs/heads/\@branch.}{}
-        }{%    
-            \newcommand{\@githashlong}{\dots~(in \emph{packed-refs})}
-        }
-
-        % find the git-repository
-        \CatchFileEdef{\configfull}{\@setgitdirectory/logs/HEAD.}{}
-        \StrBehind{\configfull}{from }[\gitreposA]  % look for the string "from "
-        \StrBefore{\gitreposA}{ }[\gitreposC]  % string before first white space
-        \StrSubstitute{\gitreposC}{\\}{\textbackslash }[\gitreposD]
-        \StrSubstitute{\gitreposD}{_}{\_}[\gitreposE]
-        \typeout{JanM E: \gitreposE}
-        \gdef\@gitrepository{\gitreposE}    
-        \StrLeft{\@githashlong}{7}[\@githashshort]
+    \IfFileExists{gitsettings}{%
+        % skip the processing of the Git files.
     }{
-        % nothing: File \@setgitdirectory/HEAD. does not exist
+        \IfFileExists{\@setgitdirectory/HEAD.}{%   
+            \CatchFileDef{\headfull}{\@setgitdirectory/HEAD.}{}   
+            \StrGobbleRight{\headfull}{1}[\head]    
+            \StrBehind[2]{\head}{/}[\@gitbranch] 
+            \typeout{--- JanM Branch name: \@gitbranch}
+            \IfFileExists{\@setgitdirectory/refs/heads/\@gitbranch.}{%
+                \CatchFileDef{\@githashlong}{\@setgitdirectory/refs/heads/\@gitbranch.}{}
+            }{%    
+                \def\@githashlong{-{}-{}-{}-{}-{}-{}-{}\ (File does not exist: \@setgitdirectory/refs/heads/\@gitbranch)}
+            }
+
+            % find the git-repository
+            \CatchFileEdef{\configfull}{\@setgitdirectory/logs/HEAD.}{\catcode`\\=11\catcode`\_=11\relax}  % text could have backslashes and underscores ex: "D:\git_databases\git_mooiman"
+            % \typeout{--- JanM Config: \configfull}
+            \StrBehind{\configfull}{from }[\gitreposA]  % look for the string "from "
+            \StrBefore{\gitreposA}{ }[\gitreposC]  % string before first white space
+            \StrSubstitute{\gitreposC}{\\}{\textbackslash }[\gitreposD]
+            \StrSubstitute{\gitreposD}{_}{\_}[\gitreposE]
+            \typeout{--- JanM Repository location: \gitreposE}
+            \gdef\@gitrepository{\gitreposE}    
+            \StrLeft{\@githashlong}{7}[\@githashshort]
+        }{
+            % nothing: File \@setgitdirectory/HEAD. does not exist
+        }
     }
 }
 \newcommand{\gitdirectory}{\@setgitdirectory}
 \newcommand{\gitrepository}{\@gitrepository}
 \newcommand{\githashlong}{\@githashlong}
 \newcommand{\githash}{\@githashshort}
-\newcommand{\gitbranch}{\StrSubstitute{\@branch}{_}{\_}}
+\newcommand{\gitbranch}{\StrSubstitute{\@gitbranch}{_}{\_}}
 
 %------------------------------------------------------------------------------
 \makeatother
