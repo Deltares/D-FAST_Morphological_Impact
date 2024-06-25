@@ -236,7 +236,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Verify that the impacted length reduces to \SI{8}{\metre}, and that the entry boxes for all discharges less or equal to 2100 are greyed-out.
 \item Select from the folder \file{tests/c01 - GendtseWaardNevengeul} included in the \dfmi source code repository, the files \file{reference-Q1\_map.nc} and \file{measure-Q1\_map.nc} for the \SI{2500.0}{\metre\cubed\per\second} condition, and \file{reference-Q2\_map.nc} and \file{measure-Q2\_map.nc} for the \SI{3200.0}{\metre\cubed\per\second} condition as shown in \autoref{fig:test3.png}.
 \item Verify that the red outline of the edit fields turns grey when valid file names are specified.
-\item Select the output directory as \keyw{d:\textbackslash}.
+\item Select the output directory as \file{d:\textbackslash}.
 \item Verify that the red outline of the edit field turns grey to signal that an existing path is specified.
 \item Check the create figures box.
 \item Verify that the Save and Close figures check boxes are activated when the create figures box is checked.
@@ -252,8 +252,8 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \subsection{Test 4: save modified configuration file}
 \begin{enumerate}
 \item Start from Test 3.
-\item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as "test4.cfg".
-\item Verify that a file "test4.cfg" has been created and that the content matches the following listing, but note that the relative paths may differ dependent on the work folder used
+\item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as \file{test4.cfg}.
+\item Verify that a file \file{test4.cfg} has been created and that the content matches the following listing, but note that the relative paths may differ dependent on the work folder used
 
 \verbfilenobox[\scriptsize]{figures/test4.cfg}
 \end{enumerate}
@@ -261,7 +261,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \subsection{Test 5: load default configuration file}
 \begin{enumerate}
 \item Start from Test 4.
-\item Select \menu{File} \textrightarrow \menu{Load}, and select the configuration file "test2.cfg".
+\item Select \menu{File} \textrightarrow \menu{Load}, and select the configuration file \file{test2.cfg}.
 \item Verify that the dialog matches \autoref{fig:test1.png}.
 \end{enumerate}
 
