@@ -220,8 +220,10 @@ class DialogView:
         """
         # Update the threshold discharge in the GUI
         self._ucrit.setText(str(ucrit))
-        self._ucrit_label.setText(gui_text("ucrit", placeholder_dictionary={"default":str(default)}))
-    
+        self._ucrit_label.setText(
+            gui_text("ucrit", placeholder_dictionary={"default": str(default)})
+        )
+
     def _update_qthreshold(self, data: float):
         """
         Update the GUI components when the discharge threshold changes.
@@ -232,7 +234,7 @@ class DialogView:
         # Update the threshold discharge in the GUI
         self._qthr.setText(str(data))
 
-        # Update labels and text fields        
+        # Update labels and text fields
         self._update_qvalues_table()
 
     def _update_condition_file_field(
@@ -621,7 +623,15 @@ class DialogView:
         self._ucrit.setToolTip(gui_text("ucrit_tooltip"))
         self._ucrit.editingFinished.connect(self._updated_ucritical)
         self._ucrit.setText(str(self._view_model.ucritical))
-        self._ucrit_label = QLabel(gui_text("ucrit",placeholder_dictionary= {"default":self._view_model.current_reach.ucritical}), self._win)
+        self._ucrit_label = QLabel(
+            gui_text(
+                "ucrit",
+                placeholder_dictionary={
+                    "default": self._view_model.current_reach.ucritical
+                },
+            ),
+            self._win,
+        )
         layout.addRow(self._ucrit_label, self._ucrit)
 
     def _create_qthreshhold_input(

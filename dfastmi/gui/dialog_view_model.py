@@ -153,10 +153,10 @@ class DialogViewModel(QObject):
         self._ucritical = value
         self.model.ucritical = value
         self._ucrit_cache[(self.current_branch, self.current_reach)] = value
-        
+
         # Notify the view of the change
         self.ucritical_changed.emit(self.ucritical, self.current_reach.ucritical)
-    
+
     @property
     def qthreshold(self) -> float:
         """
@@ -340,7 +340,9 @@ class DialogViewModel(QObject):
         """
         self._ucritical = 0.0
         if (self.current_branch, self.current_reach) in self._ucrit_cache:
-            self.ucritical = self._ucrit_cache[(self.current_branch, self.current_reach)]
+            self.ucritical = self._ucrit_cache[
+                (self.current_branch, self.current_reach)
+            ]
         else:
             self.ucritical = self.current_reach.ucritical
 
@@ -449,8 +451,10 @@ class DialogViewModel(QObject):
         self.current_reach = reach
 
         self._initialize_qthreshold()
-        self._ucrit_cache[(self.current_branch, self.current_reach)] = self.model.ucritical
-        self._initialize_ucritical()        
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = (
+            self.model.ucritical
+        )
+        self._initialize_ucritical()
         self._update_slength()
         self._initialize_reference_and_measure()
 
