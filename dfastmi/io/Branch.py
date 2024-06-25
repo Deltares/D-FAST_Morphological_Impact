@@ -60,7 +60,18 @@ class Branch(IBranch, IObserver[AReach]):
         self._name = branch_name
         self._reaches: ObservableList[AReach] = ObservableList[AReach]()
         self._reaches.add_observer(self)
+    
+    def __hash__(self):
+        return hash((self._name, self._qlocation, tuple(self.reaches)))
+    
+    def __eq__(self, other):
+        if not isinstance(other, Branch):
+            return False
+        return (self._name == other._name and
+                self._qlocation == other._qlocation and
+                self._reaches == other._reaches)
 
+    
     def get_reach(self, reach_name: str) -> IReach:
         """
         Return the reach from the read reaches list

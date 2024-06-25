@@ -92,6 +92,7 @@ class DialogView:
         _qloc (QLabel): The label for displaying the discharge location.
         _qthr (QLineEdit): The line edit for specifying the discharge threshold.
         _ucrit (QLineEdit): The line edit for specifying the critical velocity.
+        _ucrit_label (QLabel): The label for displaying minimum for specifying the critical velocity.
         _slength (QLabel): The label for displaying the impacted length.
         _general_widget (QWidget): The widget containing general settings.
         _grid_layout (QGridLayout): The grid layout for displaying conditions.
@@ -111,6 +112,7 @@ class DialogView:
     _qloc: QLabel = None
     _qthr: QLineEdit = None
     _ucrit: QLineEdit = None
+    _ucrit_label: QLabel = None
     _slength: QLabel = None
 
     _general_widget: QWidget = None
@@ -144,6 +146,7 @@ class DialogView:
         # Connect the view model's data_changed signal to update_ui slot
         self._view_model.branch_changed.connect(self._update_branch)
         self._view_model.reach_changed.connect(self._update_reach)
+        self._view_model.ucritical_changed.connect(self._update_ucritical)
         self._view_model.qthreshold_changed.connect(self._update_qthreshold)
         self._view_model.slength_changed.connect(self._update_sedimentation_length)
         self._view_model.make_plot_changed.connect(
@@ -207,6 +210,18 @@ class DialogView:
         # Update the sedimentation length in the GUI
         self._slength.setText(slength)
 
+    def _update_ucritical(self, ucrit: float, default: float):
+        """
+        Update the GUI components when the critical (minimum) velocity [m/s] for sediment transport changes.
+
+        Args:
+            ucrit: The critical (minimum) velocity [m/s] for sediment transport.
+            default: The default critical (minimum) velocity [m/s] for sediment transport.
+        """
+        # Update the threshold discharge in the GUI
+        self._ucrit.setText(str(ucrit))
+        self._ucrit_label.setText(gui_text("ucrit", placeholder_dictionary={"default":str(default)}))
+    
     def _update_qthreshold(self, data: float):
         """
         Update the GUI components when the discharge threshold changes.
@@ -217,8 +232,7 @@ class DialogView:
         # Update the threshold discharge in the GUI
         self._qthr.setText(str(data))
 
-        # Update labels and text fields
-        self._ucrit.setText(str(self._view_model.model.ucritical))
+        # Update labels and text fields        
         self._update_qvalues_table()
 
     def _update_condition_file_field(
@@ -606,8 +620,9 @@ class DialogView:
         self._ucrit.setValidator(double_validator)
         self._ucrit.setToolTip(gui_text("ucrit_tooltip"))
         self._ucrit.editingFinished.connect(self._updated_ucritical)
-        self._ucrit.setText(str(self._view_model.model.ucritical))
-        layout.addRow(gui_text("ucrit"), self._ucrit)
+        self._ucrit.setText(str(self._view_model.ucritical))
+        self._ucrit_label = QLabel(gui_text("ucrit",placeholder_dictionary= {"default":self._view_model.current_reach.ucritical}), self._win)
+        layout.addRow(self._ucrit_label, self._ucrit)
 
     def _create_qthreshhold_input(
         self, layout: QBoxLayout, double_validator: QDoubleValidator
@@ -728,7 +743,7 @@ class DialogView:
             None
         """
         if self._ucrit.hasAcceptableInput():
-            self._view_model.model.ucritical = float(self._ucrit.text())
+            self._view_model.ucritical = float(self._ucrit.text())
 
     def _add_condition_line(
         self, prefix: str, discharge: float, discharge_name: str

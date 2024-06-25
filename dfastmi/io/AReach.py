@@ -54,6 +54,15 @@ class AReach(IReach):
         super().__init__(_name=reach_name, _config_key_index=reach_config_key_index)
         self._name = reach_name
         self._config_key_index = reach_config_key_index
+    
+    def __hash__(self):
+        return hash((self._name, self._config_key_index))
+    
+    def __eq__(self, other):
+        if not isinstance(other, AReach):
+            return False
+        return (self._name == other._name and
+                self._config_key_index == other._config_key_index)
 
     @property
     def name(self) -> str:
