@@ -16,7 +16,7 @@ For the verification of \dfastmi 2.0 four sets of input files for the Nederrijn 
 
 \begin{enumerate}
 \item One set of input files exported from WAQUA via WAQVIEW.
-\item One set of WAQUA files converted using \keyw{sim2ugrid.m} to \dflowfm like netCDF files.
+\item One set of WAQUA files converted using \file{sim2ugrid.m} to \dflowfm like netCDF files.
 \item One set of \dflowfm simulations using the same curvilinear mesh as was used in WAQUA.
 \item One set of \dflowfm simulations using a new unstructured mesh.
 \end{enumerate}
@@ -218,8 +218,8 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \subsection{Test 2: save default configuration file}
 \begin{enumerate}
 \item Start from Test 1.
-\item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as "test2".
-\item Verify that a file "test2.cfg" has been created and that the content matches
+\item Select \menu{File} \textrightarrow \menu{Save}, and save the configuration file in the work folder as \file{test2}.
+\item Verify that a file \file{test2.cfg} has been created and that the content matches
 
 \verbfilenobox[\scriptsize]{figures/test2.cfg}
 \end{enumerate}
@@ -234,7 +234,7 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Verify that the impacted length becomes \SI{65}{\metre}.
 \item Set the minimum flow-carrying discharge to \SI{2100}{\metre\cubed\per\second}
 \item Verify that the impacted length reduces to \SI{8}{\metre}, and that the entry boxes for all discharges less or equal to 2100 are greyed-out.
-\item Select the files listed in \autoref{fig:test3.png} for the discharges of \SI{2500}{\metre\cubed\per\second} and \SI{3200}{\metre\cubed\per\second} with and without measure. (from the test folder \textit{c01 - GendtseWaardNevengeul} reference-Q1\_map.nc \& reference-Q2\_map.nc for reference files and measure-Q1\_map.nc \& measure-Q2\_map.nc for the measure files)
+\item Select from the folder \file{tests/c01 - GendtseWaardNevengeul} included in the \dfmi source code repository, the files \file{reference-Q1\_map.nc} and \file{measure-Q1\_map.nc} for the \SI{2500.0}{\metre\cubed\per\second} condition, and \file{reference-Q2\_map.nc} and \file{measure-Q2\_map.nc} for the \SI{3200.0}{\metre\cubed\per\second} condition as shown in \autoref{fig:test3.png}.
 \item Verify that the red outline of the edit fields turns grey when valid file names are specified.
 \item Select the output directory as \keyw{d:\textbackslash}.
 \item Verify that the red outline of the edit field turns grey to signal that an existing path is specified.
@@ -279,8 +279,8 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Select \menu{Help} \textrightarrow \menu{Version} and verify that the about box shown matches the image stored as "test7\_about.png" \autoref{fig:manual_system_test_7_about_dfastmi.png} except for the version number (which should match the version being tested) and the copyright year (which should match the year of the latest code update).
 \begin{figure}[H]
 	\center
-	\includegraphics{figures/manual_system_test_7_about_dfastmi.png}
-	\caption{About box D-FAST MI}
+	\includegraphics[width=8cm]{figures/manual_system_test_7_about_dfastmi.png}
+	\caption{The \dfmi about box showing version and license information.}
 	\label{fig:manual_system_test_7_about_dfastmi.png}
 \end{figure}
 \item Verify that pressing the \button{Show Details...} button reveal a text box stating "This software is distributed under the conditions of the GNU Lesser General Public License Version 2.1; see the LICENSE.md file for details."
@@ -289,13 +289,11 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \begin{figure}[H]
 	\center
 	\includegraphics[width=12cm]{figures/manual_system_test_7_about_qt.png}
-	\caption{About box QT}
+	\caption{The "About Qt" box.}
 	\label{fig:manual_system_test_7_about_qt.png}
 \end{figure}
-\item Close the about Qt box by pressing \button{OK}.
+\item Close the "About Qt" box by pressing \button{OK}.
 \end{enumerate}
-
-
 
 \subsection{Test 8: run \dflowfm analysis}
 \begin{enumerate}
@@ -303,33 +301,34 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Press the \button{Compute} button.
 \item Verify that the analysis completes successfully.
 \item The generated figure should correspond to \autoref{fig:report_Figure1.png}.
-\item The content of the \keyw{report.txt} file in the output folder, should be equal to the following \hyperlink{code-report}{listing}.
-\item The "year-averaged bed level change without dredging" should correspond to \autoref{fig:report_Figure1_QP.png} when plotted using QUICKPLOT from the \keyw{dfastmi\_results.nc} file using default settings. See \autoref{fig:manual_system_test_8_quickplot_usage.png} for detailed step in QUICKPLOT.
+\item The content of the \file{report.txt} file in the output folder, should be equal to the following \hyperlink{code-report}{listing}.
+\item Open the \file{dfastmi\_results.nc} file in QUICKPLOT.
+Select the quantity "year-averaged bed level change without dredging" , and plot it using default settings.
+See \autoref{fig:manual_system_test_8_quickplot_usage.png} for a snapshot of the steps in QUICKPLOT.
+The resulting figure should correspond to \autoref{fig:report_Figure1_QP.png}.
 \begin{figure}[H]
 \center
 \includegraphics[width=12cm]{figures/report_Figure1.png}
-\caption{Analysis results as plotted by D-FAST MI}
+\caption{Analysis results as plotted by \dfmi itself.}
 \label{fig:report_Figure1.png}
 \end{figure}
 \end{enumerate}
 
 \hypertarget{code-report}{\verbfilenobox[\scriptsize]{figures/report.txt}}
 
-
 \begin{figure}[H]
 	\center
 	\includegraphics[width=12cm]{figures/manual_system_test_8_quickplot_usage.png}
-	\caption{Analysis results using QUICKPLOT step}
+	\caption{QUICKPLOT settings to create \autoref{fig:report_Figure1_QP.png}.}
 	\label{fig:manual_system_test_8_quickplot_usage.png}
 \end{figure}
 
 \begin{figure}[H]
 \center
 \includegraphics[width=12cm]{figures/report_Figure1_QP.png}
-\caption{Analysis results as plotted using QUICKPLOT}
+\caption{Analysis results as plotted using QUICKPLOT.}
 \label{fig:report_Figure1_QP.png}
 \end{figure}
-
 
 \subsection{Test 9: closing the software}
 \begin{enumerate}
