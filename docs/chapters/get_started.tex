@@ -98,3 +98,28 @@ dfastmi.cmd.run()
 \end{Verbatim}
 
 where optionally the command{runmode} (default \command{GUI}), \command{configfile} (default \command{dfastmi.cfg}) and \command{rivers\_file} (default \command{Dutch\_rivers\_v2.ini}) can be specified as arguments.
+
+\section{Figures}\label{Sec:FigNavigation}
+
+The analysis can generate one figure\footnote{More figures are foreseen for future versions.}, see e.g.~\autoref{Figure_example}.
+These figures are created using the Python \keyw{matplotlib} toolbox.
+Here, we will give a brief summary of the interactive options that these figures offer.
+The buttons in the toolbar from left to right serve the following purpose:
+
+\begin{itemize}
+\item \textbf{house}: reset the figure to the original view
+\item \textbf{left arrow}: reset the figure to the previous view
+\item \textbf{right arrow}: reset the figure to the next view (only when you have gone to a previous view)
+\item \textbf{cross arrows}: pan the zoom area (while pressing the left mouse button) and zoom in/out by moving up/down (while pressing the right mouse button)
+\item \textbf{looking glass}: zoom in/out by drawing a zoom box. Zoom in by drawing a box while pressing the left mouse button, and zoom out by drawing a box while pressing the right mouse button.
+\item \textbf{sliders}: change some white space settings (border margins).
+\item \textbf{graph}: change the title, min/max and scaling of axis, and the colormap used.
+\item \textbf{floppy}: export the figure to a number of different raster and vector image file formats.
+\end{itemize}
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{figures/Palmerswaard_fig_zoomed.png}
+\caption{Example of a figure created by \dfastmi.}
+\label{Figure_example}
+\end{figure}

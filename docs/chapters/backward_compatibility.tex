@@ -924,7 +924,7 @@ Block & Keyword & Description \\ \hline
 \endfoot
 \hline
 \endlastfoot
-\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0} \\
+\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0}. \\
 \keyw{General} & \keyw{Checksum} & Checksum of the rivers configuration file.
 Used to verify whether the file wasn't accidentally modified. \\
 BranchName<i> & \keyw{Reach<j>} & Name of reach <j> within branch <i> \\
@@ -997,7 +997,7 @@ For a full spatial analysis the user needs to specify the names of the D-Flow FM
 
 \begin{tabular}{l|l|p{8cm}}
 Block & Keyword & Description \\ \hline
-\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0} \\
+\keyw{General} & \keyw{Version} & Version number. Must be \keyw{1.0}. \\
 \keyw{General} & \keyw{Mode} & \keyw{WAQUA export} or \keyw{D-Flow FM map} (the latter is the default) \\
 \keyw{General} & \keyw{Branch} & Name of the selected branch \\
 \keyw{General} & \keyw{Reach} & Name of the selected reach \\
@@ -1048,6 +1048,49 @@ Only the \keyw{Version}, \keyw{Branch}, \keyw{Reach}, \keyw{Reference} and \keyw
       Discharge   = 6000.0
       Reference   = Measure42/Q3/Reference/DFM_OUTPUT_Q3/Q3_map.nc
       WithMeasure = Measure42/Q3/Updated/DFM_OUTPUT_Q3/Q3_map.nc
+\end{Verbatim}
+
+
+\section{Simulation result files}
+
+The latest updates of \dfastmi only work using input data in UGRID netCDF files as obtained from \dflowfm.
+Results obtained from Delft3D-FLOW and WAQUA can be converted to this format by means of \keyw{sim2ugrid}, a MATLAB-based conversion tool included in the QUICKPLOT distribution.
+
+In backward compatibility mode, \dfmi can also read the same WAQUA files as used by WAQMORF.
+The WAQUA simulation engine writes the simulation results in a proprietary SDS file format.
+The content of these result files can't be accessed directly from Python, so they need to be exported to a more accessible file format.
+The previous WAQMORF program also required that the user extracted the cell centred velocity magnitude and water depth values from the the WAQUA SDS-output files write them to simple ASCII files with 6 columns specifying the x-coordinates, y-coordinates, the value of the quantity (labeled as z-coordinate), m-index, n-index, and cell number.
+Only the "z" values and the m- and n-indices are used by the program.
+The names of those files has been hardcoded, they should read \keyw{xyz\_<quantity>-zeta.00<1/2>.Q<i>} with the quantity name equal to 'velocity' or 'waterdepth', a 1 for the reference simulation and a 2 for the simulation with the measure implemented, and i the number of the discharge level.
+\dfastmi supports these same files; an example of such file are given below.
+
+\subsubsection*{Example}
+
+\begin{Verbatim}
+x,y,z,m,n,id
+     197940.645,     431152.719,         0.0000,     2,     1,        11
+     197874.004,     431430.516,         0.0000,     3,     1,        12
+     197801.719,     431717.008,         0.0000,     4,     1,        13
+     197727.047,     431985.375,         0.0000,     5,     1,        14
+     197658.695,     432196.953,         0.0000,     6,     1,        15
+     197610.234,     432323.859,         0.0000,     7,     1,        16
+     197581.203,     432391.383,         0.0000,     8,     1,        17
+     197559.625,     432439.234,         0.0000,     9,     1,        18
+     197542.594,     432476.234,         0.0000,    10,     1,        19
+     197528.668,     432506.070,         0.0000,    11,     1,        20
+     197515.137,     432535.016,         0.0000,    12,     1,        21
+     197505.176,     432556.258,         0.6156,    13,     1,        22
+     197496.215,     432575.305,         0.8334,    14,     1,        23
+     197485.773,     432597.516,         0.9794,    15,     1,        24
+     197475.344,     432619.711,         1.0762,    16,     1,        25
+     197465.578,     432640.484,         1.1305,    17,     1,        26
+     197456.320,     432660.203,         1.1674,    18,     1,        27
+     197447.242,     432679.563,         1.2085,    19,     1,        28
+     197438.004,     432699.258,         1.2506,    20,     1,        29
+     197428.273,     432720.000,         1.2913,    21,     1,        30
+     197417.879,     432742.133,         1.3212,    22,     1,        31 
+
+... continued ...
 \end{Verbatim}
 
 

@@ -3,11 +3,11 @@
 \section{Introduction}
 
 This chapter gives an overview of how \dfastmi can be setup for development.
-After following this guide the developer should be able to run the software, run unit tests, generate the code coverage and debug through the tests and software using tools and development programs.
+After following this guide the developer should be able to run the software, run unit tests, generate the code coverage and debug through the tests and software using (code) analysis tools and development tools.
 
-The development setup and configuration is done for usage of the Visual Studio Code IDE.
+The development setup and configuration below is aimed at the use of the Visual Studio Code IDE.
 More information about \href{https://code.visualstudio.com/}{Visual Studio Code} can be found on the internet.
-The development of Python code project within Deltares is mostly done with this tool.
+The development of Python code within Deltares is mostly done with this tool.
 Visual Studio Code is free for private and commercial use.
 See the \href{https://code.visualstudio.com/license}{product license} for details.
 
@@ -18,12 +18,12 @@ See the \href{https://code.visualstudio.com/license}{product license} for detail
 
 \section{Configuration}
 The \dfastmi developer environment can be configured with a batch script.
-This script will configure and install recommended tools.
+This script will configure and install the recommended tools.
 User input is required to download and install these tools.
-The batch file is located in the sub folder \textbf{BuildScripts} and is called \textbf{DevelopDfastmi.bat}.
+The batch file is located in the sub folder \file{BuildScripts} and is called \file{DevelopDfastmi.bat}.
 
 The batch file will check for installed tooling for Anaconda/Miniconda.
-If not installed it will ask the user to install the Anaconda/Miniconda tooling for you. 
+If not installed it will prompt to install the Anaconda/Miniconda tooling for you. 
 
 \begin{Note}
 You need to close the command line and re-open/restart the batch script as it needs to initialize the Conda tooling for the command line and PowerShell (used in VS Code).
@@ -40,11 +40,11 @@ After checking (and installing if needed) the VS Code code development applicati
 
 \section{Configuration files}
 As stated earlier we use Conda to create a clean Python environment to develop the \dfastmi application in.
-We also use Poetry, a Python dependency management and packaging tool, to setup the needed packages for the development environment.
-Poetry uses TOML\footnote{TOML : Tom's Obvious Minimal Language. A common format for configuration files.} files for the configuration (\textbf{poetry.toml}) and a lock file (\textbf{poetry.lock}) which store all information about the packages that we use for building \dfastmi.
+We also use Poetry, a Python dependency management and packaging tool, to setup the necessary packages for the development environment.
+Poetry uses TOML\footnote{TOML : Tom's Obvious Minimal Language. A common format for configuration files.} files for the configuration (\file{poetry.toml}) and a lock file (\file{poetry.lock}) which store all information about the packages that we use for building \dfastmi.
 More information about poetry.lock can be found on the \href{https://python-poetry.org/docs/basic-usage/#installing-without-poetrylock}{Poetry website}.
-Also we use a \textbf{setup.py} file used by the setup tools package to setup the application for development.
-And last but not least a Python tools / interpreter configuration \textbf{pyproject.toml}.
+Also we use a \file{setup.py} file used by the setup tools package to setup the application for development.
+And last but not least a Python tools / interpreter configuration \file{pyproject.toml}.
 This file configures the way Python packages should behave.
 
 \subsection{Conda environment}
@@ -82,7 +82,7 @@ Currently, we build using Python 3.9.12.
 \end{enumerate}
 
 \subsection{Package dependencies}
-This paragraph shows a list of the primary package dependencies which matches the specifications of the \textbf{pyproject.toml} file.
+This paragraph shows a list of the primary package dependencies which matches the specifications of the \file{pyproject.toml} file.
 Each of these packages typically requires several other packages; we don't list those to simplify maintenance.
 
 \begin{longtable}{|p{4cm}|p{10cm}|}
@@ -144,8 +144,8 @@ Nuitka translates the Python modules of \dfastmi into a C level program that the
 We use several other batch scripts.
 
 \begin{itemize}
-	\item \keyw{CondaInstall.bat} used to install Miniconda, you need to restart the main script (\keyw{DevelopDfastmi.bat}) in a \emph{new} command line prompt because the command line prompt environment is updated after install.
-	\item \keyw{VSCodeInstall.bat} used to install visual studio code on the client pc, you need to restart the main script (\keyw{DevelopDfastmi.bat}) in a \emph{new} command line prompt because the command line prompt environment is updated after install.
+	\item \file{CondaInstall.bat} used to install Miniconda, you need to restart the main script (\file{DevelopDfastmi.bat}) in a \emph{new} command line prompt because the command line prompt environment is updated after install.
+	\item \file{VSCodeInstall.bat} used to install visual studio code on the client pc, you need to restart the main script (\file{DevelopDfastmi.bat}) in a \emph{new} command line prompt because the command line prompt environment is updated after install.
 \end{itemize}
 
 \subsection{Visual Studio Code Extensions}
@@ -169,23 +169,23 @@ To do this we install the following extensions.
 
 
 \subsection{VS Code user files}
-The user files can be found in subfolder \textbf{.vscode}
+The user files can be found in subfolder \file{.vscode}
 
 \begin{enumerate}
-	\item \keyw{extensions.json} will reference the expected and recommended visual studio code extensions. It will not install them but inform the user what is missing to start developing.
-	\item \keyw{launch.json} will configure VS Code what to do when an user will debug unit tests or start debugging the application.
-	\item \keyw{settings.json} configured settings for visual studio code.
+	\item \file{extensions.json} will reference the expected and recommended visual studio code extensions. It will not install them but inform the user what is missing to start developing.
+	\item \file{launch.json} will configure VS Code what to do when an user will debug unit tests or start debugging the application.
+	\item \file{settings.json} configured settings for visual studio code.
 \end{enumerate}
 
 \subsection{TOML}
 This file type is used by the Python interpreter to configure the application.
-The TOML file format itself has nothing to do with Python, Poetry or VS Code but it is a configuration file which is easy to read.
+The TOML file format itself is not specific for Python, Poetry or VS Code, but it is a configuration file which is easy to read.
 For more information see \href{https://coverage.readthedocs.io/en/latest/config.html#toml-syntax}{TOML syntax website}.
-Added configuration settings to the \textbf{pyproject.toml} file
+Added configuration settings to the \file{pyproject.toml} file
 
 \begin{enumerate}
-	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS Code/Python/Python coverage tooling where to expect the coverage to apply to.
+	\item In section [tool.coverage.run] \keyw{source = ["dfastmi"]} will inform VS Code/Python coverage tooling where to expect the coverage to apply to.
 	\item In section [tool.pytest.ini\_options] \keyw{addopts = "---cov ---cov-report=term 
-		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS Code/Python/Python test tooling to apply coverage and generate output report to.
+		\\ ---cov-report=xml:coverage-reports/coverage.xml"} will inform VS Code/Python test tooling to apply coverage tooling and generate an output report too.
 \end{enumerate}
 
