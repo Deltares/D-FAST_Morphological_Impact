@@ -30,6 +30,7 @@ import traceback
 
 # ViewModel
 from configparser import ConfigParser
+from typing import Dict, Tuple
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -50,6 +51,7 @@ class DialogViewModel(QObject):
 
     branch_changed = pyqtSignal(str)
     reach_changed = pyqtSignal(str)
+    ucritical_changed = pyqtSignal(float, float)
     qthreshold_changed = pyqtSignal(float)
     slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
@@ -61,6 +63,7 @@ class DialogViewModel(QObject):
     measure_files_changed = pyqtSignal(str, float, str)
     _reference_files: FilenameDict = {}
     _measure_files: FilenameDict = {}
+    _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}
     model: DialogModel
     slength: str = ""
 
@@ -127,6 +130,32 @@ class DialogViewModel(QObject):
         self._update_slength()
         # Notify the view of the change
         self.reach_changed.emit(self.current_reach.name)
+
+    @property
+    def ucritical(self) -> float:
+        """
+        The current critical (minimum) velocity [m/s] for sediment transport.
+        """
+        return self._ucritical
+
+    @ucritical.setter
+    def ucritical(self, value: float):
+        """
+        Setter for the current critical (minimum) velocity [m/s] for sediment transport.
+        After set notify the view of the change.
+
+        Arguments:
+            value (float): The critical (minimum) velocity [m/s] for sediment transport to set.
+        """
+        if self._ucritical == value:
+            return
+
+        self._ucritical = value
+        self.model.ucritical = value
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = value
+
+        # Notify the view of the change
+        self.ucritical_changed.emit(self.ucritical, self.current_reach.ucritical)
 
     @property
     def qthreshold(self) -> float:
@@ -309,8 +338,13 @@ class DialogViewModel(QObject):
         """
         Initialize the critical velocity.
         """
-        if self.model.ucritical < self.current_reach.ucritical:
-            self.model.ucritical = self.current_reach.ucritical
+        self._ucritical = 0.0
+        if (self.current_branch, self.current_reach) in self._ucrit_cache:
+            self.ucritical = self._ucrit_cache[
+                (self.current_branch, self.current_reach)
+            ]
+        else:
+            self.ucritical = self.current_reach.ucritical
 
     def _initialize_qthreshold(self):
         """
@@ -417,6 +451,9 @@ class DialogViewModel(QObject):
         self.current_reach = reach
 
         self._initialize_qthreshold()
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = (
+            self.model.ucritical
+        )
         self._initialize_ucritical()
         self._update_slength()
         self._initialize_reference_and_measure()
