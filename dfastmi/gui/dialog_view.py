@@ -822,6 +822,7 @@ class DialogView:
         placeholder_text: str,
     ):
         line_edit = ValidatingLineEdit(FileExistValidator(), self._win)
+        line_edit.setObjectName(prefix + label_suffix)
 
         line_edit.setPlaceholderText(placeholder_text)
         line_edit.setEnabled(enabled)
@@ -830,8 +831,6 @@ class DialogView:
         file_path = files.get(discharge, None)
         if file_path:
             line_edit.setText(file_path)
-
-        line_edit.setObjectName(prefix + label_suffix)
 
         return line_edit
 
