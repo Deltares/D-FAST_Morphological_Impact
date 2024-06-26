@@ -91,7 +91,7 @@ class DialogView:
         _reach (QComboBox): The combo box for selecting the river reach.
         _qloc (QLabel): The label for displaying the discharge location.
         _qthr (QLineEdit): The line edit for specifying the discharge threshold.
-        _qthrtxt (Qlabel): The label for specifying the discharge (stagnant) threshold.
+        _qthr_label (Qlabel): The label for specifying the discharge (stagnant) threshold.
         _ucrit (QLineEdit): The line edit for specifying the critical velocity.
         _ucrit_label (QLabel): The label for displaying minimum for specifying the critical velocity.
         _slength (QLabel): The label for displaying the impacted length.
@@ -112,7 +112,7 @@ class DialogView:
     _reach: QComboBox = None
     _qloc: QLabel = None
     _qthr: QLineEdit = None
-    _qthrtxt: QLabel = None
+    _qthr_label: QLabel = None
     _ucrit: QLineEdit = None
     _ucrit_label: QLabel = None
     _slength: QLabel = None
@@ -187,9 +187,9 @@ class DialogView:
             self._reach.addItem(r.name)
         # Update labels and text fields
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        self._output_dir.setText(self._view_model.model.output_dir)
-        self._make_plots_edit.setChecked(self._view_model.model.plotting)
-        self._save_plots_edit.setChecked(self._view_model.model.save_plots)
+        self._output_dir.setText(self._view_model.output_dir)
+        self._make_plots_edit.setChecked(self._view_model.make_plot)
+        self._save_plots_edit.setChecked(self._view_model.save_plot)
         self._close_plots_edit.setChecked(self._view_model.model.close_plots)
 
     def _update_reach(self, data):
@@ -238,7 +238,7 @@ class DialogView:
         self._qthr.setText(str(qthreshold))
 
         # Update labels and text fields
-        self._qthrtxt.setText(
+        self._qthr_label.setText(
             gui_text("qthr", placeholder_dictionary={"stagnant": str(qstagnant)})
         )
         self._update_qvalues_table()
@@ -477,7 +477,7 @@ class DialogView:
         make_plots = QLabel(gui_text("makePlots"), self._win)
         self._make_plots_edit = QCheckBox(self._win)
         self._make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
-        self._make_plots_edit.setChecked(self._view_model.model.plotting)
+        self._make_plots_edit.setChecked(self._view_model.make_plot)
         self._make_plots_edit.stateChanged.connect(self._updated_plotting)
         layout.addRow(make_plots, self._make_plots_edit)
 
@@ -660,11 +660,11 @@ class DialogView:
 
         qthreshold_label_text = gui_text(
             "qthr",
-            placeholder_dictionary={"stagnant": str(self._view_model.model.qthreshold)},
+            placeholder_dictionary={"stagnant": str(self._view_model.qthreshold)},
         )
-        self._qthrtxt = QLabel(qthreshold_label_text, self._win)
-        self._qthr.setText(str(self._view_model.model.qthreshold))
-        layout.addRow(self._qthrtxt, self._qthr)
+        self._qthr_label = QLabel(qthreshold_label_text, self._win)
+        self._qthr.setText(str(self._view_model.qthreshold))
+        layout.addRow(self._qthr_label, self._qthr)
 
     def _show_discharge_location(self, layout: QBoxLayout) -> None:
         """
@@ -784,7 +784,7 @@ class DialogView:
         Returns:
             None
         """
-        enabled = self._view_model.model.qthreshold < discharge
+        enabled = self._view_model.qthreshold < discharge
 
         # get the reference file
         q1_reference = self._create_condition_validating_line_edit(
