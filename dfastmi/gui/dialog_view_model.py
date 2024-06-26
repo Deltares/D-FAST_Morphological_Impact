@@ -52,7 +52,7 @@ class DialogViewModel(QObject):
     branch_changed = pyqtSignal(str)
     reach_changed = pyqtSignal(str)
     ucritical_changed = pyqtSignal(float, float)
-    qthreshold_changed = pyqtSignal(float)
+    qthreshold_changed = pyqtSignal(float, float)
     slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
@@ -64,6 +64,7 @@ class DialogViewModel(QObject):
     _reference_files: FilenameDict = {}
     _measure_files: FilenameDict = {}
     _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}
+    _qthreshold_cache: Dict[Tuple[Branch, AReach], float] = {}
     model: DialogModel
     slength: str = ""
 
@@ -179,10 +180,11 @@ class DialogViewModel(QObject):
         value = max(value, self.current_reach.qstagnant)
         self._qthreshold = value
         self.model.qthreshold = value
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = value
 
         self._update_slength()
         # Notify the view of the change
-        self.qthreshold_changed.emit(self._qthreshold)
+        self.qthreshold_changed.emit(self.qthreshold, self.current_reach.qstagnant)
 
     @property
     def reference_files(self) -> FilenameDict:
@@ -350,9 +352,11 @@ class DialogViewModel(QObject):
         """
         Initialize the threshold discharge.
         """
-        if self.model.qthreshold < self.current_reach.qstagnant:
-            self.model.qthreshold = self.current_reach.qstagnant
-        self.qthreshold = self.model.qthreshold
+        self._qthreshold = 0.0
+        if (self.current_branch, self.current_reach) in self._qthreshold_cache:
+            self.qthreshold = max(self._qthreshold_cache[(self.current_branch, self.current_reach)], self.current_reach.qstagnant)
+        else:
+            self.qthreshold = self.current_reach.qstagnant
 
     def updated_reach(self, reach_name: str) -> None:
         """
@@ -450,10 +454,10 @@ class DialogViewModel(QObject):
             reach = self.current_branch.reaches[0]
         self.current_reach = reach
 
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = self.model.qthreshold
         self._initialize_qthreshold()
-        self._ucrit_cache[(self.current_branch, self.current_reach)] = (
-            self.model.ucritical
-        )
+
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = self.model.ucritical
         self._initialize_ucritical()
         self._update_slength()
         self._initialize_reference_and_measure()

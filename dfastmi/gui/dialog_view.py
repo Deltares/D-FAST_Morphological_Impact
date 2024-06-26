@@ -91,6 +91,7 @@ class DialogView:
         _reach (QComboBox): The combo box for selecting the river reach.
         _qloc (QLabel): The label for displaying the discharge location.
         _qthr (QLineEdit): The line edit for specifying the discharge threshold.
+        _qthrtxt (Qlabel): The label for specifying the discharge (stagnant) threshold.
         _ucrit (QLineEdit): The line edit for specifying the critical velocity.
         _ucrit_label (QLabel): The label for displaying minimum for specifying the critical velocity.
         _slength (QLabel): The label for displaying the impacted length.
@@ -111,6 +112,7 @@ class DialogView:
     _reach: QComboBox = None
     _qloc: QLabel = None
     _qthr: QLineEdit = None
+    _qthrtxt: QLabel = None
     _ucrit: QLineEdit = None
     _ucrit_label: QLabel = None
     _slength: QLabel = None
@@ -224,17 +226,20 @@ class DialogView:
             gui_text("ucrit", placeholder_dictionary={"default": str(default)})
         )
 
-    def _update_qthreshold(self, data: float):
+    def _update_qthreshold(self, qthreshold: float, qstagnant: float):
         """
         Update the GUI components when the discharge threshold changes.
 
         Args:
-            data: The dischage threshold.
+            qthreshold: The dischage threshold.
+            qstagnant: The dischage stagnant threshold.
         """
         # Update the threshold discharge in the GUI
-        self._qthr.setText(str(data))
+        self._qthr.setText(str(qthreshold))
 
         # Update labels and text fields
+        self._qthrtxt.setText(
+            gui_text("qthr", placeholder_dictionary={"stagnant": str(qstagnant)}))
         self._update_qvalues_table()
 
     def _update_condition_file_field(
@@ -651,9 +656,11 @@ class DialogView:
         self._qthr.setValidator(double_validator)
         self._qthr.editingFinished.connect(self._updated_qthreshold)
         self._qthr.setToolTip(gui_text("qthr_tooltip"))
-        qthrtxt = QLabel(gui_text("qthr"), self._win)
+        
+        qthreshold_label_text = gui_text("qthr", placeholder_dictionary={"stagnant": str(self._view_model.model.qthreshold)})
+        self._qthrtxt = QLabel(qthreshold_label_text, self._win)
         self._qthr.setText(str(self._view_model.model.qthreshold))
-        layout.addRow(qthrtxt, self._qthr)
+        layout.addRow(self._qthrtxt, self._qthr)
 
     def _show_discharge_location(self, layout: QBoxLayout) -> None:
         """
