@@ -239,7 +239,8 @@ class DialogView:
 
         # Update labels and text fields
         self._qthrtxt.setText(
-            gui_text("qthr", placeholder_dictionary={"stagnant": str(qstagnant)}))
+            gui_text("qthr", placeholder_dictionary={"stagnant": str(qstagnant)})
+        )
         self._update_qvalues_table()
 
     def _update_condition_file_field(
@@ -656,8 +657,11 @@ class DialogView:
         self._qthr.setValidator(double_validator)
         self._qthr.editingFinished.connect(self._updated_qthreshold)
         self._qthr.setToolTip(gui_text("qthr_tooltip"))
-        
-        qthreshold_label_text = gui_text("qthr", placeholder_dictionary={"stagnant": str(self._view_model.model.qthreshold)})
+
+        qthreshold_label_text = gui_text(
+            "qthr",
+            placeholder_dictionary={"stagnant": str(self._view_model.model.qthreshold)},
+        )
         self._qthrtxt = QLabel(qthreshold_label_text, self._win)
         self._qthr.setText(str(self._view_model.model.qthreshold))
         layout.addRow(self._qthrtxt, self._qthr)

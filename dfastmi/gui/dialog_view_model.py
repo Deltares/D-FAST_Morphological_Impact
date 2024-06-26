@@ -354,7 +354,10 @@ class DialogViewModel(QObject):
         """
         self._qthreshold = 0.0
         if (self.current_branch, self.current_reach) in self._qthreshold_cache:
-            self.qthreshold = max(self._qthreshold_cache[(self.current_branch, self.current_reach)], self.current_reach.qstagnant)
+            self.qthreshold = max(
+                self._qthreshold_cache[(self.current_branch, self.current_reach)],
+                self.current_reach.qstagnant,
+            )
         else:
             self.qthreshold = self.current_reach.qstagnant
 
@@ -454,10 +457,14 @@ class DialogViewModel(QObject):
             reach = self.current_branch.reaches[0]
         self.current_reach = reach
 
-        self._qthreshold_cache[(self.current_branch, self.current_reach)] = self.model.qthreshold
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = (
+            self.model.qthreshold
+        )
         self._initialize_qthreshold()
 
-        self._ucrit_cache[(self.current_branch, self.current_reach)] = self.model.ucritical
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = (
+            self.model.ucritical
+        )
         self._initialize_ucritical()
         self._update_slength()
         self._initialize_reference_and_measure()
