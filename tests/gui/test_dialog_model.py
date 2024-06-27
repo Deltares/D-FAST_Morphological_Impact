@@ -229,7 +229,7 @@ def test_check_configuration(
 
     # Call the check_configuration method
     result = dialog_model.check_configuration(
-        mock_branch, mock_areach, mock_reference_files, mock_measure_files
+        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
     assert (
@@ -238,7 +238,7 @@ def test_check_configuration(
 
     # Assert that get_configuration is called with the correct arguments
     dialog_model.get_configuration.assert_called_once_with(
-        mock_branch, mock_areach, mock_reference_files, mock_measure_files
+        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
 
@@ -258,7 +258,7 @@ def test_get_configuration(
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_areach, mock_reference_files, mock_measure_files
+        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
     # Check if the configuration parser is an instance of ConfigParser
@@ -271,8 +271,8 @@ def test_get_configuration(
     general_section = config_parser["General"]
     assert general_section["Branch"] == mock_branch.name
     assert general_section["Reach"] == mock_areach.name
-    assert float(general_section["Qthreshold"]) == dialog_model.qthreshold
-    assert float(general_section["Ucrit"]) == dialog_model.ucritical
+    assert float(general_section["Qthreshold"]) == 8.01
+    assert float(general_section["Ucrit"]) == 80.1
     assert general_section["OutputDir"] == dialog_model.output_dir
     assert general_section.getboolean("Plotting") == dialog_model.plotting
     assert general_section.getboolean("SavePlots") == dialog_model.save_plots
@@ -302,7 +302,7 @@ def test_get_configuration_with_reach(
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_reach, mock_reference_files, mock_measure_files
+        mock_branch, mock_reach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
     # Check if the configuration parser is an instance of ConfigParser
@@ -315,8 +315,8 @@ def test_get_configuration_with_reach(
     general_section = config_parser["General"]
     assert general_section["Branch"] == mock_branch.name
     assert general_section["Reach"] == mock_reach.name
-    assert float(general_section["Qthreshold"]) == dialog_model.qthreshold
-    assert float(general_section["Ucrit"]) == dialog_model.ucritical
+    assert float(general_section["Qthreshold"]) == 8.01
+    assert float(general_section["Ucrit"]) == 80.1
     assert general_section["OutputDir"] == dialog_model.output_dir
     assert general_section.getboolean("Plotting") == dialog_model.plotting
     assert general_section.getboolean("SavePlots") == dialog_model.save_plots

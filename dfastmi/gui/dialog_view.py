@@ -65,6 +65,7 @@ from dfastmi.gui.dialog_utils import (
 )
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.qt_tools import clear_layout_item
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import FilenameDict
 from dfastmi.resources import DFAST_LOGO
@@ -91,6 +92,7 @@ class DialogView:
         _reach (QComboBox): The combo box for selecting the river reach.
         _qloc (QLabel): The label for displaying the discharge location.
         _qthr (QLineEdit): The line edit for specifying the discharge threshold.
+        _qthr_label (Qlabel): The label for specifying the discharge (stagnant) threshold.
         _ucrit (QLineEdit): The line edit for specifying the critical velocity.
         _ucrit_label (QLabel): The label for displaying minimum for specifying the critical velocity.
         _slength (QLabel): The label for displaying the impacted length.
@@ -111,6 +113,7 @@ class DialogView:
     _reach: QComboBox = None
     _qloc: QLabel = None
     _qthr: QLineEdit = None
+    _qthr_label: QLabel = None
     _ucrit: QLineEdit = None
     _ucrit_label: QLabel = None
     _slength: QLabel = None
@@ -185,20 +188,31 @@ class DialogView:
             self._reach.addItem(r.name)
         # Update labels and text fields
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        self._output_dir.setText(self._view_model.model.output_dir)
-        self._make_plots_edit.setChecked(self._view_model.model.plotting)
-        self._save_plots_edit.setChecked(self._view_model.model.save_plots)
+        self._output_dir.setText(self._view_model.output_dir)
+        self._make_plots_edit.setChecked(self._view_model.make_plot)
+        self._save_plots_edit.setChecked(self._view_model.save_plot)
         self._close_plots_edit.setChecked(self._view_model.model.close_plots)
 
-    def _update_reach(self, data):
+    def _update_reach(self, reach: AReach):
         """
         Update the GUI components when the reach changes.
 
         Args:
-            data: The data for the reach.
+            reach: The selected reach.
         """
+
+        # Update the threshold discharge label because of specific selected reach stagnant discharge in the GUI
+        self._qthr_label.setText(
+            gui_text("qthr", placeholder_dictionary={"stagnant": str(reach.qstagnant)})
+        )
+
+        # Update the minimal critical velocity label because of specific selected reach default critical (minimum) velocity in the GUI
+        self._ucrit_label.setText(
+            gui_text("ucrit", placeholder_dictionary={"default": str(reach.ucritical)})
+        )
+
         # Update reach label
-        self._reach.setCurrentText(data)
+        self._reach.setCurrentText(reach.name)
 
     def _update_sedimentation_length(self, slength: str):
         """
@@ -210,29 +224,25 @@ class DialogView:
         # Update the sedimentation length in the GUI
         self._slength.setText(slength)
 
-    def _update_ucritical(self, ucrit: float, default: float):
+    def _update_ucritical(self, ucrit: float):
         """
         Update the GUI components when the critical (minimum) velocity [m/s] for sediment transport changes.
 
         Args:
             ucrit: The critical (minimum) velocity [m/s] for sediment transport.
-            default: The default critical (minimum) velocity [m/s] for sediment transport.
         """
-        # Update the threshold discharge in the GUI
+        # Update the critical velocity in the GUI
         self._ucrit.setText(str(ucrit))
-        self._ucrit_label.setText(
-            gui_text("ucrit", placeholder_dictionary={"default": str(default)})
-        )
 
-    def _update_qthreshold(self, data: float):
+    def _update_qthreshold(self, qthreshold: float):
         """
         Update the GUI components when the discharge threshold changes.
 
         Args:
-            data: The dischage threshold.
+            qthreshold: The dischage threshold.
         """
         # Update the threshold discharge in the GUI
-        self._qthr.setText(str(data))
+        self._qthr.setText(str(qthreshold))
 
         # Update labels and text fields
         self._update_qvalues_table()
@@ -471,7 +481,7 @@ class DialogView:
         make_plots = QLabel(gui_text("makePlots"), self._win)
         self._make_plots_edit = QCheckBox(self._win)
         self._make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
-        self._make_plots_edit.setChecked(self._view_model.model.plotting)
+        self._make_plots_edit.setChecked(self._view_model.make_plot)
         self._make_plots_edit.stateChanged.connect(self._updated_plotting)
         layout.addRow(make_plots, self._make_plots_edit)
 
@@ -651,9 +661,14 @@ class DialogView:
         self._qthr.setValidator(double_validator)
         self._qthr.editingFinished.connect(self._updated_qthreshold)
         self._qthr.setToolTip(gui_text("qthr_tooltip"))
-        qthrtxt = QLabel(gui_text("qthr"), self._win)
-        self._qthr.setText(str(self._view_model.model.qthreshold))
-        layout.addRow(qthrtxt, self._qthr)
+
+        qthreshold_label_text = gui_text(
+            "qthr",
+            placeholder_dictionary={"stagnant": str(self._view_model.qthreshold)},
+        )
+        self._qthr_label = QLabel(qthreshold_label_text, self._win)
+        self._qthr.setText(str(self._view_model.qthreshold))
+        layout.addRow(self._qthr_label, self._qthr)
 
     def _show_discharge_location(self, layout: QBoxLayout) -> None:
         """
@@ -773,7 +788,7 @@ class DialogView:
         Returns:
             None
         """
-        enabled = self._view_model.model.qthreshold < discharge
+        enabled = self._view_model.qthreshold < discharge
 
         # get the reference file
         q1_reference = self._create_condition_validating_line_edit(

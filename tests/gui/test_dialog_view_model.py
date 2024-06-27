@@ -9,8 +9,10 @@ from mock import patch
 from dfastmi.batch.DFastUtils import get_progloc
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.gui.dialog_view_model import DialogViewModel
+from dfastmi.io.AReach import AReach
 from dfastmi.io.IBranch import IBranch
 from dfastmi.io.IReach import IReach
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
 
 
@@ -164,8 +166,7 @@ def test_updated_reach(qtbot, dialog_view_model):
         result.append(reach)
 
     dialog_view_model.reach_changed.connect(on_reach_changed)
-    mock_reach = mock.create_autospec(spec=IReach)
-    mock_reach.name = "myReach"
+    mock_reach = AReach("myReach")
     mock_reach.qstagnant = 10.0
     mock_reach.ucritical = 5.0
 
@@ -175,8 +176,8 @@ def test_updated_reach(qtbot, dialog_view_model):
         dialog_view_model.current_reach = mock_reach
 
     # Check if the signal was emitted and received correctly
-    assert result == ["myReach"]
-    assert dialog_view_model.current_reach == mock_reach
+    assert result[0] is mock_reach
+    assert dialog_view_model.current_reach is mock_reach
 
 
 def test_get_configuration(dialog_view_model, mock_model):
@@ -210,8 +211,7 @@ def test_load_configuration(dialog_view_model, mock_model):
     mock_branch.name = "myBranch"
     mock_model.rivers.get_branch.return_value = mock_branch
 
-    mock_reach = mock.create_autospec(spec=IReach)
-    mock_reach.name = "myReach"
+    mock_reach = AReach("myReach")
     mock_reach.qstagnant = 10.0
     mock_reach.ucritical = 5.0
     mock_branch.get_reach.return_value = mock_reach

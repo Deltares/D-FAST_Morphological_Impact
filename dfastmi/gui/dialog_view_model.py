@@ -50,8 +50,8 @@ class DialogViewModel(QObject):
     """Represents the ViewModel for the dialog interface."""
 
     branch_changed = pyqtSignal(str)
-    reach_changed = pyqtSignal(str)
-    ucritical_changed = pyqtSignal(float, float)
+    reach_changed = pyqtSignal(AReach)
+    ucritical_changed = pyqtSignal(float)
     qthreshold_changed = pyqtSignal(float)
     slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
@@ -64,6 +64,7 @@ class DialogViewModel(QObject):
     _reference_files: FilenameDict = {}
     _measure_files: FilenameDict = {}
     _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}
+    _qthreshold_cache: Dict[Tuple[Branch, AReach], float] = {}
     model: DialogModel
     slength: str = ""
 
@@ -129,7 +130,7 @@ class DialogViewModel(QObject):
         self._initialize_ucritical()
         self._update_slength()
         # Notify the view of the change
-        self.reach_changed.emit(self.current_reach.name)
+        self.reach_changed.emit(self.current_reach)
 
     @property
     def ucritical(self) -> float:
@@ -151,11 +152,10 @@ class DialogViewModel(QObject):
             return
 
         self._ucritical = value
-        self.model.ucritical = value
         self._ucrit_cache[(self.current_branch, self.current_reach)] = value
 
         # Notify the view of the change
-        self.ucritical_changed.emit(self.ucritical, self.current_reach.ucritical)
+        self.ucritical_changed.emit(self.ucritical)
 
     @property
     def qthreshold(self) -> float:
@@ -178,11 +178,11 @@ class DialogViewModel(QObject):
 
         value = max(value, self.current_reach.qstagnant)
         self._qthreshold = value
-        self.model.qthreshold = value
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = value
 
         self._update_slength()
         # Notify the view of the change
-        self.qthreshold_changed.emit(self._qthreshold)
+        self.qthreshold_changed.emit(self.qthreshold)
 
     @property
     def reference_files(self) -> FilenameDict:
@@ -272,6 +272,8 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )
 
     def run_analysis(self) -> bool:
@@ -286,15 +288,23 @@ class DialogViewModel(QObject):
             If thrown, analysis has failed.
         """
         try:
+            run_config = self.model.get_configuration(
+                self.current_branch,
+                self.current_reach,
+                self.reference_files,
+                self.measure_files,
+                self.ucritical,
+                self.qthreshold,
+            )
             return dfastmi.batch.core.batch_mode_core(
-                self.model.rivers, False, self.model.config, gui=True
+                self.model.rivers, False, run_config, gui=True
             )
         except:
-            stackTrace = traceback.format_exc()
+            stack_trace = traceback.format_exc()
             # Notify the view of the change
             self.analysis_exception.emit(
                 "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
-                stackTrace,
+                stack_trace,
             )
 
         return False
@@ -350,9 +360,14 @@ class DialogViewModel(QObject):
         """
         Initialize the threshold discharge.
         """
-        if self.model.qthreshold < self.current_reach.qstagnant:
-            self.model.qthreshold = self.current_reach.qstagnant
-        self.qthreshold = self.model.qthreshold
+        self._qthreshold = 0.0
+        if (self.current_branch, self.current_reach) in self._qthreshold_cache:
+            self.qthreshold = max(
+                self._qthreshold_cache[(self.current_branch, self.current_reach)],
+                self.current_reach.qstagnant,
+            )
+        else:
+            self.qthreshold = self.current_reach.qstagnant
 
     def updated_reach(self, reach_name: str) -> None:
         """
@@ -380,7 +395,7 @@ class DialogViewModel(QObject):
                     self.current_reach.hydro_q,
                     self.current_reach.qfit,
                     self.current_reach.qstagnant,
-                    self.model.qthreshold,
+                    self.qthreshold,
                 )
             else:
                 time_fractions_of_the_year = (
@@ -389,7 +404,7 @@ class DialogViewModel(QObject):
                     )
                 )
                 time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self.model.qthreshold,
+                    self.qthreshold,
                     self.current_reach.hydro_q,
                     time_fractions_of_the_year,
                 )
@@ -423,6 +438,8 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )
         ConfigFileOperations.save_configuration_file(filename, config)
 
@@ -450,7 +467,11 @@ class DialogViewModel(QObject):
             reach = self.current_branch.reaches[0]
         self.current_reach = reach
 
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = (
+            self.model.qthreshold
+        )
         self._initialize_qthreshold()
+
         self._ucrit_cache[(self.current_branch, self.current_reach)] = (
             self.model.ucritical
         )
@@ -495,4 +516,6 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )
