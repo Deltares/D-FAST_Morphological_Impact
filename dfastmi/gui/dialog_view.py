@@ -54,7 +54,6 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from dfastmi.io.AReach import AReach
 import dfastmi.kernel.core
 from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.gui.dialog_utils import (
@@ -66,6 +65,7 @@ from dfastmi.gui.dialog_utils import (
 )
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.qt_tools import clear_layout_item
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiversObject import RiversObject
 from dfastmi.kernel.typehints import FilenameDict
 from dfastmi.resources import DFAST_LOGO
@@ -193,7 +193,7 @@ class DialogView:
         self._save_plots_edit.setChecked(self._view_model.save_plot)
         self._close_plots_edit.setChecked(self._view_model.model.close_plots)
 
-    def _update_reach(self, reach : AReach):
+    def _update_reach(self, reach: AReach):
         """
         Update the GUI components when the reach changes.
 
@@ -210,7 +210,7 @@ class DialogView:
         self._ucrit_label.setText(
             gui_text("ucrit", placeholder_dictionary={"default": str(reach.ucritical)})
         )
-        
+
         # Update reach label
         self._reach.setCurrentText(reach.name)
 
@@ -229,17 +229,17 @@ class DialogView:
         Update the GUI components when the critical (minimum) velocity [m/s] for sediment transport changes.
 
         Args:
-            ucrit: The critical (minimum) velocity [m/s] for sediment transport.            
+            ucrit: The critical (minimum) velocity [m/s] for sediment transport.
         """
         # Update the critical velocity in the GUI
-        self._ucrit.setText(str(ucrit))        
+        self._ucrit.setText(str(ucrit))
 
     def _update_qthreshold(self, qthreshold: float):
         """
         Update the GUI components when the discharge threshold changes.
 
         Args:
-            qthreshold: The dischage threshold.            
+            qthreshold: The dischage threshold.
         """
         # Update the threshold discharge in the GUI
         self._qthr.setText(str(qthreshold))

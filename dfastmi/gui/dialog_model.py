@@ -200,8 +200,8 @@ class DialogModel:
         reach: AReach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
-        ucritical : float,
-        qthreshold : float
+        ucritical: float,
+        qthreshold: float,
     ) -> bool:
         """
         Check if configuration can be created.
@@ -225,7 +225,9 @@ class DialogModel:
         -------
             Boolean indicating whether the (D-FAST MI analysis) configuration can be created.
         """
-        config = self.get_configuration(branch, reach, reference_files, measure_files, ucritical, qthreshold)
+        config = self.get_configuration(
+            branch, reach, reference_files, measure_files, ucritical, qthreshold
+        )
         return check_configuration(self.rivers, config)
 
     def get_configuration(
@@ -234,8 +236,8 @@ class DialogModel:
         reach: AReach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
-        ucritical : float,
-        qthreshold : float
+        ucritical: float,
+        qthreshold: float,
     ) -> ConfigParser:
         """
         Extract a configuration from the GUI.
