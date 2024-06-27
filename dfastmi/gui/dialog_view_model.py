@@ -273,7 +273,7 @@ class DialogViewModel(QObject):
             self.reference_files,
             self.measure_files,
             self.ucritical,
-            self.qthreshold
+            self.qthreshold,
         )
 
     def run_analysis(self) -> bool:
@@ -294,7 +294,7 @@ class DialogViewModel(QObject):
                 self.reference_files,
                 self.measure_files,
                 self.ucritical,
-                self.qthreshold
+                self.qthreshold,
             )
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, run_config, gui=True
@@ -517,5 +517,5 @@ class DialogViewModel(QObject):
             self.reference_files,
             self.measure_files,
             self.ucritical,
-            self.qthreshold
+            self.qthreshold,
         )
