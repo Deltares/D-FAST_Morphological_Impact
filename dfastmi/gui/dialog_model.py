@@ -116,20 +116,10 @@ class DialogModel:
         """Get Qthreshold."""
         return self.section.getfloat("Qthreshold", 0.0)
 
-    @qthreshold.setter
-    def qthreshold(self, value: float):
-        """Set Qthreshold."""
-        self.section["Qthreshold"] = str(value)
-
     @property
     def ucritical(self) -> float:
         """Get Ucritical."""
         return self.section.getfloat("Ucrit", 0.3)
-
-    @ucritical.setter
-    def ucritical(self, value: float):
-        """Set Ucritical."""
-        self.section["Ucrit"] = str(value)
 
     @property
     def output_dir(self) -> str:
@@ -210,9 +200,32 @@ class DialogModel:
         reach: AReach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
+        ucritical : float,
+        qthreshold : float
     ) -> bool:
-        """Check configuration."""
-        config = self.get_configuration(branch, reach, reference_files, measure_files)
+        """
+        Check if configuration can be created.
+
+        Arguments
+        ---------
+        branch: Branch
+            Selected branch which is used and should be in this config.
+        reach: AReach
+            Selected reach which is used and should be in this config.
+        reference_files: FilenameDict
+            Selected reference files which is used and should be in this config.
+        measure_files: FilenameDict
+            Selected measure files which is used and should be in this config.
+        ucritical : float
+            Selected minimal critical flow value which is used and should be in this config.
+        qthreshold : float
+            Selected discharge threshold value which is used and should be in this config.
+
+        Returns
+        -------
+            Boolean indicating whether the (D-FAST MI analysis) configuration can be created.
+        """
+        config = self.get_configuration(branch, reach, reference_files, measure_files, ucritical, qthreshold)
         return check_configuration(self.rivers, config)
 
     def get_configuration(
@@ -221,13 +234,26 @@ class DialogModel:
         reach: AReach,
         reference_files: FilenameDict,
         measure_files: FilenameDict,
+        ucritical : float,
+        qthreshold : float
     ) -> ConfigParser:
         """
         Extract a configuration from the GUI.
 
         Arguments
         ---------
-        None
+        branch: Branch
+            Selected branch which is used and should be in this config.
+        reach: AReach
+            Selected reach which is used and should be in this config.
+        reference_files: FilenameDict
+            Selected reference files which is used and should be in this config.
+        measure_files: FilenameDict
+            Selected measure files which is used and should be in this config.
+        ucritical : float
+            Selected minimal critical flow value which is used and should be in this config.
+        qthreshold : float
+            Selected discharge threshold value which is used and should be in this config.
 
         Returns
         -------
@@ -242,8 +268,8 @@ class DialogModel:
             CaseDescription=self.case_description,
             Branch=branch.name,
             Reach=reach.name,
-            Qthreshold=self.qthreshold,
-            Ucrit=self.ucritical,
+            Qthreshold=qthreshold,
+            Ucrit=ucritical,
             OutputDir=self.output_dir,
             Plotting=self.plotting,
             SavePlots=self.save_plots,

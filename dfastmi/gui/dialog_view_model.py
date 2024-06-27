@@ -50,9 +50,9 @@ class DialogViewModel(QObject):
     """Represents the ViewModel for the dialog interface."""
 
     branch_changed = pyqtSignal(str)
-    reach_changed = pyqtSignal(str)
-    ucritical_changed = pyqtSignal(float, float)
-    qthreshold_changed = pyqtSignal(float, float)
+    reach_changed = pyqtSignal(AReach)
+    ucritical_changed = pyqtSignal(float)
+    qthreshold_changed = pyqtSignal(float)
     slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
@@ -130,7 +130,7 @@ class DialogViewModel(QObject):
         self._initialize_ucritical()
         self._update_slength()
         # Notify the view of the change
-        self.reach_changed.emit(self.current_reach.name)
+        self.reach_changed.emit(self.current_reach)
 
     @property
     def ucritical(self) -> float:
@@ -152,11 +152,10 @@ class DialogViewModel(QObject):
             return
 
         self._ucritical = value
-        self.model.ucritical = value
         self._ucrit_cache[(self.current_branch, self.current_reach)] = value
 
         # Notify the view of the change
-        self.ucritical_changed.emit(self.ucritical, self.current_reach.ucritical)
+        self.ucritical_changed.emit(self.ucritical)
 
     @property
     def qthreshold(self) -> float:
@@ -179,12 +178,11 @@ class DialogViewModel(QObject):
 
         value = max(value, self.current_reach.qstagnant)
         self._qthreshold = value
-        self.model.qthreshold = value
         self._qthreshold_cache[(self.current_branch, self.current_reach)] = value
 
         self._update_slength()
         # Notify the view of the change
-        self.qthreshold_changed.emit(self.qthreshold, self.current_reach.qstagnant)
+        self.qthreshold_changed.emit(self.qthreshold)
 
     @property
     def reference_files(self) -> FilenameDict:
@@ -274,6 +272,8 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold
         )
 
     def run_analysis(self) -> bool:
@@ -293,6 +293,8 @@ class DialogViewModel(QObject):
                 self.current_reach,
                 self.reference_files,
                 self.measure_files,
+                self.ucritical,
+                self.qthreshold
             )
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, run_config, gui=True
@@ -436,6 +438,8 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )
         ConfigFileOperations.save_configuration_file(filename, config)
 
@@ -512,4 +516,6 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold
         )

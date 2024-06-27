@@ -9,6 +9,7 @@ from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.gui.dialog_utils import gui_text
 from dfastmi.gui.dialog_view import DialogView
 from dfastmi.gui.dialog_view_model import DialogViewModel
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiversObject import RiversObject
 
 
@@ -160,7 +161,7 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(invalid_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == invalid_value
-        assert dialog_view._view_model.model.qthreshold == float(
+        assert dialog_view._view_model.qthreshold == float(
             new_value
         )  # Input should not change
 
@@ -169,7 +170,7 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(empty_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == empty_value
-        assert dialog_view._view_model.model.qthreshold == float(
+        assert dialog_view._view_model.qthreshold == float(
             new_value
         )  # Input should not change
 
@@ -206,14 +207,14 @@ class Test_dialog_inputs:
         dialog_view._ucrit.setText(invalid_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == invalid_value
-        assert dialog_view._view_model.model.ucritical == float(new_value)
+        assert dialog_view._view_model.ucritical == float(new_value)
 
         # Test edge case: empty input
         empty_value = ""
         dialog_view._ucrit.setText(empty_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
-        assert dialog_view._view_model.model.ucritical == float(new_value)
+        assert dialog_view._view_model.ucritical == float(new_value)
 
         # Reset to inital value
         dialog_view._ucrit.setText(initial_value)
@@ -487,8 +488,8 @@ class Test_view_model_updates:
         assert (
             dialog_view._qloc.text() == dialog_view._view_model.current_branch.qlocation
         )
-        assert dialog_view._qthr.text() == str(dialog_view._view_model.model.qthreshold)
-        assert dialog_view._ucrit.text() == str(dialog_view._view_model.model.ucritical)
+        assert dialog_view._qthr.text() == str(dialog_view._view_model.qthreshold)
+        assert dialog_view._ucrit.text() == str(dialog_view._view_model.ucritical)
         assert dialog_view._slength.text() == dialog_view._view_model.slength
         assert (
             dialog_view._output_dir.text() == dialog_view._view_model.model.output_dir
@@ -514,7 +515,7 @@ class Test_view_model_updates:
         """
         # Call the method to be tested
         dialog_view._update_reach(
-            "Boven-Waal                   km  868-886"
+            AReach("Boven-Waal                   km  868-886")
         )  # Pass the reach name to simulate the update
 
         # Assertions
