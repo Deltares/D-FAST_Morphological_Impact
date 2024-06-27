@@ -300,11 +300,11 @@ class DialogViewModel(QObject):
                 self.model.rivers, False, run_config, gui=True
             )
         except:
-            stackTrace = traceback.format_exc()
+            stack_trace = traceback.format_exc()
             # Notify the view of the change
             self.analysis_exception.emit(
                 "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
-                stackTrace,
+                stack_trace,
             )
 
         return False
