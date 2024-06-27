@@ -288,7 +288,12 @@ class DialogViewModel(QObject):
             If thrown, analysis has failed.
         """
         try:
-            run_config = self.model.get_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
+            run_config = self.model.get_configuration(
+                self.current_branch,
+                self.current_reach,
+                self.reference_files,
+                self.measure_files,
+            )
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, run_config, gui=True
             )
