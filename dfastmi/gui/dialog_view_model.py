@@ -288,8 +288,9 @@ class DialogViewModel(QObject):
             If thrown, analysis has failed.
         """
         try:
+            run_config = self.model.get_configuration(self.current_branch, self.current_reach, self.reference_files, self.measure_files)
             return dfastmi.batch.core.batch_mode_core(
-                self.model.rivers, False, self.model.config, gui=True
+                self.model.rivers, False, run_config, gui=True
             )
         except:
             stackTrace = traceback.format_exc()
@@ -387,7 +388,7 @@ class DialogViewModel(QObject):
                     self.current_reach.hydro_q,
                     self.current_reach.qfit,
                     self.current_reach.qstagnant,
-                    self.model.qthreshold,
+                    self.qthreshold,
                 )
             else:
                 time_fractions_of_the_year = (
@@ -396,7 +397,7 @@ class DialogViewModel(QObject):
                     )
                 )
                 time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self.model.qthreshold,
+                    self.qthreshold,
                     self.current_reach.hydro_q,
                     time_fractions_of_the_year,
                 )
