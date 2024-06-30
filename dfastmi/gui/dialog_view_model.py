@@ -32,7 +32,7 @@ import traceback
 from configparser import ConfigParser
 from typing import Dict, Tuple
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PySide6.QtCore import QObject, Signal
 
 import dfastmi
 from dfastmi.batch.DFastUtils import get_progloc
@@ -49,18 +49,18 @@ from dfastmi.kernel.typehints import FilenameDict
 class DialogViewModel(QObject):
     """Represents the ViewModel for the dialog interface."""
 
-    branch_changed = pyqtSignal(str)
-    reach_changed = pyqtSignal(AReach)
-    ucritical_changed = pyqtSignal(float)
-    qthreshold_changed = pyqtSignal(float)
-    slength_changed = pyqtSignal(str)
-    make_plot_changed = pyqtSignal(bool)
-    save_plot_changed = pyqtSignal(bool)
-    figure_dir_changed = pyqtSignal(str)
-    output_dir_changed = pyqtSignal(str)
-    analysis_exception = pyqtSignal(str, str)
-    reference_files_changed = pyqtSignal(str, float, str)
-    measure_files_changed = pyqtSignal(str, float, str)
+    branch_changed = Signal(str)
+    reach_changed = Signal(AReach)
+    ucritical_changed = Signal(float)
+    qthreshold_changed = Signal(float)
+    slength_changed = Signal(str)
+    make_plot_changed = Signal(bool)
+    save_plot_changed = Signal(bool)
+    figure_dir_changed = Signal(str)
+    output_dir_changed = Signal(str)
+    analysis_exception = Signal(str, str)
+    reference_files_changed = Signal(str, float, str)
+    measure_files_changed = Signal(str, float, str)
     _reference_files: FilenameDict = {}
     _measure_files: FilenameDict = {}
     _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}

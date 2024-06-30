@@ -27,16 +27,16 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 """
-This module provides validators and utilities for PyQt5 GUI applications.
+This module provides validators and utilities for PySide6 GUI applications.
 It also includes functions for handling fonts and querying text strings for GUI elements.
 """
 
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import PyQt5.QtCore
-from PyQt5.QtGui import QColor, QFont, QFontDatabase, QPainter, QPaintEvent, QValidator
-from PyQt5.QtWidgets import QLineEdit
+import PySide6.QtCore
+from PySide6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPaintEvent, QValidator
+from PySide6.QtWidgets import QLineEdit
 
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 
@@ -130,7 +130,7 @@ class ValidatingLineEdit(QLineEdit):
         """
         super().paintEvent(event)
         if self.isEnabled() and self.invalid:
-            self.paint_box(PyQt5.QtCore.Qt.red)
+            self.paint_box(PySide6.QtCore.Qt.red)
 
     def paint_box(self, colour: QColor):
         """
@@ -143,8 +143,8 @@ class ValidatingLineEdit(QLineEdit):
         """
         painter = QPainter(self)
         painter.setPen(colour)
-        painter.setBrush(PyQt5.QtCore.Qt.NoBrush)
-        painter.drawRect(PyQt5.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
+        painter.setBrush(PySide6.QtCore.Qt.NoBrush)
+        painter.drawRect(PySide6.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
         painter.end()  # Ensure to end the painter
 
     def validate(self, input_str: str, pos: int):

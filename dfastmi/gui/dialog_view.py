@@ -33,10 +33,10 @@ from functools import partial
 from pathlib import Path
 from typing import Iterator, Optional, Tuple
 
-import PyQt5.QtCore
-import PyQt5.QtGui
-from PyQt5.QtGui import QDoubleValidator, QFontDatabase, QIcon
-from PyQt5.QtWidgets import (
+import PySide6.QtCore
+import PySide6.QtGui
+from PySide6.QtGui import QDoubleValidator, QFontDatabase, QIcon
+from PySide6.QtWidgets import (
     QApplication,
     QBoxLayout,
     QCheckBox,
@@ -53,6 +53,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from PySide6.QtPdf import QPdfDocument
+from PySide6.QtPdfWidgets import QPdfView
 
 import dfastmi.kernel.core
 from dfastmi.gui.dialog_model import DialogModel
@@ -74,6 +76,16 @@ from dfastmi.resources import DFAST_LOGO
 reference_label = "reference"
 with_measure_label = "with_measure"
 
+class PdfViewer(QWidget):
+    def __init__(self, filename: str):
+        super().__init__()
+        layout = QVBoxLayout()
+        self._doc = QPdfDocument()
+        self._doc.load(filename)
+        self._viewer = QPdfView()
+        layout.addWidget(self._viewer)
+        self._viewer.setDocument(self._doc)
+        self.setLayout(layout)
 
 class DialogView:
     """
@@ -117,6 +129,7 @@ class DialogView:
     _ucrit: QLineEdit = None
     _ucrit_label: QLabel = None
     _slength: QLabel = None
+    _pdf_viewer: PdfViewer = None
 
     _general_widget: QWidget = None
     _grid_layout: QGridLayout = None
@@ -349,7 +362,7 @@ class DialogView:
             None
         """
         central_widget = QWidget(self._win)
-        self._layout = QBoxLayout(2, central_widget)
+        self._layout = QBoxLayout(QBoxLayout.TopToBottom, central_widget)
         self._win.setCentralWidget(central_widget)
 
     def _create_general_widgets(self) -> None:
@@ -370,8 +383,8 @@ class DialogView:
         # show the discharge location
         self._show_discharge_location(layout)
 
-        double_validator = PyQt5.QtGui.QDoubleValidator()
-        double_validator.setLocale(PyQt5.QtCore.QLocale(PyQt5.QtCore.QLocale.C))
+        double_validator = PySide6.QtGui.QDoubleValidator()
+        double_validator.setLocale(PySide6.QtCore.QLocale(PySide6.QtCore.QLocale.C))
 
         # get minimum flow-carrying discharge
         self._create_qthreshhold_input(layout, double_validator)
@@ -554,7 +567,7 @@ class DialogView:
             None
         """
         state = line_edit.validator.validate(line_edit.text(), 0)[0]
-        line_edit.setInvalid(state != PyQt5.QtGui.QValidator.Acceptable)
+        line_edit.setInvalid(state != PySide6.QtGui.QValidator.Acceptable)
 
     def _create_conditions_group_input(self, layout: QBoxLayout) -> None:
         """
@@ -981,7 +994,7 @@ class DialogView:
         msg.setStandardButtons(QMessageBox.Ok)
 
         logo_size = int(msg.heightMM() * 0.9)
-        pixmap = PyQt5.QtGui.QPixmap(str(DFAST_LOGO))
+        pixmap = PySide6.QtGui.QPixmap(str(DFAST_LOGO))
         msg.setIconPixmap(pixmap.scaled(logo_size, logo_size))
         msg.setWindowIcon(DialogView._get_dfast_icon())
         msg.exec_()
@@ -1004,7 +1017,9 @@ class DialogView:
         ---------
         None
         """
-        os.startfile(self._view_model.manual_filename)
+        self._pdf_viewer = PdfViewer(self._view_model.manual_filename)
+        self._pdf_viewer.show()
+
 
     def _open_file_layout(self, my_widget, key: str, enabled: bool):
         """
@@ -1026,7 +1041,7 @@ class DialogView:
 
         progloc = str(Path(__file__).parent.parent.absolute())
         open_file = QPushButton(
-            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", self._win
+            PySide6.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", self._win
         )
         open_file.clicked.connect(partial(self._select_file, key))
         open_file.setObjectName(key + "_button")
@@ -1070,7 +1085,7 @@ class DialogView:
 
         progloc = str(Path(__file__).parent.parent.absolute())
         open_folder = QPushButton(
-            PyQt5.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", self._win
+            PySide6.QtGui.QIcon(str(Path(progloc).joinpath("open.png"))), "", self._win
         )
         open_folder.clicked.connect(partial(self._select_folder, key))
         open_folder.setObjectName(key + "_button")
