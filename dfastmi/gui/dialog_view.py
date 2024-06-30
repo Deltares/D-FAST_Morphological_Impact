@@ -36,6 +36,8 @@ from typing import Iterator, Optional, Tuple
 import PySide6.QtCore
 import PySide6.QtGui
 from PySide6.QtGui import QDoubleValidator, QFontDatabase, QIcon
+from PySide6.QtPdf import QPdfDocument
+from PySide6.QtPdfWidgets import QPdfView
 from PySide6.QtWidgets import (
     QApplication,
     QBoxLayout,
@@ -53,8 +55,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtPdf import QPdfDocument
-from PySide6.QtPdfWidgets import QPdfView
 
 import dfastmi.kernel.core
 from dfastmi.gui.dialog_model import DialogModel
@@ -76,6 +76,7 @@ from dfastmi.resources import DFAST_LOGO
 reference_label = "reference"
 with_measure_label = "with_measure"
 
+
 class PdfViewer(QWidget):
     def __init__(self, filename: str):
         super().__init__()
@@ -86,6 +87,7 @@ class PdfViewer(QWidget):
         layout.addWidget(self._viewer)
         self._viewer.setDocument(self._doc)
         self.setLayout(layout)
+
 
 class DialogView:
     """
@@ -1019,7 +1021,6 @@ class DialogView:
         """
         self._pdf_viewer = PdfViewer(self._view_model.manual_filename)
         self._pdf_viewer.show()
-
 
     def _open_file_layout(self, my_widget, key: str, enabled: bool):
         """
