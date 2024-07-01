@@ -186,9 +186,7 @@ class DialogModel:
         """Load configuration."""
         try:
             self.config = ConfigFileOperations.load_configuration_file(filename)
-        except SystemExit as exception:
-            raise exception
-        except KeyboardInterrupt as exception:
+        except (SystemExit,KeyboardInterrupt) as exception:
             raise exception
         except:
             if filename != "dfastmi.cfg":
