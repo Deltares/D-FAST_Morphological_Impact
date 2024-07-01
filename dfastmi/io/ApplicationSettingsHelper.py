@@ -98,7 +98,7 @@ class ApplicationSettingsHelper:
 
         try:
             application_setting = ApplicationSettingsHelper.PROGTEXTS[key]
-        except:
+        except KeyError:
             application_setting = ["No message found for " + key]
         return application_setting
 
