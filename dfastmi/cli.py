@@ -68,14 +68,22 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
 
     all_done = False
     while not all_done:
-        all_done = run_interactive_mode_once(src, rivers, reduced_output, report, have_files)
+        all_done = run_interactive_mode_once(
+            src, rivers, reduced_output, report, have_files
+        )
 
     ApplicationSettingsHelper.log_text("end")
     ApplicationSettingsHelper.log_text("end", file=report)
     report.close()
 
 
-def run_interactive_mode_once(src: TextIO, rivers: RiversObject, reduced_output: bool, report: TextIO, have_files: bool) -> bool:
+def run_interactive_mode_once(
+    src: TextIO,
+    rivers: RiversObject,
+    reduced_output: bool,
+    report: TextIO,
+    have_files: bool,
+) -> bool:
     """
     Run the analysis in interactive mode.
 
@@ -153,7 +161,7 @@ def run_interactive_mode_once(src: TextIO, rivers: RiversObject, reduced_output:
             fraction_of_year,
             rsigma,
             nlength,
-            )
+        )
         all_done = True
     else:
         all_done = write_report_nodata(
@@ -170,7 +178,7 @@ def run_interactive_mode_once(src: TextIO, rivers: RiversObject, reduced_output:
             fraction_of_year,
             nlength,
         )
-    
+
     return all_done
 
 
@@ -516,9 +524,7 @@ def write_report_data(
     if not tdum:
         ucrit = interactive_get_float(src, "query_ucrit")
         if ucrit < ucrit_min:
-            ApplicationSettingsHelper.log_text(
-                "ucrit_too_low", dict={"uc": ucrit_min}
-            )
+            ApplicationSettingsHelper.log_text("ucrit_too_low", dict={"uc": ucrit_min})
             ApplicationSettingsHelper.log_text(
                 "ucrit_too_low", dict={"uc": ucrit_min}, file=report
             )
@@ -545,9 +551,7 @@ def write_report_data(
 
     if success:
         ApplicationSettingsHelper.log_text("")
-        ApplicationSettingsHelper.log_text(
-            "length_estimate", dict={"nlength": nlength}
-        )
+        ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
         ApplicationSettingsHelper.log_text(
             "length_estimate", dict={"nlength": nlength}, file=report
         )
