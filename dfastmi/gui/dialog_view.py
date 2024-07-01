@@ -880,6 +880,10 @@ class DialogView:
         if self._view_model.check_configuration():
             try:
                 success = self._view_model.run_analysis()
+            except SystemExit as exception:
+                raise exception
+            except KeyboardInterrupt as exception:
+                raise exception
             except:
                 self._show_error(
                     "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
