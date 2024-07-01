@@ -347,8 +347,6 @@ def interactive_get_discharges(
     rsigma : Tuple[float, float, float]
         A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in discharges.
     """
-    stages = ApplicationSettingsHelper.get_text("stage_descriptions")
-
     q_location = branch.qlocation
     q_stagnant = reach.qstagnant
     q_min = reach.qmin
@@ -396,36 +394,11 @@ def interactive_get_discharges(
         q_fit, q_stagnant, discharges, celerity_hg, celerity_lw, nwidth
     )
 
-    QList = list(discharges)
-    all_q = True
-    if have_files:
-        lastStage = None
-        if apply_q[0] and not QList[0] is None:
-            QList[0] = interactive_check_discharge(src, 1, QList[0])
-            if QList[0] is None:
-                all_q = False
-        if not all_q:
-            pass
-        elif apply_q[1] and not QList[1] is None and not QList[0] is None:
-            QList[1] = interactive_check_discharge(
-                src, 2, QList[1], stages[0], QList[0]
-            )
-            if QList[1] is None:
-                all_q = False
-            elif not QList[2] is None:
-                QList[2] = interactive_check_discharge(
-                    src, 3, QList[2], stages[1], QList[1]
-                )
-                if QList[2] is None:
-                    all_q = False
-        elif apply_q[2] and not QList[2] is None and not QList[0] is None:
-            QList[2] = interactive_check_discharge(
-                src, 3, QList[2], stages[0], QList[0]
-            )
-            if QList[2] is None:
-                all_q = False
-    discharges = (QList[0], QList[1], QList[2])
-
+    all_q, discharge_list = interactive_check_discharges(
+        src, list(discharges), have_files, apply_q
+    )
+    discharges = (discharge_list[0], discharge_list[1], discharge_list[2])
+    
     return (
         all_q,
         q_location,
@@ -439,6 +412,67 @@ def interactive_get_discharges(
         fraction_of_year,
         rsigma,
     )
+
+
+def interactive_check_discharges(
+    src: TextIO,
+    discharges: List[Optional[float]],
+    have_files: bool,
+    apply_q: Tuple[bool, bool, bool],
+) -> Tuple[
+    bool,
+    List[Optional[float]],
+]:
+    """
+    Get the simulation discharges in interactive mode.
+
+    Arguments
+    ---------
+    src : TextIO
+        Source to read from (typically sys.stdin)
+    discharges : List[Optional[float]]
+        Tuple of (at most) three characteristic discharges.
+    have_files : bool
+        flag to indicate whether user specified that simulation results are
+        available.
+    apply_q : Tuple[bool, bool, bool]
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
+
+    Results
+    -------
+    all_q : bool
+        Flag indicating whether data for all discharges is found.
+    new_discharges : List[Optional[float]]
+        Tuple of (at most) three discharges.
+    """
+    if not have_files:
+        return True, discharges
+        
+    stages = ApplicationSettingsHelper.get_text("stage_descriptions")
+    new_discharges = discharges.copy()
+    
+    all_q = True
+    
+    if apply_q[0] and discharges[0] is not None:
+        new_discharges[0] = interactive_check_discharge(src, 1, discharges[0])
+        all_q = new_discharges[0] is not None
+    
+    i_prev = 0
+    if all_q and apply_q[1] and discharges[1] is not None:
+        i_prev = 1
+        new_discharges[1] = interactive_check_discharge(
+            src, 2, discharges[1], stages[0], new_discharges[0]
+        )
+        all_q = new_discharges[1] is not None
+    
+    if all_q and apply_q[2] and discharges[2] is not None:
+        new_discharges[2] = interactive_check_discharge(
+            src, 3, discharges[2], stages[i_prev], new_discharges[i_prev]
+        )
+        all_q = new_discharges[2] is not None
+    
+    return all_q, new_discharges
 
 
 def write_report_data(
