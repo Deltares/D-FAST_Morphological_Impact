@@ -755,7 +755,7 @@ def interactive_get_int(
     print(str)
     try:
         val = int(str)
-    except:
+    except ValueError:
         val = None
     return val
 
@@ -787,7 +787,7 @@ def interactive_get_float(
     print(str)
     try:
         val = float(str)
-    except:
+    except ValueError:
         val = None
     return val
 
