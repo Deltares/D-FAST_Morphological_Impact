@@ -299,7 +299,7 @@ class DialogViewModel(QObject):
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, run_config, gui=True
             )
-        except (SystemExit,KeyboardInterrupt) as exception:
+        except (SystemExit, KeyboardInterrupt) as exception:
             raise exception
         except:
             stack_trace = traceback.format_exc()
@@ -417,7 +417,7 @@ class DialogViewModel(QObject):
                 time_mi, celerity
             )
             self.slength = str(int(slength))
-        except (SystemExit,KeyboardInterrupt) as exception:
+        except (SystemExit, KeyboardInterrupt) as exception:
             raise exception
         except:
             self.slength = "---"
