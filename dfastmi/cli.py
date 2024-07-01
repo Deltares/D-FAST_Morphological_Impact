@@ -406,7 +406,7 @@ def interactive_get_discharges(
         src, list(discharges), have_files, apply_q
     )
     discharges = (discharge_list[0], discharge_list[1], discharge_list[2])
-    
+
     return (
         all_q,
         q_location,
@@ -456,16 +456,16 @@ def interactive_check_discharges(
     """
     if not have_files:
         return True, discharges
-        
+
     stages = ApplicationSettingsHelper.get_text("stage_descriptions")
     new_discharges = discharges.copy()
-    
+
     all_q = True
-    
+
     if apply_q[0] and discharges[0] is not None:
         new_discharges[0] = interactive_check_discharge(src, 1, discharges[0])
         all_q = new_discharges[0] is not None
-    
+
     i_prev = 0
     if all_q and apply_q[1] and discharges[1] is not None:
         i_prev = 1
@@ -473,13 +473,13 @@ def interactive_check_discharges(
             src, 2, discharges[1], stages[0], new_discharges[0]
         )
         all_q = new_discharges[1] is not None
-    
+
     if all_q and apply_q[2] and discharges[2] is not None:
         new_discharges[2] = interactive_check_discharge(
             src, 3, discharges[2], stages[i_prev], new_discharges[i_prev]
         )
         all_q = new_discharges[2] is not None
-    
+
     return all_q, new_discharges
 
 
