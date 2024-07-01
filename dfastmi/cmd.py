@@ -67,7 +67,7 @@ def run(
         ApplicationSettingsHelper.load_program_texts(
             progloc.joinpath("messages." + language + ".ini")
         )
-    except:
+    except FileNotFoundError:
         if language == "NL":
             print(
                 "Het taalbestand 'messages."
