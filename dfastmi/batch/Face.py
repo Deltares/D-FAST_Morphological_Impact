@@ -99,7 +99,7 @@ def filter_faces_by_face_condition(
     inode : numpy.ndarray
         Array of length K2 containing the indices of the nodes to keep [-].
     """
-    iface = numpy.where(condition)[0]
+    iface = numpy.nonzero(condition)[0]
     face_node_connectivity_index = face_node_connectivity[iface]
     inode = numpy.unique(face_node_connectivity_index.flatten())
     if len(inode) == 0:
