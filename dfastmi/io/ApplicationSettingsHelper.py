@@ -98,8 +98,10 @@ class ApplicationSettingsHelper:
 
         try:
             application_setting = ApplicationSettingsHelper.PROGTEXTS[key]
-        except:
+        except (KeyError,TypeError):
             application_setting = ["No message found for " + key]
+        except:
+            application_setting = ["Still no message found for " + key]
         return application_setting
 
     @staticmethod
