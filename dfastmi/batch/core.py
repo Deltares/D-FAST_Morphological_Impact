@@ -740,6 +740,7 @@ def write_report_discharges(
             else:
                 ApplicationSettingsHelper.log_text("---", file=report)
 
+
 def write_report(
     report: TextIO,
     reach: str,
