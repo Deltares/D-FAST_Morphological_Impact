@@ -137,7 +137,7 @@ class RiversObject:
     def _validate_version_in_file(self, filename, config) -> Version:
         try:
             file_version = config["General"]["Version"]
-        except:
+        except KeyError:
             raise Exception("No version information in the file {}!".format(filename))
 
         if Version(file_version) not in [Version("1"), Version("2"), Version("3")]:
