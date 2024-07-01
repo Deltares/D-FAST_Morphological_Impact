@@ -615,15 +615,15 @@ def write_report_nodata(
         ApplicationSettingsHelper.log_text(
             "need_multiple_input", dict={"reach": reach, "numq": number_of_discharges}
         )
-    if not discharges[0] is None:
+    if discharges[0] is not None:
         ApplicationSettingsHelper.log_text(
             "lowwater", dict={"border": q_location, "q": discharges[0]}
         )
-    if not discharges[1] is None:
+    if discharges[1] is not None:
         ApplicationSettingsHelper.log_text(
             "transition", dict={"border": q_location, "q": discharges[1]}
         )
-    if not discharges[2] is None:
+    if discharges[2] is not None:
         ApplicationSettingsHelper.log_text(
             "highwater", dict={"border": q_location, "q": discharges[2]}
         )
