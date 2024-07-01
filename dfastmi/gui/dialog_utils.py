@@ -35,7 +35,14 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import PySide6.QtCore
-from PySide6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPaintEvent, QValidator
+from PySide6.QtGui import (
+    QColor,
+    QFont,
+    QFontDatabase,
+    QPainter,
+    QPaintEvent,
+    QValidator,
+)
 from PySide6.QtWidgets import QLineEdit
 
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
@@ -144,7 +151,9 @@ class ValidatingLineEdit(QLineEdit):
         painter = QPainter(self)
         painter.setPen(colour)
         painter.setBrush(PySide6.QtCore.Qt.NoBrush)
-        painter.drawRect(PySide6.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1))
+        painter.drawRect(
+            PySide6.QtCore.QRect(0, 0, self.width() - 1, self.height() - 1)
+        )
         painter.end()  # Ensure to end the painter
 
     def validate(self, input_str: str, pos: int):
