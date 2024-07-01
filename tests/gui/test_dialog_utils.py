@@ -1,7 +1,7 @@
 from typing import List
 from unittest.mock import MagicMock
 
-import PyQt5
+import PySide6
 import pytest
 from mock import patch
 from pytestqt.qtbot import QtBot
@@ -46,12 +46,12 @@ def test_file_exist_validator_validate(file_exist_validator: FileExistValidator)
     input_text = "./tests/files/read_riversv2_test.ini"
     pos = 0
     result, _, _ = file_exist_validator.validate(input_text, pos)
-    assert result == PyQt5.QtGui.QValidator.Acceptable
+    assert result == PySide6.QtGui.QValidator.Acceptable
 
     # Test when file does not exist
     input_text = "/path/to/non_existing_file.txt"
     result, _, _ = file_exist_validator.validate(input_text, pos)
-    assert result == PyQt5.QtGui.QValidator.Invalid
+    assert result == PySide6.QtGui.QValidator.Invalid
 
 
 def test_folder_exists_validator_validate(
@@ -66,12 +66,12 @@ def test_folder_exists_validator_validate(
     input_str = "./tests"
     pos = 0
     result, _, _ = folder_exists_validator.validate(input_str, pos)
-    assert result == PyQt5.QtGui.QValidator.Acceptable
+    assert result == PySide6.QtGui.QValidator.Acceptable
 
     # Test when folder does not exist
     input_str = "/path/to/non_existing_folder"
     result, _, _ = folder_exists_validator.validate(input_str, pos)
-    assert result == PyQt5.QtGui.QValidator.Invalid
+    assert result == PySide6.QtGui.QValidator.Invalid
 
 
 def test_validating_line_edit_paint_event_setInvalid_True(
@@ -121,12 +121,12 @@ def test_validating_line_edit_validate(
     input_str = "./tests/files/read_riversv2_test.ini"
     pos = 0
     result, _, _ = validating_line_edit.validate(input_str, pos)
-    assert result == PyQt5.QtGui.QValidator.Acceptable
+    assert result == PySide6.QtGui.QValidator.Acceptable
 
     # Test when input is invalid
     input_str = "/path/to/non_existing_file.txt"
     result, _, _ = validating_line_edit.validate(input_str, pos)
-    assert result == PyQt5.QtGui.QValidator.Invalid
+    assert result == PySide6.QtGui.QValidator.Invalid
 
 
 def test_get_available_font():

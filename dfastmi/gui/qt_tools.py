@@ -27,7 +27,7 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from PyQt5.QtWidgets import QLayout, QLayoutItem, QWidget
+from PySide6.QtWidgets import QLayout, QLayoutItem, QWidget
 
 
 def clear_layout_item(item: QLayoutItem):

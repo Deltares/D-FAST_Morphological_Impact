@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from PyQt5.QtWidgets import QFileDialog, QLineEdit, QMessageBox, QPushButton
+from PySide6.QtWidgets import QFileDialog, QLineEdit, QMessageBox, QPushButton
 
 import dfastmi
 from dfastmi.gui.dialog_model import DialogModel
