@@ -134,37 +134,25 @@ class DataTextFileOperations:
             else:
                 colnames = ["X", "Y"]
             if hasHeader:
-                if delimiter != None:
-                    P = pandas.read_csv(
-                        filename,
-                        names=colnames,
-                        skipinitialspace=True,
-                        header=0,
-                        delimiter=delimiter,
-                    )
-                else:
-                    P = pandas.read_csv(
-                        filename,
-                        names=colnames,
-                        skipinitialspace=True,
-                        header=0,
-                        delim_whitespace=True,
-                    )
+                header=0
             else:
-                if delimiter != None:
-                    P = pandas.read_csv(
-                        filename,
-                        names=colnames,
-                        skipinitialspace=True,
-                        delimiter=delimiter,
-                    )
-                else:
-                    P = pandas.read_csv(
-                        filename,
-                        names=colnames,
-                        skipinitialspace=True,
-                        delim_whitespace=True,
-                    )
+                header=None
+            if delimiter != None:
+                P = pandas.read_csv(
+                    filename,
+                    names=colnames,
+                    skipinitialspace=True,
+                    header=header,
+                    delimiter=delimiter,
+                )
+            else:
+                P = pandas.read_csv(
+                    filename,
+                    names=colnames,
+                    skipinitialspace=True,
+                    header=header,
+                    delim_whitespace=True,
+                )
 
             nPnts = len(P.X)
             x = P.X.to_numpy().reshape((nPnts, 1))
@@ -175,9 +163,11 @@ class DataTextFileOperations:
             else:
                 LC = numpy.concatenate((x, y), axis=1)
             L = shapely.geometry.LineString(LC)
+            
         else:
             GEO = geopandas.read_file(filename)["geometry"]
             L = GEO[0]
+        
         return L
 
     @staticmethod
