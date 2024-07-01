@@ -82,7 +82,7 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     try:
         config = ConfigFileOperations.load_configuration_file(config_file)
         rootdir = Path(config_file).parent
-    except (SystemExit,KeyboardInterrupt) as exception:
+    except (SystemExit, KeyboardInterrupt) as exception:
         raise exception
     except:
         print(sys.exc_info()[1])
