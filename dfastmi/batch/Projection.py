@@ -69,9 +69,9 @@ def project_one_xy_point_beyond_segment(
     alpha = (
         (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
     ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-    sgn = sgn0 * ((p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (
-        xyp[0] - p0[0]
-    ))
+    sgn = sgn0 * (
+        (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (xyp[0] - p0[0])
+    )
     # if the closest point is before the segment ...
     if alpha < 0:
         dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
@@ -80,12 +80,19 @@ def project_one_xy_point_beyond_segment(
         dist2end = dist - dist2link
         if dist2end > 100:
             dist = 1e20
-   
+
     return dist, sgn
 
 
 def project_one_xy_point_onto_segment(
-    xyp: numpy.ndarray, p0: numpy.ndarray, p1: numpy.ndarray, sgn0: float, dist: float, s: float, s0: float, s1: float
+    xyp: numpy.ndarray,
+    p0: numpy.ndarray,
+    p1: numpy.ndarray,
+    sgn0: float,
+    dist: float,
+    s: float,
+    s0: float,
+    s1: float,
 ) -> Tuple[float, float, float]:
     """
     Project a single point onto a line segment.
@@ -125,9 +132,9 @@ def project_one_xy_point_onto_segment(
     alpha = (
         (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
     ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-    sgn = sgn0 * ((p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (
-        xyp[0] - p0[0]
-    ))
+    sgn = sgn0 * (
+        (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (xyp[0] - p0[0])
+    )
     # if there is a closest point not coinciding with the nodes ...
     if alpha > 0 and alpha < 1:
         dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
@@ -138,7 +145,7 @@ def project_one_xy_point_onto_segment(
             # update the closest point information
             dist = dist2link
             s = s0 + alpha * (s1 - s0)
-   
+
     return dist, sgn, s
 
 
@@ -189,23 +196,31 @@ def project_one_xy_point_onto_line(
     if imin == 0:
         # we got the first node
         # check if xyp projects much before the first line segment.
-        dist, sgn = project_one_xy_point_beyond_segment(xyp, p0, xyline[imin + 1], 1.0, dist)
+        dist, sgn = project_one_xy_point_beyond_segment(
+            xyp, p0, xyline[imin + 1], 1.0, dist
+        )
 
     else:
         # we didn't get the first node
         # project xyp onto the line segment before this node
-        dist, sgn, s = project_one_xy_point_onto_segment(xyp, p0, xyline[imin - 1], -1.0, dist, s, s0, sline[imin - 1])
+        dist, sgn, s = project_one_xy_point_onto_segment(
+            xyp, p0, xyline[imin - 1], -1.0, dist, s, s0, sline[imin - 1]
+        )
 
     if imin == last_node:
         # we got the last node
         # check if xyp projects much beyond the last line segment.
-        dist, sgn = project_one_xy_point_beyond_segment(xyp, p0, xyline[imin - 1], -1.0, dist)
+        dist, sgn = project_one_xy_point_beyond_segment(
+            xyp, p0, xyline[imin - 1], -1.0, dist
+        )
 
     else:
         # we didn't get the last node
         # project rp onto the line segment after this node
-        dist, sgn, s = project_one_xy_point_onto_segment(xyp, p0, xyline[imin + 1], 1.0, dist, s, s0, sline[imin + 1])
-    
+        dist, sgn, s = project_one_xy_point_onto_segment(
+            xyp, p0, xyline[imin + 1], 1.0, dist, s, s0, sline[imin + 1]
+        )
+
     return s, math.copysign(math.sqrt(dist), sgn)
 
 
@@ -259,6 +274,6 @@ def project_xy_point_onto_line(
 
     # for each point
     for i, xyp in enumerate(xyf):
-        sf[i],df[i] = project_one_xy_point_onto_line(xyp, xyline, sline, last_node)
+        sf[i], df[i] = project_one_xy_point_onto_line(xyp, xyline, sline, last_node)
 
     return sf, df
