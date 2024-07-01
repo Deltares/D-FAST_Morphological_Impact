@@ -134,9 +134,9 @@ class DataTextFileOperations:
             else:
                 colnames = ["X", "Y"]
             if hasHeader:
-                header=0
+                header = 0
             else:
-                header=None
+                header = None
             if delimiter != None:
                 P = pandas.read_csv(
                     filename,
@@ -163,11 +163,11 @@ class DataTextFileOperations:
             else:
                 LC = numpy.concatenate((x, y), axis=1)
             L = shapely.geometry.LineString(LC)
-            
+
         else:
             GEO = geopandas.read_file(filename)["geometry"]
             L = GEO[0]
-        
+
         return L
 
     @staticmethod
