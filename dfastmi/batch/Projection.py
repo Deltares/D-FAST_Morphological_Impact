@@ -269,9 +269,6 @@ def project_xy_point_onto_line(
     # get an array with only the x,y coordinates of xyline
     last_node = xyline.shape[0] - 1
 
-    # initialize sgn for the exceptional case of xyline containing just one node.
-    sgn = 1
-
     # for each point
     for i, xyp in enumerate(xyf):
         sf[i], df[i] = project_one_xy_point_onto_line(xyp, xyline, sline, last_node)
