@@ -694,51 +694,6 @@ def _log_length_estimate(report: TextIO, slength: float) -> None:
     )
 
 
-def write_report_discharges(
-    report: TextIO, q_location: str, tstag: float, discharges: Vector, t: Vector
-) -> None:
-    """
-    Write the discharges part of the analysis report to file.
-
-    Arguments
-    ---------
-    report : TextIO
-        Text stream for log file.
-    q_location : str
-        The name of the discharge location.
-    tstag : float
-        Fraction of year during which the flow velocity is negligible.
-    discharges : Vector
-        A tuple of 3 discharges (Q) for which simulation results are (expected to be) available.
-    t : Vector
-        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
-
-    Returns
-    -------
-    None
-    """
-    for i in range(3):
-        if discharges[i] is not None:
-            ApplicationSettingsHelper.log_text(
-                "char_discharge",
-                dict={"n": i + 1, "q": discharges[i], "border": q_location},
-                file=report,
-            )
-            if i < 2:
-                tdays = int(365 * t[i])
-            else:
-                tdays = max(
-                    0, 365 - int(365 * t[0]) - int(365 * t[1]) - int(365 * tstag)
-                )
-            ApplicationSettingsHelper.log_text(
-                "char_period", dict={"n": i + 1, "ndays": tdays}, file=report
-            )
-            if i < 2:
-                ApplicationSettingsHelper.log_text("", file=report)
-            else:
-                ApplicationSettingsHelper.log_text("---", file=report)
-
-
 def write_report(
     report: TextIO,
     reach: str,
@@ -804,7 +759,7 @@ def write_report(
             "closed_barriers", dict={"ndays": int(365 * tstag)}, file=report
         )
         ApplicationSettingsHelper.log_text("", file=report)
-    write_report_discharges(report, q_location, tstag, discharges, t)
+    _write_report_discharges(report, q_location, tstag, discharges, t)
     number_of_discharges = count_discharges(discharges)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text(
@@ -836,3 +791,48 @@ def write_report(
         "length_estimate", dict={"nlength": nlength}, file=report
     )
     ApplicationSettingsHelper.log_text("prepare_input", file=report)
+
+
+def _write_report_discharges(
+    report: TextIO, q_location: str, tstag: float, discharges: Vector, t: Vector
+) -> None:
+    """
+    Write the discharges part of the analysis report to file.
+
+    Arguments
+    ---------
+    report : TextIO
+        Text stream for log file.
+    q_location : str
+        The name of the discharge location.
+    tstag : float
+        Fraction of year during which the flow velocity is negligible.
+    discharges : Vector
+        A tuple of 3 discharges (Q) for which simulation results are (expected to be) available.
+    t : Vector
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
+
+    Returns
+    -------
+    None
+    """
+    for i in range(3):
+        if discharges[i] is not None:
+            ApplicationSettingsHelper.log_text(
+                "char_discharge",
+                dict={"n": i + 1, "q": discharges[i], "border": q_location},
+                file=report,
+            )
+            if i < 2:
+                tdays = int(365 * t[i])
+            else:
+                tdays = max(
+                    0, 365 - int(365 * t[0]) - int(365 * t[1]) - int(365 * tstag)
+                )
+            ApplicationSettingsHelper.log_text(
+                "char_period", dict={"n": i + 1, "ndays": tdays}, file=report
+            )
+            if i < 2:
+                ApplicationSettingsHelper.log_text("", file=report)
+            else:
+                ApplicationSettingsHelper.log_text("---", file=report)

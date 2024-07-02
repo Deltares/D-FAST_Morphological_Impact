@@ -110,7 +110,7 @@ class DataTextFileOperations:
 
     @staticmethod
     def read_xyc(
-        filename: str, ncol: int = 2, delimiter=None, hasHeader=False
+        filename: str, ncol: int = 2, delimiter=None, has_header=False
     ) -> shapely.geometry.linestring.LineString:
         """
         Read lines from a file.
@@ -133,10 +133,7 @@ class DataTextFileOperations:
                 colnames = ["Val", "X", "Y"]
             else:
                 colnames = ["X", "Y"]
-            if hasHeader:
-                header = 0
-            else:
-                header = None
+            header = 0 if has_header else None
             if delimiter != None:
                 P = pandas.read_csv(
                     filename,

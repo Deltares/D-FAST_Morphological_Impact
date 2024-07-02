@@ -36,7 +36,134 @@ import dfastmi.batch.Distance
 import dfastmi.batch.Face
 
 
-def project_one_xy_point_beyond_segment(
+def project_xy_point_onto_line(
+    xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray
+) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    """
+    Project points onto a line.
+
+    For a set of points (xf, yf) the closest point P a line (xyline) is determined.
+    The quantities returned are the distance (sf) measured along the line (xyline)
+    for the closest point P, the signed distance (df) between the original point (xf, yf)
+    and the projected point P. If the original point is located alongsize the line
+    (xyline) then the distance (df) is the normal distance ... if the original point is
+    located before or beyond the line (xyline), it will include an oblique distance component.
+    The sign of the distance (df) is positive for points to the right and negative for points
+    to the left of the line.
+
+    Arguments
+    ---------
+    xf : numpy.ndarray
+        Array containing the x coordinates of a set of points.
+    yf : numpy.ndarray
+        Array containing the y coordinates of a set of points.
+    xyline : numpy.ndarray
+        Array containing the x,y data of a line.
+
+    Results
+    -------
+    sf : numpy.ndarray
+        Array containing the distance along the line.
+    df : numpy.ndarray
+        Array containing the distance from the line (- for left, + for right).
+    """
+    # combine xf and yf
+    nf = len(xf)
+    xyf = numpy.concatenate([xf.reshape((nf, 1)), yf.reshape((nf, 1))], axis=1)
+
+    # pre-allocate the output arrays
+    sf = numpy.zeros(nf)
+    df = numpy.zeros(nf)
+
+    # compute distance coordinate along the line
+    sline = dfastmi.batch.Distance.distance_along_line(xyline)
+
+    # get an array with only the x,y coordinates of xyline
+    last_node = xyline.shape[0] - 1
+
+    # for each point
+    for i, xyp in enumerate(xyf):
+        sf[i], df[i] = _project_one_xy_point_onto_line(xyp, xyline, sline, last_node)
+
+    return sf, df
+
+
+def _project_one_xy_point_onto_line(
+    xyp: numpy.ndarray, xyline: numpy.ndarray, sline: numpy.ndarray, last_node: int
+) -> Tuple[float, float]:
+    """
+    Project a single point onto a line.
+
+    For a point xyp the closest point P a line (xyline) is determined.
+    The quantities returned are the distance (s) measured along the line (xyline)
+    for the closest point P, the signed distance (d) between the original point (xf, yf)
+    and the projected point P. If the original point is located alongsize the line
+    (xyline) then the distance (df) is the normal distance ... if the original point is
+    located before or beyond the line (xyline), it will include an oblique distance component.
+    The sign of the distance (df) is positive for points to the right and negative for points
+    to the left of the line.
+
+    Arguments
+    ---------
+    xyp : numpy.ndarray
+        Array containing the x and y coordinate of a point.
+    xyline : numpy.ndarray
+        Array containing the x,y data of a line.
+    sline : numpy.ndarray
+        Array containing the distance measure along the line xyline.
+    last_node : int
+        Index of the last node: xyline.shape[0] - 1
+
+    Results
+    -------
+    s : float
+        Distance along the line.
+    d : float
+        The distance from the line (- for left, + for right).
+    """
+    # find the node on xyline closest to xyp
+    imin = numpy.argmin(((xyp - xyline) ** 2).sum(axis=1))
+    p0 = xyline[imin]
+
+    # determine the distance between that node and xyp
+    dist = ((xyp - p0) ** 2).sum()
+
+    # distance value of that node
+    s0 = sline[imin]
+    s = s0
+
+    if imin == 0:
+        # we got the first node
+        # check if xyp projects much before the first line segment.
+        dist, sgn = _project_one_xy_point_beyond_segment(
+            xyp, p0, xyline[imin + 1], 1.0, dist
+        )
+
+    else:
+        # we didn't get the first node
+        # project xyp onto the line segment before this node
+        dist, sgn, s = _project_one_xy_point_onto_segment(
+            xyp, p0, xyline[imin - 1], -1.0, dist, s, s0, sline[imin - 1]
+        )
+
+    if imin == last_node:
+        # we got the last node
+        # check if xyp projects much beyond the last line segment.
+        dist, sgn = _project_one_xy_point_beyond_segment(
+            xyp, p0, xyline[imin - 1], -1.0, dist
+        )
+
+    else:
+        # we didn't get the last node
+        # project rp onto the line segment after this node
+        dist, sgn, s = _project_one_xy_point_onto_segment(
+            xyp, p0, xyline[imin + 1], 1.0, dist, s, s0, sline[imin + 1]
+        )
+
+    return s, math.copysign(math.sqrt(dist), sgn)
+
+
+def _project_one_xy_point_beyond_segment(
     xyp: numpy.ndarray, p0: numpy.ndarray, p1: numpy.ndarray, sgn0: float, dist: float
 ) -> Tuple[float, float]:
     """
@@ -84,7 +211,7 @@ def project_one_xy_point_beyond_segment(
     return dist, sgn
 
 
-def project_one_xy_point_onto_segment(
+def _project_one_xy_point_onto_segment(
     xyp: numpy.ndarray,
     p0: numpy.ndarray,
     p1: numpy.ndarray,
@@ -147,130 +274,3 @@ def project_one_xy_point_onto_segment(
             s = s0 + alpha * (s1 - s0)
 
     return dist, sgn, s
-
-
-def project_one_xy_point_onto_line(
-    xyp: numpy.ndarray, xyline: numpy.ndarray, sline: numpy.ndarray, last_node: int
-) -> Tuple[float, float]:
-    """
-    Project a single point onto a line.
-
-    For a point xyp the closest point P a line (xyline) is determined.
-    The quantities returned are the distance (s) measured along the line (xyline)
-    for the closest point P, the signed distance (d) between the original point (xf, yf)
-    and the projected point P. If the original point is located alongsize the line
-    (xyline) then the distance (df) is the normal distance ... if the original point is
-    located before or beyond the line (xyline), it will include an oblique distance component.
-    The sign of the distance (df) is positive for points to the right and negative for points
-    to the left of the line.
-
-    Arguments
-    ---------
-    xyp : numpy.ndarray
-        Array containing the x and y coordinate of a point.
-    xyline : numpy.ndarray
-        Array containing the x,y data of a line.
-    sline : numpy.ndarray
-        Array containing the distance measure along the line xyline.
-    last_node : int
-        Index of the last node: xyline.shape[0] - 1
-
-    Results
-    -------
-    s : float
-        Distance along the line.
-    d : float
-        The distance from the line (- for left, + for right).
-    """
-    # find the node on xyline closest to xyp
-    imin = numpy.argmin(((xyp - xyline) ** 2).sum(axis=1))
-    p0 = xyline[imin]
-
-    # determine the distance between that node and xyp
-    dist = ((xyp - p0) ** 2).sum()
-
-    # distance value of that node
-    s0 = sline[imin]
-    s = s0
-
-    if imin == 0:
-        # we got the first node
-        # check if xyp projects much before the first line segment.
-        dist, sgn = project_one_xy_point_beyond_segment(
-            xyp, p0, xyline[imin + 1], 1.0, dist
-        )
-
-    else:
-        # we didn't get the first node
-        # project xyp onto the line segment before this node
-        dist, sgn, s = project_one_xy_point_onto_segment(
-            xyp, p0, xyline[imin - 1], -1.0, dist, s, s0, sline[imin - 1]
-        )
-
-    if imin == last_node:
-        # we got the last node
-        # check if xyp projects much beyond the last line segment.
-        dist, sgn = project_one_xy_point_beyond_segment(
-            xyp, p0, xyline[imin - 1], -1.0, dist
-        )
-
-    else:
-        # we didn't get the last node
-        # project rp onto the line segment after this node
-        dist, sgn, s = project_one_xy_point_onto_segment(
-            xyp, p0, xyline[imin + 1], 1.0, dist, s, s0, sline[imin + 1]
-        )
-
-    return s, math.copysign(math.sqrt(dist), sgn)
-
-
-def project_xy_point_onto_line(
-    xf: numpy.ndarray, yf: numpy.ndarray, xyline: numpy.ndarray
-) -> Tuple[numpy.ndarray, numpy.ndarray]:
-    """
-    Project points onto a line.
-
-    For a set of points (xf, yf) the closest point P a line (xyline) is determined.
-    The quantities returned are the distance (sf) measured along the line (xyline)
-    for the closest point P, the signed distance (df) between the original point (xf, yf)
-    and the projected point P. If the original point is located alongsize the line
-    (xyline) then the distance (df) is the normal distance ... if the original point is
-    located before or beyond the line (xyline), it will include an oblique distance component.
-    The sign of the distance (df) is positive for points to the right and negative for points
-    to the left of the line.
-
-    Arguments
-    ---------
-    xf : numpy.ndarray
-        Array containing the x coordinates of a set of points.
-    yf : numpy.ndarray
-        Array containing the y coordinates of a set of points.
-    xyline : numpy.ndarray
-        Array containing the x,y data of a line.
-
-    Results
-    -------
-    sf : numpy.ndarray
-        Array containing the distance along the line.
-    df : numpy.ndarray
-        Array containing the distance from the line (- for left, + for right).
-    """
-    # combine xf and yf
-    nf = len(xf)
-    xyf = numpy.concatenate([xf.reshape((nf, 1)), yf.reshape((nf, 1))], axis=1)
-
-    # pre-allocate the output arrays
-    sf = numpy.zeros(nf)
-    df = numpy.zeros(nf)
-
-    # compute distance coordinate along the line
-    sline = dfastmi.batch.Distance.distance_along_line(xyline)
-
-    # get an array with only the x,y coordinates of xyline
-    last_node = xyline.shape[0] - 1
-
-    # for each point
-    for i, xyp in enumerate(xyf):
-        sf[i], df[i] = project_one_xy_point_onto_line(xyp, xyline, sline, last_node)
-
-    return sf, df

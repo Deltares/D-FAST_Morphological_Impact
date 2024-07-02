@@ -64,11 +64,11 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     report = open(ApplicationSettingsHelper.get_filename("report.out"), "w")
 
     version = dfastmi.__version__
-    have_files = interactive_mode_opening(src, version, report)
+    have_files = _interactive_mode_opening(src, version, report)
 
     all_done = False
     while not all_done:
-        all_done = run_interactive_mode_once(
+        all_done = _run_interactive_mode_once(
             src, rivers, reduced_output, report, have_files
         )
 
@@ -77,7 +77,7 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     report.close()
 
 
-def run_interactive_mode_once(
+def _run_interactive_mode_once(
     src: TextIO,
     rivers: RiversObject,
     reduced_output: bool,
@@ -112,7 +112,7 @@ def run_interactive_mode_once(
     branch = None
     reach = None
     while branch is None or reach is None:
-        branch, reach = interactive_get_location(src, rivers)
+        branch, reach = _interactive_get_location(src, rivers)
     if isinstance(reach, ReachLegacy):
         celerity_hg = reach.proprate_high
         celerity_lw = reach.proprate_low
@@ -130,7 +130,7 @@ def run_interactive_mode_once(
         tstag,
         fraction_of_year,
         rsigma,
-    ) = interactive_get_discharges(
+    ) = _interactive_get_discharges(
         src, branch, reach, have_files, celerity_hg, celerity_lw, nwidth
     )
     if have_files and not all_q:
@@ -150,7 +150,7 @@ def run_interactive_mode_once(
         nlength = slength
 
     if have_files:
-        write_report_data(
+        _write_report_data(
             src,
             report,
             reach,
@@ -164,7 +164,7 @@ def run_interactive_mode_once(
         )
         all_done = True
     else:
-        all_done = write_report_nodata(
+        all_done = _write_report_nodata(
             src,
             report,
             reach,
@@ -182,7 +182,7 @@ def run_interactive_mode_once(
     return all_done
 
 
-def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
+def _interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
     """
     Interactive mode opening.
 
@@ -202,14 +202,14 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
         are available or not.
     """
     ApplicationSettingsHelper.log_text("header", dict={"version": version})
-    tdum = interactive_get_bool(src, "confirm")
+    tdum = _interactive_get_bool(src, "confirm")
 
     ApplicationSettingsHelper.log_text("limits")
     ApplicationSettingsHelper.log_text("qblocks")
     tdum = False
     while not tdum:
         ApplicationSettingsHelper.log_text("query_input-available")
-        have_files = interactive_get_bool(src, "confirm_or")
+        have_files = _interactive_get_bool(src, "confirm_or")
 
         ApplicationSettingsHelper.log_text("---")
         if have_files:
@@ -224,7 +224,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
         else:
             ApplicationSettingsHelper.log_text("results_without_input")
         ApplicationSettingsHelper.log_text("---")
-        tdum = interactive_get_bool(src, "confirm_or_restart")
+        tdum = _interactive_get_bool(src, "confirm_or_restart")
 
     ApplicationSettingsHelper.log_text("header", dict={"version": version}, file=report)
     ApplicationSettingsHelper.log_text("limits", file=report)
@@ -244,7 +244,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
     return have_files
 
 
-def interactive_get_location(
+def _interactive_get_location(
     src: TextIO,
     rivers: RiversObject,
 ) -> Tuple[Optional[Branch], Optional[IReach]]:
@@ -268,9 +268,9 @@ def interactive_get_location(
     branches = [branch.name for branch in rivers.branches]
 
     accept = False
-    ibranch = interactive_get_item(src, "branch", branches)
+    ibranch = _interactive_get_item(src, "branch", branches)
     if not ibranch is None:
-        ireach = interactive_get_item(
+        ireach = _interactive_get_item(
             src, "reach", [reach.name for reach in rivers.branches[ibranch].reaches]
         )
         ApplicationSettingsHelper.log_text("---")
@@ -279,14 +279,14 @@ def interactive_get_location(
             reach = branch.reaches[ireach]
             ApplicationSettingsHelper.log_text("reach", dict={"reach": reach.name})
             ApplicationSettingsHelper.log_text("---")
-            accept = interactive_get_bool(src, "confirm_location")
+            accept = _interactive_get_bool(src, "confirm_location")
     if accept:
         return branch, reach
     else:
         return None, None
 
 
-def interactive_get_discharges(
+def _interactive_get_discharges(
     src: TextIO,
     branch: Branch,
     reach: ReachLegacy,
@@ -370,11 +370,11 @@ def interactive_get_discharges(
             "query_flowing_above_qmin",
             dict={"border": q_location, "qmin": int(q_min)},
         )
-    tdrem = interactive_get_bool(src, "confirm_or")
+    tdrem = _interactive_get_bool(src, "confirm_or")
     if tdrem:
         q_threshold = None
     else:
-        q_threshold = interactive_get_float(
+        q_threshold = _interactive_get_float(
             src, "query_qthreshold", dict={"border": q_location}
         )
 
@@ -382,11 +382,11 @@ def interactive_get_discharges(
         ApplicationSettingsHelper.log_text(
             "query_flowing", dict={"qborder": int(q_levels[1])}
         )
-        tdum = interactive_get_bool(src, "confirm_or")
+        tdum = _interactive_get_bool(src, "confirm_or")
         if tdum:
             q_bankfull = q_levels[1]
         else:
-            q_bankfull_opt = interactive_get_float(src, "query_qbankfull")
+            q_bankfull_opt = _interactive_get_float(src, "query_qbankfull")
             if not q_bankfull_opt is None:
                 q_bankfull = q_bankfull_opt
             else:
@@ -402,8 +402,8 @@ def interactive_get_discharges(
         q_fit, q_stagnant, discharges, celerity_hg, celerity_lw, nwidth
     )
 
-    all_q, discharge_list = interactive_check_discharges(
-        src, list(discharges), have_files, apply_q
+    all_q, discharge_list = _interactive_get_and_check_discharges(
+        src, discharges, have_files, apply_q
     )
     discharges = (discharge_list[0], discharge_list[1], discharge_list[2])
 
@@ -422,9 +422,9 @@ def interactive_get_discharges(
     )
 
 
-def interactive_check_discharges(
+def _interactive_get_and_check_discharges(
     src: TextIO,
-    discharges: List[Optional[float]],
+    discharges: QRuns,
     have_files: bool,
     apply_q: Tuple[bool, bool, bool],
 ) -> Tuple[
@@ -452,30 +452,30 @@ def interactive_check_discharges(
     all_q : bool
         Flag indicating whether data for all discharges is found.
     new_discharges : List[Optional[float]]
-        Tuple of (at most) three discharges.
+        List of (at most) three discharges. Same as input discharges, unless updated by the user.
     """
     if not have_files:
         return True, discharges
 
     stages = ApplicationSettingsHelper.get_text("stage_descriptions")
-    new_discharges = discharges.copy()
+    new_discharges = list(discharges)
 
     all_q = True
 
     if apply_q[0] and discharges[0] is not None:
-        new_discharges[0] = interactive_check_discharge(src, 1, discharges[0])
+        new_discharges[0] = _interactive_get_and_check_one_discharge(src, 1, discharges[0])
         all_q = new_discharges[0] is not None
 
     i_prev = 0
     if all_q and apply_q[1] and discharges[1] is not None:
         i_prev = 1
-        new_discharges[1] = interactive_check_discharge(
+        new_discharges[1] = _interactive_get_and_check_one_discharge(
             src, 2, discharges[1], stages[0], new_discharges[0]
         )
         all_q = new_discharges[1] is not None
 
     if all_q and apply_q[2] and discharges[2] is not None:
-        new_discharges[2] = interactive_check_discharge(
+        new_discharges[2] = _interactive_get_and_check_one_discharge(
             src, 3, discharges[2], stages[i_prev], new_discharges[i_prev]
         )
         all_q = new_discharges[2] is not None
@@ -483,7 +483,7 @@ def interactive_check_discharges(
     return all_q, new_discharges
 
 
-def write_report_data(
+def _write_report_data(
     src: TextIO,
     report: TextIO,
     reach: IReach,
@@ -520,9 +520,9 @@ def write_report_data(
     ApplicationSettingsHelper.log_text(
         "default_ucrit", dict={"uc": ucrit, "reach": reach}
     )
-    tdum = interactive_get_bool(src, "confirm_or")
+    tdum = _interactive_get_bool(src, "confirm_or")
     if not tdum:
-        ucrit = interactive_get_float(src, "query_ucrit")
+        ucrit = _interactive_get_float(src, "query_ucrit")
         if ucrit < ucrit_min:
             ApplicationSettingsHelper.log_text("ucrit_too_low", dict={"uc": ucrit_min})
             ApplicationSettingsHelper.log_text(
@@ -555,10 +555,10 @@ def write_report_data(
         ApplicationSettingsHelper.log_text(
             "length_estimate", dict={"nlength": nlength}, file=report
         )
-        tdum = interactive_get_bool(src, "confirm_to_close")
+        tdum = _interactive_get_bool(src, "confirm_to_close")
 
 
-def write_report_nodata(
+def _write_report_nodata(
     src: TextIO,
     report: TextIO,
     reach: IReach,
@@ -630,7 +630,7 @@ def write_report_nodata(
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
     ApplicationSettingsHelper.log_text("---")
     ApplicationSettingsHelper.log_text("canclose")
-    all_done = interactive_get_bool(src, "confirm_or_repeat")
+    all_done = _interactive_get_bool(src, "confirm_or_repeat")
     if all_done:
         dfastmi.batch.core.write_report(
             report,
@@ -652,7 +652,7 @@ def write_report_nodata(
     return all_done
 
 
-def interactive_check_discharge(
+def _interactive_get_and_check_one_discharge(
     src: TextIO, i: int, q_prop: float, pname: str = "dummy", q_prev: float = 0
 ) -> Optional[float]:
     """
@@ -679,11 +679,11 @@ def interactive_check_discharge(
     q_new: Optional[float]
     ApplicationSettingsHelper.log_text("")
     ApplicationSettingsHelper.log_text("input_avail", dict={"i": i, "q": q_prop})
-    tdum = interactive_get_bool(src, "confirm_or")
+    tdum = _interactive_get_bool(src, "confirm_or")
     q_new = q_prop
     if not tdum:
         while True:
-            q_new = interactive_get_float(src, "query_qavail", dict={"i": i})
+            q_new = _interactive_get_float(src, "query_qavail", dict={"i": i})
             if q_new is None:
                 break
             elif q_new < q_prev:
@@ -700,7 +700,7 @@ def interactive_check_discharge(
     return q_new
 
 
-def interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bool:
+def _interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bool:
     """
     Interactively get a boolean from the user.
 
@@ -728,7 +728,7 @@ def interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bo
     return bool
 
 
-def interactive_get_int(
+def _interactive_get_int(
     src: TextIO, key: str, dict: Dict[str, Any] = {}
 ) -> Optional[int]:
     """
@@ -760,7 +760,7 @@ def interactive_get_int(
     return val
 
 
-def interactive_get_float(
+def _interactive_get_float(
     src: TextIO, key: str, dict: Dict[str, Any] = {}
 ) -> Optional[float]:
     """
@@ -792,7 +792,7 @@ def interactive_get_float(
     return val
 
 
-def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[int]:
+def _interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[int]:
     """
     Interactively get an item from the user.
 
@@ -808,7 +808,7 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
     Returns
     -------
     val : Optional[int]
-        The integer index of the item selected by the user (None if interactive_get_int returns None).
+        The integer index of the item selected by the user (None if _interactive_get_int returns None).
     """
     i = 0
     nitems = len(list)
@@ -818,7 +818,7 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
             ApplicationSettingsHelper.log_text(
                 "query_list", dict={"item": list[i], "index": i + 1}
             )
-        i_opt = interactive_get_int(src, "query_" + type)
+        i_opt = _interactive_get_int(src, "query_" + type)
         if i_opt is None:
             return None
         else:
