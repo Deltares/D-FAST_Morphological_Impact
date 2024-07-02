@@ -463,7 +463,9 @@ def _interactive_get_and_check_discharges(
     all_q = True
 
     if apply_q[0] and discharges[0] is not None:
-        new_discharges[0] = _interactive_get_and_check_one_discharge(src, 1, discharges[0])
+        new_discharges[0] = _interactive_get_and_check_one_discharge(
+            src, 1, discharges[0]
+        )
         all_q = new_discharges[0] is not None
 
     i_prev = 0
