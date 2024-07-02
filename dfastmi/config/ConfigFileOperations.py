@@ -368,7 +368,7 @@ def check_configuration(rivers: RiversObject, config: ConfigParser) -> bool:
             configuration_version
         )
         return configuration_checker.check_configuration(rivers, config)
-    except SystemExit as e:
-        raise e
+    except (SystemExit, KeyboardInterrupt) as exception:
+        raise exception
     except:
         return False

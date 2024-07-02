@@ -64,121 +64,125 @@ def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) ->
     report = open(ApplicationSettingsHelper.get_filename("report.out"), "w")
 
     version = dfastmi.__version__
-    have_files = interactive_mode_opening(src, version, report)
+    have_files = _interactive_mode_opening(src, version, report)
 
     all_done = False
     while not all_done:
-        branch = None
-        reach = None
-        while branch is None or reach is None:
-            branch, reach = interactive_get_location(src, rivers)
-        if isinstance(reach, ReachLegacy):
-            celerity_hg = reach.proprate_high
-            celerity_lw = reach.proprate_low
-        nwidth = reach.normal_width
-
-        (
-            all_q,
-            q_location,
-            q_threshold,
-            q_bankfull,
-            q_fit,
-            q_stagnant,
-            Q,
-            applyQ,
-            tstag,
-            T,
-            rsigma,
-        ) = interactive_get_discharges(
-            src, branch, reach, have_files, celerity_hg, celerity_lw, nwidth
+        all_done = _run_interactive_mode_once(
+            src, rivers, reduced_output, report, have_files
         )
-        if have_files and not all_q:
-            break
-
-        tmi = []
-        for i, value in enumerate(applyQ):
-            if value:
-                tmi.append(T[i])
-            else:
-                tmi.append(0.0)
-        celerity = [celerity_lw, celerity_hg, celerity_hg]
-        slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
-        if slength > 1:
-            nlength = int(slength)
-        else:
-            nlength = slength
-
-        if have_files:
-            # determine critical flow velocity
-            ucrit = reach.ucritical
-            ucritMin = 0.01
-            ApplicationSettingsHelper.log_text("", repeat=3)
-            ApplicationSettingsHelper.log_text(
-                "default_ucrit", dict={"uc": ucrit, "reach": reach}
-            )
-            tdum = interactive_get_bool(src, "confirm_or")
-            if not tdum:
-                ucrit = interactive_get_float(src, "query_ucrit")
-                if ucrit < ucritMin:
-                    ApplicationSettingsHelper.log_text(
-                        "ucrit_too_low", dict={"uc": ucritMin}
-                    )
-                    ApplicationSettingsHelper.log_text(
-                        "ucrit_too_low", dict={"uc": ucritMin}, file=report
-                    )
-                    ucrit = ucritMin
-
-            ApplicationSettingsHelper.log_text("", repeat=19)
-            display = True
-            old_zmin_zmax = True
-            outputdir = Path.cwd()
-
-            success = analyse_and_report_waqua(
-                display,
-                report,
-                reduced_output,
-                tstag,
-                Q,
-                applyQ,
-                T,
-                rsigma,
-                ucrit,
-                old_zmin_zmax,
-                outputdir,
-            )
-
-            if success:
-                ApplicationSettingsHelper.log_text("")
-                ApplicationSettingsHelper.log_text(
-                    "length_estimate", dict={"nlength": nlength}
-                )
-                ApplicationSettingsHelper.log_text(
-                    "length_estimate", dict={"nlength": nlength}, file=report
-                )
-                tdum = interactive_get_bool(src, "confirm_to_close")
-            all_done = True
-        else:
-            all_done = write_report_nodata(
-                src,
-                report,
-                reach,
-                q_location,
-                q_threshold,
-                q_bankfull,
-                q_stagnant,
-                tstag,
-                q_fit,
-                Q,
-                T,
-                nlength,
-            )
 
     ApplicationSettingsHelper.log_text("end")
     ApplicationSettingsHelper.log_text("end", file=report)
     report.close()
 
 
-def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
+def _run_interactive_mode_once(
+    src: TextIO,
+    rivers: RiversObject,
+    reduced_output: bool,
+    report: TextIO,
+    have_files: bool,
+) -> bool:
+    """
+    Run the analysis in interactive mode.
+
+    The interactive mode works only for WAQUA simulations.
+
+    Arguments
+    ---------
+    src : TextIO
+        Source to read from (typically sys.stdin)
+    rivers : RiversObject
+        An object containing the river data.
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
+    report : TextIO
+        Text stream for log file.
+    have_files : bool
+        Flag indicating whether the user specified that the simulation results
+        are available or not.
+
+    Returns
+    -------
+    all_done : bool
+        Flag indicating whether the interactive session can be ended.
+    """
+    branch = None
+    reach = None
+    while branch is None or reach is None:
+        branch, reach = _interactive_get_location(src, rivers)
+    if isinstance(reach, ReachLegacy):
+        celerity_hg = reach.proprate_high
+        celerity_lw = reach.proprate_low
+    nwidth = reach.normal_width
+
+    (
+        all_q,
+        q_location,
+        q_threshold,
+        q_bankfull,
+        q_fit,
+        q_stagnant,
+        discharges,
+        apply_q,
+        tstag,
+        fraction_of_year,
+        rsigma,
+    ) = _interactive_get_discharges(
+        src, branch, reach, have_files, celerity_hg, celerity_lw, nwidth
+    )
+    if have_files and not all_q:
+        return True
+
+    tmi = []
+    for i, value in enumerate(apply_q):
+        if value:
+            tmi.append(fraction_of_year[i])
+        else:
+            tmi.append(0.0)
+    celerity = [celerity_lw, celerity_hg, celerity_hg]
+    slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
+    if slength > 1:
+        nlength = int(slength)
+    else:
+        nlength = slength
+
+    if have_files:
+        _write_report_data(
+            src,
+            report,
+            reach,
+            reduced_output,
+            tstag,
+            discharges,
+            apply_q,
+            fraction_of_year,
+            rsigma,
+            nlength,
+        )
+        all_done = True
+    else:
+        all_done = _write_report_nodata(
+            src,
+            report,
+            reach,
+            q_location,
+            q_threshold,
+            q_bankfull,
+            q_stagnant,
+            tstag,
+            q_fit,
+            discharges,
+            fraction_of_year,
+            nlength,
+        )
+
+    return all_done
+
+
+def _interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
     """
     Interactive mode opening.
 
@@ -198,14 +202,14 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
         are available or not.
     """
     ApplicationSettingsHelper.log_text("header", dict={"version": version})
-    tdum = interactive_get_bool(src, "confirm")
+    _interactive_get_bool(src, "confirm")
 
     ApplicationSettingsHelper.log_text("limits")
     ApplicationSettingsHelper.log_text("qblocks")
     tdum = False
     while not tdum:
         ApplicationSettingsHelper.log_text("query_input-available")
-        have_files = interactive_get_bool(src, "confirm_or")
+        have_files = _interactive_get_bool(src, "confirm_or")
 
         ApplicationSettingsHelper.log_text("---")
         if have_files:
@@ -220,7 +224,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
         else:
             ApplicationSettingsHelper.log_text("results_without_input")
         ApplicationSettingsHelper.log_text("---")
-        tdum = interactive_get_bool(src, "confirm_or_restart")
+        tdum = _interactive_get_bool(src, "confirm_or_restart")
 
     ApplicationSettingsHelper.log_text("header", dict={"version": version}, file=report)
     ApplicationSettingsHelper.log_text("limits", file=report)
@@ -240,7 +244,7 @@ def interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool:
     return have_files
 
 
-def interactive_get_location(
+def _interactive_get_location(
     src: TextIO,
     rivers: RiversObject,
 ) -> Tuple[Optional[Branch], Optional[IReach]]:
@@ -256,17 +260,17 @@ def interactive_get_location(
 
     Returns
     -------
-    ibranch : Optional[int]
-        Number of selected branch (None if user cancels).
-    ireach : Optional[int]
-        Number of selected reach (None if user cancels).
+    branch : Optional[Branch]
+        Selected branch object (None if user cancels).
+    reach : Optional[IReach]
+        Selected reach object (None if user cancels).
     """
     branches = [branch.name for branch in rivers.branches]
 
     accept = False
-    ibranch = interactive_get_item(src, "branch", branches)
+    ibranch = _interactive_get_item(src, "branch", branches)
     if not ibranch is None:
-        ireach = interactive_get_item(
+        ireach = _interactive_get_item(
             src, "reach", [reach.name for reach in rivers.branches[ibranch].reaches]
         )
         ApplicationSettingsHelper.log_text("---")
@@ -275,14 +279,14 @@ def interactive_get_location(
             reach = branch.reaches[ireach]
             ApplicationSettingsHelper.log_text("reach", dict={"reach": reach.name})
             ApplicationSettingsHelper.log_text("---")
-            accept = interactive_get_bool(src, "confirm_location")
+            accept = _interactive_get_bool(src, "confirm_location")
     if accept:
         return branch, reach
     else:
         return None, None
 
 
-def interactive_get_discharges(
+def _interactive_get_discharges(
     src: TextIO,
     branch: Branch,
     reach: ReachLegacy,
@@ -312,10 +316,10 @@ def interactive_get_discharges(
         Source to read from (typically sys.stdin)
     rivers : RiversObject
         An object containing the river data.
-    ibranch : int
-        Number of selected branch.
-    ireach : int
-        Number of selected reach.
+    branch : Branch
+        Selected branch.
+    ireach : ReachLegacy
+        Selected reach.
     have_files : bool
         flag to indicate whether user specified that simulation results are
         available.
@@ -339,20 +343,18 @@ def interactive_get_discharges(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
         A discharge below which the river flow is negligible.
-    Q : QRuns
+    discharges : QRuns
         Tuple of (at most) three characteristic discharges.
-    applyQ : Tuple[bool, bool, bool]
+    apply_q : Tuple[bool, bool, bool]
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     t_stagnant : float
         Fraction of year during which flow velocity is considered negligible.
-    T : Tuple[float, float, float]
-        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
+    fraction_of_year : Tuple[float, float, float]
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in discharges.
     rsigma : Tuple[float, float, float]
-        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in Q.
+        A tuple of 3 values each representing the relaxation factor for the period given by the corresponding entry in discharges.
     """
-    stages = ApplicationSettingsHelper.get_text("stage_descriptions")
-
     q_location = branch.qlocation
     q_stagnant = reach.qstagnant
     q_min = reach.qmin
@@ -368,11 +370,11 @@ def interactive_get_discharges(
             "query_flowing_above_qmin",
             dict={"border": q_location, "qmin": int(q_min)},
         )
-    tdrem = interactive_get_bool(src, "confirm_or")
+    tdrem = _interactive_get_bool(src, "confirm_or")
     if tdrem:
         q_threshold = None
     else:
-        q_threshold = interactive_get_float(
+        q_threshold = _interactive_get_float(
             src, "query_qthreshold", dict={"border": q_location}
         )
 
@@ -380,11 +382,11 @@ def interactive_get_discharges(
         ApplicationSettingsHelper.log_text(
             "query_flowing", dict={"qborder": int(q_levels[1])}
         )
-        tdum = interactive_get_bool(src, "confirm_or")
+        tdum = _interactive_get_bool(src, "confirm_or")
         if tdum:
             q_bankfull = q_levels[1]
         else:
-            q_bankfull_opt = interactive_get_float(src, "query_qbankfull")
+            q_bankfull_opt = _interactive_get_float(src, "query_qbankfull")
             if not q_bankfull_opt is None:
                 q_bankfull = q_bankfull_opt
             else:
@@ -392,43 +394,18 @@ def interactive_get_discharges(
     else:
         q_bankfull = 0
 
-    Q, applyQ = dfastmi.kernel.legacy.char_discharges(
+    discharges, apply_q = dfastmi.kernel.legacy.char_discharges(
         q_levels, dq, q_threshold, q_bankfull
     )
 
-    tstag, T, rsigma = dfastmi.kernel.legacy.char_times(
-        q_fit, q_stagnant, Q, celerity_hg, celerity_lw, nwidth
+    tstag, fraction_of_year, rsigma = dfastmi.kernel.legacy.char_times(
+        q_fit, q_stagnant, discharges, celerity_hg, celerity_lw, nwidth
     )
 
-    QList = list(Q)
-    all_q = True
-    if have_files:
-        lastStage = None
-        if applyQ[0] and not QList[0] is None:
-            QList[0] = interactive_check_discharge(src, 1, QList[0])
-            if QList[0] is None:
-                all_q = False
-        if not all_q:
-            pass
-        elif applyQ[1] and not QList[1] is None and not QList[0] is None:
-            QList[1] = interactive_check_discharge(
-                src, 2, QList[1], stages[0], QList[0]
-            )
-            if QList[1] is None:
-                all_q = False
-            elif not QList[2] is None:
-                QList[2] = interactive_check_discharge(
-                    src, 3, QList[2], stages[1], QList[1]
-                )
-                if QList[2] is None:
-                    all_q = False
-        elif applyQ[2] and not QList[2] is None and not QList[0] is None:
-            QList[2] = interactive_check_discharge(
-                src, 3, QList[2], stages[0], QList[0]
-            )
-            if QList[2] is None:
-                all_q = False
-    Q = (QList[0], QList[1], QList[2])
+    all_q, discharge_list = _interactive_get_and_check_discharges(
+        src, discharges, have_files, apply_q
+    )
+    discharges = (discharge_list[0], discharge_list[1], discharge_list[2])
 
     return (
         all_q,
@@ -437,26 +414,164 @@ def interactive_get_discharges(
         q_bankfull,
         q_fit,
         q_stagnant,
-        Q,
-        applyQ,
+        discharges,
+        apply_q,
         tstag,
-        T,
+        fraction_of_year,
         rsigma,
     )
 
 
-def write_report_nodata(
+def _interactive_get_and_check_discharges(
+    src: TextIO,
+    discharges: QRuns,
+    have_files: bool,
+    apply_q: Tuple[bool, bool, bool],
+) -> Tuple[
+    bool,
+    List[Optional[float]],
+]:
+    """
+    Get the simulation discharges in interactive mode.
+
+    Arguments
+    ---------
+    src : TextIO
+        Source to read from (typically sys.stdin)
+    discharges : List[Optional[float]]
+        Tuple of (at most) three characteristic discharges.
+    have_files : bool
+        flag to indicate whether user specified that simulation results are
+        available.
+    apply_q : Tuple[bool, bool, bool]
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
+
+    Results
+    -------
+    all_q : bool
+        Flag indicating whether data for all discharges is found.
+    new_discharges : List[Optional[float]]
+        List of (at most) three discharges. Same as input discharges, unless updated by the user.
+    """
+    if not have_files:
+        return True, discharges
+
+    stages = ApplicationSettingsHelper.get_text("stage_descriptions")
+    new_discharges = list(discharges)
+
+    all_q = True
+
+    if apply_q[0] and discharges[0] is not None:
+        new_discharges[0] = _interactive_get_and_check_one_discharge(
+            src, 1, discharges[0]
+        )
+        all_q = new_discharges[0] is not None
+
+    i_prev = 0
+    if all_q and apply_q[1] and discharges[1] is not None:
+        i_prev = 1
+        new_discharges[1] = _interactive_get_and_check_one_discharge(
+            src, 2, discharges[1], stages[0], new_discharges[0]
+        )
+        all_q = new_discharges[1] is not None
+
+    if all_q and apply_q[2] and discharges[2] is not None:
+        new_discharges[2] = _interactive_get_and_check_one_discharge(
+            src, 3, discharges[2], stages[i_prev], new_discharges[i_prev]
+        )
+        all_q = new_discharges[2] is not None
+
+    return all_q, new_discharges
+
+
+def _write_report_data(
     src: TextIO,
     report: TextIO,
-    reach: str,
+    reach: IReach,
+    reduced_output: bool,
+    tstag: float,
+    discharges: QRuns,
+    apply_q: Tuple[bool, bool, bool],
+    fraction_of_year: Tuple[float, float, float],
+    rsigma: Tuple[float, float, float],
+    nlength: float,
+) -> None:
+    """
+    Write the screen log and report file if simulation input is available.
+
+    Arguments
+    ---------
+    src : TextIO
+        Source to read from (typically sys.stdin)
+    report : TextIO
+        Text stream for log file.
+    reach : IReach
+        Selected reach.
+    reduced_output : bool
+        Flag to indicate whether WAQUA output should be reduced to the area of
+        interest only.
+    tstag : float
+        Fraction of year that the river is stagnant.
+    """
+
+    # determine critical flow velocity
+    ucrit = reach.ucritical
+    ucrit_min = 0.01
+    ApplicationSettingsHelper.log_text("", repeat=3)
+    ApplicationSettingsHelper.log_text(
+        "default_ucrit", dict={"uc": ucrit, "reach": reach}
+    )
+    tdum = _interactive_get_bool(src, "confirm_or")
+    if not tdum:
+        ucrit = _interactive_get_float(src, "query_ucrit")
+        if ucrit < ucrit_min:
+            ApplicationSettingsHelper.log_text("ucrit_too_low", dict={"uc": ucrit_min})
+            ApplicationSettingsHelper.log_text(
+                "ucrit_too_low", dict={"uc": ucrit_min}, file=report
+            )
+            ucrit = ucrit_min
+
+    ApplicationSettingsHelper.log_text("", repeat=19)
+    display = True
+    old_zmin_zmax = True
+    outputdir = Path.cwd()
+
+    success = analyse_and_report_waqua(
+        display,
+        report,
+        reduced_output,
+        tstag,
+        discharges,
+        apply_q,
+        fraction_of_year,
+        rsigma,
+        ucrit,
+        old_zmin_zmax,
+        outputdir,
+    )
+
+    if success:
+        ApplicationSettingsHelper.log_text("")
+        ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
+        ApplicationSettingsHelper.log_text(
+            "length_estimate", dict={"nlength": nlength}, file=report
+        )
+        _interactive_get_bool(src, "confirm_to_close")
+
+
+def _write_report_nodata(
+    src: TextIO,
+    report: TextIO,
+    reach: IReach,
     q_location: str,
     q_threshold: Optional[float],
     q_bankfull: float,
     q_stagnant: float,
     tstag: float,
     q_fit: Tuple[float, float],
-    Q: QRuns,
-    T: Tuple[float, float, float],
+    discharges: QRuns,
+    fraction_of_year: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
     """
@@ -468,8 +583,8 @@ def write_report_nodata(
         Source to read from (typically sys.stdin)
     report : TextIO
         Text stream for log file.
-    reach : str
-        Name of the reach.
+    reach : IReach
+        Selected reach.
     q_location : str
         Name of the location at which the discharge is
     q_threshold : Optional[float]
@@ -482,9 +597,9 @@ def write_report_nodata(
         Fraction of year that the river is stagnant.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
-    Q : QRuns
+    discharges : QRuns
         Tuple of (at most) three characteristic discharges.
-    T : Tuple[float, float, float]
+    fraction_of_year : Tuple[float, float, float]
         Fraction of year represented by each characteristic discharge.
     nlength : float
         The expected yearly impacted length.
@@ -495,41 +610,41 @@ def write_report_nodata(
         Flag indicating whether the program should be closed.
     """
     ApplicationSettingsHelper.log_text("---")
-    number_of_discharges = dfastmi.batch.core.count_discharges(Q)
+    number_of_discharges = dfastmi.batch.core.count_discharges(discharges)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
         ApplicationSettingsHelper.log_text(
             "need_multiple_input", dict={"reach": reach, "numq": number_of_discharges}
         )
-    if not Q[0] is None:
+    if discharges[0] is not None:
         ApplicationSettingsHelper.log_text(
-            "lowwater", dict={"border": q_location, "q": Q[0]}
+            "lowwater", dict={"border": q_location, "q": discharges[0]}
         )
-    if not Q[1] is None:
+    if discharges[1] is not None:
         ApplicationSettingsHelper.log_text(
-            "transition", dict={"border": q_location, "q": Q[1]}
+            "transition", dict={"border": q_location, "q": discharges[1]}
         )
-    if not Q[2] is None:
+    if discharges[2] is not None:
         ApplicationSettingsHelper.log_text(
-            "highwater", dict={"border": q_location, "q": Q[2]}
+            "highwater", dict={"border": q_location, "q": discharges[2]}
         )
     ApplicationSettingsHelper.log_text("length_estimate", dict={"nlength": nlength})
     ApplicationSettingsHelper.log_text("---")
     ApplicationSettingsHelper.log_text("canclose")
-    all_done = interactive_get_bool(src, "confirm_or_repeat")
+    all_done = _interactive_get_bool(src, "confirm_or_repeat")
     if all_done:
         dfastmi.batch.core.write_report(
             report,
-            reach,
+            reach.name,
             q_location,
             q_threshold,
             q_bankfull,
             q_stagnant,
             tstag,
             q_fit,
-            Q,
-            T,
+            discharges,
+            fraction_of_year,
             nlength,
         )
     else:
@@ -539,8 +654,8 @@ def write_report_nodata(
     return all_done
 
 
-def interactive_check_discharge(
-    src: TextIO, i: int, Q: float, pname: str = "dummy", Qp: float = 0
+def _interactive_get_and_check_one_discharge(
+    src: TextIO, i: int, q_prop: float, pname: str = "dummy", q_prev: float = 0
 ) -> Optional[float]:
     """
     Interactively request discharge for which simulation results are available.
@@ -551,43 +666,43 @@ def interactive_check_discharge(
         Source to read from (typically sys.stdin)
     i : int
         Discharge level (1, 2 or 3).
-    Q : float
+    q_prop : float
         Proposed discharge.
     pname : str
         Name of previous discharge level.
-    Qp : float
+    q_prev : float
         Previous discharge.
 
     Returns
     -------
-    Q : float
+    q_new : Optional[float]
         Final discharge.
     """
-    Q1: Optional[float]
+    q_new: Optional[float]
     ApplicationSettingsHelper.log_text("")
-    ApplicationSettingsHelper.log_text("input_avail", dict={"i": i, "q": Q})
-    tdum = interactive_get_bool(src, "confirm_or")
-    Q1 = Q
+    ApplicationSettingsHelper.log_text("input_avail", dict={"i": i, "q": q_prop})
+    tdum = _interactive_get_bool(src, "confirm_or")
+    q_new = q_prop
     if not tdum:
         while True:
-            Q1 = interactive_get_float(src, "query_qavail", dict={"i": i})
-            if Q1 is None:
+            q_new = _interactive_get_float(src, "query_qavail", dict={"i": i})
+            if q_new is None:
                 break
-            elif Q1 < Qp:
+            elif q_new < q_prev:
                 ApplicationSettingsHelper.log_text("")
                 if i == 1:
                     ApplicationSettingsHelper.log_text("qavail_too_small_1")
                 else:
                     ApplicationSettingsHelper.log_text(
                         "qavail_too_small_2",
-                        dict={"p": i - 1, "pname": pname, "qp": Qp, "i": i},
+                        dict={"p": i - 1, "pname": pname, "qp": q_prev, "i": i},
                     )
             else:
                 break
-    return Q1
+    return q_new
 
 
-def interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bool:
+def _interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bool:
     """
     Interactively get a boolean from the user.
 
@@ -615,7 +730,7 @@ def interactive_get_bool(src: TextIO, key: str, dict: Dict[str, Any] = {}) -> bo
     return bool
 
 
-def interactive_get_int(
+def _interactive_get_int(
     src: TextIO, key: str, dict: Dict[str, Any] = {}
 ) -> Optional[int]:
     """
@@ -642,12 +757,12 @@ def interactive_get_int(
     print(str)
     try:
         val = int(str)
-    except:
+    except ValueError:
         val = None
     return val
 
 
-def interactive_get_float(
+def _interactive_get_float(
     src: TextIO, key: str, dict: Dict[str, Any] = {}
 ) -> Optional[float]:
     """
@@ -674,12 +789,12 @@ def interactive_get_float(
     print(str)
     try:
         val = float(str)
-    except:
+    except ValueError:
         val = None
     return val
 
 
-def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[int]:
+def _interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[int]:
     """
     Interactively get an item from the user.
 
@@ -695,7 +810,7 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
     Returns
     -------
     val : Optional[int]
-        The integer index of the item selected by the user (None if interactive_get_int returns None).
+        The integer index of the item selected by the user (None if _interactive_get_int returns None).
     """
     i = 0
     nitems = len(list)
@@ -705,7 +820,7 @@ def interactive_get_item(src: TextIO, type: str, list: List[str]) -> Optional[in
             ApplicationSettingsHelper.log_text(
                 "query_list", dict={"item": list[i], "index": i + 1}
             )
-        i_opt = interactive_get_int(src, "query_" + type)
+        i_opt = _interactive_get_int(src, "query_" + type)
         if i_opt is None:
             return None
         else:
