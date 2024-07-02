@@ -202,7 +202,7 @@ def _interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool
         are available or not.
     """
     ApplicationSettingsHelper.log_text("header", dict={"version": version})
-    tdum = _interactive_get_bool(src, "confirm")
+    _interactive_get_bool(src, "confirm")
 
     ApplicationSettingsHelper.log_text("limits")
     ApplicationSettingsHelper.log_text("qblocks")
@@ -557,7 +557,7 @@ def _write_report_data(
         ApplicationSettingsHelper.log_text(
             "length_estimate", dict={"nlength": nlength}, file=report
         )
-        tdum = _interactive_get_bool(src, "confirm_to_close")
+        _interactive_get_bool(src, "confirm_to_close")
 
 
 def _write_report_nodata(
