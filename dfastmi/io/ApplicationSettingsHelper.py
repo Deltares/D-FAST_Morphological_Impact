@@ -100,6 +100,8 @@ class ApplicationSettingsHelper:
             application_setting = ApplicationSettingsHelper.PROGTEXTS[key]
         except (KeyError, TypeError):
             application_setting = ["No message found for " + key]
+        except (SystemExit, KeyboardInterrupt) as exception:
+            raise exception
         except:
             application_setting = ["Still no message found for " + key]
         return application_setting
