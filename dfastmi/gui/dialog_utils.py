@@ -31,6 +31,9 @@ This module provides validators and utilities for PyQt5 GUI applications.
 It also includes functions for handling fonts and querying text strings for GUI elements.
 """
 
+import os
+import winreg
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -247,3 +250,38 @@ def gui_text(
     except KeyError:
         application_setting = cstr[0]
     return application_setting
+
+def open_pdf_windows(pdf_path):
+        pdf_reader_path = get_default_pdf_reader_windows()
+        if pdf_reader_path:
+            try:
+                # Ensure the path is absolute
+                pdf_path = os.path.abspath(pdf_path)
+
+                # Open the PDF file with the default PDF reader in a non-blocking way
+                subprocess.Popen([pdf_reader_path, pdf_path], close_fds=True)
+            except Exception as e:
+                print(f"Failed to open the PDF file: {e}")
+    
+def get_default_pdf_reader_windows():
+    try:
+        # Open the registry key for the current user
+        with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r".pdf", 0, winreg.KEY_READ) as key:
+            # Get the default value of the key
+            pdf_association = winreg.QueryValue(key, "")
+        
+        # Open the registry key for the file association
+        with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, fr"{pdf_association}\shell\open\command", 0, winreg.KEY_READ) as key:
+            # Get the command to open the PDF
+            command = winreg.QueryValue(key, "")
+        
+        # The command might contain additional arguments, extract the path
+        if command.startswith('"'):
+            path = command.split('"')[1]
+        else:
+            path = command.split(' ')[0]
+
+        return path
+    except Exception as e:
+        print(f"Failed to get the default PDF reader: {e}")
+        return None
