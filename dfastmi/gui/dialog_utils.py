@@ -252,7 +252,7 @@ def gui_text(
     return application_setting
 
 
-def open_pdf_windows(pdf_path):
+def open_pdf_windows(pdf_path : str):
     pdf_reader_path = get_default_pdf_reader_windows()
     if pdf_reader_path:
         try:
@@ -261,8 +261,11 @@ def open_pdf_windows(pdf_path):
 
             # Open the PDF file with the default PDF reader in a non-blocking way
             subprocess.Popen([pdf_reader_path, pdf_path], close_fds=True)
-        except Exception as e:
-            print(f"Failed to open the PDF file: {e}")
+        except (SystemExit, KeyboardInterrupt) as exception:
+            print(f"Failed to open the PDF file: {exception}")
+            raise exception
+        except Exception as exception:
+            print(f"Failed to open the PDF file: {exception}")
 
 
 def get_default_pdf_reader_windows():
@@ -291,6 +294,9 @@ def get_default_pdf_reader_windows():
             path = command.split(" ")[0]
 
         return path
-    except Exception as e:
-        print(f"Failed to get the default PDF reader: {e}")
+    except (SystemExit, KeyboardInterrupt) as exception:
+        print(f"Failed to get the default PDF reader: {exception}")
+        raise exception
+    except Exception as exception:
+        print(f"Failed to get the default PDF reader: {exception}")
         return None
