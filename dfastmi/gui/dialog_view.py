@@ -26,7 +26,6 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import os
 import sys
 import traceback
 from functools import partial
@@ -62,6 +61,7 @@ from dfastmi.gui.dialog_utils import (
     ValidatingLineEdit,
     get_available_font,
     gui_text,
+    open_pdf_windows,
 )
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.qt_tools import clear_layout_item
@@ -1006,7 +1006,7 @@ class DialogView:
         ---------
         None
         """
-        os.startfile(self._view_model.manual_filename)
+        open_pdf_windows(self._view_model.manual_filename)
 
     def _open_file_layout(self, my_widget, key: str, enabled: bool):
         """

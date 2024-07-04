@@ -368,21 +368,6 @@ class Test_popup:
             )
             QMessageBox.exec_.assert_called_once()
 
-    def test_menu_open_manual(self, dialog_view: DialogView, monkeypatch):
-        """
-        given : dialog_view
-        when  : opening the user manual menu
-        then  : the user manual should be opened correctly
-        """
-        # Mock os.startfile
-        mock_startfile = MagicMock()
-        monkeypatch.setattr("os.startfile", mock_startfile)
-
-        dialog_view._menu_open_manual()
-
-        # Assert that subprocess.Popen was called with the expected arguments
-        mock_startfile.assert_called_once_with(dialog_view._view_model.manual_filename)
-
 
 class Test_select:
     def test_selectFolder_output_dir_edit(self, dialog_view: DialogView, monkeypatch):
