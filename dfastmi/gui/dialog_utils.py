@@ -252,7 +252,7 @@ def gui_text(
     return application_setting
 
 
-def open_pdf_windows(pdf_path : str):
+def open_pdf_windows(pdf_path: str):
     pdf_reader_path = get_default_pdf_reader_windows()
     if pdf_reader_path:
         try:
