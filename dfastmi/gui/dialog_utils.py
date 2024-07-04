@@ -253,7 +253,7 @@ def gui_text(
 
 
 def open_pdf_windows(pdf_path : str):
-    pdf_reader_path = get_default_pdf_reader_windows()
+    pdf_reader_path = _get_default_pdf_reader_windows()
     if pdf_reader_path:
         try:
             # Ensure the path is absolute
@@ -268,7 +268,7 @@ def open_pdf_windows(pdf_path : str):
             print(f"Failed to open the PDF file: {exception}")
 
 
-def get_default_pdf_reader_windows():
+def _get_default_pdf_reader_windows():
     try:
         # Open the registry key for the current user
         with winreg.OpenKey(
