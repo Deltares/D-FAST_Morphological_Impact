@@ -366,7 +366,8 @@ class Test_popup:
             QMessageBox.setText.assert_called_once_with(
                 "D-FAST Morphological Impact " + dfastmi.__version__
             )
-            QMessageBox.exec_.assert_called_once()    
+            QMessageBox.exec_.assert_called_once()
+
 
 class Test_select:
     def test_selectFolder_output_dir_edit(self, dialog_view: DialogView, monkeypatch):
