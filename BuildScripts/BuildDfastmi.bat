@@ -50,6 +50,8 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=dfastmi/open.png=dfastmi/open.png ^
  --include-data-files=LICENSE.md=LICENSE.md ^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
+ --include-data-files=docs/dfastmi_techref.pdf=dfastmi/dfastmi_techref.pdf ^
+ --include-data-files=docs/dfastmi_release_notes.pdf=dfastmi/dfastmi_release_notes.pdf ^
  %cmd_box_args%
 
 rem end of build
