@@ -9,6 +9,7 @@ from dfastmi.gui.dialog_model import DialogModel
 from dfastmi.gui.dialog_utils import gui_text
 from dfastmi.gui.dialog_view import DialogView
 from dfastmi.gui.dialog_view_model import DialogViewModel
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiversObject import RiversObject
 
 
@@ -136,6 +137,10 @@ class Test_dialog_inputs:
         when  : updating the qthreshold QLineEdit
         then  : the qthreshold value should be updated correctly
         """
+        # Test updating the test_qthreshold_update QLineEdit
+        initial_value = dialog_view._qthr.text()
+        assert initial_value == "800.0"
+
         # Test valid input, but less than qstagnant
         new_value = "10.0"
         dialog_view._qthr.setText(new_value)
@@ -156,7 +161,7 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(invalid_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == invalid_value
-        assert dialog_view._view_model.model.qthreshold == float(
+        assert dialog_view._view_model.qthreshold == float(
             new_value
         )  # Input should not change
 
@@ -165,9 +170,21 @@ class Test_dialog_inputs:
         dialog_view._qthr.setText(empty_value)
         dialog_view._qthr.editingFinished.emit()
         assert dialog_view._qthr.text() == empty_value
-        assert dialog_view._view_model.model.qthreshold == float(
+        assert dialog_view._view_model.qthreshold == float(
             new_value
         )  # Input should not change
+
+        # Reset to inital value
+        dialog_view._qthr.setText(initial_value)
+        dialog_view._qthr.editingFinished.emit()
+
+        # Reset to inital value
+        dialog_view._qthr.setText(initial_value)
+        dialog_view._qthr.editingFinished.emit()
+
+        # Reset to inital value
+        dialog_view._qthr.setText(initial_value)
+        dialog_view._qthr.editingFinished.emit()
 
     def test_ucritical_update(self, dialog_view: DialogView):
         """
@@ -190,14 +207,26 @@ class Test_dialog_inputs:
         dialog_view._ucrit.setText(invalid_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == invalid_value
-        assert dialog_view._view_model.model.ucritical == float(new_value)
+        assert dialog_view._view_model.ucritical == float(new_value)
 
         # Test edge case: empty input
         empty_value = ""
         dialog_view._ucrit.setText(empty_value)
         dialog_view._ucrit.editingFinished.emit()
         assert dialog_view._ucrit.text() == empty_value
-        assert dialog_view._view_model.model.ucritical == float(new_value)
+        assert dialog_view._view_model.ucritical == float(new_value)
+
+        # Reset to inital value
+        dialog_view._ucrit.setText(initial_value)
+        dialog_view._ucrit.editingFinished.emit()
+
+        # Reset to inital value
+        dialog_view._ucrit.setText(initial_value)
+        dialog_view._ucrit.editingFinished.emit()
+
+        # Reset to inital value
+        dialog_view._ucrit.setText(initial_value)
+        dialog_view._ucrit.editingFinished.emit()
 
     def test_branch_and_reach_selection(self, dialog_view: DialogView):
         """
@@ -339,21 +368,6 @@ class Test_popup:
             )
             QMessageBox.exec_.assert_called_once()
 
-    def test_menu_open_manual(self, dialog_view: DialogView, monkeypatch):
-        """
-        given : dialog_view
-        when  : opening the user manual menu
-        then  : the user manual should be opened correctly
-        """
-        # Mock os.startfile
-        mock_startfile = MagicMock()
-        monkeypatch.setattr("os.startfile", mock_startfile)
-
-        dialog_view._menu_open_manual()
-
-        # Assert that subprocess.Popen was called with the expected arguments
-        mock_startfile.assert_called_once_with(dialog_view._view_model.manual_filename)
-
 
 class Test_select:
     def test_selectFolder_output_dir_edit(self, dialog_view: DialogView, monkeypatch):
@@ -412,7 +426,7 @@ class Test_select:
 
         input_box = dialog_view._general_widget.findChild(QLineEdit, key)
         assert input_box.text() == "/path/to/file"
-        assert dialog_view._view_model.reference_files["3000.0"] == "/path/to/file"
+        assert dialog_view._view_model.reference_files[3000.0] == "/path/to/file"
 
     def test_selectFile_with_measure_edit(self, dialog_view: DialogView, monkeypatch):
         """
@@ -433,20 +447,18 @@ class Test_select:
         input_box = dialog_view._general_widget.findChild(QLineEdit, key)
         assert input_box.text() == "/path/to/file_with_measure"
         assert (
-            dialog_view._view_model.measure_files["4000.0"]
+            dialog_view._view_model.measure_files[4000.0]
             == "/path/to/file_with_measure"
         )
 
 
 class Test_view_model_updates:
-    def test_update_branch(self, dialog_view: DialogView, mocker):
+    def test_update_branch(self, dialog_view: DialogView):
         """
         given : dialog_view
         when  : updating the branch
         then  : the branch and associated attributes should be updated correctly
         """
-        mocker.patch.object(dialog_view, "_update_qvalues_table")
-        mocker.patch.object(dialog_view, "_update_condition_files")
         # Call the method to be tested
         dialog_view._update_branch(
             "Bovenrijn & Waal"
@@ -461,8 +473,8 @@ class Test_view_model_updates:
         assert (
             dialog_view._qloc.text() == dialog_view._view_model.current_branch.qlocation
         )
-        assert dialog_view._qthr.text() == str(dialog_view._view_model.model.qthreshold)
-        assert dialog_view._ucrit.text() == str(dialog_view._view_model.model.ucritical)
+        assert dialog_view._qthr.text() == str(dialog_view._view_model.qthreshold)
+        assert dialog_view._ucrit.text() == str(dialog_view._view_model.ucritical)
         assert dialog_view._slength.text() == dialog_view._view_model.slength
         assert (
             dialog_view._output_dir.text() == dialog_view._view_model.model.output_dir
@@ -479,8 +491,6 @@ class Test_view_model_updates:
             dialog_view._close_plots_edit.isChecked()
             == dialog_view._view_model.model.close_plots
         )
-        dialog_view._update_qvalues_table.assert_called_once()
-        dialog_view._update_condition_files.assert_called_once()
 
     def test_update_reach(self, dialog_view: DialogView):
         """
@@ -490,7 +500,7 @@ class Test_view_model_updates:
         """
         # Call the method to be tested
         dialog_view._update_reach(
-            "Boven-Waal                   km  868-886"
+            AReach("Boven-Waal                   km  868-886")
         )  # Pass the reach name to simulate the update
 
         # Assertions
@@ -501,39 +511,66 @@ class Test_view_model_updates:
         assert dialog_view._slength.text() == dialog_view._view_model.slength
 
 
-def test_update_condition_files(dialog_view: DialogView):
+def test_update_condition_files_with_load_configuration(
+    dialog_view: DialogView, tmp_path: Path
+):
     """
     given : dialog_view
     when  : updating condition files
     then  : the condition files should be updated correctly
     """
     # Mock the reference files and measure files
-    reference_files = {3000.0: "reference_file_10.txt", 4000.0: "reference_file_20.txt"}
-    measure_files = {3000.0: "measure_file_10.txt", 4000.0: "measure_file_20.txt"}
+    reference_file_3000 = "reference_file_10.txt"
+    reference_file_4000 = "reference_file_20.txt"
+    measure_file_3000 = "measure_file_10.txt"
+    measure_file_4000 = "measure_file_20.txt"
 
-    # Set the mocked data
-    dialog_view._view_model._reference_files = reference_files
-    dialog_view._view_model._measure_files = measure_files
+    expected_reference_file_3000 = str(tmp_path / "reference_file_10.txt")
+    expected_reference_file_4000 = str(tmp_path / "reference_file_20.txt")
+    expected_measure_file_3000 = str(tmp_path / "measure_file_10.txt")
+    expected_measure_file_4000 = str(tmp_path / "measure_file_20.txt")
+
+    config_file_data = f"""
+    [General]
+  Version     = 3.0
+  Branch      = Bovenrijn & Waal
+  Reach       = Boven-Waal                   km  868-886
+
+[C1]
+  Discharge   = 3000.0
+  TideBC      = 0
+  Reference   = {reference_file_3000}
+  WithMeasure = {measure_file_3000}
+
+[C2]
+  Discharge   = 4000.0
+  TideBC      = 0
+  Reference   = {reference_file_4000}
+  WithMeasure = {measure_file_4000}
+    """
+
+    config_file = tmp_path / "config.cfg"
+    config_file.write_text(config_file_data)
 
     # Trigger the method to be tested
-    dialog_view._update_condition_files()
+    dialog_view._view_model.load_configuration(config_file)
 
     # Assertions
     # Assuming your UI components are correctly updated, you can assert their properties
     # For example, assert that the QLineEdit objects representing the file paths have been updated
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "3000.0_reference").text()
-        == "reference_file_10.txt"
+        == expected_reference_file_3000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "3000.0_with_measure").text()
-        == "measure_file_10.txt"
+        == expected_measure_file_3000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "4000.0_reference").text()
-        == "reference_file_20.txt"
+        == expected_reference_file_4000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "4000.0_with_measure").text()
-        == "measure_file_20.txt"
+        == expected_measure_file_4000
     )

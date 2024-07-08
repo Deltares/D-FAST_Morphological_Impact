@@ -26,7 +26,6 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import os
 import sys
 import traceback
 from functools import partial
@@ -62,36 +61,18 @@ from dfastmi.gui.dialog_utils import (
     ValidatingLineEdit,
     get_available_font,
     gui_text,
+    open_pdf_windows,
 )
 from dfastmi.gui.dialog_view_model import DialogViewModel
 from dfastmi.gui.qt_tools import clear_layout_item
+from dfastmi.io.AReach import AReach
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 from dfastmi.resources import DFAST_LOGO
 
 # View
 reference_label = "reference"
 with_measure_label = "with_measure"
-
-
-class MyMainWindow(QMainWindow):
-    _view_model: DialogViewModel = None
-    _config_file: Optional[str] = None
-    _first_time: bool = True
-
-    def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
-        self._view_model = view_model
-        self._config_file = config_file
-        super(MyMainWindow, self).__init__(None)
-
-    def eventFilter(self, obj, event):
-        if event.type() == PyQt5.QtCore.QEvent.ActivationChange and self._first_time:
-            self._first_time = False
-            if self._config_file:
-                self._view_model.load_configuration(self._config_file)
-            return True
-        else:
-            # standard event processing
-            return PyQt5.QtCore.QObject.eventFilter(self, obj, event)
 
 
 class DialogView:
@@ -111,7 +92,9 @@ class DialogView:
         _reach (QComboBox): The combo box for selecting the river reach.
         _qloc (QLabel): The label for displaying the discharge location.
         _qthr (QLineEdit): The line edit for specifying the discharge threshold.
+        _qthr_label (Qlabel): The label for specifying the discharge (stagnant) threshold.
         _ucrit (QLineEdit): The line edit for specifying the critical velocity.
+        _ucrit_label (QLabel): The label for displaying minimum for specifying the critical velocity.
         _slength (QLabel): The label for displaying the impacted length.
         _general_widget (QWidget): The widget containing general settings.
         _grid_layout (QGridLayout): The grid layout for displaying conditions.
@@ -130,7 +113,9 @@ class DialogView:
     _reach: QComboBox = None
     _qloc: QLabel = None
     _qthr: QLineEdit = None
+    _qthr_label: QLabel = None
     _ucrit: QLineEdit = None
+    _ucrit_label: QLabel = None
     _slength: QLabel = None
 
     _general_widget: QWidget = None
@@ -145,7 +130,7 @@ class DialogView:
     _close_plots: QLabel = None
     _close_plots_edit: QCheckBox = None
 
-    def __init__(self, view_model: DialogViewModel, config_file: Optional[str] = None):
+    def __init__(self, view_model: DialogViewModel):
         """
         Initialize the DialogView.
 
@@ -156,7 +141,7 @@ class DialogView:
 
         # Initialize GUI components
         self._create_qt_application()
-        self._create_dialog(config_file)
+        self._create_dialog()
         self._create_menus()
         self._create_central_widget()
         self._create_general_widgets()
@@ -164,7 +149,9 @@ class DialogView:
         # Connect the view model's data_changed signal to update_ui slot
         self._view_model.branch_changed.connect(self._update_branch)
         self._view_model.reach_changed.connect(self._update_reach)
+        self._view_model.ucritical_changed.connect(self._update_ucritical)
         self._view_model.qthreshold_changed.connect(self._update_qthreshold)
+        self._view_model.slength_changed.connect(self._update_sedimentation_length)
         self._view_model.make_plot_changed.connect(
             self._update_enabled_of_make_plot_dependent_view_items
         )
@@ -173,6 +160,15 @@ class DialogView:
         )
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
+
+        self._view_model.reference_files_changed.connect(
+            self._update_condition_file_field
+        )
+        self._view_model.measure_files_changed.connect(
+            self._update_condition_file_field
+        )
+
+        self._view_model.analysis_exception.connect(self._show_error)
         self._update_qvalues_table()
 
     def _update_branch(self, data):
@@ -186,70 +182,73 @@ class DialogView:
         self._case_description.setText(self._view_model.model.case_description)
 
         # Update branch and reach selection
-        self._branch.blockSignals(True)
         self._branch.setCurrentText(data)
-        self._branch.blockSignals(False)
         self._reach.clear()
         for r in self._view_model.current_branch.reaches:
             self._reach.addItem(r.name)
         # Update labels and text fields
         self._qloc.setText(self._view_model.current_branch.qlocation)
-        self._output_dir.setText(self._view_model.model.output_dir)
-        self._make_plots_edit.setChecked(self._view_model.model.plotting)
-        self._save_plots_edit.setChecked(self._view_model.model.save_plots)
+        self._output_dir.setText(self._view_model.output_dir)
+        self._make_plots_edit.setChecked(self._view_model.make_plot)
+        self._save_plots_edit.setChecked(self._view_model.save_plot)
         self._close_plots_edit.setChecked(self._view_model.model.close_plots)
 
-    def _update_reach(self, data):
+    def _update_reach(self, reach: AReach):
         """
         Update the GUI components when the reach changes.
 
         Args:
-            data: The data for the reach.
+            reach: The selected reach.
         """
+
+        # Update the threshold discharge label because of specific selected reach stagnant discharge in the GUI
+        self._qthr_label.setText(
+            gui_text("qthr", placeholder_dictionary={"stagnant": str(reach.qstagnant)})
+        )
+
+        # Update the minimal critical velocity label because of specific selected reach default critical (minimum) velocity in the GUI
+        self._ucrit_label.setText(
+            gui_text("ucrit", placeholder_dictionary={"default": str(reach.ucritical)})
+        )
+
         # Update reach label
-        self._reach.blockSignals(True)
-        self._reach.setCurrentText(data)
-        self._reach.blockSignals(False)
+        self._reach.setCurrentText(reach.name)
 
-    def _update_qthreshold(self, data):
+    def _update_sedimentation_length(self, slength: str):
         """
-        Update the GUI components when the reach changes.
+        Update the GUI components when the sedimentation length changes.
 
         Args:
-            data: The data for the reach.
+            slength: The sedimentation length.
+        """
+        # Update the sedimentation length in the GUI
+        self._slength.setText(slength)
+
+    def _update_ucritical(self, ucrit: float):
+        """
+        Update the GUI components when the critical (minimum) velocity [m/s] for sediment transport changes.
+
+        Args:
+            ucrit: The critical (minimum) velocity [m/s] for sediment transport.
+        """
+        # Update the critical velocity in the GUI
+        self._ucrit.setText(str(ucrit))
+
+    def _update_qthreshold(self, qthreshold: float):
+        """
+        Update the GUI components when the discharge threshold changes.
+
+        Args:
+            qthreshold: The dischage threshold.
         """
         # Update the threshold discharge in the GUI
-        self._qthr.setText(str(self._view_model.model.qthreshold))
+        self._qthr.setText(str(qthreshold))
 
         # Update labels and text fields
-        self._ucrit.setText(str(self._view_model.model.ucritical))
-        self._slength.setText(self._view_model.slength)
         self._update_qvalues_table()
-        self._update_condition_files()
-
-    def _update_condition_files(self):
-        """
-        Update the condition files.
-        Use local copy of the dictionary because the callbacks from
-        the GUI updates will cause updates of the original dictionaries.
-        """
-        file_dictionary = self._view_model.reference_files.copy()
-        for (
-            condition_discharge,
-            reference_file,
-        ) in file_dictionary.items():
-            self._update_condition_file_field(
-                reference_label, condition_discharge, reference_file
-            )
-
-        file_dictionary = self._view_model.measure_files.copy()
-        for condition_discharge, measure_file in file_dictionary.items():
-            self._update_condition_file_field(
-                with_measure_label, condition_discharge, measure_file
-            )
 
     def _update_condition_file_field(
-        self, field_postfix: str, condition_discharge, reference_file
+        self, field_postfix: str, condition_discharge: float, file_location: str
     ):
         """
         Update the condition file field.
@@ -257,13 +256,13 @@ class DialogView:
         Args:
             field_postfix (str): The postfix for the field.
             condition_discharge: The condition discharge.
-            reference_file: The reference file.
+            file_location (str): The file location.
         """
         prefix = str(condition_discharge) + "_"
         key = prefix + field_postfix
         input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
         if input_textbox:
-            input_textbox.setText(reference_file)
+            input_textbox.setText(file_location)
 
     def _update_qvalues_table(self):
         """Update the Q values table."""
@@ -298,7 +297,7 @@ class DialogView:
         self._app = QApplication(sys.argv)
         self._app.setStyle("fusion")
 
-    def _create_dialog(self, config_file: Optional[str] = None) -> None:
+    def _create_dialog(self) -> None:
         """
         Construct the D-FAST Morphological Impact user interface.
 
@@ -306,11 +305,10 @@ class DialogView:
         ---------
         None
         """
-        self._win = MyMainWindow(self._view_model, config_file)
+        self._win = QMainWindow()
         self._win.setGeometry(200, 200, 800, 300)
         self._win.setWindowTitle("D-FAST Morphological Impact")
         self._win.setWindowIcon(DialogView._get_dfast_icon())
-        self._win.installEventFilter(self._win)
 
     def _create_menus(self) -> None:
         """
@@ -409,10 +407,11 @@ class DialogView:
             None
         """
         self._close_plots = QLabel(gui_text("closePlots"), self._win)
-        self._close_plots.setEnabled(False)
+        self._close_plots.setEnabled(self._view_model.make_plot)
         self._close_plots_edit = QCheckBox(self._win)
         self._close_plots_edit.setToolTip(gui_text("closePlots_tooltip"))
-        self._close_plots_edit.setEnabled(False)
+        self._close_plots_edit.setEnabled(self._view_model.make_plot)
+        self._close_plots_edit.setChecked(self._view_model.model.close_plots)
         self._close_plots_edit.stateChanged.connect(self._updated_close_plots)
         layout.addRow(self._close_plots, self._close_plots_edit)
 
@@ -427,13 +426,14 @@ class DialogView:
             None
         """
         self._figure_dir = QLabel(gui_text("figureDir"), self._win)
-        self._figure_dir.setEnabled(False)
+        self._figure_dir.setEnabled(self._view_model.save_plot)
         self._figure_dir_edit = ValidatingLineEdit(FolderExistsValidator(), self._win)
         self._figure_dir_edit.setPlaceholderText("Enter file path")
-        self._figure_dir_edit.setEnabled(False)
+        self._figure_dir_edit.setEnabled(self._view_model.save_plot)
         self._figure_dir_edit.textChanged.connect(
             partial(self._updated_file_or_folder_validation, self._figure_dir_edit)
         )
+        self._figure_dir_edit.setText(self._view_model.figure_dir)
         self._figure_dir_edit.editingFinished.connect(
             partial(
                 self._update_view_model,
@@ -444,7 +444,9 @@ class DialogView:
         )
         layout.addRow(
             self._figure_dir,
-            self._open_folder_layout(self._figure_dir_edit, "figure_dir_edit", False),
+            self._open_folder_layout(
+                self._figure_dir_edit, "figure_dir_edit", self._view_model.save_plot
+            ),
         )
 
     def _create_save_plots_input_checkbox(self, layout: QBoxLayout) -> None:
@@ -458,11 +460,12 @@ class DialogView:
             None
         """
         self._save_plots = QLabel(gui_text("savePlots"), self._win)
-        self._save_plots.setEnabled(False)
+        self._save_plots.setEnabled(self._view_model.make_plot)
         self._save_plots_edit = QCheckBox(self._win)
         self._save_plots_edit.setToolTip(gui_text("savePlots_tooltip"))
+        self._save_plots_edit.setChecked(self._view_model.save_plot)
         self._save_plots_edit.stateChanged.connect(self._updated_save_plotting)
-        self._save_plots_edit.setEnabled(False)
+        self._save_plots_edit.setEnabled(self._view_model.make_plot)
         layout.addRow(self._save_plots, self._save_plots_edit)
 
     def _create_make_plots_input_checkbox(self, layout: QBoxLayout) -> None:
@@ -478,6 +481,7 @@ class DialogView:
         make_plots = QLabel(gui_text("makePlots"), self._win)
         self._make_plots_edit = QCheckBox(self._win)
         self._make_plots_edit.setToolTip(gui_text("makePlots_tooltip"))
+        self._make_plots_edit.setChecked(self._view_model.make_plot)
         self._make_plots_edit.stateChanged.connect(self._updated_plotting)
         layout.addRow(make_plots, self._make_plots_edit)
 
@@ -496,6 +500,7 @@ class DialogView:
         self._output_dir.textChanged.connect(
             partial(self._updated_file_or_folder_validation, line_edit=self._output_dir)
         )
+        self._output_dir.setText(self._view_model.output_dir)
         self._output_dir.editingFinished.connect(
             partial(
                 self._update_view_model,
@@ -627,8 +632,17 @@ class DialogView:
         self._ucrit.setValidator(double_validator)
         self._ucrit.setToolTip(gui_text("ucrit_tooltip"))
         self._ucrit.editingFinished.connect(self._updated_ucritical)
-        self._ucrit.setText(str(self._view_model.model.ucritical))
-        layout.addRow(gui_text("ucrit"), self._ucrit)
+        self._ucrit.setText(str(self._view_model.ucritical))
+        self._ucrit_label = QLabel(
+            gui_text(
+                "ucrit",
+                placeholder_dictionary={
+                    "default": self._view_model.current_reach.ucritical
+                },
+            ),
+            self._win,
+        )
+        layout.addRow(self._ucrit_label, self._ucrit)
 
     def _create_qthreshhold_input(
         self, layout: QBoxLayout, double_validator: QDoubleValidator
@@ -647,9 +661,14 @@ class DialogView:
         self._qthr.setValidator(double_validator)
         self._qthr.editingFinished.connect(self._updated_qthreshold)
         self._qthr.setToolTip(gui_text("qthr_tooltip"))
-        qthrtxt = QLabel(gui_text("qthr"), self._win)
-        self._qthr.setText(str(self._view_model.model.qthreshold))
-        layout.addRow(qthrtxt, self._qthr)
+
+        qthreshold_label_text = gui_text(
+            "qthr",
+            placeholder_dictionary={"stagnant": str(self._view_model.qthreshold)},
+        )
+        self._qthr_label = QLabel(qthreshold_label_text, self._win)
+        self._qthr.setText(str(self._view_model.qthreshold))
+        layout.addRow(self._qthr_label, self._qthr)
 
     def _show_discharge_location(self, layout: QBoxLayout) -> None:
         """
@@ -739,10 +758,7 @@ class DialogView:
             None
         """
         if self._qthr.hasAcceptableInput():
-            new_qthreshold = max(
-                float(self._qthr.text()), self._view_model.current_reach.qstagnant
-            )
-            self._view_model.qthreshold = new_qthreshold
+            self._view_model.qthreshold = float(self._qthr.text())
 
     def _updated_ucritical(self) -> None:
         """
@@ -752,7 +768,7 @@ class DialogView:
             None
         """
         if self._ucrit.hasAcceptableInput():
-            self._view_model.model.ucritical = float(self._ucrit.text())
+            self._view_model.ucritical = float(self._ucrit.text())
 
     def _add_condition_line(
         self, prefix: str, discharge: float, discharge_name: str
@@ -772,25 +788,27 @@ class DialogView:
         Returns:
             None
         """
-        enabled = self._view_model.model.qthreshold < discharge
+        enabled = self._view_model.qthreshold < discharge
 
         # get the reference file
-        q1_reference = ValidatingLineEdit(FileExistValidator(), self._win)
-        q1_reference.setPlaceholderText("Enter reference file path")
-        q1_reference.setEnabled(enabled)
-        q1_reference.textChanged.connect(
-            partial(self._updated_condition_file, q1_reference)
+        q1_reference = self._create_condition_validating_line_edit(
+            prefix,
+            discharge,
+            enabled,
+            self._view_model.reference_files,
+            reference_label,
+            "Enter reference file path",
         )
 
-        q1_reference.setObjectName(prefix + reference_label)
         # get the file with measure
-        q1_with_measure = ValidatingLineEdit(FileExistValidator(), self._win)
-        q1_with_measure.setPlaceholderText("Enter with measure file path")
-        q1_with_measure.setEnabled(enabled)
-        q1_with_measure.textChanged.connect(
-            partial(self._updated_condition_file, q1_with_measure)
+        q1_with_measure = self._create_condition_validating_line_edit(
+            prefix,
+            discharge,
+            enabled,
+            self._view_model.measure_files,
+            with_measure_label,
+            "Enter with measure file path",
         )
-        q1_with_measure.setObjectName(prefix + with_measure_label)
 
         discharge_value_label = QLabel(discharge_name, self._win)
         discharge_value_label.setEnabled(enabled)
@@ -808,6 +826,28 @@ class DialogView:
             row_count,
             2,
         )
+
+    def _create_condition_validating_line_edit(
+        self,
+        prefix: str,
+        discharge: float,
+        enabled: bool,
+        files: FilenameDict,
+        label_suffix: str,
+        placeholder_text: str,
+    ):
+        line_edit = ValidatingLineEdit(FileExistValidator(), self._win)
+        line_edit.setObjectName(prefix + label_suffix)
+
+        line_edit.setPlaceholderText(placeholder_text)
+        line_edit.setEnabled(enabled)
+        line_edit.textChanged.connect(partial(self._updated_condition_file, line_edit))
+
+        file_path = files.get(discharge, None)
+        if file_path:
+            line_edit.setText(file_path)
+
+        return line_edit
 
     def _create_button_bar(self) -> None:
         """
@@ -840,6 +880,8 @@ class DialogView:
         if self._view_model.check_configuration():
             try:
                 success = self._view_model.run_analysis()
+            except (SystemExit, KeyboardInterrupt) as exception:
+                raise exception
             except:
                 self._show_error(
                     "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
@@ -964,7 +1006,7 @@ class DialogView:
         ---------
         None
         """
-        os.startfile(self._view_model.manual_filename)
+        open_pdf_windows(self._view_model.manual_filename)
 
     def _open_file_layout(self, my_widget, key: str, enabled: bool):
         """
@@ -1073,11 +1115,11 @@ class DialogView:
             input_textbox.setText(file)
 
             if "_" + reference_label in key:
-                key_without_suffix = key.replace("_" + reference_label, "")
+                key_without_suffix = float(key.replace("_" + reference_label, ""))
                 self._view_model.reference_files[key_without_suffix] = file
 
             if "_" + with_measure_label in key:
-                key_without_suffix = key.replace("_" + with_measure_label, "")
+                key_without_suffix = float(key.replace("_" + with_measure_label, ""))
                 self._view_model.measure_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
@@ -1185,9 +1227,10 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
 
     # Create ViewModel instance with the Model
     view_model = DialogViewModel(model)
+    view_model.load_configuration(config_file)
 
     # Create View instance with the ViewModel
-    view = DialogView(view_model, config_file)
+    view = DialogView(view_model)
 
     # Initialize the user interface and run the program
     view.activate_dialog()

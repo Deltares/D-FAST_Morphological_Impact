@@ -26,9 +26,11 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
+import traceback
+
 # ViewModel
 from configparser import ConfigParser
-from typing import Dict
+from typing import Dict, Tuple
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -41,20 +43,28 @@ from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.IBranch import IBranch
+from dfastmi.kernel.typehints import FilenameDict
 
 
 class DialogViewModel(QObject):
     """Represents the ViewModel for the dialog interface."""
 
     branch_changed = pyqtSignal(str)
-    reach_changed = pyqtSignal(str)
+    reach_changed = pyqtSignal(AReach)
+    ucritical_changed = pyqtSignal(float)
     qthreshold_changed = pyqtSignal(float)
+    slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
-    _reference_files: Dict[float, str] = {}
-    _measure_files: Dict[float, str] = {}
+    analysis_exception = pyqtSignal(str, str)
+    reference_files_changed = pyqtSignal(str, float, str)
+    measure_files_changed = pyqtSignal(str, float, str)
+    _reference_files: FilenameDict = {}
+    _measure_files: FilenameDict = {}
+    _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}
+    _qthreshold_cache: Dict[Tuple[Branch, AReach], float] = {}
     model: DialogModel
     slength: str = ""
 
@@ -89,9 +99,12 @@ class DialogViewModel(QObject):
         Arguments:
             value (IBranch): The branch to set.
         """
+        if value is self._current_branch:
+            return
+
         self._current_branch = value
         # Notify the view of the change
-        self.branch_changed.emit(self._current_branch.name)
+        self.branch_changed.emit(self.current_branch.name)
 
     @property
     def current_reach(self) -> AReach:
@@ -109,11 +122,40 @@ class DialogViewModel(QObject):
         Arguments:
             value (AReach): The reach to set.
         """
+        if value is self._current_reach:
+            return
+
         self._current_reach = value
         self._initialize_qthreshold()
         self._initialize_ucritical()
+        self._update_slength()
         # Notify the view of the change
-        self.reach_changed.emit(self._current_reach.name)
+        self.reach_changed.emit(self.current_reach)
+
+    @property
+    def ucritical(self) -> float:
+        """
+        The current critical (minimum) velocity [m/s] for sediment transport.
+        """
+        return self._ucritical
+
+    @ucritical.setter
+    def ucritical(self, value: float):
+        """
+        Setter for the current critical (minimum) velocity [m/s] for sediment transport.
+        After set notify the view of the change.
+
+        Arguments:
+            value (float): The critical (minimum) velocity [m/s] for sediment transport to set.
+        """
+        if self._ucritical == value:
+            return
+
+        self._ucritical = value
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = value
+
+        # Notify the view of the change
+        self.ucritical_changed.emit(self.ucritical)
 
     @property
     def qthreshold(self) -> float:
@@ -131,24 +173,28 @@ class DialogViewModel(QObject):
         Arguments:
             value (float): The threshold discharge to set.
         """
+        if self._qthreshold == value:
+            return
+
+        value = max(value, self.current_reach.qstagnant)
         self._qthreshold = value
-        self.model.qthreshold = value
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = value
 
         self._update_slength()
         # Notify the view of the change
-        self.qthreshold_changed.emit(self._qthreshold)
+        self.qthreshold_changed.emit(self.qthreshold)
 
     @property
-    def reference_files(self) -> Dict[float, str]:
+    def reference_files(self) -> FilenameDict:
         """
-        Dict[float, str]: The reference files.
+        FilenameDict: The reference files.
         """
         return self._reference_files
 
     @property
-    def measure_files(self) -> Dict[float, str]:
+    def measure_files(self) -> FilenameDict:
         """
-        Dict[float, str]: The measurement files.
+        FilenameDict: The measurement files.
         """
         return self._measure_files
 
@@ -222,20 +268,48 @@ class DialogViewModel(QObject):
             ConfigParser: The configuration.
         """
         return self.model.get_configuration(
-            self._current_branch,
-            self._current_reach,
+            self.current_branch,
+            self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )
 
     def run_analysis(self) -> bool:
         """
         Run the analysis.
 
-        Returns:
-            bool: True if analysis is successful, False otherwise.
+        Return
+        ---------
+        succes : bool
+            If the analysis could be run successfully.
+            We call batch_mode_core which can throw and log an exception.
+            If thrown, analysis has failed.
         """
-        return self.model.run_analysis(gui=True)
+        try:
+            run_config = self.model.get_configuration(
+                self.current_branch,
+                self.current_reach,
+                self.reference_files,
+                self.measure_files,
+                self.ucritical,
+                self.qthreshold,
+            )
+            return dfastmi.batch.core.batch_mode_core(
+                self.model.rivers, False, run_config, gui=True
+            )
+        except (SystemExit, KeyboardInterrupt) as exception:
+            raise exception
+        except:
+            stack_trace = traceback.format_exc()
+            # Notify the view of the change
+            self.analysis_exception.emit(
+                "A run-time exception occurred. Press 'Show Details...' for the full stack trace.",
+                stack_trace,
+            )
+
+        return False
 
     @property
     def manual_filename(self) -> str:
@@ -269,23 +343,33 @@ class DialogViewModel(QObject):
             Newly selected branch.
         """
         self.current_branch = self.model.rivers.get_branch(branch_name)
-        if self.current_reach.name != self._current_branch.reaches[0].name:
-            self.current_reach = self._current_branch.reaches[0]
+        if self.current_reach.name != self.current_branch.reaches[0].name:
+            self.current_reach = self.current_branch.reaches[0]
 
     def _initialize_ucritical(self):
         """
         Initialize the critical velocity.
         """
-        if self.model.ucritical < self.current_reach.ucritical:
-            self.model.ucritical = self.current_reach.ucritical
+        self._ucritical = 0.0
+        if (self.current_branch, self.current_reach) in self._ucrit_cache:
+            self.ucritical = self._ucrit_cache[
+                (self.current_branch, self.current_reach)
+            ]
+        else:
+            self.ucritical = self.current_reach.ucritical
 
     def _initialize_qthreshold(self):
         """
         Initialize the threshold discharge.
         """
-        if self.model.qthreshold < self.current_reach.qstagnant:
-            self.model.qthreshold = self.current_reach.qstagnant
-        self.qthreshold = self.model.qthreshold
+        self._qthreshold = 0.0
+        if (self.current_branch, self.current_reach) in self._qthreshold_cache:
+            self.qthreshold = max(
+                self._qthreshold_cache[(self.current_branch, self.current_reach)],
+                self.current_reach.qstagnant,
+            )
+        else:
+            self.qthreshold = self.current_reach.qstagnant
 
     def updated_reach(self, reach_name: str) -> None:
         """
@@ -297,7 +381,7 @@ class DialogViewModel(QObject):
             Newly selected reach.
         """
         if reach_name:
-            self.current_reach = self._current_branch.get_reach(reach_name)
+            self.current_reach = self.current_branch.get_reach(reach_name)
 
     def _update_slength(self) -> None:
         """
@@ -310,31 +394,35 @@ class DialogViewModel(QObject):
         try:
             if self.current_reach.auto_time:
                 _, time_mi = ConfigurationInitializer.set_times(
-                    self._current_reach.hydro_q,
-                    self._current_reach.qfit,
-                    self._current_reach.qstagnant,
-                    self.model.qthreshold,
+                    self.current_reach.hydro_q,
+                    self.current_reach.qfit,
+                    self.current_reach.qstagnant,
+                    self.qthreshold,
                 )
             else:
                 time_fractions_of_the_year = (
                     ConfigurationInitializer.get_time_fractions_of_the_year(
-                        self._current_reach.hydro_t
+                        self.current_reach.hydro_t
                     )
                 )
                 time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self.model.qthreshold,
-                    self._current_reach.hydro_q,
+                    self.qthreshold,
+                    self.current_reach.hydro_q,
                     time_fractions_of_the_year,
                 )
             celerity = ConfigurationInitializer.get_bed_celerity(
-                self._current_reach, self._current_reach.hydro_q
+                self.current_reach, self.current_reach.hydro_q
             )
             slength = dfastmi.kernel.core.estimate_sedimentation_length(
                 time_mi, celerity
             )
             self.slength = str(int(slength))
+        except (SystemExit, KeyboardInterrupt) as exception:
+            raise exception
         except:
             self.slength = "---"
+
+        self.slength_changed.emit(self.slength)
 
     def save_configuration(self, filename: str) -> None:
         """
@@ -354,6 +442,8 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )
         ConfigFileOperations.save_configuration_file(filename, config)
 
@@ -371,15 +461,6 @@ class DialogViewModel(QObject):
         """
         self.model.load_configuration(filename)
 
-        self._reference_files = {}
-        self._measure_files = {}
-        for section_name in self.model.config.sections():
-            if section_name.lower().startswith("c"):
-                section = self.model.config[section_name]
-                cond_discharge = section.getfloat("Discharge", 0.0)
-                self._reference_files[cond_discharge] = section.get("Reference", "")
-                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
-
         branch = self.model.rivers.get_branch(self.model.branch_name)
         if not branch:
             branch = self.model.rivers.branches[0]
@@ -387,12 +468,20 @@ class DialogViewModel(QObject):
 
         reach = self.current_branch.get_reach(self.model.reach_name)
         if not reach:
-            reach = self._current_branch.reaches[0]
+            reach = self.current_branch.reaches[0]
         self.current_reach = reach
 
+        self._qthreshold_cache[(self.current_branch, self.current_reach)] = (
+            self.model.qthreshold
+        )
         self._initialize_qthreshold()
+
+        self._ucrit_cache[(self.current_branch, self.current_reach)] = (
+            self.model.ucritical
+        )
         self._initialize_ucritical()
         self._update_slength()
+        self._initialize_reference_and_measure()
 
         self.make_plot = self.model.plotting
         self.save_plot = self.model.save_plots
@@ -400,6 +489,24 @@ class DialogViewModel(QObject):
         self.output_dir = self.model.output_dir
 
         return True
+
+    def _initialize_reference_and_measure(self):
+        self._reference_files = {}
+        self._measure_files = {}
+        for section_name in self.model.config.sections():
+            if section_name.lower().startswith("c"):
+                section = self.model.config[section_name]
+                cond_discharge = section.getfloat("Discharge", 0.0)
+
+                self._reference_files[cond_discharge] = section.get("Reference", "")
+                self.reference_files_changed.emit(
+                    "reference", cond_discharge, self._reference_files[cond_discharge]
+                )
+
+                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
+                self.measure_files_changed.emit(
+                    "with_measure", cond_discharge, self._measure_files[cond_discharge]
+                )
 
     def check_configuration(self) -> bool:
         """
@@ -413,4 +520,6 @@ class DialogViewModel(QObject):
             self.current_reach,
             self.reference_files,
             self.measure_files,
+            self.ucritical,
+            self.qthreshold,
         )

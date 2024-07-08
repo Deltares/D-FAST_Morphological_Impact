@@ -81,103 +81,196 @@ def project_xy_point_onto_line(
     # get an array with only the x,y coordinates of xyline
     last_node = xyline.shape[0] - 1
 
-    # initialize sgn for the exceptional case of xyline containing just one node.
-    sgn = 1
-
-    # for each point xyp = xyf[i] ...
+    # for each point
     for i, xyp in enumerate(xyf):
-        # find the node on xyline closest to xyp
-        imin = numpy.argmin(((xyp - xyline) ** 2).sum(axis=1))
-        p0 = xyline[imin]
-
-        # determine the distance between that node and xyp
-        dist2 = ((xyp - p0) ** 2).sum()
-
-        # distance value of that node
-        s = sline[imin]
-
-        if imin == 0:
-            # we got the first node
-            # check if xyp projects much before the first line segment.
-            p1 = xyline[imin + 1]
-            alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
-            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (
-                xyp[0] - p0[0]
-            )
-            # if the closest point is before the segment ...
-            if alpha < 0:
-                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
-                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
-                ) ** 2
-                dist2end = dist2 - dist2link
-                if dist2end > 100:
-                    dist2 = 1e20
-
-        else:
-            # we didn't get the first node
-            # project xyp onto the line segment before this node
-            p1 = xyline[imin - 1]
-            alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
-            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = (p0[0] - p1[0]) * (xyp[1] - p0[1]) - (p0[1] - p1[1]) * (
-                xyp[0] - p0[0]
-            )
-            # if there is a closest point not coinciding with the nodes ...
-            if alpha > 0 and alpha < 1:
-                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
-                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
-                ) ** 2
-                # if it's actually closer than the node ...
-                if dist2link < dist2:
-                    # update the closest point information
-                    dist2 = dist2link
-                    s = sline[imin] + alpha * (sline[imin - 1] - sline[imin])
-
-        if imin == last_node:
-            # we got the last node
-            # check if xyp projects much beyond the last line segment.
-            p1 = xyline[imin - 1]
-            alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
-            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = (p0[0] - p1[0]) * (xyp[1] - p0[1]) - (p0[1] - p1[1]) * (
-                xyp[0] - p0[0]
-            )
-            # if the closest point is before the segment ...
-            if alpha < 0:
-                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
-                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
-                ) ** 2
-                dist2end = dist2 - dist2link
-                if dist2end > 100:
-                    dist2 = 1e20
-
-        else:
-            # we didn't get the last node
-            # project rp onto the line segment after this node
-            p1 = xyline[imin + 1]
-            alpha = (
-                (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
-            ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
-            sgn = (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (
-                xyp[0] - p0[0]
-            )
-            # if there is a closest point not coinciding with the nodes ...
-            if alpha > 0 and alpha < 1:
-                dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
-                    xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
-                ) ** 2
-                # if it's actually closer than the previous value ...
-                if dist2link < dist2:
-                    # update the closest point information
-                    dist2 = dist2link
-                    s = sline[imin] + alpha * (sline[imin + 1] - sline[imin])
-
-        # store the distance values, loop ... and return
-        sf[i] = s
-        df[i] = math.copysign(math.sqrt(dist2), sgn)
+        sf[i], df[i] = _project_one_xy_point_onto_line(xyp, xyline, sline, last_node)
 
     return sf, df
+
+
+def _project_one_xy_point_onto_line(
+    xyp: numpy.ndarray, xyline: numpy.ndarray, sline: numpy.ndarray, last_node: int
+) -> Tuple[float, float]:
+    """
+    Project a single point onto a line.
+
+    For a point xyp the closest point P a line (xyline) is determined.
+    The quantities returned are the distance (s) measured along the line (xyline)
+    for the closest point P, the signed distance (d) between the original point (xf, yf)
+    and the projected point P. If the original point is located alongsize the line
+    (xyline) then the distance (df) is the normal distance ... if the original point is
+    located before or beyond the line (xyline), it will include an oblique distance component.
+    The sign of the distance (df) is positive for points to the right and negative for points
+    to the left of the line.
+
+    Arguments
+    ---------
+    xyp : numpy.ndarray
+        Array containing the x and y coordinate of a point.
+    xyline : numpy.ndarray
+        Array containing the x,y data of a line.
+    sline : numpy.ndarray
+        Array containing the distance measure along the line xyline.
+    last_node : int
+        Index of the last node: xyline.shape[0] - 1
+
+    Results
+    -------
+    s : float
+        Distance along the line.
+    d : float
+        The distance from the line (- for left, + for right).
+    """
+    # find the node on xyline closest to xyp
+    imin = numpy.argmin(((xyp - xyline) ** 2).sum(axis=1))
+    p0 = xyline[imin]
+
+    # determine the distance between that node and xyp
+    dist = ((xyp - p0) ** 2).sum()
+
+    # distance value of that node
+    s0 = sline[imin]
+    s = s0
+
+    if imin == 0:
+        # we got the first node
+        # check if xyp projects much before the first line segment.
+        dist, sgn = _project_one_xy_point_beyond_segment(
+            xyp, p0, xyline[imin + 1], 1.0, dist
+        )
+
+    else:
+        # we didn't get the first node
+        # project xyp onto the line segment before this node
+        dist, sgn, s = _project_one_xy_point_onto_segment(
+            xyp, p0, xyline[imin - 1], -1.0, dist, s, s0, sline[imin - 1]
+        )
+
+    if imin == last_node:
+        # we got the last node
+        # check if xyp projects much beyond the last line segment.
+        dist, sgn = _project_one_xy_point_beyond_segment(
+            xyp, p0, xyline[imin - 1], -1.0, dist
+        )
+
+    else:
+        # we didn't get the last node
+        # project rp onto the line segment after this node
+        dist, sgn, s = _project_one_xy_point_onto_segment(
+            xyp, p0, xyline[imin + 1], 1.0, dist, s, s0, sline[imin + 1]
+        )
+
+    return s, math.copysign(math.sqrt(dist), sgn)
+
+
+def _project_one_xy_point_beyond_segment(
+    xyp: numpy.ndarray, p0: numpy.ndarray, p1: numpy.ndarray, sgn0: float, dist: float
+) -> Tuple[float, float]:
+    """
+    Project a single point onto an extended line segment.
+
+    A point xyp is projected on the extension of the line segment between points p0 and
+    point p1 beyond point p0. The distance dist is set to 1e20 if the point xyp projects
+    "far" beyond point p0.
+
+    Arguments
+    ---------
+    xyp : numpy.ndarray
+        Array containing the x and y coordinate of a point.
+    p0 : numpy.ndarray
+        Array containing the x,y data of segment point 0.
+    p1 : numpy.ndarray
+        Array containing the x,y data of segment point 1.
+    sgn0 : float
+        Orientation of the segment.
+    dist : float
+        Reference distance.
+
+    Results
+    -------
+    dist : float
+        The distance from the line (always positive).
+    sgn : float
+        The direction from the line (- for left, + for right).
+    """
+    alpha = (
+        (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+    ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
+    sgn = sgn0 * (
+        (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (xyp[0] - p0[0])
+    )
+    # if the closest point is before the segment ...
+    if alpha < 0:
+        dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
+            xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
+        ) ** 2
+        dist2end = dist - dist2link
+        if dist2end > 100:
+            dist = 1e20
+
+    return dist, sgn
+
+
+def _project_one_xy_point_onto_segment(
+    xyp: numpy.ndarray,
+    p0: numpy.ndarray,
+    p1: numpy.ndarray,
+    sgn0: float,
+    dist: float,
+    s: float,
+    s0: float,
+    s1: float,
+) -> Tuple[float, float, float]:
+    """
+    Project a single point onto a line segment.
+
+    A point xyp is projected on the line segment between points p0 and point p1.
+    The distance dist between point and the path distance along the line are updated if
+    the point projects onto the line segment.
+
+    Arguments
+    ---------
+    xyp : numpy.ndarray
+        Array containing the x and y coordinate of a point.
+    p0 : numpy.ndarray
+        Array containing the x,y data of segment point 0.
+    p1 : numpy.ndarray
+        Array containing the x,y data of segment point 1.
+    sgn0 : float
+        Orientation of the segment.
+    dist : float
+        Reference distance.
+    s : float
+        Reference path distance along line.
+    s0 : float
+        Path distance along line of segment point 0.
+    s1 : float
+        Path distance along line of segment point 1.
+
+    Results
+    -------
+    dist : float
+        The distance from the line (always positive).
+    sgn : float
+        The direction from the line (- for left, + for right).
+    dist : float
+        The path distance of the projected point.
+    """
+    alpha = (
+        (p1[0] - p0[0]) * (xyp[0] - p0[0]) + (p1[1] - p0[1]) * (xyp[1] - p0[1])
+    ) / ((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2)
+    sgn = sgn0 * (
+        (p1[0] - p0[0]) * (xyp[1] - p0[1]) - (p1[1] - p0[1]) * (xyp[0] - p0[0])
+    )
+    # if there is a closest point not coinciding with the nodes ...
+    if alpha > 0 and alpha < 1:
+        dist2link = (xyp[0] - p0[0] - alpha * (p1[0] - p0[0])) ** 2 + (
+            xyp[1] - p0[1] - alpha * (p1[1] - p0[1])
+        ) ** 2
+        # if it's actually closer than the node ...
+        if dist2link < dist:
+            # update the closest point information
+            dist = dist2link
+            s = s0 + alpha * (s1 - s0)
+
+    return dist, sgn, s

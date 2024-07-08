@@ -30,7 +30,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 import sys
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Optional, TextIO, Tuple
+from typing import Any, Dict, Optional, TextIO, Tuple, Union
 
 import matplotlib
 from packaging.version import InvalidVersion, Version
@@ -82,6 +82,8 @@ def batch_mode(config_file: str, rivers: RiversObject, reduced_output: bool) -> 
     try:
         config = ConfigFileOperations.load_configuration_file(config_file)
         rootdir = Path(config_file).parent
+    except (SystemExit, KeyboardInterrupt) as exception:
+        raise exception
     except:
         print(sys.exc_info()[1])
     else:
@@ -260,22 +262,41 @@ def _report_used_file_names(
             key = (q, initialized_config.tide_bc[i])
         else:
             key = q
-        condition = "{:7.1f} m3/s".format(q)
-        if q <= initialized_config.q_threshold:
-            _report_analysis_conditions_values(
-                condition, "---", "---     (measure not active)", report
+
+        condition, reference_file_name, measure_file_name, comment = (
+            get_analysis_condition_values_for_logging(
+                initialized_config, filenames, q, key
             )
-        elif key in filenames:
-            files = filenames[key]
-            reference_file_name = _get_file_name(files[0])
-            measure_file_name = _get_file_name(files[1])
-            _report_analysis_conditions_values(
-                condition, reference_file_name, measure_file_name, report
-            )
-        else:
-            _report_analysis_conditions_values(
-                condition, "xxx", "xxx     (not specified)", report
-            )
+        )
+
+        _report_analysis_conditions_values(
+            condition, reference_file_name, measure_file_name, comment, report
+        )
+
+
+def get_analysis_condition_values_for_logging(
+    initialized_config: AConfigurationInitializerBase,
+    filenames: Dict[Any, Tuple[str, str]],
+    q: float,
+    key: Union[int, tuple[float, str], float],
+) -> Tuple[str, str, str, str]:
+    condition = "{:7.1f} m3/s".format(q)
+
+    if q <= initialized_config.q_threshold:
+        reference_file_name = "---"
+        measure_file_name = "---"
+        comment = "(measure not active)"
+    elif key in filenames:
+        files = filenames[key]
+        reference_file_name = _get_file_name(files[0])
+        measure_file_name = _get_file_name(files[1])
+        comment = ""
+    else:
+        reference_file_name = "xxx"
+        measure_file_name = "xxx"
+        comment = "(not specified)"
+
+    return condition, reference_file_name, measure_file_name, comment
 
 
 def _get_file_name(location: str) -> str:
@@ -284,12 +305,13 @@ def _get_file_name(location: str) -> str:
 
 
 def _report_analysis_conditions_values(
-    condition: str, reference: str, measure: str, report: TextIO
+    condition: str, reference: str, measure: str, comment: str, report: TextIO
 ):
     settings = {
         "condition": condition,
         "reference": reference,
         "measure": measure,
+        "comment": comment,
     }
     ApplicationSettingsHelper.log_text(
         "analysis_settings_conditions_values", file=report, dict=settings
@@ -737,26 +759,7 @@ def write_report(
             "closed_barriers", dict={"ndays": int(365 * tstag)}, file=report
         )
         ApplicationSettingsHelper.log_text("", file=report)
-    for i in range(3):
-        if discharges[i] is not None:
-            ApplicationSettingsHelper.log_text(
-                "char_discharge",
-                dict={"n": i + 1, "q": discharges[i], "border": q_location},
-                file=report,
-            )
-            if i < 2:
-                tdays = int(365 * t[i])
-            else:
-                tdays = max(
-                    0, 365 - int(365 * t[0]) - int(365 * t[1]) - int(365 * tstag)
-                )
-            ApplicationSettingsHelper.log_text(
-                "char_period", dict={"n": i + 1, "ndays": tdays}, file=report
-            )
-            if i < 2:
-                ApplicationSettingsHelper.log_text("", file=report)
-            else:
-                ApplicationSettingsHelper.log_text("---", file=report)
+    _write_report_discharges(report, q_location, tstag, discharges, t)
     number_of_discharges = count_discharges(discharges)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text(
@@ -788,3 +791,48 @@ def write_report(
         "length_estimate", dict={"nlength": nlength}, file=report
     )
     ApplicationSettingsHelper.log_text("prepare_input", file=report)
+
+
+def _write_report_discharges(
+    report: TextIO, q_location: str, tstag: float, discharges: Vector, t: Vector
+) -> None:
+    """
+    Write the discharges part of the analysis report to file.
+
+    Arguments
+    ---------
+    report : TextIO
+        Text stream for log file.
+    q_location : str
+        The name of the discharge location.
+    tstag : float
+        Fraction of year during which the flow velocity is negligible.
+    discharges : Vector
+        A tuple of 3 discharges (Q) for which simulation results are (expected to be) available.
+    t : Vector
+        A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
+
+    Returns
+    -------
+    None
+    """
+    for i in range(3):
+        if discharges[i] is not None:
+            ApplicationSettingsHelper.log_text(
+                "char_discharge",
+                dict={"n": i + 1, "q": discharges[i], "border": q_location},
+                file=report,
+            )
+            if i < 2:
+                tdays = int(365 * t[i])
+            else:
+                tdays = max(
+                    0, 365 - int(365 * t[0]) - int(365 * t[1]) - int(365 * tstag)
+                )
+            ApplicationSettingsHelper.log_text(
+                "char_period", dict={"n": i + 1, "ndays": tdays}, file=report
+            )
+            if i < 2:
+                ApplicationSettingsHelper.log_text("", file=report)
+            else:
+                ApplicationSettingsHelper.log_text("---", file=report)

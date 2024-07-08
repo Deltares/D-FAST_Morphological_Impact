@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import traceback
 from configparser import ConfigParser, SectionProxy
-from typing import List, Optional
+from typing import Optional
 
 from packaging.version import Version
 from pydantic import BaseModel
@@ -41,7 +41,9 @@ from dfastmi.config.ConfigFileOperations import (
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
 from dfastmi.io.ConfigBooleans import BOOLEAN_STATES
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 
 
 class GeneralConfig(BaseModel):
@@ -114,20 +116,10 @@ class DialogModel:
         """Get Qthreshold."""
         return self.section.getfloat("Qthreshold", 0.0)
 
-    @qthreshold.setter
-    def qthreshold(self, value: float):
-        """Set Qthreshold."""
-        self.section["Qthreshold"] = str(value)
-
     @property
     def ucritical(self) -> float:
         """Get Ucritical."""
         return self.section.getfloat("Ucrit", 0.3)
-
-    @ucritical.setter
-    def ucritical(self, value: float):
-        """Set Ucritical."""
-        self.section["Ucrit"] = str(value)
 
     @property
     def output_dir(self) -> str:
@@ -194,6 +186,8 @@ class DialogModel:
         """Load configuration."""
         try:
             self.config = ConfigFileOperations.load_configuration_file(filename)
+        except (SystemExit, KeyboardInterrupt) as exception:
+            raise exception
         except:
             if filename != "dfastmi.cfg":
                 return False
@@ -203,43 +197,67 @@ class DialogModel:
         return True
 
     def check_configuration(
-        self, branch: Branch, reach: AReach, reference_files: List, measure_files: List
+        self,
+        branch: Branch,
+        reach: AReach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
+        ucritical: float,
+        qthreshold: float,
     ) -> bool:
-        """Check configuration."""
-        config = self.get_configuration(branch, reach, reference_files, measure_files)
-        return check_configuration(self.rivers, config)
-
-    def run_analysis(self, gui: bool = False) -> bool:
-        # Logic to run analysis based on configuration
         """
-        Run the D-FAST Morphological Impact analysis based on settings in the GUI.
+        Check if configuration can be created.
 
         Arguments
         ---------
-        gui : bool
-            Flag indicating whether this routine is called from the GUI.
+        branch: Branch
+            Selected branch which is used and should be in this config.
+        reach: AReach
+            Selected reach which is used and should be in this config.
+        reference_files: FilenameDict
+            Selected reference files which is used and should be in this config.
+        measure_files: FilenameDict
+            Selected measure files which is used and should be in this config.
+        ucritical : float
+            Selected minimal critical flow value which is used and should be in this config.
+        qthreshold : float
+            Selected discharge threshold value which is used and should be in this config.
 
-        Return
-        ---------
-        succes : bool
-            If the analysis could be run successfully.
-            We call batch_mode_core which can throw and log an exception.
-            If thrown, analysis has failed.
+        Returns
+        -------
+            Boolean indicating whether the (D-FAST MI analysis) configuration can be created.
         """
-        success = dfastmi.batch.core.batch_mode_core(
-            self.rivers, False, self.config, gui=gui
+        config = self.get_configuration(
+            branch, reach, reference_files, measure_files, ucritical, qthreshold
         )
-        return success
+        return check_configuration(self.rivers, config)
 
     def get_configuration(
-        self, branch: Branch, reach: AReach, reference_files: List, measure_files: List
+        self,
+        branch: Branch,
+        reach: AReach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
+        ucritical: float,
+        qthreshold: float,
     ) -> ConfigParser:
         """
         Extract a configuration from the GUI.
 
         Arguments
         ---------
-        None
+        branch: Branch
+            Selected branch which is used and should be in this config.
+        reach: AReach
+            Selected reach which is used and should be in this config.
+        reference_files: FilenameDict
+            Selected reference files which is used and should be in this config.
+        measure_files: FilenameDict
+            Selected measure files which is used and should be in this config.
+        ucritical : float
+            Selected minimal critical flow value which is used and should be in this config.
+        qthreshold : float
+            Selected discharge threshold value which is used and should be in this config.
 
         Returns
         -------
@@ -254,8 +272,8 @@ class DialogModel:
             CaseDescription=self.case_description,
             Branch=branch.name,
             Reach=reach.name,
-            Qthreshold=self.qthreshold,
-            Ucrit=self.ucritical,
+            Qthreshold=qthreshold,
+            Ucrit=ucritical,
             OutputDir=self.output_dir,
             Plotting=self.plotting,
             SavePlots=self.save_plots,
@@ -264,29 +282,30 @@ class DialogModel:
             RiverKM=self.riverkm_file,
         ).model_dump()
 
-        self._get_condition_configuration(config, reach, reference_files, measure_files)
+        if isinstance(reach, Reach):
+            self._get_condition_configuration(
+                config, reach, reference_files, measure_files
+            )
         self._add_unknown_read_config_key_values(config)
         return config
 
     def _get_condition_configuration(
         self,
         config: ConfigParser,
-        reach: AReach,
-        reference_files: List,
-        measure_files: List,
+        reach: Reach,
+        reference_files: FilenameDict,
+        measure_files: FilenameDict,
     ) -> None:
         """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
-            qstr = str(discharge)
-            if qstr in reference_files.keys() or qstr in measure_files.keys():
+            if discharge in reference_files.keys() or discharge in measure_files.keys():
                 cond = f"C{i+1}"
+
                 condition = ConditionConfig(
-                    Discharge=discharge, Reference="", WithMeasure=""
+                    Discharge=discharge,
+                    Reference=reference_files.get(discharge, ""),
+                    WithMeasure=measure_files.get(discharge, ""),
                 )
-                if qstr in reference_files.keys():
-                    condition.Reference = reference_files[qstr]
-                if qstr in measure_files.keys():
-                    condition.WithMeasure = measure_files[qstr]
 
                 config[cond] = condition.model_dump()
 

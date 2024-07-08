@@ -94,7 +94,7 @@ class RiversObject:
         self._parse_branches(config)
 
         # parse reaches and discharge locations
-        self._parse_reaches(config, self.version)
+        self._parse_reaches(config)
 
         # call the specific reader for the file version
         if self.version == Version("1"):
@@ -103,7 +103,7 @@ class RiversObject:
         else:
             self._read_rivers(river_data)
 
-    def _parse_reaches(self, config: configparser.ConfigParser, version: Version):
+    def _parse_reaches(self, config: configparser.ConfigParser):
         for branch in self.branches:
             i = 0
             while True:
@@ -137,7 +137,7 @@ class RiversObject:
     def _validate_version_in_file(self, filename, config) -> Version:
         try:
             file_version = config["General"]["Version"]
-        except:
+        except KeyError:
             raise Exception("No version information in the file {}!".format(filename))
 
         if Version(file_version) not in [Version("1"), Version("2"), Version("3")]:

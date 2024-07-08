@@ -13,7 +13,9 @@ from dfastmi.config.ConfigFileOperations import (
 from dfastmi.gui.dialog_model import DialogModel, GeneralConfig
 from dfastmi.io.AReach import AReach
 from dfastmi.io.Branch import Branch
+from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
+from dfastmi.kernel.typehints import FilenameDict
 
 
 @pytest.fixture
@@ -44,10 +46,18 @@ def mock_branch() -> MagicMock:
 
 @pytest.fixture
 def mock_reach() -> MagicMock:
+    """Fixture for creating a MagicMock object of Reach."""
+    reach = MagicMock(Reach)
+    reach.name = "MyReach"
+    reach.hydro_q = (80.1, 80.2)
+    return reach
+
+
+@pytest.fixture
+def mock_areach() -> MagicMock:
     """Fixture for creating a MagicMock object of AReach."""
     reach = MagicMock(AReach)
     reach.name = "MyReach"
-    reach.hydro_q = (80.1, 80.2)
     return reach
 
 
@@ -60,75 +70,21 @@ def mock_rivers_object() -> MagicMock:
 
 
 @pytest.fixture
-def mock_reference_files() -> Dict[float, str]:
+def mock_reference_files() -> FilenameDict:
     """Fixture for creating mock reference files."""
-    return {"80.1": "reference1.txt", "80.2": "reference2.txt"}
+    return {80.1: "reference1.txt", 80.2: "reference2.txt"}
 
 
 @pytest.fixture
-def mock_measure_files() -> Dict[float, str]:
+def mock_measure_files() -> FilenameDict:
     """Fixture for creating mock measurement files."""
-    return {"80.1": "measure1.txt", "80.2": "measure2.txt"}
+    return {80.1: "measure1.txt", 80.2: "measure2.txt"}
 
 
 @pytest.fixture
 def dialog_model(mock_rivers_object: MagicMock) -> DialogModel:
     """Fixture for creating a DialogModel instance."""
     return DialogModel(mock_rivers_object)
-
-
-@pytest.fixture
-def mock_batch_mode_core() -> MagicMock:
-    """Fixture for mocking the batch_mode_core function."""
-    with patch("dfastmi.batch.core.batch_mode_core") as mock_batch_mode_core:
-        # Set the return value of batch_mode_core to True (success)
-        mock_batch_mode_core.return_value = True
-        yield mock_batch_mode_core
-
-
-def test_run_analysis_success(mock_batch_mode_core: MagicMock) -> None:
-    """
-    Test case for successful analysis run.
-
-    given: A DialogModel instance.
-    when: Calling the run_analysis method.
-    then: The batch_mode_core function is called and the return value of run_analysis is True (success).
-    """
-    # Create an instance of DialogModel
-    model = DialogModel(rivers_configuration=None)
-
-    # Call the run_analysis method
-    result = model.run_analysis()
-
-    # Check that batch_mode_core was called
-    mock_batch_mode_core.assert_called_once()
-
-    # Check that the return value of run_analysis is True (success)
-    assert result is True
-
-
-def test_run_analysis_failure(mock_batch_mode_core: MagicMock) -> None:
-    """
-    Test case for failed analysis run.
-
-    given: A DialogModel instance.
-    when: Calling the run_analysis method with batch_mode_core returning False.
-    then: The batch_mode_core function is called and the return value of run_analysis is False (failure).
-    """
-    # Set the return value of batch_mode_core to False (failure)
-    mock_batch_mode_core.return_value = False
-
-    # Create an instance of DialogModel
-    model = DialogModel(rivers_configuration=None)
-
-    # Call the run_analysis method
-    result = model.run_analysis()
-
-    # Check that batch_mode_core was called
-    mock_batch_mode_core.assert_called_once()
-
-    # Check that the return value of run_analysis is False (failure)
-    assert result is False
 
 
 class Test_create_configuration:
@@ -196,21 +152,6 @@ class Test_create_configuration:
         assert not dialog_model.close_plots
 
 
-def test_load_configuration_init(mock_rivers_object: MagicMock, mocker) -> None:
-    """
-    Test case for loading configuration initialization.
-
-    given: A DialogModel instance, mock RiversObject, and mocker.
-    when: Initializing the DialogModel.
-    then: The configuration object is not None.
-    """
-    config = ConfigParser()
-    config["General"] = {}
-    model = DialogModel(mock_rivers_object)
-
-    assert model.config is not None
-
-
 def test_load_configuration(dialog_model: DialogModel, mocker) -> None:
     """
     Test case for loading configuration.
@@ -271,9 +212,9 @@ def test_load_configuration_except_true(dialog_model: DialogModel, mocker) -> No
 def test_check_configuration(
     dialog_model: DialogModel,
     mock_branch: MagicMock,
-    mock_reach: MagicMock,
-    mock_reference_files: Dict[float, str],
-    mock_measure_files: Dict[float, str],
+    mock_areach: MagicMock,
+    mock_reference_files: FilenameDict,
+    mock_measure_files: FilenameDict,
 ) -> None:
     """
     Test case for checking configuration.
@@ -288,7 +229,7 @@ def test_check_configuration(
 
     # Call the check_configuration method
     result = dialog_model.check_configuration(
-        mock_branch, mock_reach, mock_reference_files, mock_measure_files
+        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
     assert (
@@ -297,16 +238,16 @@ def test_check_configuration(
 
     # Assert that get_configuration is called with the correct arguments
     dialog_model.get_configuration.assert_called_once_with(
-        mock_branch, mock_reach, mock_reference_files, mock_measure_files
+        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
 
 def test_get_configuration(
     dialog_model: DialogModel,
     mock_branch: MagicMock,
-    mock_reach: MagicMock,
-    mock_reference_files: Dict[float, str],
-    mock_measure_files: Dict[float, str],
+    mock_areach: MagicMock,
+    mock_reference_files: FilenameDict,
+    mock_measure_files: FilenameDict,
 ) -> None:
     """
     Test case for getting configuration.
@@ -317,7 +258,51 @@ def test_get_configuration(
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_reach, mock_reference_files, mock_measure_files
+        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
+    )
+
+    # Check if the configuration parser is an instance of ConfigParser
+    assert isinstance(config_parser, ConfigParser)
+
+    # Check if the "General" section is present in the configuration parser
+    assert "General" in config_parser
+
+    # Check if the values in the "General" section are set correctly
+    general_section = config_parser["General"]
+    assert general_section["Branch"] == mock_branch.name
+    assert general_section["Reach"] == mock_areach.name
+    assert float(general_section["Qthreshold"]) == 8.01
+    assert float(general_section["Ucrit"]) == 80.1
+    assert general_section["OutputDir"] == dialog_model.output_dir
+    assert general_section.getboolean("Plotting") == dialog_model.plotting
+    assert general_section.getboolean("SavePlots") == dialog_model.save_plots
+    assert general_section["FigureDir"] == dialog_model.figure_dir
+    assert general_section.getboolean("ClosePlots") == dialog_model.close_plots
+
+    # Check if the condition configurations are not added since Areach is not currently implemented for getting condition configuration.
+    num_conditions = min(len(mock_reference_files), len(mock_measure_files))
+    for i in range(1, num_conditions + 1):
+        condition_key = f"C{i}"
+        assert condition_key not in config_parser
+
+
+def test_get_configuration_with_reach(
+    dialog_model: DialogModel,
+    mock_branch: MagicMock,
+    mock_reach: MagicMock,
+    mock_reference_files: FilenameDict,
+    mock_measure_files: FilenameDict,
+) -> None:
+    """
+    Test case for getting configuration.
+
+    given: A DialogModel instance and mocked branch, reach, reference files, and measurement files.
+    when: Getting the configuration.
+    then: The configuration is retrieved and checked for correctness.
+    """
+    # Call the get_configuration method
+    config_parser = dialog_model.get_configuration(
+        mock_branch, mock_reach, mock_reference_files, mock_measure_files, 80.1, 8.01
     )
 
     # Check if the configuration parser is an instance of ConfigParser
@@ -330,21 +315,21 @@ def test_get_configuration(
     general_section = config_parser["General"]
     assert general_section["Branch"] == mock_branch.name
     assert general_section["Reach"] == mock_reach.name
-    assert float(general_section["Qthreshold"]) == dialog_model.qthreshold
-    assert float(general_section["Ucrit"]) == dialog_model.ucritical
+    assert float(general_section["Qthreshold"]) == 8.01
+    assert float(general_section["Ucrit"]) == 80.1
     assert general_section["OutputDir"] == dialog_model.output_dir
     assert general_section.getboolean("Plotting") == dialog_model.plotting
     assert general_section.getboolean("SavePlots") == dialog_model.save_plots
     assert general_section["FigureDir"] == dialog_model.figure_dir
     assert general_section.getboolean("ClosePlots") == dialog_model.close_plots
 
-    # Check if the condition configurations are added correctly
-    num_conditions = len(mock_reach.hydro_q)
+    # Check if the condition configurations are added correctly, based on the length of the mocked files.
+    num_conditions = min(len(mock_reference_files), len(mock_measure_files))
     for i in range(1, num_conditions + 1):
         condition_key = f"C{i}"
         assert condition_key in config_parser
         condition_section = config_parser[condition_key]
         discharge = list(mock_reference_files.keys())[i - 1]
-        assert condition_section["Discharge"] == discharge
+        assert float(condition_section["Discharge"]) == discharge
         assert condition_section["Reference"] == mock_reference_files[discharge]
         assert condition_section["WithMeasure"] == mock_measure_files[discharge]

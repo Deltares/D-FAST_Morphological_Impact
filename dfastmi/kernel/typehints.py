@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 # Represents a tuple of four floats. The floats represent characteristic discharges (from rivers configuration file).
 QLevels = Tuple[float, float, float, float]
@@ -14,3 +14,6 @@ Vector = List[float]
 
 # Represents a list of booleans of variable lengths.
 BoolVector = List[bool]
+
+# Filename dictionary
+FilenameDict = Dict[Union[int, str, Tuple[float, str]], str]
