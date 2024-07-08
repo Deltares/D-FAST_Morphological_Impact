@@ -1,17 +1,20 @@
-\documentclass{deltares_manual}
+\documentclass[git]{deltares_manual}
 
 \usepackage{tikz}
 \usepackage[pipeTables=true]{markdown}
+\usepackage{verbatimbox}
 
 %------------------------------------------------------------------------------
 \newcommand{\dfastmi}{\textrm{D-FAST~Morphological~Impact}\xspace}
+\newcommand{\dfastbe}{\textrm{D-FAST~Bank~Erosion}\xspace}
+\newcommand{\dfmi}{\textrm{D-FAST~MI}\xspace}
 \newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
 
 \hypersetup
 {
     pdfauthor   = {Deltares},
     pdftitle    = {\dfastmi},
-    pdfkeywords = {Deltares User Manual \dfastmi}
+    pdfkeywords = {Deltares User Manual \dfmi}
 }
 
 %------------------------------------------------------------------------------
@@ -23,15 +26,17 @@
 %
 \begin{document}
 \pagestyle{empty}
-\includepdf[pages=1, offset=72 -70]{cover/d-fast-morphological-impact.pdf} % links-rechts past precies
+\includepdf[pages=1, offset=72 -70]{cover/D-FAST-omslag-D-FAST Morphological Impact-UM.pdf} % links-rechts past precies
 \cleardoublepage
 \title{D-FAST\\ Morphological Impact}
 \subtitle{}
 \manualtype{User Manual}
-\version{1.0}
+\distribution{Released for: \newline \phantom{M} \dfmi version 3.0 or higher}
+\version{\the\year.\the\month}
 
 \author{ }
 
+\setgitdirectory{../.git}
 \deltarestitle
 %
 \include{chapters/intro}
@@ -47,10 +52,11 @@
 
 \appendix
 \include{chapters/file_formats}
+\include{chapters/sim2ugrid}
 %\markdownInput[shiftHeadings=1]{techref.md}
 
 \pagestyle{empty}
 \cleardoublepage
 \mbox{}
-\includepdf[pages=2, offset=-72 -70]{cover/d-fast-morphological-impact.pdf} % links-rechts past precies
+\includepdf[pages=2, offset=-72 -70]{cover/D-FAST-omslag-D-FAST Morphological Impact-UM.pdf} % links-rechts past precies
 \end{document}

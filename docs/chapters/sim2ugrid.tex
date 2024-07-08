@@ -1,0 +1,66 @@
+\chapter{Interoperability} \label{Chp:Sim2Ugrid}
+
+\dfastmi reads data from 2D UGRID/CF netCDF files such as written by \dflowfm.
+Other software may also write their netCDF result following the general \href{https://cfconventions.org/}{CF (Climate \& Forecasting)} and \href{http://ugrid-conventions.github.io/ugrid-conventions/}{UGRID} conventions.
+In the following sections we discuss to which degree \dfmi depends on \dflowfm specific choices, and how to convert the output of other models to the format supported by \dfmi.
+
+\section{File format assumptions}
+
+Simulation files (both with and without measure) should contain \emph{one} 2D UGRID mesh variable.
+These variables must be identifiable by means of the attributes \keyw{cf\_role = mesh\_topology} and \keyw{topology\_dimension = 2}.
+The \keyw{face\_node\_connectivity} attribute of this variable must point to the face-node connectivity of the 2D mesh.
+The \keyw{node\_coordinates} attribute must point to the x,y coordinates of the nodes; currently.
+For geospatial operations (research functionality) \dfmi assumes that the coordinates are projected coordinates in metres.
+
+The file must contain one or more time steps for the following quantities:
+\begin{itemize}
+\item depth-averaged flow velocity vector defined on the faces of the mesh, identifiable by means of the CF standard names \keyw{sea\_water\_x\_velocity} and \keyw{sea\_water\_y\_velocity}, and attributes \keyw{mesh} pointing to the mesh variable and \keyw{location = face}.
+\item water depth defined on the faces of the mesh, identifiable by means of the CF standard name \keyw{sea\_floor\_depth\_below\_sea\_surface}, and attributes \keyw{mesh} pointing to the mesh variable and \keyw{location = face}.
+\end{itemize}
+
+\section{File conversion}
+
+The formal working order is to base the \dfastmi analysis on the results of \dflowfm simulations.
+However, sometimes it may be useful to use results obtained from other hydrodynamic models, such as Delft3D-FLOW or WAQUA (SIMONA).
+This pathway has in particular been used to validate the \dfmi analysis using Delft3D flow results against Delft3D morphological simulations using the same model configuration.
+For this purpose, a tool \keyw{sim2ugrid} has been made that converts Delft3D-FLOW (trim-files) or WAQUA results (SDS-files) to 2D UGRID/CF netCDF files accepted by \dfmi.
+This tool has been implemented in MATLAB and is distributed as binary alongside Delft3D-QUICKPLOT.
+It is a command-line tool that accepts one or more simulation result files (trim or SDS) and one argument that indicates the number of time steps (of flow velocity and water depth) to transfer to the netCDF file.
+The name of the netCDF file is based on the name of the first result file specified; if that file already exists, it will be overwritten without asking for confirmation.
+The default setting is to transfer only the last time step.
+This can be extended to the last $N$ time steps by specifying the $N$ on the command-line.
+If you want to transfer \emph{all} time steps, you can specify a colon \keyw{:}.
+
+\begin{Verbatim}
+Usage:
+   SIM2UGRID <inputFile> {<inputFile>} {N}
+   Transfers the data from the input files to a new netCDF file with the name
+   <basename>_map.nc where <basename>.<ext> is the name of the first input file.
+   The data of the last N time steps is transferred (N=1 by default).
+\end{Verbatim}
+
+Note that the tool is a bit slow to start as it needs to load the MATLAB runtime environment and doesn't use a splash screen like QUICKPLOT does.
+A typical listing of the screen output of the \keyw{sim2ugrid} reads as follows:
+
+\begin{Verbatim}
+[Your folder]> sim2ugrid.exe trim-nrf.dat
+--------------------------------------------------------------------------------
+SIM2UGRID conversion tool.
+Version 2.70.8271afff4 (64bit) (10-Sep-2023 13:13:09)
+Repository https://git.deltares.nl/oss/delft3d.git
+Source hash 8271afff46535b79e80a4f77adbdcc071fbcb671
+--------------------------------------------------------------------------------
+Opening trim-nrf.dat ...
+Processing the time-independent data ...
+Warning: No Chezy information found. Converted file not suitable for D-FAST Bank Erosion.
+> In sim2ugrid (line 101)
+Warning: Bed levels defined at faces. Converted file not suitable for D-FAST Bank Erosion.
+> In sim2ugrid (line 109)
+Checking available time steps ...
+Creating trim-nrf_map.nc ...
+Writing time-independent data ...
+Transferring data for time step 5 ...
+Data transfer completed successfully.
+\end{Verbatim}
+
+The warnings are only relevant for \dfastbe and shouldn't affect \dfastmi.

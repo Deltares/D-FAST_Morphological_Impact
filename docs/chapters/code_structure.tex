@@ -2,25 +2,25 @@
 
 \section{Introduction}
 
-\dfastmi code is subdivided into 6 files:
+\dfastmi code is subdivided into 5 files:
 
 \begin{itemize}
-\item \keyw{\_\_init\_\_.py} module level file containing mainly the version number.
-\item \keyw{\_\_main\_\_.py} module level file containing argument parsing and call to \keyw{dfastmi.cmd.run()}.
-\item \keyw{cmd.py} containing the main run routine.
-\item \keyw{cli.py} for the backward compatible interactive command line interface (equivalent to WAQMORF).
-\item \keyw{plotting.py} contains all plotting related functionality (most plots are related to dredging volume estimates and for research purposes only).
-\item \keyw{resources.py} is used to link to the \dfastmi logo.
+\item \file{\_\_init\_\_.py} module level file containing mainly the version number.
+\item \file{\_\_main\_\_.py} module level file containing argument parsing and call to \keyw{dfastmi.cmd.run()}.
+\item \file{cmd.py} containing the main run routine.
+\item \file{cli.py} for the backward compatible interactive command line interface (equivalent to WAQMORF).
+\item \file{resources.py} is used to link to the \dfastmi logo.
 \end{itemize}
 
-and 4 sub-packages:
+and 5 sub-packages:
 
 \begin{itemize}
-\item \keyw{gui} contains all functionality related to the graphical user interface.
-\item \keyw{batch} implements the workflow for the actual \dfastmi analysis (triggered either by a \keyw{-{}-mode batch} call or by clicking the \button{Compute} button in the graphical user interface).
-\item \keyw{io} contains the reading, parsing and writing of all configuration and result files.
-\item \keyw{kernel} contains the scientific steps of the analysis.
+\item \file{gui} contains all functionality related to the graphical user interface.
+\item \file{batch} implements the workflow for the actual \dfastmi analysis (triggered either by a \keyw{-{}-mode batch} call or by clicking the \button{Compute} button in the graphical user interface).
+\item \file{config} implements the processing and checking of the river and analysis configuration files.
+\item \file{io} contains the reading, parsing and writing of all configuration and result files.
+\item \file{kernel} contains the scientific steps of the analysis.
 \end{itemize}
 
-The further description of the code in the initial technical reference manual was largely obsolete due to the restructuring of the code for \dfastmi 3.0.
-A more detailed description of the functionality may be added in a future revision of this document.
+The detailed description of the code per class and routine is beyond the scope of this document.
+For more details the reader is referred to the documentation strings included in the source code.
