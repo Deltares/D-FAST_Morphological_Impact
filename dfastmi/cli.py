@@ -226,7 +226,9 @@ def _interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool
         ApplicationSettingsHelper.log_text("---")
         tdum = _interactive_get_bool(src, "confirm_or_restart")
 
-    ApplicationSettingsHelper.log_text("header_legacy", dict={"version": version}, file=report)
+    ApplicationSettingsHelper.log_text(
+        "header_legacy", dict={"version": version}, file=report
+    )
     ApplicationSettingsHelper.log_text("limits", file=report)
     ApplicationSettingsHelper.log_text("===", file=report)
     if have_files:
