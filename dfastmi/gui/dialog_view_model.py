@@ -504,7 +504,7 @@ class DialogViewModel(QObject):
                 )
 
                 self._intervention_files[cond_discharge] = section.get(
-                    "WithMeasure", ""
+                    "WithIntervention", ""
                 )
                 self.intervention_files_changed.emit(
                     "with_intervention",

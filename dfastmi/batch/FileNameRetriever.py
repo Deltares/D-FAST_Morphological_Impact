@@ -87,7 +87,7 @@ class FileNameRetriever(AFileNameRetriever):
                 ) from exc
 
             reference = self._cfg_get(config, section, "Reference")
-            intervention = self._cfg_get(config, section, "WithMeasure")
+            intervention = self._cfg_get(config, section, "WithIntervention")
             if self.needs_tide:
                 T = self._cfg_get(config, section, "TideBC")
                 key = (Q, T)

@@ -68,7 +68,7 @@ class ConditionConfig(BaseModel):
 
     Discharge: float
     Reference: str
-    WithMeasure: str
+    WithIntervention: str
 
 
 class DialogModel:
@@ -307,7 +307,7 @@ class DialogModel:
                 condition = ConditionConfig(
                     Discharge=discharge,
                     Reference=reference_files.get(discharge, ""),
-                    WithMeasure=intervention_files.get(discharge, ""),
+                    WithIntervention=intervention_files.get(discharge, ""),
                 )
 
                 config[cond] = condition.model_dump()

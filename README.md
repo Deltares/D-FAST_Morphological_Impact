@@ -8,10 +8,11 @@ For more details see the documentation section.
 
 ## Documentation
 
-The documentation consists of
-* a LaTeX user manual including scientific description, and developer starter guide (also in this readme)
-* a [Technical Reference Manual](docs/techref.md) in Markdown
-the sources of both documents can be found in the `docs` folder.
+The documentation is written in LaTeX, and consists of
+* User Manual including scientific description, and 
+* Technical Reference Manual including developer starter guide (also in this readme), test plan, and test report, and
+* Release Notes.
+The sources of all three documents can be found in the `docs` folder.
 
 ## Developer user starter guide
 1. install python 3

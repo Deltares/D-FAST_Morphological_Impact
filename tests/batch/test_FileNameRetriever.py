@@ -127,7 +127,7 @@ class Test_FileNameRetriever:
         self, config: ConfigParser, q: str, discharge_value, tide=False
     ):
         reference = "Reference"
-        with_intervention = "WithMeasure"
+        with_intervention = "WithIntervention"
         discharge = "Discharge"
 
         q_reference_filename = q + "-" + reference

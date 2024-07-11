@@ -535,22 +535,22 @@ def test_update_condition_files_with_load_configuration(
     expected_intervention_file_4000 = str(tmp_path / "intervention_file_20.txt")
 
     config_file_data = f"""
-    [General]
-  Version     = 3.0
-  Branch      = Bovenrijn & Waal
-  Reach       = Boven-Waal                   km  868-886
+[General]
+  Version          = 3.0
+  Branch           = Bovenrijn & Waal
+  Reach            = Boven-Waal                   km  868-886
 
 [C1]
-  Discharge   = 3000.0
-  TideBC      = 0
-  Reference   = {reference_file_3000}
-  WithMeasure = {intervention_file_3000}
+  Discharge        = 3000.0
+  TideBC           = 0
+  Reference        = {reference_file_3000}
+  WithIntervention = {intervention_file_3000}
 
 [C2]
-  Discharge   = 4000.0
-  TideBC      = 0
-  Reference   = {reference_file_4000}
-  WithMeasure = {intervention_file_4000}
+  Discharge        = 4000.0
+  TideBC           = 0
+  Reference        = {reference_file_4000}
+  WithIntervention = {intervention_file_4000}
     """
 
     config_file = tmp_path / "config.cfg"
