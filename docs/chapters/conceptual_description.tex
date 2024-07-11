@@ -1,6 +1,12 @@
-\chapter{Conceptual framework}
+\chapter{Conceptual framework} \label{Chp:Concepts}
 
-This chapter describes the conceptual framework of the method used by \dfastmi and the derivation of the river parameters used for the Dutch rivers.
+This chapter describes the conceptual framework of the method used by \dfastmi.
+It all starts with the design of a river measure, i.e.~a local river adjustment, to address some issue e.g. an adjustment to increase the flow capacity.
+In order to evaluate the measure, it's important to also look at the morphological changes caused by the changing flow patterns.
+\dfastmi implements algorithms to provide an estimate of the long-term morphological effect inside the main channel, as well as the degree to which this adjustment may occur in the first year.
+The next couple of sections provide context and theory to underpin the implemented algorithms.
+\Autoref{Sec:Limitations} provides an overview of the assumptions and limitations of this tool.
+
 
 \section{Characteristics of bed level changes due to river measures}
 
@@ -123,9 +129,10 @@ and the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product
 \end{equation}
 %
 The easiest way to understand this equation is to realize that it states that the velocity change caused by the measure will be compensated by a bed level change such that the velocity, and hence the sediment transport capacity, returns to the original value.
+Note that we have assumed that the effect on the water level is negligible, hence the water depth change $\Delta h$ equals the bed level change $\Delta z_{b,\text{eq}}$.
 %
 \begin{equation}
- \Delta z_{b,\text{eq}} u + h \Delta u \approx 0.
+\Delta h u + h \Delta u \approx 0.
 \label{Eq:zbEqui2}
 \end{equation}
 %
@@ -169,11 +176,17 @@ The year-averaged bed level can be computed as
 More details are given in \citet{JagersGiri2022}.
 
 
-\section{Equilibrium bed level change: extending to tides}
+\section{Equilibrium bed level change: extending to tides}\label{Sec:Tides}
 
 The concept of the ``hydrograph'' consisting of $N$ periods of constant forcing.
 The forcing could besides the discharge that was discussed above, also include the downstream water level (storm surge and tidal conditions).
 Although the current \dfastmi version includes code preparations for such extensions; the application domain is, for the time being, limited to the river reaches where such effect can be ignored.
 
 
-%\section{Estimate for dredging volumes}
+\section{Estimate for dredging volumes}\label{Sec:DredgeVol}
+
+An order-of-magnitude estimate of the dredging (or dumping) volume that will required to keep the bed levels at the initial\footnote{If the bed levels in the main channel differ between the reference simulation and the simulation with the measure, the level meant here is the bed level as included in the simulation \emph{with} the measure.} level can be obtained by accumulating the equilibrium bed change over the impacted length, where the latter is defined as the distance over which a bed level disturbance can travel during the part of the year that the flow conditions are different due to the measure being evaluated.
+The sediment transport during the remainder of the year may adjust the shape and location of the deposit, but the total volume remains the same.
+
+It is foreseen that this estimate may be computed automatically in a future release of \dfmi, but this is currently left as a manual step for the user.
+In case the measure triggers multiple separate sedimentation (or erosion) areas, the volumes should be accumulated for each area individually, i.e. not only the most upstream area should be considered, and subsequently the total volume can be accumulated over all areas.
