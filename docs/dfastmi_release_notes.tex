@@ -41,8 +41,8 @@ Status & release
 \fbox{%
 \parbox{\textwidth}{%
 \dfastmi version 3 is the successor of \dfastmi version 2 and WAQMORF.
-This new version implements a generalized algorithm for estimating the sedimentation length and the long-term morphological response of the main channel to changes, so-called measures, in the flood plains.
-The tool requires the results of pairs of \dflowfm computations (with and without the measure) for a given set of flow conditions.
+This new version implements a generalized algorithm for estimating the sedimentation length and the long-term morphological response of the main channel to changes, so-called interventions, in the flood plains.
+The tool requires the results of pairs of \dflowfm computations (with and without the intervention) for a given set of flow conditions.
 }}
 
 \section{Installation}
@@ -66,8 +66,8 @@ The key changes of this completely revised version are:
 
 \begin{itemize}
 \item The number of discharge level used for \dfmi analysis has changed from typically 3 to 6.
-The discharge levels no longer depend on the characteristics of the measures.
-They are fixed per branch/reach, although you don't have to provide results below the threshold discharge of the measure.
+The discharge levels no longer depend on the characteristics of the interventions.
+They are fixed per branch/reach, although you don't have to provide results below the threshold discharge of the intervention.
 \item The new analysis algorithm only supports simulation results stored in netCDF UGRID files, such as the \dflowfm map-file.
 \item Complete overview of analysis settings included in the report.
 \item The tool is no longer supported in the Dutch language.

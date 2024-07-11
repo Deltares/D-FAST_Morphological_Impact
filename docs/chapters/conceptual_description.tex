@@ -1,16 +1,16 @@
 \chapter{Conceptual framework} \label{Chp:Concepts}
 
 This chapter describes the conceptual framework of the method used by \dfastmi.
-It all starts with the design of a river measure, i.e.~a local river adjustment, to address some issue e.g. an adjustment to increase the flow capacity.
-In order to evaluate the measure, it's important to also look at the morphological changes caused by the changing flow patterns.
+It all starts with the design of a river intervention, i.e.~a local river adjustment, to address some issue e.g. an adjustment to increase the flow capacity.
+In order to evaluate the intervention, it's important to also look at the morphological changes caused by the changing flow patterns.
 \dfastmi implements algorithms to provide an estimate of the long-term morphological effect inside the main channel, as well as the degree to which this adjustment may occur in the first year.
 The next couple of sections provide context and theory to underpin the implemented algorithms.
 \Autoref{Sec:Limitations} provides an overview of the assumptions and limitations of this tool.
 
 
-\section{Characteristics of bed level changes due to river measures}
+\section{Characteristics of bed level changes due to river interventions}
 
-A river measure, i.e.~a local river adjustment (typically a flow capacity enlarging adjustment) outside the main channel, may result in changes in the flow pattern within the main channel.
+A river intervention, i.e.~a local river adjustment (typically a flow capacity enlarging adjustment) outside the main channel, may result in changes in the flow pattern within the main channel.
 The bed levels within the main channel will react to such changes depending on the
 
 \hspace{1cm}\emph{magnitude, duration and length scale of these flow pattern changes in the main channel.}
@@ -35,15 +35,15 @@ The bed level change due to river enlargement can largely be characterized as fo
 \end{itemize}
 
 Because part of the bed level changes migrate downstream, the morphological impact on projects located downstream may be increased.
-After all, the maximum bed level change of one single river enlarging measure is reached at the end of the flood period and it's the result of that flood period.
-However, when a series of measures along the river are combined (for instance, lowering of the groynes along a reach) the downstream bed level changes may be increased by accumulation of downstream migrating bed waves, such that the accumulated bed level change may be significantly larger.
-In other words, river measures extending over longer reaches may result in a larger morphodynamic response than comparable but more isolated measures.
+After all, the maximum bed level change of one single river enlarging intervention is reached at the end of the flood period and it's the result of that flood period.
+However, when a series of interventions along the river are combined (for instance, lowering of the groynes along a reach) the downstream bed level changes may be increased by accumulation of downstream migrating bed waves, such that the accumulated bed level change may be significantly larger.
+In other words, river interventions extending over longer reaches may result in a larger morphodynamic response than comparable but more isolated interventions.
 
 The aforementioned observations result in the following premises.
 The rule-of-thumb described in the following sections
 
 \begin{itemize}
-\item will only be valid for the estimation of the impact of local measures with a length of at most one flood plain,
+\item will only be valid for the estimation of the impact of local interventions with a length of at most one flood plain,
 
 \item should take into account seasonal variations, and
 
@@ -53,9 +53,9 @@ The rule-of-thumb described in the following sections
 
 \section{Characterization of the changes in the main channel flow pattern}
 
-When a measure in the floodplains does not include something like a permanently active secondary channel, the flow pattern in the main channel will only be affected during flood conditions.
-If on the other hand, such a secondary channel (or other measure active under medium to low flow conditions such as groyne adjustments) is included in the design then the flow pattern will also be influenced during transitional or even low flow conditions.
-It's therefore critical to determine the effect of the measure on the main channel flow pattern at different discharge levels.
+When a intervention in the floodplains does not include something like a permanently active secondary channel, the flow pattern in the main channel will only be affected during flood conditions.
+If on the other hand, such a secondary channel (or other intervention active under medium to low flow conditions such as groyne adjustments) is included in the design then the flow pattern will also be influenced during transitional or even low flow conditions.
+It's therefore critical to determine the effect of the intervention on the main channel flow pattern at different discharge levels.
 
 Secondary channels may have a major impact on the morphodynamics of the main channel.
 The magnitude of the discharge through the secondary channel varies as function of the river discharge.
@@ -78,9 +78,9 @@ The discharge through a secondary channel is characterized by a number of specia
 
 When the discharge through the secondary channel is controlled by an orifice, the fully flooded condition may add an additional characteristic discharge.
 In order to characterize the flow patterns during flood it's necessary to distinguish the condition in which the flood plains just start to carry flows, and the condition of fully developed flow in the flood plains.
-\dfastmi version 2 and before (in WAQMORF) used an algorithm to determine which three flow conditions would best represent the effect of the measure under various conditions.
+\dfastmi version 2 and before (in WAQMORF) used an algorithm to determine which three flow conditions would best represent the effect of the intervention under various conditions.
 However, as these conditions varied depending on the thresholds specified by the user, the tool could give different results depending on the user.
-In \dfastmi version 3, a new method has been implemented that removes most input parameters; only the minimum discharge at which the measure becomes active is still used as an input besides the general location characteristics of the branch and reach in which the measure is located.
+In \dfastmi version 3, a new method has been implemented that removes most input parameters; only the minimum discharge at which the intervention becomes active is still used as an input besides the general location characteristics of the branch and reach in which the intervention is located.
 
 
 \section{Equilibrium bed level change: the discharge dominated case}
@@ -100,7 +100,7 @@ in which
 \item[$q_\text{mc}$] main channel discharge per unit width \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1}}
 \item[$q_\text{out}$] discharge per channel unit width \emph{to} the flood plain per unit river length \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1} m\textsuperscript{-1}}
 \item[$s$] stream-wise coordinate \unitbrackets{m}
-\item[$z_b$] bed level change due to measure \unitbrackets{m}
+\item[$z_b$] bed level change due to intervention \unitbrackets{m}
 \item[$s_\text{mc}$] main channel sediment transport per unit width \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1}}
 \item[$s_\text{out}$] sediment transport per channel unit width \emph{to} the flood plan per unit river length \unitbrackets{m\textsuperscript{2} s\textsuperscript{-1} m\textsuperscript{-1}}
 \end{symbollist}
@@ -128,7 +128,7 @@ and the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product
 \label{Eq:zbEqui}
 \end{equation}
 %
-The easiest way to understand this equation is to realize that it states that the velocity change caused by the measure will be compensated by a bed level change such that the velocity, and hence the sediment transport capacity, returns to the original value.
+The easiest way to understand this equation is to realize that it states that the velocity change caused by the intervention will be compensated by a bed level change such that the velocity, and hence the sediment transport capacity, returns to the original value.
 Note that we have assumed that the effect on the water level is negligible, hence the water depth change $\Delta h$ equals the bed level change $\Delta z_{b,\text{eq}}$.
 %
 \begin{equation}
@@ -138,7 +138,7 @@ Note that we have assumed that the effect on the water level is negligible, henc
 %
 In reality the discharge isn't constant throughout the year.
 Instead, the year is assumed to be represented by a hydrograph series of constant discharges.
-The bed level development during a single period of the hydrograph is given by \autoref{Eq:zbRelax}, such that at the end of period $i$ (lasting $T_i$ days) the morphological effect of the measure is given by
+The bed level development during a single period of the hydrograph is given by \autoref{Eq:zbRelax}, such that at the end of period $i$ (lasting $T_i$ days) the morphological effect of the intervention is given by
 %
 \begin{equation}
 \Delta z_{b,i+1}(0) = \Delta z_{b,i} (0) \sigma_i + \Delta z_{b,i,\text{eq}} (1-\sigma_i) \text{ with } \sigma_i = e^{-T_i/T_{m,i}}
@@ -162,8 +162,8 @@ This set of equations can be solved for $\Delta z_{b,i}(0)$ giving
 \end{equation}
 %
 where $\xi = 1 - \prod_{i=1}^N \sigma_i$ and all indices $m>N$ are equivalent to $m-N$ for reasons of periodicity.
-If the impact of the measure increases as the discharge increases, the maximum bed level change is likely reached at the end of the period with the highest discharge.
-However, this isn't true for all hydrographs and for all measures.
+If the impact of the intervention increases as the discharge increases, the maximum bed level change is likely reached at the end of the period with the highest discharge.
+However, this isn't true for all hydrographs and for all interventions.
 Similarly, the minimum bed level change is frequently reached at the end of the period with the lowest discharge, but this may also depend on the details of the hydrograph used (which may for instance include multiple low flow periods of different duration).
 For this reason, the minimum and maximum values are determined independently for every individual grid cell as the minimum and maximum over all $N$ fields of $\Delta z_{b,i}(0)$.
 The year-averaged bed level can be computed as
@@ -185,8 +185,8 @@ Although the current \dfastmi version includes code preparations for such extens
 
 \section{Estimate for dredging volumes}\label{Sec:DredgeVol}
 
-An order-of-magnitude estimate of the dredging (or dumping) volume that will required to keep the bed levels at the initial\footnote{If the bed levels in the main channel differ between the reference simulation and the simulation with the measure, the level meant here is the bed level as included in the simulation \emph{with} the measure.} level can be obtained by accumulating the equilibrium bed change over the impacted length, where the latter is defined as the distance over which a bed level disturbance can travel during the part of the year that the flow conditions are different due to the measure being evaluated.
+An order-of-magnitude estimate of the dredging (or dumping) volume that will required to keep the bed levels at the initial\footnote{If the bed levels in the main channel differ between the reference simulation and the simulation with the intervention, the level meant here is the bed level as included in the simulation \emph{with} the intervention.} level can be obtained by accumulating the equilibrium bed change over the impacted length, where the latter is defined as the distance over which a bed level disturbance can travel during the part of the year that the flow conditions are different due to the intervention being evaluated.
 The sediment transport during the remainder of the year may adjust the shape and location of the deposit, but the total volume remains the same.
 
 It is foreseen that this estimate may be computed automatically in a future release of \dfmi, but this is currently left as a manual step for the user.
-In case the measure triggers multiple separate sedimentation (or erosion) areas, the volumes should be accumulated for each area individually, i.e. not only the most upstream area should be considered, and subsequently the total volume can be accumulated over all areas.
+In case the intervention triggers multiple separate sedimentation (or erosion) areas, the volumes should be accumulated for each area individually, i.e. not only the most upstream area should be considered, and subsequently the total volume can be accumulated over all areas.

@@ -123,9 +123,9 @@ class ConfigFileOperations:
                 ConfigFileOperations._update_to_relative_path(
                     rootdir, config, qstr, "Reference"
                 )
-            if "WithMeasure" in config[qstr]:
+            if "WithIntervention" in config[qstr]:
                 ConfigFileOperations._update_to_relative_path(
-                    rootdir, config, qstr, "WithMeasure"
+                    rootdir, config, qstr, "WithIntervention"
                 )
         return config
 
@@ -298,9 +298,9 @@ class ConfigFileOperations:
                 ConfigFileOperations._update_to_absolute_path(
                     rootdir, config, qstr, "Reference"
                 )
-            if "WithMeasure" in config[qstr]:
+            if "WithIntervention" in config[qstr]:
                 ConfigFileOperations._update_to_absolute_path(
-                    rootdir, config, qstr, "WithMeasure"
+                    rootdir, config, qstr, "WithIntervention"
                 )
         return config
 

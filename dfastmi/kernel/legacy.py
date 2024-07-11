@@ -49,9 +49,9 @@ def char_discharges(
     dq : QChange
         A tuple of 2 characteristic discharge adjustments (from rivers configuration file).
     q_threshold : Optional[float]
-        Optional threshold discharge at which measure starts to flow.
+        Optional threshold discharge at which intervention starts to flow.
     q_bankfull : float
-        Discharge at which measure is bankfull.
+        Discharge at which intervention is bankfull.
 
     Returns
     -------

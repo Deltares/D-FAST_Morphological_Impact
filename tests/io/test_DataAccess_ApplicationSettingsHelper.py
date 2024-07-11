@@ -73,7 +73,7 @@ class Test_data_access_log_text:
         with captured_output() as (out, err):
             ApplicationSettingsHelper.log_text(key, dict=dict)
         outstr = out.getvalue().splitlines()
-        strref = ["The measure is located on reach ABC"]
+        strref = ["The intervention is located on reach ABC"]
         assert outstr == strref
 
     def test_log_text_replace_variable_id_with_provided_value_in_dictionary_and_write_in_file(
@@ -88,7 +88,7 @@ class Test_data_access_log_text:
         with open(filename, "w") as f:
             ApplicationSettingsHelper.log_text(key, dict=dict, file=f)
         all_lines = open(filename, "r").read().splitlines()
-        strref = ["The measure is located on reach ABC"]
+        strref = ["The intervention is located on reach ABC"]
         assert all_lines == strref
 
 

@@ -1,5 +1,5 @@
 This program implements the "WAQUA vuistregel" for the estimation of the local
-morphological effects of a local measure (i.e. an adjustment to the river). See
+morphological effects of a local intervention (i.e. an adjustment to the river). See
 "RWS-WD memo WAQUA vuistregel 20-10-08" for details).
 
 It is based on an estimation of the equilibrium bed level changes in the main
@@ -23,8 +23,8 @@ equilibrium can be reached.
 This is version 3.0.0.
 
 
-The results are not valid for a combination of multiple measures, or for a
-single measure extending over a distance more than 4 km!
+The results are not valid for a combination of multiple interventions, or for a
+single intervention extending over a distance more than 4 km!
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -44,8 +44,8 @@ Impacted length                     : 299 m
 
 Critical flow velocity              : 0.3 m/s
 
-Condition             | Reference file (without measure)       | File with measure
- 4000.0 m3/s          | ---                                    | ---                                        (measure not active)
+Condition             | Reference file (without intervention)  | File with intervention
+ 4000.0 m3/s          | ---                                    | ---                                        (intervention not active)
  6000.0 m3/s          | reference-Q3_map.nc                    | measure-Q3_map.nc                          
 
 ================================================================================

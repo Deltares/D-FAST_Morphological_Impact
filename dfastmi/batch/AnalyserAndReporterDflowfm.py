@@ -67,7 +67,7 @@ def analyse_and_report_dflowfm(
         Dictionary of the names of the data file containing the simulation
         results to be processed. The conditions (discharge, wave conditions,
         ...) are the key in the dictionary. Per condition a tuple of two file
-        names is given: a reference file and a file with measure.
+        names is given: a reference file and a file with intervention.
     xykm : shapely.geometry.linestring.LineString
         Original river chainage line.
     old_zmin_zmax : bool

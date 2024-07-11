@@ -6,7 +6,7 @@ For this first example, we compare the results of \dfastmi with the results of a
 For consistency the \dfastmi analysis was performed using the hydrodynamic results of Delft3D-FLOW\footnote{Since \dfastmi expects \dflowfm results in netCDF UGRID format, the results were converted to the appropriate file format by means of \texttt{sim2ugrid}, see \autoref{Chp:Sim2Ugrid}.}.
 
 For this analysis, the Nederrijn grid of the DVR model has been used.
-The measure concerns a secondary channel planned in the Palmerswaard which is located at Rkm 910-912 in the reach upstream of the Amerongen barrier at Rkm 922.
+The intervention concerns a secondary channel planned in the Palmerswaard which is located at Rkm 910-912 in the reach upstream of the Amerongen barrier at Rkm 922.
 The reference model is based on the Baseline schematization ‘rijn-beno18\_5-v1’.
 Since the DVR model was too coarse to represent the actual secondary channel, a combination of flow extraction (at Rkm 910.5) and insertion (at Rkm 912) was used to represent the side channel.
 
@@ -16,9 +16,9 @@ Since the DVR model was too coarse to represent the actual secondary channel, a 
 \label{Palmers_proj}
 \end{figure}
 
-Since the measure is located on the Rhine branches, the new \dfastmi method requires the input of simulation results for 6 steady discharges: 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
-However, since the measure is located in the backwater curve of the Amerongen barrier which is closed at discharges below \SI{1500}{\metre\cubed\per\second} causing largely stagnant flow conditions, the lowest discharge isn't relevant for this case.
-Hence, \dfmi asks for the results of 10 simulations (5 discharges with and without measure), see \autoref{Palmers_empty}.
+Since the intervention is located on the Rhine branches, the new \dfastmi method requires the input of simulation results for 6 steady discharges: 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
+However, since the intervention is located in the backwater curve of the Amerongen barrier which is closed at discharges below \SI{1500}{\metre\cubed\per\second} causing largely stagnant flow conditions, the lowest discharge isn't relevant for this case.
+Hence, \dfmi asks for the results of 10 simulations (5 discharges with and without intervention), see \autoref{Palmers_empty}.
 After specifying all input files, the dialog will look like \autoref{Palmers_config} and if you save the configuration, the file will look as follows:
 
 \begin{figure}
@@ -39,7 +39,7 @@ After specifying all input files, the dialog will look like \autoref{Palmers_con
 
 The \dfmi analysis is performed when you click on the \button{Compute} button.
 The program will show a message that the analysis has successfully ended, and that a report.txt file has been written to the output folder.
-Furthermore, since we have selected the "Create Figures" option, it will create a rudimentary overview picture of the change in the year-averaged equilibrium bed level that the result of the measure.
+Furthermore, since we have selected the "Create Figures" option, it will create a rudimentary overview picture of the change in the year-averaged equilibrium bed level that the result of the intervention.
 The initial view will cover the whole model area as shown in \autoref{Palmers_fig}.
 You can zoom in on the area of interest as shown in \autoref{Palmers_fig_zoomed}.
 See \autoref{Sec:FigNavigation} for navigating these figures.
@@ -80,7 +80,7 @@ The model was based on the DVR model, but the domain was reduced to focus mainly
 Because of the two bifurcations upstream and downstream, it still included parts of all the branches (Bovenrijn, Pannerdensch Kanaal, Waal, Nederrijn and IJssel).
 Only results for the Pannerdensch Kanaal will be presented here.
 
-The measure concerns a secondary channel `green river' implemented along the right bank at Rkm 871-872 just downstream of Pannerden.
+The intervention concerns a secondary channel `green river' implemented along the right bank at Rkm 871-872 just downstream of Pannerden.
 The reference model is based on the Baseline schematization ‘rijn-beno18\_5-v1’.
 Again, a combination of flow extraction and insertion was used to represent the side channel because the secondary channel wasn't represented accurately on the grid.
 
@@ -90,9 +90,9 @@ Again, a combination of flow extraction and insertion was used to represent the 
 \label{Pannerden_proj}
 \end{figure}
 
-Since the measure is located on the Rhine branches, the new \dfastmi method requires the input of simulation results for 6 steady discharges: 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
+Since the intervention is located on the Rhine branches, the new \dfastmi method requires the input of simulation results for 6 steady discharges: 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
 Contrary to example 1, the lowest discharge is relevant for this case.
-Hence, \dfmi asks for the results of 12 simulations (6 discharges with and without measure).
+Hence, \dfmi asks for the results of 12 simulations (6 discharges with and without intervention).
 After specifying all input files, the dialog will look like \autoref{Pannerden_config} and if you save the configuration, the file will look as follows:
 
 \begin{figure}
@@ -106,7 +106,7 @@ After specifying all input files, the dialog will look like \autoref{Pannerden_c
 
 The \dfmi analysis is performed when you click on the \button{Compute} button.
 The program will show a message that the analysis has successfully ended, and that a report.txt file has been written to the output folder.
-Furthermore, since we have selected the "Create Figures" option, it will create a rudimentary overview picture of the change in the year-averaged equilibrium bed level that the result of the measure.
+Furthermore, since we have selected the "Create Figures" option, it will create a rudimentary overview picture of the change in the year-averaged equilibrium bed level that the result of the intervention.
 A zoomed-in version of that figure is shown in \autoref{Pannerden_fig_zoomed}.
 See \autoref{Sec:FigNavigation} for navigating these figures.
 The content of the report file is shown below:

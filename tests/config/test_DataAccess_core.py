@@ -19,13 +19,13 @@ class Test_batch_save_configuration_file:
     ):
         expected_lines = [
             "[General]\n",
-            "  riverkm     = RiverKM\n",
-            "  figuredir   = FigureDir\n",
-            "  outputdir   = OutputDir\n",
+            "  riverkm          = RiverKM\n",
+            "  figuredir        = FigureDir\n",
+            "  outputdir        = OutputDir\n",
             "\n",
             "[SomeSection]\n",
-            "  reference   = reference\n",
-            "  withmeasure = with_measure\n",
+            "  reference        = reference\n",
+            "  withintervention = with_intervention\n",
         ]
 
         file_path = tmp_path / "test_file.cfg"
@@ -49,7 +49,7 @@ class Test_batch_save_configuration_file:
         }
         config["SomeSection"] = {
             "Reference": tmp_path / "reference",
-            "WithMeasure": tmp_path / "with_measure",
+            "WithIntervention": tmp_path / "with_intervention",
         }
         return config
 
@@ -261,4 +261,4 @@ class Test_batch_check_configuration:
             config.add_section(name)
             config.set(name, "Discharge", value)
             config.set(name, "Reference", value)
-            config.set(name, "WithMeasure", value)
+            config.set(name, "WithIntervention", value)

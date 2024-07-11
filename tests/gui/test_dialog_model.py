@@ -76,9 +76,9 @@ def mock_reference_files() -> FilenameDict:
 
 
 @pytest.fixture
-def mock_measure_files() -> FilenameDict:
-    """Fixture for creating mock measurement files."""
-    return {80.1: "measure1.txt", 80.2: "measure2.txt"}
+def mock_intervention_files() -> FilenameDict:
+    """Fixture for creating mock interventionment files."""
+    return {80.1: "intervention1.txt", 80.2: "intervention2.txt"}
 
 
 @pytest.fixture
@@ -214,14 +214,14 @@ def test_check_configuration(
     mock_branch: MagicMock,
     mock_areach: MagicMock,
     mock_reference_files: FilenameDict,
-    mock_measure_files: FilenameDict,
+    mock_intervention_files: FilenameDict,
 ) -> None:
     """
     Test case for checking configuration.
 
-    given: A DialogModel instance and mocked branch, reach, reference files, and measurement files.
+    given: A DialogModel instance and mocked branch, reach, reference files, and interventionment files.
     when: Checking the configuration.
-    then: The configuration is checked with the expected branch, reach, reference files, and measurement files.
+    then: The configuration is checked with the expected branch, reach, reference files, and interventionment files.
     """
     # Mocking the method calls inside the methods
     dialog_model.get_configuration = MagicMock(return_value=ConfigParser())
@@ -229,7 +229,12 @@ def test_check_configuration(
 
     # Call the check_configuration method
     result = dialog_model.check_configuration(
-        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
+        mock_branch,
+        mock_areach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
     assert (
@@ -238,7 +243,12 @@ def test_check_configuration(
 
     # Assert that get_configuration is called with the correct arguments
     dialog_model.get_configuration.assert_called_once_with(
-        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
+        mock_branch,
+        mock_areach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
 
@@ -247,18 +257,23 @@ def test_get_configuration(
     mock_branch: MagicMock,
     mock_areach: MagicMock,
     mock_reference_files: FilenameDict,
-    mock_measure_files: FilenameDict,
+    mock_intervention_files: FilenameDict,
 ) -> None:
     """
     Test case for getting configuration.
 
-    given: A DialogModel instance and mocked branch, reach, reference files, and measurement files.
+    given: A DialogModel instance and mocked branch, reach, reference files, and interventionment files.
     when: Getting the configuration.
     then: The configuration is retrieved and checked for correctness.
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_areach, mock_reference_files, mock_measure_files, 80.1, 8.01
+        mock_branch,
+        mock_areach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
     # Check if the configuration parser is an instance of ConfigParser
@@ -280,7 +295,7 @@ def test_get_configuration(
     assert general_section.getboolean("ClosePlots") == dialog_model.close_plots
 
     # Check if the condition configurations are not added since Areach is not currently implemented for getting condition configuration.
-    num_conditions = min(len(mock_reference_files), len(mock_measure_files))
+    num_conditions = min(len(mock_reference_files), len(mock_intervention_files))
     for i in range(1, num_conditions + 1):
         condition_key = f"C{i}"
         assert condition_key not in config_parser
@@ -291,18 +306,23 @@ def test_get_configuration_with_reach(
     mock_branch: MagicMock,
     mock_reach: MagicMock,
     mock_reference_files: FilenameDict,
-    mock_measure_files: FilenameDict,
+    mock_intervention_files: FilenameDict,
 ) -> None:
     """
     Test case for getting configuration.
 
-    given: A DialogModel instance and mocked branch, reach, reference files, and measurement files.
+    given: A DialogModel instance and mocked branch, reach, reference files, and interventionment files.
     when: Getting the configuration.
     then: The configuration is retrieved and checked for correctness.
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_reach, mock_reference_files, mock_measure_files, 80.1, 8.01
+        mock_branch,
+        mock_reach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
     # Check if the configuration parser is an instance of ConfigParser
@@ -324,7 +344,7 @@ def test_get_configuration_with_reach(
     assert general_section.getboolean("ClosePlots") == dialog_model.close_plots
 
     # Check if the condition configurations are added correctly, based on the length of the mocked files.
-    num_conditions = min(len(mock_reference_files), len(mock_measure_files))
+    num_conditions = min(len(mock_reference_files), len(mock_intervention_files))
     for i in range(1, num_conditions + 1):
         condition_key = f"C{i}"
         assert condition_key in config_parser
@@ -332,4 +352,6 @@ def test_get_configuration_with_reach(
         discharge = list(mock_reference_files.keys())[i - 1]
         assert float(condition_section["Discharge"]) == discharge
         assert condition_section["Reference"] == mock_reference_files[discharge]
-        assert condition_section["WithMeasure"] == mock_measure_files[discharge]
+        assert (
+            condition_section["WithIntervention"] == mock_intervention_files[discharge]
+        )

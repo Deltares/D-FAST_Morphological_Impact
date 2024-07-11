@@ -150,4 +150,4 @@ class Test_configuration_checker:
             config.add_section(name)
             config.set(name, "Discharge", value)
             config.set(name, "Reference", value)
-            config.set(name, "WithMeasure", value)
+            config.set(name, "WithIntervention", value)

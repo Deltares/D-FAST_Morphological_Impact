@@ -143,7 +143,7 @@ class ConfigurationChecker(AConfigurationCheckerBase):
                     )
                     return_value = (
                         self._check_key_with_file_value_and_set_return_value_if_needed(
-                            config, return_value, condition, "WithMeasure"
+                            config, return_value, condition, "WithIntervention"
                         )
                     )
             else:

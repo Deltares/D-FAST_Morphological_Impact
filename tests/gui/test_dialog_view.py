@@ -428,27 +428,31 @@ class Test_select:
         assert input_box.text() == "/path/to/file"
         assert dialog_view._view_model.reference_files[3000.0] == "/path/to/file"
 
-    def test_selectFile_with_measure_edit(self, dialog_view: DialogView, monkeypatch):
+    def test_selectFile_with_intervention_edit(
+        self, dialog_view: DialogView, monkeypatch
+    ):
         """
         given : dialog_view
-        when  : selecting a file for a measure edit
-        then  : the measure file should be updated correctly
+        when  : selecting a file for a intervention edit
+        then  : the intervention file should be updated correctly
         """
         # Create a mock QFileDialog.getExistingDirectory function
-        mock_getOpenFileName = MagicMock(return_value=["/path/to/file_with_measure"])
+        mock_getOpenFileName = MagicMock(
+            return_value=["/path/to/file_with_intervention"]
+        )
         monkeypatch.setattr(QFileDialog, "getOpenFileName", mock_getOpenFileName)
 
         # Call the method with the desired key
-        key = "4000.0_with_measure"
+        key = "4000.0_with_intervention"
         dialog_view._select_file(key)
 
         # Assert that the appropriate setText and view_model attribute assignment calls were made
 
         input_box = dialog_view._general_widget.findChild(QLineEdit, key)
-        assert input_box.text() == "/path/to/file_with_measure"
+        assert input_box.text() == "/path/to/file_with_intervention"
         assert (
-            dialog_view._view_model.measure_files[4000.0]
-            == "/path/to/file_with_measure"
+            dialog_view._view_model.intervention_files[4000.0]
+            == "/path/to/file_with_intervention"
         )
 
 
@@ -519,34 +523,34 @@ def test_update_condition_files_with_load_configuration(
     when  : updating condition files
     then  : the condition files should be updated correctly
     """
-    # Mock the reference files and measure files
+    # Mock the reference files and intervention files
     reference_file_3000 = "reference_file_10.txt"
     reference_file_4000 = "reference_file_20.txt"
-    measure_file_3000 = "measure_file_10.txt"
-    measure_file_4000 = "measure_file_20.txt"
+    intervention_file_3000 = "intervention_file_10.txt"
+    intervention_file_4000 = "intervention_file_20.txt"
 
     expected_reference_file_3000 = str(tmp_path / "reference_file_10.txt")
     expected_reference_file_4000 = str(tmp_path / "reference_file_20.txt")
-    expected_measure_file_3000 = str(tmp_path / "measure_file_10.txt")
-    expected_measure_file_4000 = str(tmp_path / "measure_file_20.txt")
+    expected_intervention_file_3000 = str(tmp_path / "intervention_file_10.txt")
+    expected_intervention_file_4000 = str(tmp_path / "intervention_file_20.txt")
 
     config_file_data = f"""
-    [General]
-  Version     = 3.0
-  Branch      = Bovenrijn & Waal
-  Reach       = Boven-Waal                   km  868-886
+[General]
+  Version          = 3.0
+  Branch           = Bovenrijn & Waal
+  Reach            = Boven-Waal                   km  868-886
 
 [C1]
-  Discharge   = 3000.0
-  TideBC      = 0
-  Reference   = {reference_file_3000}
-  WithMeasure = {measure_file_3000}
+  Discharge        = 3000.0
+  TideBC           = 0
+  Reference        = {reference_file_3000}
+  WithIntervention = {intervention_file_3000}
 
 [C2]
-  Discharge   = 4000.0
-  TideBC      = 0
-  Reference   = {reference_file_4000}
-  WithMeasure = {measure_file_4000}
+  Discharge        = 4000.0
+  TideBC           = 0
+  Reference        = {reference_file_4000}
+  WithIntervention = {intervention_file_4000}
     """
 
     config_file = tmp_path / "config.cfg"
@@ -563,14 +567,18 @@ def test_update_condition_files_with_load_configuration(
         == expected_reference_file_3000
     )
     assert (
-        dialog_view._general_widget.findChild(QLineEdit, "3000.0_with_measure").text()
-        == expected_measure_file_3000
+        dialog_view._general_widget.findChild(
+            QLineEdit, "3000.0_with_intervention"
+        ).text()
+        == expected_intervention_file_3000
     )
     assert (
         dialog_view._general_widget.findChild(QLineEdit, "4000.0_reference").text()
         == expected_reference_file_4000
     )
     assert (
-        dialog_view._general_widget.findChild(QLineEdit, "4000.0_with_measure").text()
-        == expected_measure_file_4000
+        dialog_view._general_widget.findChild(
+            QLineEdit, "4000.0_with_intervention"
+        ).text()
+        == expected_intervention_file_4000
     )

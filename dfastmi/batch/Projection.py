@@ -110,7 +110,7 @@ def _project_one_xy_point_onto_line(
     xyline : numpy.ndarray
         Array containing the x,y data of a line.
     sline : numpy.ndarray
-        Array containing the distance measure along the line xyline.
+        Array containing the distance intervention along the line xyline.
     last_node : int
         Index of the last node: xyline.shape[0] - 1
 

@@ -1,5 +1,5 @@
 D-FAST Morphological Impact implements an algorithm to estimate the local
-morphological effects of a local measure (i.e. an adjustment to the river).
+morphological effects of a local intervention (i.e. an adjustment to the river).
 The conceptual framework was originally introduced in
     "RWS-WD memo WAQUA vuistregel 20-10-08"
 but it has been extended and improved over the years. Check the user manual
@@ -27,8 +27,8 @@ can be reached.
 This is version 3.0.0.
 
 
-The results are not valid for a combination of multiple measures, or for a
-single measure extending over a distance more than 4 km!
+The results are not valid for a combination of multiple interventions, or for a
+single intervention extending over a distance more than 4 km!
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -48,9 +48,9 @@ Impacted length                     : 299 m
 
 Critical flow velocity              : 0.3 m/s
 
-Condition             | Reference file (without measure)       | File with measure
- 3000.0 m3/s          | ---                                    | ---                                        (measure not active)
- 4000.0 m3/s          | ---                                    | ---                                        (measure not active)
+Condition             | Reference file (without intervention)  | File with intervention
+ 3000.0 m3/s          | ---                                    | ---                                        (intervention not active)
+ 4000.0 m3/s          | ---                                    | ---                                        (intervention not active)
  6000.0 m3/s          | reference-Q3_map.nc                    | measure-Q3_map.nc                          
 
 ================================================================================

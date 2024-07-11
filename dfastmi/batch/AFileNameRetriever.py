@@ -53,7 +53,7 @@ class AFileNameRetriever(ABC):
         -------
         filenames : Dict[Any, Tuple[str,str]]
             Dictionary of string tuples representing the D-Flow FM file names for
-            each reference/with measure pair.
+            each reference/with intervention pair.
         """
 
     def _cfg_get(self, config: configparser.ConfigParser, chap: str, key: str) -> str:

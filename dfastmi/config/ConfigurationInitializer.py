@@ -153,7 +153,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
                     all_zero = False
             if all_zero:
                 raise ValueError(
-                    "The celerities can't all be equal to zero for a measure to have any impact!"
+                    "The celerities can't all be equal to zero for a intervention to have any impact!"
                 )
 
         return celerity
@@ -227,7 +227,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         reach : Reach
             The reach we want to get the levels from.
         q_threshold : float
-            Threshold discharge above which the measure is active.
+            Threshold discharge above which the intervention is active.
         discharges : Vector
             A vector of discharges (Q) included in hydrograph [m3/s].
 
@@ -281,7 +281,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         q_stagnant : float
             A discharge below which the river flow is negligible.
         q_threshold : float
-            Discharge below which the measure has no effect (due to measure design) [m3/s].
+            Discharge below which the intervention has no effect (due to intervention design) [m3/s].
 
         Results
         -------

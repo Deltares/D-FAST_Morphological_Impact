@@ -6,7 +6,7 @@ In the following sections we discuss to which degree \dfmi depends on \dflowfm s
 
 \section{File format assumptions}
 
-Simulation files (both with and without measure) should contain \emph{one} 2D UGRID mesh variable.
+Simulation files (both with and without intervention) should contain \emph{one} 2D UGRID mesh variable.
 These variables must be identifiable by means of the attributes \keyw{cf\_role = mesh\_topology} and \keyw{topology\_dimension = 2}.
 The \keyw{face\_node\_connectivity} attribute of this variable must point to the face-node connectivity of the 2D mesh.
 The \keyw{node\_coordinates} attribute must point to the x,y coordinates of the nodes; currently.

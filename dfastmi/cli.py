@@ -338,9 +338,9 @@ def _interactive_get_discharges(
     q_location : str
         Name of the location at which the discharge is
     q_threshold : Optional[float]
-        River discharge at which the measure becomes active.
+        River discharge at which the intervention becomes active.
     q_bankfull : float
-        River discharge at which the measure is bankfull.
+        River discharge at which the intervention is bankfull.
     q_fit : Tuple[float, float]
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     q_stagnant : float
@@ -364,7 +364,7 @@ def _interactive_get_discharges(
     q_levels = reach.qlevels
     dq = reach.dq
 
-    ApplicationSettingsHelper.log_text("intro-measure")
+    ApplicationSettingsHelper.log_text("intro-intervention")
     if q_stagnant > q_fit[0]:
         ApplicationSettingsHelper.log_text("query_flowing_when_barriers_open")
     else:
@@ -590,9 +590,9 @@ def _write_report_nodata(
     q_location : str
         Name of the location at which the discharge is
     q_threshold : Optional[float]
-        River discharge at which the measure becomes active.
+        River discharge at which the intervention becomes active.
     q_bankfull : float
-        River discharge at which the measure is bankfull.
+        River discharge at which the intervention is bankfull.
     q_stagnant : float
         Discharge below which the river flow is negligible.
     tstag : float

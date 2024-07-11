@@ -1,10 +1,10 @@
 \chapter{Introduction}
 
-This manual describes \dfastmi version 3 which provides a rapid, first estimate of the bed level changes to be anticipated in the main channel due to the implementation of local river adjustments outside the main channel (so-called measures).
+This manual describes \dfastmi version 3 which provides a rapid, first estimate of the bed level changes to be anticipated in the main channel due to the implementation of local river adjustments outside the main channel (so-called interventions).
 The program is a successor to the WAQMORF and \dfastmi version 2 programs that implemented the rule of thumb developed in the context of Rijkswaterstaat programme Stroomlijn by \citep{Sieben2008}.
-This new version follows the same conceptual approach, but uses a fixed set of flow conditions independent of the measure instead of three measure-dependent flow conditions.
+This new version follows the same conceptual approach, but uses a fixed set of flow conditions independent of the intervention instead of three intervention-dependent flow conditions.
 It assumes a seasonal discharge variation that can be represented by means of series of flow conditions.
-Bed level changes outside the immediate vicinity of influence of the measure are ignored in this analysis.
+Bed level changes outside the immediate vicinity of influence of the intervention are ignored in this analysis.
 The bed level changes are indicative for the effects over a sufficiently long cycle of high and low flow seasons.
 
 The typical analysis cycle consists of the following steps:
@@ -12,7 +12,7 @@ The typical analysis cycle consists of the following steps:
 \begin{enumerate}
 \item Use \dfastmi or check \autoref{Chp:steps} to determine the hydrodynamic simulations that will provide the necessary input for the morphological impact analysis.
 
-\item For the conditions obtained in step 1, simulations will be run using \dflowfm for both the reference situation and the scenario with only the measure to be evaluated implemented.
+\item For the conditions obtained in step 1, simulations will be run using \dflowfm for both the reference situation and the scenario with only the intervention to be evaluated implemented.
 All simulations need to be carried out using the same base mesh.
 
 \item Using the simulation results of step 2, \dfastmi determines an estimate of the
@@ -24,7 +24,7 @@ All simulations need to be carried out using the same base mesh.
 \end{enumerate}
 
 The methodology provides an indication of magnitude and location of the bed level changes, but can't always replace a complete morphodynamic simulation.
-The purpose of the rule of thumb is to provide a simple and consistent first estimate to avoid unnecessary morphodynamic simulations or to identify critical aspects in the design of the measure early on and to underpin the need for more extensive analysis.
+The purpose of the rule of thumb is to provide a simple and consistent first estimate to avoid unnecessary morphodynamic simulations or to identify critical aspects in the design of the intervention early on and to underpin the need for more extensive analysis.
 
 The appropriate use of the results -- the estimated bed level changes -- for the Dutch rivers is described in the ``rivierkundig beoordelingskader''.
 An evaluation of the rule of thumb \citep{Paarlberg2009} states the following
@@ -34,18 +34,18 @@ An evaluation of the rule of thumb \citep{Paarlberg2009} states the following
 \item Based on a comparison of the tool and Delft3D results for 2 case studies it's concluded that the rule of thumb can provide a reliable and robust indication of the bed level changes in the main channel.
 However, the rule of thumb should only be applied in those cases for which it is intended and the user should be aware of the assumptions and restrictions of the method and understand the effect that those have on the computed bed level changes.
 
-\item If the estimated bed level changes are critical for navigation and/or safety, or if the measure is outside the applicability domain of the rule of thumb, then the tool is not appropriate.
+\item If the estimated bed level changes are critical for navigation and/or safety, or if the intervention is outside the applicability domain of the rule of thumb, then the tool is not appropriate.
 In such cases further research is needed by means of a 1D and/or 2D morphodynamic model in consultation with the river manager.
 
-\item The tool is most suited for the estimation of the morphological impact on the main channel by river-widening measures which
+\item The tool is most suited for the estimation of the morphological impact on the main channel by river-widening interventions which
 \begin{enumerate}
 \item influence the main channel currents in a limited reach and
 \item withdraw only a limited amount of water from the main channel.
 \end{enumerate}
-The user should take care to analyze the results in case of measures that deviate from these conditions and to verify how the assumptions and limitations of the methodology influence the results.
+The user should take care to analyze the results in case of interventions that deviate from these conditions and to verify how the assumptions and limitations of the methodology influence the results.
 
-\item The tool can be applied for different types of river-widening measures.
-It is critical that the flow-carrying capacity of the measure is well represented by the three discharge levels.
+\item The tool can be applied for different types of river-widening interventions.
+It is critical that the flow-carrying capacity of the intervention is well represented by the three discharge levels.
 
 \item The rule of thumb can probably also be applied for river reaches with (more) strongly graded sediments.
 \end{itemize}
@@ -54,7 +54,7 @@ Finally, we reproduce below the introductory section of the text included in eve
 
 \begin{Verbatim}[frame=single, framesep=5pt]
 D-FAST Morphological Impact implements an algorithm to estimate the local
-morphological effects of a local measure (i.e. an adjustment to the river).
+morphological effects of a local intervention (i.e. an adjustment to the river).
 The conceptual framework was originally introduced in
     "RWS-WD memo WAQUA vuistregel 20-10-08"
 but it has been extended and improved over the years. Check the user manual

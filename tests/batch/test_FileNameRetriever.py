@@ -127,15 +127,15 @@ class Test_FileNameRetriever:
         self, config: ConfigParser, q: str, discharge_value, tide=False
     ):
         reference = "Reference"
-        with_measure = "WithMeasure"
+        with_intervention = "WithIntervention"
         discharge = "Discharge"
 
         q_reference_filename = q + "-" + reference
-        q_with_measure_filename = q + "-" + with_measure
+        q_with_intervention_filename = q + "-" + with_intervention
 
         config.add_section(q)
         config.set(q, reference, q_reference_filename)
-        config.set(q, with_measure, q_with_measure_filename)
+        config.set(q, with_intervention, q_with_intervention_filename)
         config.set(q, discharge, discharge_value)
 
         if tide:
@@ -143,4 +143,4 @@ class Test_FileNameRetriever:
             q_tide = q + "-" + tide
             config.set(q, tide, q_tide)
 
-        return (q_reference_filename, q_with_measure_filename)
+        return (q_reference_filename, q_with_intervention_filename)

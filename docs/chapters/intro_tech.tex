@@ -2,8 +2,8 @@
 
 This is the technical reference manual of \dfastmi.
 \dfastmi is the successor of WAQMORF.
-The purpose of these tools is to provide a first estimate of the bed level changes in the main channel if local measures were to be implemented outside the main channel.
-Such measures include the construction of side channels and other alterations of the floodplain and embankments.
+The purpose of these tools is to provide a first estimate of the bed level changes in the main channel if local interventions were to be implemented outside the main channel.
+Such interventions include the construction of side channels and other alterations of the floodplain and embankments.
 The conceptual framework nad implementation in WAQMORF was originally developed by \citep{Sieben2008}.
 To obtain the estimate of the bed level changes, the algorithm needs data on the river's behaviour.
 These data include information on the probability distribution of discharge occurrences, the values of representative discharges, such as bankfull discharge, the general operation of any barriers, as well as the bedform celerities --- or propagation rates --- during low and high discharge conditions.
@@ -11,10 +11,10 @@ Based on these data the algorithm determines one, two or three characteristic di
 
 \begin{itemize}
 \item a hydrodynamic reference simulation and
-\item a hydrodynamic simulation with the local measure implemented.
+\item a hydrodynamic simulation with the local intervention implemented.
 \end{itemize}
 
-Based on these spatial data, the algorithm provides spatial estimates of the minimum, mean and maximum impact of the measure on the bed levels after one year.
+Based on these spatial data, the algorithm provides spatial estimates of the minimum, mean and maximum impact of the intervention on the bed levels after one year.
 The original WAQMORF tool performs the morphological analysis based on results exported from WAQUA simulations (hence the name WAQMORF).
 The new \dfastmi tool performs the analysis based on either WAQUA or D-Flow FM simulation results.
 
