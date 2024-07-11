@@ -352,4 +352,6 @@ def test_get_configuration_with_reach(
         discharge = list(mock_reference_files.keys())[i - 1]
         assert float(condition_section["Discharge"]) == discharge
         assert condition_section["Reference"] == mock_reference_files[discharge]
-        assert condition_section["WithIntervention"] == mock_intervention_files[discharge]
+        assert (
+            condition_section["WithIntervention"] == mock_intervention_files[discharge]
+        )
