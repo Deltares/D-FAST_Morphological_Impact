@@ -130,9 +130,8 @@ def batch_mode_core(
     )
 
     with report_path.open(mode="w", encoding="utf-8") as report:
-        _log_header(report)
-
         cfg_version = _get_version(rivers, config)
+        _log_header(report, cfg_version)
 
         branch_name = config.get("General", "Branch", fallback="")
         branch = rivers.get_branch(branch_name)
@@ -406,7 +405,7 @@ def _get_version(rivers: RiversObject, config: ConfigParser) -> Version:
     return cfg_version
 
 
-def _log_header(report: TextIO) -> None:
+def _log_header(report: TextIO, cfg_version: Version) -> None:
     """
     Will log into the report default static header information
 
@@ -420,8 +419,12 @@ def _log_header(report: TextIO) -> None:
     None
     """
     prog_version = dfastmi.__version__
+    if cfg_version == Version("1.0"):
+        header = "header_legacy"
+    else:
+        header = "header"
     ApplicationSettingsHelper.log_text(
-        "header", dict={"version": prog_version}, file=report
+        header, dict={"version": prog_version}, file=report
     )
     ApplicationSettingsHelper.log_text("limits", file=report)
     _report_section_break(report)
