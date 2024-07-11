@@ -298,7 +298,10 @@ class DialogModel:
     ) -> None:
         """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
-            if discharge in reference_files.keys() or discharge in intervention_files.keys():
+            if (
+                discharge in reference_files.keys()
+                or discharge in intervention_files.keys()
+            ):
                 cond = f"C{i+1}"
 
                 condition = ConditionConfig(

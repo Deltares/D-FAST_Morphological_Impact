@@ -229,7 +229,12 @@ def test_check_configuration(
 
     # Call the check_configuration method
     result = dialog_model.check_configuration(
-        mock_branch, mock_areach, mock_reference_files, mock_intervention_files, 80.1, 8.01
+        mock_branch,
+        mock_areach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
     assert (
@@ -238,7 +243,12 @@ def test_check_configuration(
 
     # Assert that get_configuration is called with the correct arguments
     dialog_model.get_configuration.assert_called_once_with(
-        mock_branch, mock_areach, mock_reference_files, mock_intervention_files, 80.1, 8.01
+        mock_branch,
+        mock_areach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
 
@@ -258,7 +268,12 @@ def test_get_configuration(
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_areach, mock_reference_files, mock_intervention_files, 80.1, 8.01
+        mock_branch,
+        mock_areach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
     # Check if the configuration parser is an instance of ConfigParser
@@ -302,7 +317,12 @@ def test_get_configuration_with_reach(
     """
     # Call the get_configuration method
     config_parser = dialog_model.get_configuration(
-        mock_branch, mock_reach, mock_reference_files, mock_intervention_files, 80.1, 8.01
+        mock_branch,
+        mock_reach,
+        mock_reference_files,
+        mock_intervention_files,
+        80.1,
+        8.01,
     )
 
     # Check if the configuration parser is an instance of ConfigParser

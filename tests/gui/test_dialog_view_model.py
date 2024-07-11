@@ -203,7 +203,10 @@ def test_load_configuration(dialog_view_model, mock_model):
     mock_model.reach_name = "Reach1"
     mock_model.config.sections.return_value = ["section1"]
     mock_model.config["section1"].getfloat.return_value = 10.0
-    mock_model.config["section1"].get.return_value = "reference_file", "intervention_file"
+    mock_model.config["section1"].get.return_value = (
+        "reference_file",
+        "intervention_file",
+    )
     mock_model.figure_dir = "mocked_figure_directory"
     mock_model.output_dir = "mocked_output_directory"
 

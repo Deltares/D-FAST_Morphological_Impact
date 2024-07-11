@@ -503,9 +503,13 @@ class DialogViewModel(QObject):
                     "reference", cond_discharge, self._reference_files[cond_discharge]
                 )
 
-                self._intervention_files[cond_discharge] = section.get("WithMeasure", "")
+                self._intervention_files[cond_discharge] = section.get(
+                    "WithMeasure", ""
+                )
                 self.intervention_files_changed.emit(
-                    "with_intervention", cond_discharge, self._intervention_files[cond_discharge]
+                    "with_intervention",
+                    cond_discharge,
+                    self._intervention_files[cond_discharge],
                 )
 
     def check_configuration(self) -> bool:

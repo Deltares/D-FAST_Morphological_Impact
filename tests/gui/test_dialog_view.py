@@ -428,14 +428,18 @@ class Test_select:
         assert input_box.text() == "/path/to/file"
         assert dialog_view._view_model.reference_files[3000.0] == "/path/to/file"
 
-    def test_selectFile_with_intervention_edit(self, dialog_view: DialogView, monkeypatch):
+    def test_selectFile_with_intervention_edit(
+        self, dialog_view: DialogView, monkeypatch
+    ):
         """
         given : dialog_view
         when  : selecting a file for a intervention edit
         then  : the intervention file should be updated correctly
         """
         # Create a mock QFileDialog.getExistingDirectory function
-        mock_getOpenFileName = MagicMock(return_value=["/path/to/file_with_intervention"])
+        mock_getOpenFileName = MagicMock(
+            return_value=["/path/to/file_with_intervention"]
+        )
         monkeypatch.setattr(QFileDialog, "getOpenFileName", mock_getOpenFileName)
 
         # Call the method with the desired key
@@ -563,7 +567,9 @@ def test_update_condition_files_with_load_configuration(
         == expected_reference_file_3000
     )
     assert (
-        dialog_view._general_widget.findChild(QLineEdit, "3000.0_with_intervention").text()
+        dialog_view._general_widget.findChild(
+            QLineEdit, "3000.0_with_intervention"
+        ).text()
         == expected_intervention_file_3000
     )
     assert (
@@ -571,6 +577,8 @@ def test_update_condition_files_with_load_configuration(
         == expected_reference_file_4000
     )
     assert (
-        dialog_view._general_widget.findChild(QLineEdit, "4000.0_with_intervention").text()
+        dialog_view._general_widget.findChild(
+            QLineEdit, "4000.0_with_intervention"
+        ).text()
         == expected_intervention_file_4000
     )

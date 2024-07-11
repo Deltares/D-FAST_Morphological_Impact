@@ -1119,7 +1119,9 @@ class DialogView:
                 self._view_model.reference_files[key_without_suffix] = file
 
             if "_" + with_intervention_label in key:
-                key_without_suffix = float(key.replace("_" + with_intervention_label, ""))
+                key_without_suffix = float(
+                    key.replace("_" + with_intervention_label, "")
+                )
                 self._view_model.intervention_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
