@@ -65,7 +65,7 @@ class FileNameRetriever(AFileNameRetriever):
         -------
         filenames : Dict[Any, Tuple[str,str]]
             Dictionary of string tuples representing the D-Flow FM file names for
-            each reference/with measure pair. The keys of the dictionary vary. They
+            each reference/with intervention pair. The keys of the dictionary vary. They
             can be the discharge index, discharge value or a tuple of forcing
             conditions, such as a Discharge and Tide forcing tuple.
         """
@@ -87,12 +87,12 @@ class FileNameRetriever(AFileNameRetriever):
                 ) from exc
 
             reference = self._cfg_get(config, section, "Reference")
-            measure = self._cfg_get(config, section, "WithMeasure")
+            intervention = self._cfg_get(config, section, "WithMeasure")
             if self.needs_tide:
                 T = self._cfg_get(config, section, "TideBC")
                 key = (Q, T)
             else:
                 key = Q
-            filenames[key] = (reference, measure)
+            filenames[key] = (reference, intervention)
 
         return filenames

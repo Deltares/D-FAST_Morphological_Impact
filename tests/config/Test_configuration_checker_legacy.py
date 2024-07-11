@@ -135,7 +135,7 @@ class Test_configuration_checker_legacy:
 
         assert not configuration_checker.check_configuration(rivers, config)
 
-    def given_mode_DFLOWFM_MAP_with_valid_discharge_check_with_valid_reference_check_but_with_invalid_with_measure_check_configuration_then_return_false(
+    def given_mode_DFLOWFM_MAP_with_valid_discharge_check_with_valid_reference_check_but_with_invalid_with_intervention_check_configuration_then_return_false(
         self,
         configuration_checker: ConfigurationCheckerLegacy,
         rivers: RiversObject,

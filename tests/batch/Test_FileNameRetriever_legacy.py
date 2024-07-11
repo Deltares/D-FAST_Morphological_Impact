@@ -71,12 +71,12 @@ class Test_FileNameRetriever_legacy:
 
     def get_expected_q_filename_and_update_config(self, config: ConfigParser, q: str):
         reference = "Reference"
-        with_measure = "WithMeasure"
+        with_intervention = "WithMeasure"
         q_reference_filename = q + "-" + reference
-        q_with_measure_filename = q + "-" + with_measure
+        q_with_intervention_filename = q + "-" + with_intervention
 
         config.add_section(q)
         config.set(q, reference, q_reference_filename)
-        config.set(q, with_measure, q_with_measure_filename)
+        config.set(q, with_intervention, q_with_intervention_filename)
 
-        return (q_reference_filename, q_with_measure_filename)
+        return (q_reference_filename, q_with_intervention_filename)

@@ -1,5 +1,5 @@
 This program implements the "WAQUA vuistregel" for the estimation of the local
-morphological effects of a local measure (i.e. an adjustment to the river). See
+morphological effects of a local intervention (i.e. an adjustment to the river). See
 "RWS-WD memo WAQUA vuistregel 20-10-08" for details).
 
 It is based on an estimation of the equilibrium bed level changes in the main
@@ -23,8 +23,8 @@ equilibrium can be reached.
 This is version 3.0.0.
 
 
-The results are not valid for a combination of multiple measures, or for a
-single measure extending over a distance more than 4 km!
+The results are not valid for a combination of multiple interventions, or for a
+single intervention extending over a distance more than 4 km!
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -44,13 +44,13 @@ Impacted length                     : 8 m
 
 Critical flow velocity              : 0.3 m/s
 
-Condition             | Reference file (without measure)       | File with measure
-  750.0 m3/s          | ---                                    | ---     (measure not active)          
- 1300.0 m3/s          | ---                                    | ---     (measure not active)          
- 1700.0 m3/s          | ---                                    | ---     (measure not active)          
- 2100.0 m3/s          | ---                                    | ---     (measure not active)          
- 2500.0 m3/s          | reference-Q1_map.nc                    | measure-Q1_map.nc                     
- 3200.0 m3/s          | reference-Q2_map.nc                    | measure-Q2_map.nc                     
+Condition             | Reference file (without intervention)       | File with intervention
+  750.0 m3/s          | ---                                    | ---     (intervention not active)          
+ 1300.0 m3/s          | ---                                    | ---     (intervention not active)          
+ 1700.0 m3/s          | ---                                    | ---     (intervention not active)          
+ 2100.0 m3/s          | ---                                    | ---     (intervention not active)          
+ 2500.0 m3/s          | reference-Q1_map.nc                    | intervention-Q1_map.nc                     
+ 3200.0 m3/s          | reference-Q2_map.nc                    | intervention-Q2_map.nc                     
 
 ================================================================================
 

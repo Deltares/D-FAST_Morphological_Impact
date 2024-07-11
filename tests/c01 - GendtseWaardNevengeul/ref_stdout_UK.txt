@@ -1,5 +1,5 @@
 This program implements the "WAQUA vuistregel" for the estimation of the local
-morphological effects of a local measure (i.e. an adjustment to the river). See
+morphological effects of a local intervention (i.e. an adjustment to the river). See
 "RWS-WD memo WAQUA vuistregel 20-10-08" for details).
 
 It is based on an estimation of the equilibrium bed level changes in the main
@@ -26,8 +26,8 @@ Confirm using "y" ...
 
 y
 
-The results are not valid for a combination of multiple measures, or for a
-single measure extending over a distance more than 4 km!
+The results are not valid for a combination of multiple interventions, or for a
+single intervention extending over a distance more than 4 km!
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -63,7 +63,7 @@ bed level changes. These files are:
 Confirm using "y", or restart using "n" ...
 
 y
-On which branch is the measure located?
+On which branch is the intervention located?
 
 
     river branch                             nr
@@ -83,7 +83,7 @@ The number of the river branch is ...
 
 1
 
-On which reach is the measure located?
+On which reach is the intervention located?
 
 
     river reach                             nr
@@ -104,7 +104,7 @@ The number of the river reach is ...
 
 --------------------------------------------------------------------------------
 
-The measure is located on reach Boven-Waal                   km  868-886
+The intervention is located on reach Boven-Waal                   km  868-886
 
 --------------------------------------------------------------------------------
 
@@ -113,20 +113,20 @@ Confirm using "y" or restart the location selection using "n" ...
 y
 
 
-The next three questions will be used to characterize the measure. If a measure
+The next three questions will be used to characterize the intervention. If a intervention
 impacts the hydrodynamics in the main channel at multiple locations, answer the
-questions for the part of the measure that is expected to have the most impact
+questions for the part of the intervention that is expected to have the most impact
 on the navigation channel.
 
 
 
-Is the measure flow-carrying for all discharges at Lobith above 1000 m3/s?
+Is the intervention flow-carrying for all discharges at Lobith above 1000 m3/s?
 
 Confirm using "y", or reply "n" ...
 
 y
 Most of the flood plains become flow-carrying for discharges above 4000
-m3/s. Is the measure also bankfull for these discharges?
+m3/s. Is the intervention also bankfull for these discharges?
 
 Confirm using "y", or reply "n" ...
 
@@ -185,15 +185,15 @@ Input of block 1 data files at Q=3000.0 m3/s
 --------------------------------------------------------------------------------
 
 
-The file name of flow velocity magnitudes without measure is...
+The file name of flow velocity magnitudes without intervention is...
 xyz_velocity-zeta.001.Q1.xyz
 File "xyz_velocity-zeta.001.Q1.xyz" found!
 
-The file name of water depths without measure is...
+The file name of water depths without intervention is...
 xyz_waterdepth-zeta.001.Q1.xyz
 File "xyz_waterdepth-zeta.001.Q1.xyz" found!
 
-The file name of flow velocity magnitudes with measure is...
+The file name of flow velocity magnitudes with intervention is...
 xyz_velocity-zeta.002.Q1.xyz
 File "xyz_velocity-zeta.002.Q1.xyz" found!
 
@@ -208,15 +208,15 @@ Input of block 2 data files at Q=4000.0 m3/s
 --------------------------------------------------------------------------------
 
 
-The file name of flow velocity magnitudes without measure is...
+The file name of flow velocity magnitudes without intervention is...
 xyz_velocity-zeta.001.Q2.xyz
 File "xyz_velocity-zeta.001.Q2.xyz" found!
 
-The file name of water depths without measure is...
+The file name of water depths without intervention is...
 xyz_waterdepth-zeta.001.Q2.xyz
 File "xyz_waterdepth-zeta.001.Q2.xyz" found!
 
-The file name of flow velocity magnitudes with measure is...
+The file name of flow velocity magnitudes with intervention is...
 xyz_velocity-zeta.002.Q2.xyz
 File "xyz_velocity-zeta.002.Q2.xyz" found!
 
@@ -231,15 +231,15 @@ Input of block 3 data files at Q=6000.0 m3/s
 --------------------------------------------------------------------------------
 
 
-The file name of flow velocity magnitudes without measure is...
+The file name of flow velocity magnitudes without intervention is...
 xyz_velocity-zeta.001.Q3.xyz
 File "xyz_velocity-zeta.001.Q3.xyz" found!
 
-The file name of water depths without measure is...
+The file name of water depths without intervention is...
 xyz_waterdepth-zeta.001.Q3.xyz
 File "xyz_waterdepth-zeta.001.Q3.xyz" found!
 
-The file name of flow velocity magnitudes with measure is...
+The file name of flow velocity magnitudes with intervention is...
 xyz_velocity-zeta.002.Q3.xyz
 File "xyz_velocity-zeta.002.Q3.xyz" found!
 

@@ -262,14 +262,14 @@ def _report_used_file_names(
         else:
             key = q
 
-        condition, reference_file_name, measure_file_name, comment = (
+        condition, reference_file_name, intervention_file_name, comment = (
             get_analysis_condition_values_for_logging(
                 initialized_config, filenames, q, key
             )
         )
 
         _report_analysis_conditions_values(
-            condition, reference_file_name, measure_file_name, comment, report
+            condition, reference_file_name, intervention_file_name, comment, report
         )
 
 
@@ -283,19 +283,19 @@ def get_analysis_condition_values_for_logging(
 
     if q <= initialized_config.q_threshold:
         reference_file_name = "---"
-        measure_file_name = "---"
-        comment = "(measure not active)"
+        intervention_file_name = "---"
+        comment = "(intervention not active)"
     elif key in filenames:
         files = filenames[key]
         reference_file_name = _get_file_name(files[0])
-        measure_file_name = _get_file_name(files[1])
+        intervention_file_name = _get_file_name(files[1])
         comment = ""
     else:
         reference_file_name = "xxx"
-        measure_file_name = "xxx"
+        intervention_file_name = "xxx"
         comment = "(not specified)"
 
-    return condition, reference_file_name, measure_file_name, comment
+    return condition, reference_file_name, intervention_file_name, comment
 
 
 def _get_file_name(location: str) -> str:
@@ -304,12 +304,12 @@ def _get_file_name(location: str) -> str:
 
 
 def _report_analysis_conditions_values(
-    condition: str, reference: str, measure: str, comment: str, report: TextIO
+    condition: str, reference: str, intervention: str, comment: str, report: TextIO
 ):
     settings = {
         "condition": condition,
         "reference": reference,
-        "measure": measure,
+        "intervention": intervention,
         "comment": comment,
     }
     ApplicationSettingsHelper.log_text(
@@ -523,7 +523,7 @@ def get_filenames(
     -------
     filenames : Dict[Any, Tuple[str,str]]
         Dictionary of string tuples representing the D-Flow FM file names for
-        each reference/with measure pair. The keys of the dictionary vary. They
+        each reference/with intervention pair. The keys of the dictionary vary. They
         can be the discharge index, discharge value or a tuple of forcing
         conditions, such as a Discharge and Tide forcing tuple.
     """
@@ -722,9 +722,9 @@ def write_report(
     q_location : str
         The name of the discharge location.
     q_threshold : Optional[float]
-        The discharge below which the measure is not flow-carrying (None if always flowing above 1000 m3/s or when barriers are opened).
+        The discharge below which the intervention is not flow-carrying (None if always flowing above 1000 m3/s or when barriers are opened).
     q_bankull : float
-        The discharge at which the measure is bankfull.
+        The discharge at which the intervention is bankfull.
     q_stagnant : float
         Discharge below which the river flow is negligible.
     tstag : float

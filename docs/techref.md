@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The purpose of D-FAST Morphological Impact is to provide a first estimate of the bed level changes in the main channel if local measures were to be implemented outside the main channel.
+The purpose of D-FAST Morphological Impact is to provide a first estimate of the bed level changes in the main channel if local interventions were to be implemented outside the main channel.
 It is based on the conceptual WAQMORF framework originally developed by Sieben (2008).
 WAQMORF was developed for the SIMONA system.
 D-FAST Morphological Impact implements the same functionality based on results obtained from D-Flow Flexible Mesh.
@@ -72,10 +72,10 @@ The software distinguishes 6 files:
 
 * The *rivers configuration file* defines the branches and reaches, and all parameter settings specific for the overall system, per branch or per reach.
 * The *dialog text file* defines all strings to be used in the interaction with the users (GUI, report, or error messages).
-* The *analysis configuration file* defines the settings that are relevant for a specific execution of the algorithm, i.e. for a specific branch, reach and measure.
+* The *analysis configuration file* defines the settings that are relevant for a specific execution of the algorithm, i.e. for a specific branch, reach and intervention.
 * The *simulation result files* define the spatial variations in the velocities and water depths as needed by the algorithm.
 * The *report file* contains a logging of the settings and lumped results for the analysis.
-* The *spatial output file* contains the estimate of the spatial variation in the sedimentation and erosion patterns that will result from the measure (minimum, mean and maximum).
+* The *spatial output file* contains the estimate of the spatial variation in the sedimentation and erosion patterns that will result from the intervention (minimum, mean and maximum).
 
 Each file type is addressed separately in the following subsections.
 
@@ -97,7 +97,7 @@ Further details follow below.
 | BranchName<i>  | Reach<j>   | Name of reach <j> within branch <i> |
 | BranchName<i>  | QLocation  | Location at which discharges for branch <i> are defined |
 | B*             | QStagnant  | Discharge [m3/s] below which main channel flow can be assumed stagnant |
-| B*             | QMin       | Minimum discharge [m3/s] at which measure becomes active |
+| B*             | QMin       | Minimum discharge [m3/s] at which intervention becomes active |
 | B*             | QFit       | Two discharges [m3/s] used for representing the exceedance curve |
 | B*             | QLevels    | Four characteristic discharges [m3/s] used by algorithm |
 | B*             | dQ         | Two discharge adjustments [m3/s] used by algorithm |
@@ -213,11 +213,11 @@ The analysis configuration file follows the common ini-file format.
 The file must contain a `[General]` block with a keyword `Version` to indicate the version number of the file.
 The initial version number will be `1.0`.
 
-Version 1.0 files must contain in the `[General]` block also the keywords `Branch` and `Reach` to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the measure is located.
+Version 1.0 files must contain in the `[General]` block also the keywords `Branch` and `Reach` to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the intervention is located.
 The specified names may be shortened, but they should uniquely identify the branch and reach amongst the names of the other branches and reaches.
-Optionally, the same block may also contain `Qmin`, `QBankfull` and `UCrit` values representative for this particular measure if they differ from those typical for the selected reach.
+Optionally, the same block may also contain `Qmin`, `QBankfull` and `UCrit` values representative for this particular intervention if they differ from those typical for the selected reach.
 These items are sufficient for a basic analysis.
-For a full spatial analysis the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without measure (reference) and with measure for the selected discharges Q1, Q2, and Q3.
+For a full spatial analysis the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without intervention (reference) and with intervention for the selected discharges Q1, Q2, and Q3.
 
 | Block          | Keyword     | Description |
 |----------------|-------------|-------------|
@@ -225,25 +225,25 @@ For a full spatial analysis the user needs to specify the names of the D-Flow FM
 | General        | Mode        | `WAQUA export` or `D-Flow FM map` (the latter is the default) |
 | General        | Branch      | Name of the selected branch   |
 | General        | Reach       | Name of the selected reach    |
-| General        | Qthreshold  | Threshold discharge [m3/s] at which measure becomes active |
-| General        | Qbankfull   | Discharge [m3/s] at which measure reaches bankfull |
+| General        | Qthreshold  | Threshold discharge [m3/s] at which intervention becomes active |
+| General        | Qbankfull   | Discharge [m3/s] at which intervention reaches bankfull |
 | General        | UCrit       | Critical (minimum) velocity [m/s] for sediment transport |
 | Q1             | Discharge   | Discharge [m3/s] of the low flow simulation |
 | Q1             | Reference   | Name of D-Flow FM map-file to be used for reference condition at Q1 |
-| Q1             | WithMeasure | Name of D-Flow FM map-file that includes the measure at Q1 |
+| Q1             | WithMeasure | Name of D-Flow FM map-file that includes the intervention at Q1 |
 | Q2             | Discharge   | Discharge [m3/s] of the transitional regime |
 | Q2             | Reference   | Name of D-Flow FM map-file to be used for reference condition at Q2 |
-| Q2             | WithMeasure | Name of D-Flow FM map-file that includes the measure at Q2 |
+| Q2             | WithMeasure | Name of D-Flow FM map-file that includes the intervention at Q2 |
 | Q3             | Discharge   | Discharge [m3/s] of the high flow simulation |
 | Q3             | Reference   | Name of D-Flow FM map-file to be used for reference condition at Q3 |
-| Q3             | WithMeasure | Name of D-Flow FM map-file that includes the measure at Q3 |
+| Q3             | WithMeasure | Name of D-Flow FM map-file that includes the intervention at Q3 |
 
 The file names may be specified using relative or absolute paths.
 The `Reference` and `WithMeasure` keywords are *not* used when the `Mode` equals `WAQUA export`; in that case the file name are standardized as `xyz_<quantity>-zeta.00<1/2>.Q<i>`.
 
 **Example**
 
-This example shows a complete analysis configuration file for a measure in the first branch/reach of the default `Dutch_rivers.cfg` configuration.
+This example shows a complete analysis configuration file for a intervention in the first branch/reach of the default `Dutch_rivers.cfg` configuration.
 It reports the default settings.
 Only the `Version`, `Branch`, `Reach`, `Reference` and `WithMeasure` keywords are required for the full analysis.
 
@@ -380,7 +380,7 @@ This run mode is triggered by calling the program using the command line argumen
 ### graphical user interface `gui.py`
 
 This file implements the graphical user interface version of D-FAST Morphological Impact.
-It can be used to generate and edit the analysis configuration files used for evaluating a single measure.
+It can be used to generate and edit the analysis configuration files used for evaluating a single intervention.
 This run mode is triggered by calling the program using the command line argument `--mode gui` or by not specifying a `--mode` argument since this is the default run mode.
 It supports both new and old simulation result files.
 
@@ -445,7 +445,7 @@ This module also contains the main version number.
 * `char_times` for computing the associated time and weight factors
 * `estimate_sedimentation_length` for computing the characteristic length scale of the impact
 * `dzq_from_du_and_h` for computing the spatial pattern of dzq based on the change in velocity magnitude and local water depth
-* `main_computation` for computing the minimum, mean and maximum impact patterns of the measure on the bed levels after one year
+* `main_computation` for computing the minimum, mean and maximum impact patterns of the intervention on the bed levels after one year
 
 
 # Software Maintenance

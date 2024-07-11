@@ -5,10 +5,10 @@ The software distinguishes 6 files:
 \begin{itemize}
 \item The \emph{rivers configuration file} defines the branches and reaches, and all parameter settings specific for the overall system, per branch or per reach.
 \item The \emph{dialog text file} defines all strings to be used in the interaction with the users (GUI, report, or error messages).
-\item The \emph{analysis configuration file} defines the settings that are relevant for a specific execution of the algorithm, i.e.~for a specific branch, reach and measure.
+\item The \emph{analysis configuration file} defines the settings that are relevant for a specific execution of the algorithm, i.e.~for a specific branch, reach and intervention.
 \item The \emph{simulation result files} define the spatial variations in the velocities and water depths as needed by the algorithm.
 \item The \emph{report file} contains a logging of the settings and lumped results for the analysis.
-\item The \emph{spatial output file} contains the estimate of the spatial variation in the sedimentation and erosion patterns that will result from the measure (minimum, mean and maximum).
+\item The \emph{spatial output file} contains the estimate of the spatial variation in the sedimentation and erosion patterns that will result from the intervention (minimum, mean and maximum).
 \end{itemize}
 
 Each file type is addressed separately in the following subsections.
@@ -180,12 +180,12 @@ The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to 
 The version number should be \keyw{3.0}.\footnote{Initially this file version was named \keyw{2.0} but to avoid confusion with the fact that this file format is only supported by \dfastmi version 3.0, the version number has been increased.
 Files with version \keyw{2.0} are still accepted, but not recommended.}
 
-Version 3.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the measure is located.
+Version 3.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the intervention is located.
 The specified names may be shortened, but they should uniquely identify the branch and reach amongst the names of the other branches and reaches.
-The same block may also contain \keyw{QThreshold} and \keyw{UCrit} values representative for this particular measure if they differ from those typical for the selected reach.
+The same block may also contain \keyw{QThreshold} and \keyw{UCrit} values representative for this particular intervention if they differ from those typical for the selected reach.
 Furthermore, this block may contain \keyw{FigureDir} and \keyw{OutputDir} specifying where the figures and other output files should be written.
 The \keyw{RiverKM} keyword to specify the chainage along the reach of interest is needed for estimating the initial year dredging volumes.
-Last but not least, the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without measure (reference) and with measure for the selected flow conditions.
+Last but not least, the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without intervention (reference) and with intervention for the selected flow conditions.
 These names must be specified in a continuous sequences of numbered blocks named \keyw{C1}, \keyw{C2}, etc.
 The order of the blocks is not important: the relevant blocks are identified by means of the \keyw{Discharge} and optionally \keyw{TideBC} specified per block.
 There should be a match for every stage of the configured ``hydrograph'' for the selected branch/reach.
@@ -198,7 +198,7 @@ Should be \keyw{3.0}. \\
 \keyw{General} & \keyw{CaseDescription} & Description of the analysis. \\
 \keyw{General} & \keyw{Branch} & Name of the selected branch. \\
 \keyw{General} & \keyw{Reach} & Name of the selected reach. \\
-\keyw{General} & \keyw{QThreshold} & Minimum discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} at which measure becomes active. \\
+\keyw{General} & \keyw{QThreshold} & Minimum discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} at which intervention becomes active. \\
 \keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{\SI{}{\metre\per\second}} for sediment transport. \\
 \keyw{General} & \keyw{RiverKM} & Name of file with river chainage \unitbrackets{\SI{}{\kilo\metre}} and corresponding xy-coordinates. \\
 \keyw{General} & \keyw{FigureDir} & Directory for storing figures (default relative to work dir: figure). \\
@@ -206,12 +206,12 @@ Should be \keyw{3.0}. \\
 \keyw{C}<i> & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of condition <i>. \\
 \keyw{C}<i> & \keyw{TideBC} & Tidal boundary of condition <i>. \\
 \keyw{C}<i> & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition <i>. \\
-\keyw{C}<i> & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the measure <i>. \\
+\keyw{C}<i> & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the intervention <i>. \\
 \end{tabular}
 
 \subsubsection*{Example}
 
-This example shows a complete analysis configuration file for a measure in the first branch/reach of the default \keyw{Dutch\_rivers.cfg} configuration.
+This example shows a complete analysis configuration file for a intervention in the first branch/reach of the default \keyw{Dutch\_rivers.cfg} configuration.
 It reports the default settings.
 Only the \keyw{Version}, \keyw{Branch}, \keyw{Reach}, \keyw{Reference} and \keyw{WithMeasure} keywords are required for the full analysis.
 

@@ -120,7 +120,7 @@ class AnalyserDflowfm:
             Dictionary of the names of the data file containing the simulation
             results to be processed. The conditions (discharge, wave conditions,
             ...) are the key in the dictionary. Per condition a tuple of two file
-            names is given: a reference file and a file with measure.
+            names is given: a reference file and a file with intervention.
         xykm : shapely.geometry.linestring.LineString
             Original river chainage line.
         plotting_options : PlotOptions
@@ -256,7 +256,7 @@ class AnalyserDflowfm:
             )
 
         if one_fm_filename is None:
-            self._reporter.print_measure_not_active_for_checked_conditions()
+            self._reporter.print_intervention_not_active_for_checked_conditions()
             self._missing_data = True
 
         return one_fm_filename
@@ -281,7 +281,7 @@ class AnalyserDflowfm:
             if not self._missing_data and self._discharges[i] is not None:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
                 if self._rsigma[i] == 1 or self._discharges[i] <= self._q_threshold:
-                    # no celerity or measure not active, so ignore field
+                    # no celerity or intervention not active, so ignore field
                     pass
                 elif key in filenames:
                     return filenames[key][0]
@@ -328,7 +328,7 @@ class AnalyserDflowfm:
                 # ignore period
                 dzq[i] = 0
             elif self._discharges[i] <= self._q_threshold:
-                # measure inactive, so zero-effect for this period
+                # intervention inactive, so zero-effect for this period
                 dzq[i] = numpy.zeros_like(iface, dtype=float)
             else:
                 dzq[i] = self._get_values_fm(
@@ -353,7 +353,7 @@ class AnalyserDflowfm:
             else:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
                 if q <= self._q_threshold:
-                    # measure inactive, so zero-effect for this period
+                    # intervention inactive, so zero-effect for this period
                     dzq[i] = numpy.zeros_like(iface, dtype=float)
                 elif key in filenames.keys():
                     if t:
@@ -397,7 +397,7 @@ class AnalyserDflowfm:
         ucrit : float
             Critical flow velocity.
         filenames : Tuple[str, str]
-            Names of the reference simulation file and file with the implemented measure.
+            Names of the reference simulation file and file with the implemented intervention.
         n_fields : int
             Number of fields to process (e.g. to cover a tidal period).
         dx : numpy.ndarray
@@ -420,7 +420,7 @@ class AnalyserDflowfm:
             self._reporter.report_file_not_found(filenames[0])
             return None
 
-        # file with measure implemented
+        # file with intervention implemented
         if not os.path.isfile(filenames[1]):
             self._reporter.report_file_not_found(filenames[1])
             return None
@@ -454,7 +454,7 @@ class AnalyserDflowfm:
                 "sea_floor_depth_below_sea_surface", time_index_from_last=ifld
             )[iface]
 
-            # data with measure
+            # data with intervention
             u1 = map_file2.read_face_variable(
                 "sea_water_x_velocity", time_index_from_last=ifld
             )[iface]

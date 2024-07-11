@@ -25,7 +25,7 @@ class Test_batch_save_configuration_file:
             "\n",
             "[SomeSection]\n",
             "  reference   = reference\n",
-            "  withmeasure = with_measure\n",
+            "  withmeasure = with_intervention\n",
         ]
 
         file_path = tmp_path / "test_file.cfg"
@@ -49,7 +49,7 @@ class Test_batch_save_configuration_file:
         }
         config["SomeSection"] = {
             "Reference": tmp_path / "reference",
-            "WithMeasure": tmp_path / "with_measure",
+            "WithMeasure": tmp_path / "with_intervention",
         }
         return config
 

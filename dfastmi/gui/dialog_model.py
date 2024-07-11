@@ -201,7 +201,7 @@ class DialogModel:
         branch: Branch,
         reach: AReach,
         reference_files: FilenameDict,
-        measure_files: FilenameDict,
+        intervention_files: FilenameDict,
         ucritical: float,
         qthreshold: float,
     ) -> bool:
@@ -216,8 +216,8 @@ class DialogModel:
             Selected reach which is used and should be in this config.
         reference_files: FilenameDict
             Selected reference files which is used and should be in this config.
-        measure_files: FilenameDict
-            Selected measure files which is used and should be in this config.
+        intervention_files: FilenameDict
+            Selected intervention files which is used and should be in this config.
         ucritical : float
             Selected minimal critical flow value which is used and should be in this config.
         qthreshold : float
@@ -228,7 +228,7 @@ class DialogModel:
             Boolean indicating whether the (D-FAST MI analysis) configuration can be created.
         """
         config = self.get_configuration(
-            branch, reach, reference_files, measure_files, ucritical, qthreshold
+            branch, reach, reference_files, intervention_files, ucritical, qthreshold
         )
         return check_configuration(self.rivers, config)
 
@@ -237,7 +237,7 @@ class DialogModel:
         branch: Branch,
         reach: AReach,
         reference_files: FilenameDict,
-        measure_files: FilenameDict,
+        intervention_files: FilenameDict,
         ucritical: float,
         qthreshold: float,
     ) -> ConfigParser:
@@ -252,8 +252,8 @@ class DialogModel:
             Selected reach which is used and should be in this config.
         reference_files: FilenameDict
             Selected reference files which is used and should be in this config.
-        measure_files: FilenameDict
-            Selected measure files which is used and should be in this config.
+        intervention_files: FilenameDict
+            Selected intervention files which is used and should be in this config.
         ucritical : float
             Selected minimal critical flow value which is used and should be in this config.
         qthreshold : float
@@ -284,7 +284,7 @@ class DialogModel:
 
         if isinstance(reach, Reach):
             self._get_condition_configuration(
-                config, reach, reference_files, measure_files
+                config, reach, reference_files, intervention_files
             )
         self._add_unknown_read_config_key_values(config)
         return config
@@ -294,17 +294,17 @@ class DialogModel:
         config: ConfigParser,
         reach: Reach,
         reference_files: FilenameDict,
-        measure_files: FilenameDict,
+        intervention_files: FilenameDict,
     ) -> None:
         """Get condition configuration."""
         for i, discharge in enumerate(reach.hydro_q):
-            if discharge in reference_files.keys() or discharge in measure_files.keys():
+            if discharge in reference_files.keys() or discharge in intervention_files.keys():
                 cond = f"C{i+1}"
 
                 condition = ConditionConfig(
                     Discharge=discharge,
                     Reference=reference_files.get(discharge, ""),
-                    WithMeasure=measure_files.get(discharge, ""),
+                    WithMeasure=intervention_files.get(discharge, ""),
                 )
 
                 config[cond] = condition.model_dump()

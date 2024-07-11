@@ -72,7 +72,7 @@ class AConfigurationInitializerBase(ABC):
 
     @property
     def q_threshold(self) -> float:
-        """River discharge at which the measure becomes active [m3/s]."""
+        """River discharge at which the intervention becomes active [m3/s]."""
         return self._q_threshold
 
     @property

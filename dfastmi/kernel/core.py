@@ -97,7 +97,7 @@ def dzq_from_du_and_h(
     h0 : numpy.ndarray
         Array containing the water depths (in the reference simulation).
     u1 : numpy.ndarray
-        Array containing the flow velocity magnitudes in the simulation with the measure.
+        Array containing the flow velocity magnitudes in the simulation with the intervention.
     ucrit : float
         Critical flow velocity below which no change is expected.
 

@@ -72,7 +72,7 @@ from dfastmi.resources import DFAST_LOGO
 
 # View
 reference_label = "reference"
-with_measure_label = "with_measure"
+with_intervention_label = "with_intervention"
 
 
 class DialogView:
@@ -164,7 +164,7 @@ class DialogView:
         self._view_model.reference_files_changed.connect(
             self._update_condition_file_field
         )
-        self._view_model.measure_files_changed.connect(
+        self._view_model.intervention_files_changed.connect(
             self._update_condition_file_field
         )
 
@@ -590,12 +590,12 @@ class DialogView:
         # Add widgets to the form layout
         discharge_column_label = QLabel(gui_text("qval"), self._win)
         reference_column__label = QLabel(gui_text("reference"), self._win)
-        measure_column_label = QLabel(gui_text("measure"), self._win)
+        intervention_column_label = QLabel(gui_text("intervention"), self._win)
 
         # Add widgets to the form layout with labels
         self._grid_layout.addWidget(discharge_column_label, 1, 0)
         self._grid_layout.addWidget(reference_column__label, 1, 1)
-        self._grid_layout.addWidget(measure_column_label, 1, 2)
+        self._grid_layout.addWidget(intervention_column_label, 1, 2)
 
         # Add group box to the main layout
         layout.addRow(group_box)
@@ -800,14 +800,14 @@ class DialogView:
             "Enter reference file path",
         )
 
-        # get the file with measure
-        q1_with_measure = self._create_condition_validating_line_edit(
+        # get the file with intervention
+        q1_with_intervention = self._create_condition_validating_line_edit(
             prefix,
             discharge,
             enabled,
-            self._view_model.measure_files,
-            with_measure_label,
-            "Enter with measure file path",
+            self._view_model.intervention_files,
+            with_intervention_label,
+            "Enter with intervention file path",
         )
 
         discharge_value_label = QLabel(discharge_name, self._win)
@@ -821,7 +821,7 @@ class DialogView:
         )
         self._grid_layout.addWidget(
             self._open_file_layout(
-                q1_with_measure, prefix + with_measure_label, enabled
+                q1_with_intervention, prefix + with_intervention_label, enabled
             ),
             row_count,
             2,
@@ -1118,9 +1118,9 @@ class DialogView:
                 key_without_suffix = float(key.replace("_" + reference_label, ""))
                 self._view_model.reference_files[key_without_suffix] = file
 
-            if "_" + with_measure_label in key:
-                key_without_suffix = float(key.replace("_" + with_measure_label, ""))
-                self._view_model.measure_files[key_without_suffix] = file
+            if "_" + with_intervention_label in key:
+                key_without_suffix = float(key.replace("_" + with_intervention_label, ""))
+                self._view_model.intervention_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
         """

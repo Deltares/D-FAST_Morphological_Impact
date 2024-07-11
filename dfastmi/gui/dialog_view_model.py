@@ -60,9 +60,9 @@ class DialogViewModel(QObject):
     output_dir_changed = pyqtSignal(str)
     analysis_exception = pyqtSignal(str, str)
     reference_files_changed = pyqtSignal(str, float, str)
-    measure_files_changed = pyqtSignal(str, float, str)
+    intervention_files_changed = pyqtSignal(str, float, str)
     _reference_files: FilenameDict = {}
-    _measure_files: FilenameDict = {}
+    _intervention_files: FilenameDict = {}
     _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}
     _qthreshold_cache: Dict[Tuple[Branch, AReach], float] = {}
     model: DialogModel
@@ -192,11 +192,11 @@ class DialogViewModel(QObject):
         return self._reference_files
 
     @property
-    def measure_files(self) -> FilenameDict:
+    def intervention_files(self) -> FilenameDict:
         """
-        FilenameDict: The measurement files.
+        FilenameDict: The intervention files.
         """
-        return self._measure_files
+        return self._intervention_files
 
     @property
     def make_plot(self) -> bool:
@@ -271,7 +271,7 @@ class DialogViewModel(QObject):
             self.current_branch,
             self.current_reach,
             self.reference_files,
-            self.measure_files,
+            self.intervention_files,
             self.ucritical,
             self.qthreshold,
         )
@@ -292,7 +292,7 @@ class DialogViewModel(QObject):
                 self.current_branch,
                 self.current_reach,
                 self.reference_files,
-                self.measure_files,
+                self.intervention_files,
                 self.ucritical,
                 self.qthreshold,
             )
@@ -441,7 +441,7 @@ class DialogViewModel(QObject):
             self.current_branch,
             self.current_reach,
             self.reference_files,
-            self.measure_files,
+            self.intervention_files,
             self.ucritical,
             self.qthreshold,
         )
@@ -481,7 +481,7 @@ class DialogViewModel(QObject):
         )
         self._initialize_ucritical()
         self._update_slength()
-        self._initialize_reference_and_measure()
+        self._initialize_reference_and_intervention()
 
         self.make_plot = self.model.plotting
         self.save_plot = self.model.save_plots
@@ -490,9 +490,9 @@ class DialogViewModel(QObject):
 
         return True
 
-    def _initialize_reference_and_measure(self):
+    def _initialize_reference_and_intervention(self):
         self._reference_files = {}
-        self._measure_files = {}
+        self._intervention_files = {}
         for section_name in self.model.config.sections():
             if section_name.lower().startswith("c"):
                 section = self.model.config[section_name]
@@ -503,9 +503,9 @@ class DialogViewModel(QObject):
                     "reference", cond_discharge, self._reference_files[cond_discharge]
                 )
 
-                self._measure_files[cond_discharge] = section.get("WithMeasure", "")
-                self.measure_files_changed.emit(
-                    "with_measure", cond_discharge, self._measure_files[cond_discharge]
+                self._intervention_files[cond_discharge] = section.get("WithMeasure", "")
+                self.intervention_files_changed.emit(
+                    "with_intervention", cond_discharge, self._intervention_files[cond_discharge]
                 )
 
     def check_configuration(self) -> bool:
@@ -519,7 +519,7 @@ class DialogViewModel(QObject):
             self.current_branch,
             self.current_reach,
             self.reference_files,
-            self.measure_files,
+            self.intervention_files,
             self.ucritical,
             self.qthreshold,
         )
