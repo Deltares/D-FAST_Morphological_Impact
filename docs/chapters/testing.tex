@@ -166,7 +166,7 @@ There are unit and system tests addressing the reading of the input files.
 
 \item The report output must be a simple text file consistent with WAQMORF.
 The report is similar to the text report written by WAQMORF; the content is adjusted for the new algorithm of \dfastmi version 3 in line with requirement 14.
-The system tests also compare the report output with the results of earlier runs.
+The automated system tests also perform regression tests on the report output, which should be identical to the reference report output that was obtained from a set of initial manual runs.
 
 \item The spatial output must be easy to visualize in common software.
 The output is in standard netCDF UGRID format when the input is also in standard netCDF UGRID format coming from \dflowfm.
@@ -455,24 +455,22 @@ During the development of D-FAST MI 3.0.0, the number of code lines has doubled.
 There is no duplication in the code anymore, see \autoref{fig:code_duplication}.
 At the time of the first upload about 40\% of the code was covered by a limited set of about 65 tests.
 The code coverage was still relatively high due to a few system tests that touched a lot of lines of code.
-Since that time, the code coverage has increased to 90\% whereas at the same time the number of code lines has increased from about 2700 to almost 4400.
+Since that time, the code coverage has increased to about 90\% whereas at the same time the number of code lines has increased from about 2800 to about 7000.
 See \autoref{fig:code_coverage}.
-During the same period the number of code issues detected by SonarCloud has decreased from 240 to 65.
-Out of the remaining 65 issues, 15 are considered high severity, 20 medium severity and 30 low severity.
-The 15 most critical issues are related to code complexity that is slightly too high, and \keyw{try-except} constructs that don't filter the exceptions that they catch.
+During the same period the number of code issues detected by SonarCloud has decreased from 240 to 25 of which 15 medium severity and 10 low severity.
 See \autoref{fig:code_issues}.
 
 \begin{figure}
 \center
 \includegraphics[width=10cm]{figures/code_duplication.png}
-\caption{Code duplication}
+\caption{Code duplication identified by SonarCloud. Horizontal axis: time. Vertical axis: number of lines of code (light blue) and number of duplicated lines (dark blue).}
 \label{fig:code_duplication}
 \end{figure}
 
 \begin{figure}
 \center
 \includegraphics[width=10cm]{figures/code_coverage.png}
-\caption{Code coverage}
+\caption{Code coverage reported by SonarCloud. Horizontal axis: time. Vertical axis: number of lines of code (light blue) and number of covered lines (dark blue).}
 \label{fig:code_coverage}
 \end{figure}
 
@@ -484,12 +482,22 @@ See \autoref{fig:code_issues}.
 \end{figure}
 
 \subsection{Sigrid report}
-The overall maintainability is scored at 3.6, with an architecture score of 3.4.
+Sigrid scores the overall maintainability at 3.7, with an architecture score of 3.4.
+See Sigrid overview report in \autoref{fig:sigrid_overview}.
 The total amount of code represents 11 person months (to develop).
-The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 92 \%).
-The code depends on 60 open source libraries of which 5 (cftime, click-plugins, intel-openmp, mkl, tbb) are marked as high risk since the version used is more than 1 year old.
-There is 1 critical security issue.
-This is related to the opening the user manual by starting a shell process; someone might exploit this by starting some other process.
+The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 91 \%).
+The open source health is scored at 4.1: the code depends on 60 open source libraries of which 5 (cftime, click-plugins, intel-openmp, mkl, tbb) are marked as high risk since the version used is more than 1 year old.
+The are no security or reliability issues.
+\Autoref{fig:sigrid_architecture_overview} shows the Sigrid architecture overview.
+In particular the "communication centralization" score is low, and the "bounded evolution".
+\Autoref{fig:sigrid_architecture_comm} shows the Sigrid communication centralization overview.
+The Sigrid score for this topic is based on the number of calls between components compared to the number of calls within a component.
+A lot of internal calls compared to outside calls is considered good.
+Since we use the lower level components (io, kernel, config, batch) as libraries that provide functions to higher level components rather than independently functioning entities, the score is relatively low.
+By bundling all code into one component (all source files into one folder), we would resolve this bad score.
+The "bounded evolution" score determines how often files are changed in the same commit.
+Due to several major renaming actions over the past weeks, which caused changes in many files, this score has gone down.
+It will likely go back up during regular developments.
 
 \begin{figure}
 \center

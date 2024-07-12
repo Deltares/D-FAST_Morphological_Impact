@@ -4,16 +4,20 @@ To apply \dfastmi one should carry out the following five steps.
 
 \begin{enumerate}
 \item Characterize the intervention to be evaluated using \dfastmi.
-Verify that it's appropriate to use \dfastmi instrument.
+Verify that it's appropriate to use \dfastmi instrument; see \autoref{Chp:Guidance}.
+Determine the branch and reach on which it's located; use the \dfmi GUI for this\footnote{The reaches are specified in the GUI both by a descriptive name and an approximate indication of the river chainage.
+Follow item \ref{reach_bnd} of \autoref{Sec:Limitations} if a measure is located across or near a branch/reach boundary.}.
 Determine the threshold discharge $Q_\text{thr}$ (at Lobith/Borgharen) at which the intervention (indirectly) starts to influence the flow pattern in the main channel.
 The threshold discharge is critical for determining the fraction of the year that the intervention influences the flow, and hence the duration over which the bed level difference (compared to the reference situation) can develop.
 As a result, this value is critical for determining the total volume of sedimentation (or erosion) that can be expected after one year.
 Therefore, it is important to clearly specify how this threshold value has been determined.
 
-\item Determine the flow conditions for which \dflowfm simulations should be carried out for the flow conditions configured for that particular reach\footnote{Note that in WAQMORF and version 2 of \dfastmi, the discharges depended on the characteristics of the intervention.
+\item Determine, given the branch/reach on which the intervention is location, which \dflowfm simulations should be carried out.
+\footnote{Note that in WAQMORF and version 2 of \dfastmi, the discharges depended on the characteristics of the intervention.
 That is no longer the case.
 The flow conditions are now fixed per river branch/reach.
 Only the threshold discharge is relevant as this is the lowest discharge at which the intervention has any effect, and hence discharges below that value can be skipped.}.
+The \dfmi GUI will provide you that list after selecting the appropriate branch/reach.
 For the Dutch rivers these values are given by the following table
 \newline
 \newline
@@ -25,10 +29,10 @@ Meuse & Borgharen & 750, 1300, 1700, 2100, 2500, 3200 \SI{}{\metre\cubed\per\sec
 \newline
 \newline
 These flow conditions have been pre-configured for the latest \dflowfm schematizations.
-It is not necessary to run simulations for conditions at which the intervention doesn't influence the flow patterns (e.g.~discharges associated with stagnant conditions due to closure of barriers, and discharges below the intervention specific $Q_\text{thr}$).
+It is not necessary to run simulations for conditions at which the intervention doesn't influence the flow patterns (i.e.~discharges associated with stagnant conditions due to closure of barriers, and discharges below the intervention specific $Q_\text{thr}$).
 At this stage, \dfmi already reports the impacted length (`aanzandingslengte'), which is the distance over which a bed level change can built up during the period that the discharge of the river is above the threshold discharge.
 
-\item Perform the necessary hydrodynamic simulations (note that for each condition two runs are needed: one reference run and one run with the intervention).
+\item Perform for each condition the hydrodynamic simulations for both the reference situation and the situation with intervention.
 Verify that
 \begin{itemize}
 \item the \dflowfm results are stable
@@ -37,28 +41,28 @@ Verify that
 \item there is a visible difference in the velocities in the main channel between the simulations with and without intervention
 \end{itemize}
 
-\item Run \dfastmi to compute the characteristic bed level change per grid point in the main channel
+\item Run \dfastmi to compute the per grid point in the main channel, the following three variables
 
 \begin{itemize}
-\item year-averaged mean value \unitbrackets{m}
-\item maximum value \unitbrackets{m}
-\item minimum value \unitbrackets{m}
+\item year-averaged bed level change \unitbrackets{m} without dredging
+\item maximum bed level change \unitbrackets{m} without dredging
+\item minimum bed level change \unitbrackets{m} without dredging
 \end{itemize}
 
-The year-averaged mean value is the main value for further analysis.
-The minimum and maximum value indicate the variability in the bed level during an average year; this may provide critical insight for the stability of structures, such as groynes.
-Note these values represent the morphological impact of a intervention when a (dynamic) equilibrium is finally reached and when \emph{no} counterinterventions are taken.
+once the (dynamic) equilibrium is reached. The year-averaged value is the main value for further analysis.
+The minimum and maximum values indicate the variability of the bed level during an average year; this may provide critical insight for the stability of structures, such as groynes.
+Note these values represent the morphological impact of the static intervention as defined in the \dflowfm schematisation when a (dynamic) equilibrium bed level is finally reached and maintenance dredging/dumping volumes are not adjusted to compensate.
 Depending on the size of the impact and the morphological activity of the system, the new equilibrium may be reached quickly or very slowly over many years or decades.
 
-\item Visualize the characteristic bed level changes in a graph and/or on a map.
+\item The computational results are provided in \file{dfastmi\_results.nc} in the specified output folder and can be used to visualize the characteristic bed level changes in a graph and/or on a map.
 Use patches with clearly defined colour scales for the overview.
-Clip small bed level changes, e.g.~less than 5 mm.
+Clip small bed level changes, e.g.~less than \SI{5}{\milli\metre}.
 Create zoomed plots as appropriate with more detailed information, such as numeric values and isolines.
 Add relevant information such as river chainage, navigation lane, and groynes/normal lines.
 
-\item Estimate the first-year sedimentation.
-If that volume is dredged after the first year, the river will be reset to the initial condition, and the cycle will repeat.
-Hence, the first-year sedimentation volume is an estimate for the yearly amount of dredging needed to counteract any sedimentation as indicated in \autoref{Sec:DredgeVol}.
+\item Estimate the yearly amount of dredging needed to counteract any sedimentation.
+The first-year sedimentation volume is an estimate for the yearly amount of dredging needed to counteract any sedimentation as indicated in \autoref{Sec:DredgeVol}.
+Since, if that volume is dredged after the first year, the river bed will be effectively reset to the initial condition, and the cycle will repeat.
 For this estimate the user needs to accumulate the equilibrium bed level change (sedimentation) over the distance indicated by the impacted length starting from the upstream side of the impacted area.
 If there are disjunct sedimentation areas, the accumulation should be carried out for each of the areas individually.
 If areas are shorter than the impacted length, then the total equilibrium impact can be reached within one year.

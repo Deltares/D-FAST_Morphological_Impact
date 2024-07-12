@@ -254,7 +254,7 @@ class ReporterDflowfm:
                 dzgemi,
                 "x-coordinate [km]",
                 "y-coordinate [km]",
-                "change to year-averaged equilibrium",
+                "year-averaged bed level change without dredging",
                 "erosion and sedimentation [m]",
                 plotting_options.xyzoom,
             )

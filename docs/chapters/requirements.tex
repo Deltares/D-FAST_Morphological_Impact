@@ -2,18 +2,20 @@
 
 \section{Introduction}
 
-The purpose of \dfastmi is to provide a first estimate of the bed level changes in the main channel if local interventions were to be implemented outside the main channel.
-It is based on the conceptual WAQMORF framework originally developed by \citet{Sieben2008}.
-WAQMORF was developed for the SIMONA system.
-\dfastmi implements the same functionality based on results obtained from D-Flow Flexible Mesh.
-The detailed list of requirements is given below.
+\dfastmi is the successor of WAQMORF.
+That tool, which is part of the SIMONA system, was developed to perform the morphological impact analysis based on simulation results obtained from WAQUA, the 2D flow kernel of the SIMONA system.
+
+\dfmi has been developed in a couple of iterations.
+The first iteration (leading up to version 2) aimed at making the WAQMORF analysis available based on results obtained using \dflowfm.
+The second iteration (delivering version 3) extended the analysis from 3 discharges to a more extended series of flow conditions (hydrograph approach).
+The collected list of requirements over all iterations is given below.
 
 \section{Functional Requirements} \label{Sec:FuncReq}
 
 The functional requirements at the time of the development of \dfastmi 2.0 were:
 
 \begin{enumerate}
-\item This program must give the same results for the same data as WAQMORF.
+\item This program must give the same results for the same data as WAQMORF (in backward compatibility mode).
 \item Users must be able to run this program in batch mode from the command line.
 \item Users must be able to run the analysis based on \dflowfm results.
 \item Users must be able to provide all data via an input file.
@@ -43,7 +45,7 @@ For version 3.0 of \dfastmi, the functional requirements have changed.
 
 \section{Non-functional requirements}
 
-The non-functional requirements at the time of the development of \dfastmi 2.0 were:
+The non-functional (software) requirements at the time of the development of \dfastmi 2.0 were:
 
 \begin{enumerate}
 \item The performance of the tools must be similar to that of WAQMORF, i.e.~it must run within seconds.
@@ -63,9 +65,12 @@ All requirements are addressed by \dfastmi although the testing has been carried
 For version 3.0 of \dfastmi, this list has been extended with:
 
 \begin{enumerate}
-\item The code coverage should be above 75\%.
-\item The code should be modular.
-\item The code needs to be subject to SIG analysis.
+\setcounter{enumi}{9} % Using enumitem option [resume] is nicer, but changes spacing
+\item The software must have easily readable and well maintainable code conforming to international standards.
+\item The software must have a test plan and a validation document.
+\item The software tests must provide at least 85\% code coverage.
+\item The software quality must be evaluated using Sigrid.
+\item Each release must include a test report and release notes.
 \end{enumerate}
 
 \section{Choice of coding language}

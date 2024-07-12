@@ -63,18 +63,22 @@ runs the program and loads the myfile.cfg configuration file into the graphical 
 
 The following text describes the functionality of the graphical user interface from top to bottom.
 The \keyw{File} menu provides access to options to load a configuration file and to save the current selection in the gui to a configuration file.
-The \keyw{Help} menu provides access to about boxes for \dfastmi itself and for the PyQt5 graphical framework.
+The \keyw{Help} menu provides access to the user manual and the \dfastmi about box with version and license information.
 
-As a user, you start specifying the branch and reach of the study.
+As a user, you start by selecting the branch and reach of the study.
 Changing this selection will affect all fields below overwriting any previously entered values.
-You have to specify the minimum flow-carrying discharge of the intervention.
-Together with the branch and reach selection, this determines the distance over which the river branch may be affected during the first year.
-This length \unitbrackets{m} is indicated, and dynamically updated with each change you make.
+You have to specify the minimum flow-carrying discharge; this is the discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} above which the intervention influences the main channel flow.
+Together with the branch and reach selection, this determines the impacted length \unitbrackets{\SI{}{\metre}}; this is distance over which the bed level change can develop in one year.
+This length \unitbrackets{\SI{}{\metre}} is dynamically updated with each change you make.
+
+The critical flow velocity \unitbrackets{\SI{}{\metre\per\second}} is the flow velocity magnitude above which bed level changes may occur.
+This value is used to avoid computing equilibrium bed level change values in areas where the (reference) flow velocity is too small.
+Tooltips appear when you hover over the \emph{edit} field with your mouse pointer.
+See \autoref{Chp:Guidance} and \autoref{Chp:steps} for more guidance on the values to be used.
 
 Subsequently, you are presented with a list of flow conditions for which you need to provide data files representing the reference situation and the situation with the intervention implemented.
 The names of the files need to be specified in the edit fields below.
 
-The last input item for the analysis is the critical flow velocity \unitbrackets{m/s} for sediment transport.
 Finally, we find at the bottom of the dialog some options for the output of the \dfastmi run, and a button to run the analysis in the folder from which the program was started, and a button to end the program.
 
 \section{Running from Python source code}

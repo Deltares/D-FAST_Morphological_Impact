@@ -11,18 +11,26 @@ The next couple of sections provide context and theory to underpin the implement
 \section{Characteristics of bed level changes due to river interventions}
 
 A river intervention, i.e.~a local river adjustment (typically a flow capacity enlarging adjustment) outside the main channel, may result in changes in the flow pattern within the main channel.
-The bed levels within the main channel will react to such changes depending on the
-
-\hspace{1cm}\emph{magnitude, duration and length scale of these flow pattern changes in the main channel.}
+The bed levels within the main channel will react to such changes depending on the magnitude, duration and length scale of these flow pattern changes in the main channel.
 
 Hence, the core focus of the rule-of-thumb is to determine and characterize the changes in the flow pattern within the main channel.
 Here, we define the main channel as the part of the river between the groyne heads.
 
 At the upstream end of the floodplain adjustment part of the main channel discharge will leave the main channel, which will flow through the enlarged floodplain, secondary channel or bank area, and return to the main channel at the downstream end of the project area.
 The resulting changes in the main channel flow pattern cause sedimentation in the main channel at the upstream "offtake" of the new outflow and erosion at the downstream "confluence" when the flow enters the main channel again.
-Because the river discharge varies, the pattern will also vary during the year
+See \autoref{Fig:response}.
+Because the river discharge varies, the pattern will also vary during the year.
 As a result a part of the main channel bed level adjustment is stationary and a part of the adjustment is transitional and it will migrate downstream.
 A reduction in the water depth may thus not only be observed locally where the flow diverges into the flood plain, but also downstream thereof.
+
+\begin{figure}
+\center
+\resizebox{13cm}{!}{
+   \input{figures/response.pdf_tex}
+}
+\caption{Equilibrium and initial response under steady discharge}
+\label{Fig:response}
+\end{figure}
 
 The bed level change due to river enlargement can largely be characterized as follows
 
@@ -80,7 +88,7 @@ When the discharge through the secondary channel is controlled by an orifice, th
 In order to characterize the flow patterns during flood it's necessary to distinguish the condition in which the flood plains just start to carry flows, and the condition of fully developed flow in the flood plains.
 \dfastmi version 2 and before (in WAQMORF) used an algorithm to determine which three flow conditions would best represent the effect of the intervention under various conditions.
 However, as these conditions varied depending on the thresholds specified by the user, the tool could give different results depending on the user.
-In \dfastmi version 3, a new method has been implemented that removes most input parameters; only the minimum discharge at which the intervention becomes active is still used as an input besides the general location characteristics of the branch and reach in which the intervention is located.
+In \dfastmi version 3, a new method has been implemented that removes most input parameters; only the threshold discharge at which the intervention starts affecting the flow velocities in the main channel, besides the general location characteristics of the branch and reach in which the intervention is located.
 
 
 \section{Equilibrium bed level change: the discharge dominated case}
@@ -173,7 +181,7 @@ The year-averaged bed level can be computed as
 \label{Eq:zbMean}
 \end{equation}
 %
-More details are given in \citet{JagersGiri2022}.
+More details are given in \citet{JagersGiri2022} and \citet{dfmi3_valdoc}.
 
 
 \section{Equilibrium bed level change: extending to tides}\label{Sec:Tides}

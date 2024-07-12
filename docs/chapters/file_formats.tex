@@ -73,7 +73,6 @@ Only used in case \keyw{CelerForm} equals 1. \\
 Only used in case \keyw{CelerForm} equals 2.
 \end{longtable}
 
-The second value of \keyw{QLevels} corresponds to the typical bankfull discharge.
 All keywords listed for block \keyw{*} may occur either in the \keyw{[General]} block or in one of the branch specific blocks where they may optionally be concatenated with the reach number <j>.
 Those keywords may thus occur in three flavours:
 
@@ -136,39 +135,43 @@ The header string contains one placeholder, namely \keyw{{version}} for the the 
 \begin{Verbatim}
     []
     
+    [reduce_output]
+    The option 'reduce_output' is active.
+    
     [header]
-    Dit programma is de "WAQUA vuistregel" voor het schatten
-    van lokale morfologische effecten door een lokale ingreep
-    (zie RWS-WD memo WAQUA vuistregel 20-10-08).
+    D-FAST Morphological Impact implements an algorithm to estimate the local
+    morphological effects of a local intervention (i.e. an adjustment to the
+    river). The conceptual framework was originally introduced in
+        "RWS-WD memo WAQUA vuistregel 20-10-08"
+    but it has been extended and improved over the years. Check the user manual
+    for the details of the currently implemented algorithm.
     
-    Het is een inschatting van evenwichtsbodemveranderingen
-    in het zomerbed die als gevolg van een ingreep en zonder
-    aangepast beheer na lange tijd ontstaan.
+    It is based on an estimation of the equilibrium bed level changes in the main
+    channel that would occur eventually when river maintenance would not be
+    adjusted.
     
-    Dit betreft het effect op de bodem in [m]:
+    The effect is expressed as:
     
-        jaargemiddeld zonder baggeren
-        maximaal (na hoogwater) zonder baggeren
-        minimaal (na laagwater) zonder baggeren
+        year-averaged bed level change [m] without dredging
+        maximum bed level change [m] without dredging
+        minimum bed level change [m] without dredging
     
-    Met deze bodemveranderingen kunnen knelpunten worden
-    gesignaleerd. De resultaten zijn niet direkt geschikt
-    voor het bepalen van de invloed op vaargeulonderhoud!
+    By means of these estimates bottlenecks can be identified. The results are not
+    suitable for direct estimation of the impact on the maintenance of the
+    navigation channel!
     
-    De jaarlijkse sedimentvracht door de rivier bepaalt de
-    termijn waarbinnen dit evenwichtseffect kan ontwikkelen.'
+    The combination of the total equilibrium sedimentation volume and the yearly
+    sediment load of the river determines the period over which the equilibrium
+    can be reached.
     
     
-    Dit is versie {version}.
+    This is version {version}.
     
     [confirm]
-    Bevestig met "j" ...
+    Confirm using "y" ...
     
     [confirm_or]
-    Bevestig met "j", anders antwoord met "n" ...
-    
-    [confirm_or_restart]
-    Bevestig met "j", of begin opnieuw met "n" ...
+    Confirm using "y", or reply "n" ...
     
     ... continued ...
 \end{Verbatim}

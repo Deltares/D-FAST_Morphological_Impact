@@ -1,26 +1,26 @@
 \chapter{Introduction}
 
-This is the technical reference manual of \dfastmi.
-\dfastmi is the successor of WAQMORF.
-The purpose of these tools is to provide a first estimate of the bed level changes in the main channel if local interventions were to be implemented outside the main channel.
+This is the technical reference manual of \dfastmi, hereafter \dfmi.
+The purpose of the tools is to provide a first estimate of the bed level changes in the main channel if local interventions were to be implemented outside the main channel.
 Such interventions include the construction of side channels and other alterations of the floodplain and embankments.
-The conceptual framework nad implementation in WAQMORF was originally developed by \citep{Sieben2008}.
+The conceptual framework and implementation in WAQMORF was originally developed by \citep{Sieben2008}.
 To obtain the estimate of the bed level changes, the algorithm needs data on the river's behaviour.
-These data include information on the probability distribution of discharge occurrences, the values of representative discharges, such as bankfull discharge, the general operation of any barriers, as well as the bedform celerities --- or propagation rates --- during low and high discharge conditions.
-Based on these data the algorithm determines one, two or three characteristic discharges for which the user should provide the results of
+These data include information on the probability distribution of discharge occurrences, the values of representative discharges, such as bankfull discharge, the general operation of any barriers, as well as the bedform celerities --- or propagation rates --- under various flow conditions.
+Given the branch/reach of the intervention, the algorithm requires a series of \dflowfm simulations for different flow conditions.
+For each condition, two simulations are required
 
 \begin{itemize}
-\item a hydrodynamic reference simulation and
-\item a hydrodynamic simulation with the local intervention implemented.
+\item a reference simulation (without the intervention) and
+\item a simulation with the local intervention implemented.
 \end{itemize}
 
-Based on these spatial data, the algorithm provides spatial estimates of the minimum, mean and maximum impact of the intervention on the bed levels after one year.
-The original WAQMORF tool performs the morphological analysis based on results exported from WAQUA simulations (hence the name WAQMORF).
-The new \dfastmi tool performs the analysis based on either WAQUA or D-Flow FM simulation results.
+Based on these spatial data, the algorithm provides spatial estimates of the minimum, year-averaged and maximum bed level change due to the intervention once a (dynamic) equilibrium has been reached.
+
+\section{Running \dfmi}
 
 The program can run in three modes of which only two (\keyw{batch} and \keyw{gui}) are documented in the user manual\footnote{\label{fn:backward1}The program still includes a third mode for backward compatibility, the so-called command line interface, activated by means of \keyw{-{}-mode cli} on the command line.
 This option is described in \Autoref{Chp:backward}.}.
-The full list of command line arguments reads:
+Here in the Technical Reference Manual, we provide the full list of command line arguments:
 
 \begin{tabular}{l|l|p{8cm}}
 short & long & description \\ \hline

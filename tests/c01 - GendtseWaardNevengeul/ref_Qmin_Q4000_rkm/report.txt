@@ -1,6 +1,6 @@
 D-FAST Morphological Impact implements an algorithm to estimate the local
-morphological effects of a local intervention (i.e. an adjustment to the river).
-The conceptual framework was originally introduced in
+morphological effects of a local intervention (i.e. an adjustment to the
+river). The conceptual framework was originally introduced in
     "RWS-WD memo WAQUA vuistregel 20-10-08"
 but it has been extended and improved over the years. Check the user manual
 for the details of the currently implemented algorithm.
@@ -9,11 +9,11 @@ It is based on an estimation of the equilibrium bed level changes in the main
 channel that would occur eventually when river maintenance would not be
 adjusted.
 
-The effect is expressed in [m] as:
+The effect is expressed as:
 
-    year-averaged bed level change without dredging
-    maximum bed level change without dredging
-    minimum bed level change without dredging
+    year-averaged bed level change [m] without dredging
+    maximum bed level change [m] without dredging
+    minimum bed level change [m] without dredging
 
 By means of these estimates bottlenecks can be identified. The results are not
 suitable for direct estimation of the impact on the maintenance of the
