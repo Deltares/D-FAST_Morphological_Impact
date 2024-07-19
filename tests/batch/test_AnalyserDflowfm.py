@@ -103,7 +103,9 @@ class Test_AnalyserDflowfm:
         map_file = Mock(spec=MapFile)
         map_file.node_x_coordinates = read_face_variable
         map_file.node_y_coordinates = read_face_variable
-        map_file.read_face_variable.return_value = read_face_variable
+        map_file.x_velocity.return_value = read_face_variable
+        map_file.y_velocity.return_value = read_face_variable
+        map_file.water_depth.return_value = read_face_variable
         return map_file
 
     def assert_report_data(

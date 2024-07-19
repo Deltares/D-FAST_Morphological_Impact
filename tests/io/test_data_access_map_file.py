@@ -29,6 +29,30 @@ def captured_output():
 
 
 class Test_data_access_read_face_variable:
+    def test_x_velocity(self, map_file: MapFile):
+        """
+        Testing x_velocity.
+        """
+        datac = map_file.x_velocity()
+        dataref = 1.2839395399603417
+        assert datac[1] == dataref
+
+    def test_y_velocity(self, map_file: MapFile):
+        """
+        Testing y_velocity.
+        """
+        datac = map_file.y_velocity()
+        dataref = 0.00015686700534273124
+        assert datac[1] == dataref
+
+    def test_water_depth(self, map_file: MapFile):
+        """
+        Testing water_depth.
+        """
+        datac = map_file.water_depth()
+        dataref = 3.894498393076889
+        assert datac[1] == dataref
+
     def test_read_face_variable_04(self, map_file: MapFile):
         """
         Testing read_face_variable: variable by standard name.

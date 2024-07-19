@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 from pathlib import Path
 from typing import List, Optional
+from enum import Enum
 
 import netCDF4 as nc
 import numpy as np
@@ -35,6 +36,9 @@ import numpy.ma as ma
 
 FACE_LOCATION = "face"
 
+class FileType(Enum):
+    FouFile = 1
+    MapFile = 2
 
 class MapFile:
     def __init__(self, map_file: Path):
@@ -46,6 +50,7 @@ class MapFile:
                 The path to the map file.
         """
         self._map_file = map_file
+        self._file_type = FileType.FouFile if str(map_file).lower().endswith("_fou.nc") else FileType.MapFile
         self._mesh2d_name = None
         self._face_dimension_name = None
 
@@ -89,6 +94,70 @@ class MapFile:
             data = var[...] - MapFile._get_start_index(var)
 
         return data
+
+    def x_velocity(self, time_index_from_last: Optional[int] = None,) -> np.ndarray:
+        """Get the x-velocity at faces.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array with shape (N,) where N is the number of faces.
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        """
+        if self._file_type == FileType.FouFile:
+            u0 = self.read_face_variable(
+                "Last 003: U-component of cell-centre velocity, last values", time_index_from_last=time_index_from_last
+            )
+        else:
+            u0 = self.read_face_variable(
+                "sea_water_x_velocity", time_index_from_last=time_index_from_last
+            )
+        return u0
+
+    def y_velocity(self, time_index_from_last: Optional[int] = None,) -> np.ndarray:
+        """Get the y-velocity at faces.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array with shape (N,) where N is the number of faces.
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        """
+        if self._file_type == FileType.FouFile:
+            v0 = self.read_face_variable(
+                "Last 004: V-component of cell-centre velocity, last values", time_index_from_last=time_index_from_last
+            )
+        else:
+            v0 = self.read_face_variable(
+                "sea_water_y_velocity", time_index_from_last=time_index_from_last
+            )
+        return v0
+
+    def water_depth(self, time_index_from_last: Optional[int] = None,) -> np.ndarray:
+        """Get the y-velocity at faces.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array with shape (N,) where N is the number of faces.
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        """
+        if self._file_type == FileType.FouFile:
+            s0 = self.read_face_variable(
+                "Last 001: water level, last values", time_index_from_last=time_index_from_last
+            )
+            zb = self.read_face_variable(
+                "flow element center bedlevel (bl)"
+            )
+            h0 = s0 - zb
+        else:
+            h0 = self.read_face_variable(
+                "sea_floor_depth_below_sea_surface", time_index_from_last=time_index_from_last
+            )
+        return h0
 
     @staticmethod
     def _get_start_index(var) -> int:

@@ -443,24 +443,15 @@ class AnalyserDflowfm:
                 ifld = None
 
             # reference data
-            u0 = map_file1.read_face_variable(
-                "sea_water_x_velocity", time_index_from_last=ifld
-            )[iface]
-            v0 = map_file1.read_face_variable(
-                "sea_water_y_velocity", time_index_from_last=ifld
-            )[iface]
+            u0 = map_file1.x_velocity(time_index_from_last=ifld)[iface]
+            u0 = map_file1.x_velocity(time_index_from_last=ifld)[iface]
+            v0 = map_file1.y_velocity(time_index_from_last=ifld)[iface]
             umag0 = numpy.sqrt(u0**2 + v0**2)
-            h0 = map_file1.read_face_variable(
-                "sea_floor_depth_below_sea_surface", time_index_from_last=ifld
-            )[iface]
+            h0 = map_file1.water_depth(time_index_from_last=ifld)[iface]
 
             # data with intervention
-            u1 = map_file2.read_face_variable(
-                "sea_water_x_velocity", time_index_from_last=ifld
-            )[iface]
-            v1 = map_file2.read_face_variable(
-                "sea_water_y_velocity", time_index_from_last=ifld
-            )[iface]
+            u1 = map_file2.x_velocity(time_index_from_last=ifld)[iface]
+            v1 = map_file2.y_velocity(time_index_from_last=ifld)[iface]
             umag1 = numpy.sqrt(u1**2 + v1**2)
 
             dzq1 = dzq_from_du_and_h(umag0, h0, umag1, self._ucrit, default=0.0)
