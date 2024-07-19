@@ -444,7 +444,6 @@ class AnalyserDflowfm:
 
             # reference data
             u0 = map_file1.x_velocity(time_index_from_last=ifld)[iface]
-            u0 = map_file1.x_velocity(time_index_from_last=ifld)[iface]
             v0 = map_file1.y_velocity(time_index_from_last=ifld)[iface]
             umag0 = numpy.sqrt(u0**2 + v0**2)
             h0 = map_file1.water_depth(time_index_from_last=ifld)[iface]
