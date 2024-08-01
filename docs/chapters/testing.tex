@@ -173,7 +173,7 @@ The output is in standard netCDF UGRID format when the input is also in standard
 The netCDF UGRID data files are supported by QUICKPLOT and other post-processing environments such as QGIS.\footnote{The output is identical to the WAQMORF output (SIMONA box-file) when WAQUA input is used (only available in backward compatibility mode).}
 
 \item The program should read relevant data directly from \dflowfm map-files instead of intermediate XYZ files as required by WAQMORF for SIMONA results.
-All quantities previously read from the XYZ files is now read from the \dflowfm map.nc files (unless running in backward compatibility mode with WAQMORF).
+All quantities previously read from the XYZ files are now read from the \dflowfm map.nc files (unless running in backward compatibility mode with WAQMORF).
 
 \item A simple graphical user interface could support users in process of creating the input file.
 The graphical user interface that you get by running \dfastmi in default mode or by explicitly specifying \keyw{-{}-mode gui} has been tested manually as described in \autoref{Sec:GuiTests}.
@@ -197,6 +197,9 @@ This has been manually verified, and system tests are used to guarantee that all
 \item The support for the Dutch language isn’t a requirement anymore since the user manual and other tools, such as the simulation engines, only use English.
 Although the multi-language feature is still included in the source code for backward compatibility, the focus is on maintaining the English version.
 The unit and system tests focus on running the software in the English mode.
+
+\item The program should also support \dflowfm fourier-files.
+\dfastmi version 3.1 supports also the \dflowfm fourier-files as created when using the \file{fourier\_last\_s.fou} listed in the user manual.
 \end{enumerate}
 
 \section{Manual system tests} \label{Sec:GuiTests}

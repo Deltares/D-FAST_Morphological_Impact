@@ -40,6 +40,12 @@ Verify that
 \item all simulations use the same base mesh (changes in dry areas may result in slight differences in the mesh effectively used)
 \item there is a visible difference in the velocities in the main channel between the simulations with and without intervention
 \end{itemize}
+For steady state conditions, it is preferred to use the mean flow conditions over a certain period to suppress any instabilities and fluctuations in the instantaneous flow conditions.
+These results can be obtained by using the Fourier option of \dflowfm.
+For this purpose, a standardized Fourier input file \file{fourier\_last\_s.fou} is included that contains the following configuration:
+\vspace{\baselineskip}
+\verbfilenobox[\scriptsize]{figures/fourier_last_s.fou}
+\vspace{\baselineskip}
 
 \item Run \dfastmi to compute the per grid point in the main channel, the following three variables
 

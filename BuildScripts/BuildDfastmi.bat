@@ -35,7 +35,7 @@ START /B /WAIT poetry run nuitka ^
  --include-package-data=geopandas.datasets ^
  --include-module=fiona ^
  --company-name=Deltares ^
- --file-version=3.0.0 ^
+ --file-version=3.1.0 ^
  --product-version=2024.01 ^
  --product-name="D-FAST Morphological Impact" ^
  --file-description="A Python tool to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^

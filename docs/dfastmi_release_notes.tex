@@ -17,10 +17,10 @@
 \pagestyle{empty}
 \includepdf[pages=1, offset=72 -70]{cover/D-FAST-omslag-D-FAST Morphological Impact-RN.pdf} % links-rechts past precies
 \cleardoublepage
-\title{D-FAST\\ Morphological Impact 3.0}
+\title{D-FAST\\ Morphological Impact 3.1}
 \subtitle{}
 \manualtype{Release Notes}
-%\distribution{Released for: \newline \phantom{M} \dfmi version 3.0 or higher}
+%\distribution{Released for: \newline \phantom{M} \dfmi version 3.1 or higher}
 \version{\the\year.\the\month}
 
 \author{ }
@@ -33,8 +33,8 @@
 \section{Release contents}
 
 \begin{tabular}{ll}
-Description: & \dfastmi version 3.0.0 \\
-Version: & 3.0.0 \\
+Description: & \dfastmi version 3.1.0 \\
+Version: & 3.1.0 \\
 Status & release
 \end{tabular}
 
@@ -77,15 +77,24 @@ They are fixed per branch/reach, although you don't have to provide results belo
 
 \section{Known issues}
 
-The known issues are:
-
-\begin{itemize}
-\item Fourier output files of \dflowfm are not yet supported.
-\end{itemize}
+None
 
 \section{Overview of all issues}
 
 An overview of all closed issues since the release of version 2.0.10 is given in the table below.
+
+\begin{longtable}{l|l|p{8cm}}
+\caption{List of resolved issues for version 3.1.0} \\
+Issue & Type & Description \\ \hline
+\endfirsthead
+\multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
+Issue & Type & Description \\ \hline
+\endhead
+\hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
+\endfoot
+\endlastfoot 
+DFAST-137 & Feature & Support for \dflowfm fourier-files. \\
+\end{longtable}
 
 \begin{longtable}{l|l|p{8cm}}
 \caption{List of resolved issues for version 3.0.0} \\
