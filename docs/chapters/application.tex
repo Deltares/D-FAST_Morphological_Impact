@@ -1,19 +1,18 @@
 \chapter{Steps in the analysis}\label{Chp:steps}
 
-To apply \dfastmi one should carry out the following five steps.
+To apply \dfastmi one should carry out the following six steps.
 
 \begin{enumerate}
-\item Characterize the intervention to be evaluated using \dfastmi.
-Verify that it's appropriate to use \dfastmi instrument; see \autoref{Chp:Guidance}.
-Determine the branch and reach on which it's located; use the \dfmi GUI for this\footnote{The reaches are specified in the GUI both by a descriptive name and an approximate indication of the river chainage.
+\item Characterize the intervention to be evaluated using \dfmi.
+Verify that it is appropriate to use \dfmi instrument; see \autoref{Chp:Guidance}.
+Determine the branch and reach on which it is located; use the \dfmi GUI for this\footnote{The reaches are specified in the GUI both by a descriptive name and by an approximate indication of the river chainage.
 Follow item \ref{reach_bnd} of \autoref{Sec:Limitations} if a measure is located across or near a branch/reach boundary.}.
 Determine the threshold discharge $Q_\text{thr}$ (at Lobith/Borgharen) at which the intervention (indirectly) starts to influence the flow pattern in the main channel.
 The threshold discharge is critical for determining the fraction of the year that the intervention influences the flow, and hence the duration over which the bed level difference (compared to the reference situation) can develop.
 As a result, this value is critical for determining the total volume of sedimentation (or erosion) that can be expected after one year.
 Therefore, it is important to clearly specify how this threshold value has been determined.
 
-\item Determine, given the branch/reach on which the intervention is location, which \dflowfm simulations should be carried out.
-\footnote{Note that in WAQMORF and version 2 of \dfastmi, the discharges depended on the characteristics of the intervention.
+\item Determine, given the branch/reach on which the intervention is location, which \dflowfm simulations should be carried out\footnote{Note that in WAQMORF and \dfmi version 2, the discharges depended on the characteristics of the intervention.
 That is no longer the case.
 The flow conditions are now fixed per river branch/reach.
 Only the threshold discharge is relevant as this is the lowest discharge at which the intervention has any effect, and hence discharges below that value can be skipped.}.
@@ -36,12 +35,12 @@ At this stage, \dfmi already reports the impacted length (`aanzandingslengte'), 
 Verify that
 \begin{itemize}
 \item the \dflowfm results are stable
-\item the intervention is properly represented on the mesh used (check in particular weirs, proper alignment of groynes, channel shape and bed roughness)
+\item the intervention is properly represented on the mesh used (check a.o. proper alignment of groynes and levees, channel shape and bed roughness)
 \item all simulations use the same base mesh (changes in dry areas may result in slight differences in the mesh effectively used)
 \item there is a visible difference in the velocities in the main channel between the simulations with and without intervention
 \end{itemize}
 
-\item Run \dfastmi to compute the per grid point in the main channel, the following three variables
+\item Run \dfastmi to compute for each grid point in the main channel, the following three variables
 
 \begin{itemize}
 \item year-averaged bed level change \unitbrackets{m} without dredging

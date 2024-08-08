@@ -3,16 +3,16 @@
 \section{Introduction}
 
 \dfastmi is the successor of WAQMORF.
-That tool, which is part of the SIMONA system, was developed to perform the morphological impact analysis based on simulation results obtained from WAQUA, the 2D flow kernel of the SIMONA system.
+The original tool, which is part of the SIMONA system, was developed to perform the morphological impact analysis based on simulation results obtained from WAQUA, the 2D flow kernel of the SIMONA system.
 
 \dfmi has been developed in a couple of iterations.
-The first iteration (leading up to version 2) aimed at making the WAQMORF analysis available based on results obtained using \dflowfm.
-The second iteration (delivering version 3) extended the analysis from 3 discharges to a more extended series of flow conditions (hydrograph approach).
+The first iteration (resulting in version 2) aimed at making the WAQMORF analysis available based on results obtained using \dflowfm.
+The second iteration (resulting in version 3) extended the analysis from three discharges to a more extended series of flow conditions (hydrograph approach).
 The collected list of requirements over all iterations is given below.
 
 \section{Functional Requirements} \label{Sec:FuncReq}
 
-The functional requirements at the time of the development of \dfastmi 2.0 were:
+The functional requirements at the time of the development of \dfastmi version 2 were:
 
 \begin{enumerate}
 \item This program must give the same results for the same data as WAQMORF (in backward compatibility mode).
@@ -33,7 +33,7 @@ The functional requirements at the time of the development of \dfastmi 2.0 were:
 \end{enumerate}
 
 All requirements were addressed in the initial development.
-For version 3.0 of \dfastmi, the functional requirements have changed.
+For \dfastmi version 3 the functional requirements have changed, the following conditions were added:
 
 \begin{enumerate}
 \setcounter{enumi}{12} % Using enumitem option [resume] is nicer, but changes spacing
@@ -45,7 +45,7 @@ For version 3.0 of \dfastmi, the functional requirements have changed.
 
 \section{Non-functional requirements}
 
-The non-functional (software) requirements at the time of the development of \dfastmi 2.0 were:
+The non-functional (software) requirements at the time of the development of \dfastmi version 2 were:
 
 \begin{enumerate}
 \item The performance of the tools must be similar to that of WAQMORF, i.e.~it must run within seconds.
@@ -62,11 +62,11 @@ The non-functional (software) requirements at the time of the development of \df
 
 All requirements are addressed by \dfastmi although the testing has been carried out on the Windows platform only.
 
-For version 3.0 of \dfastmi, this list has been extended with:
+For \dfastmi version 3, this list has been extended with:
 
 \begin{enumerate}
 \setcounter{enumi}{9} % Using enumitem option [resume] is nicer, but changes spacing
-\item The software must have easily readable and well maintainable code conforming to international standards.
+\item The software must have well maintainable/readable code conforming to international standards.
 \item The software must have a test plan and a validation document.
 \item The software tests must provide at least 85\% code coverage.
 \item The software quality must be evaluated using Sigrid.
