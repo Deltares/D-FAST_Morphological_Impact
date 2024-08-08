@@ -153,7 +153,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
                     all_zero = False
             if all_zero:
                 raise ValueError(
-                    "The celerities can't all be equal to zero for a intervention to have any impact!"
+                    "The celerities can't all be equal to zero for an intervention to have any impact!"
                 )
 
         return celerity
