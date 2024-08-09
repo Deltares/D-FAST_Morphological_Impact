@@ -3,7 +3,7 @@
 There are two aspects to software testing:
 
 \begin{itemize}
-\item \textbf{Validation} to verify that the software gives the correct/desired results: after implementation of new features, and major bug fixes.
+\item \textbf{Validation} to verify that the software gives the correct/expected results: after implementation of new features, and major bug fixes.
 This is typically a manual process.
 \item \textbf{Regression} to verify that the software continues to give the same results after an update (except for the changed, removed, or added functionality, of course).
 This repetitive work can be automated.
@@ -143,63 +143,128 @@ In \autoref{Sec:FuncReq} the 15 functional requirements were listed.
 They are repeated below and for every requirement it is indicated how it is tested.
 
 \begin{enumerate}
-\item This program must give the same results for the same data as WAQMORF.
+\item \begin{requirement}
+This program must give the same results for the same data as WAQMORF.
 This condition only holds when running in the backward compatibility modes (\keyw{-{}-mode cli} and \keyw{-{}-mode batch} with version 1 configuration file).
+\end{requirement}
+\begin{testmethod}
 The proper functioning is regression tested by means of a few system tests in both the source code and binary testing phase.
+\end{testmethod}
 
-\item Users must be able to run this program in batch mode from the command line.
+\item \begin{requirement}
+Users must be able to run this program in batch mode from the command line.
 This has been implemented as run mode \keyw{-{}-mode batch}.
+\end{requirement}
+\begin{testmethod}
 The proper functioning is regression tested by means of a few system tests in the binary testing phase.
+\end{testmethod}
 
-\item Users must be able to run the analysis based on \dflowfm results.
+\item \begin{requirement}
+Users must be able to run the analysis based on \dflowfm results.
+\end{requirement}
+\begin{testmethod}
 This is tested by means of unit tests using result files of \dflowfm version 1.2.105.67088.
+\end{testmethod}
 
-\item Users must be able to provide all data via an input file.
+\item \begin{requirement}
+Users must be able to provide all data via an input file.
+\end{requirement}
+\begin{testmethod}
 This testing is included in unit and system tests of the batch and gui modes.
+\end{testmethod}
 
-\item The input file must be easy to edit for users, i.e.~a text file.
+\item \begin{requirement}
+The input file must be easy to edit for users, i.e.~a text file.
+\end{requirement}
+\begin{testmethod}
 Goes together with the next item.
+\end{testmethod}
 
-\item The input file could use the ini-format consistent with \dflowfm input files.
+\item \begin{requirement}
+The input file could use the ini-format consistent with \dflowfm input files.
+\end{requirement}
+\begin{testmethod}
 The \dfastmi configuration file is a simple text file in ini-format.
 There are unit and system tests addressing the reading of the input files.
+\end{testmethod}
 
-\item The report output must be a simple text file consistent with WAQMORF.
+\item \begin{requirement}
+The report output must be a simple text file consistent with WAQMORF.
+\end{requirement}
+\begin{testmethod}
 The report is similar to the text report written by WAQMORF; the content is adjusted for the new algorithm of \dfastmi version 3 in line with requirement 14.
 The automated system tests also perform regression tests on the report output, which should be identical to the reference report output that was obtained from a set of initial manual runs.
+\end{testmethod}
 
-\item The spatial output must be easy to visualize in common software.
+\item \begin{requirement}
+The spatial output must be easy to visualize in common software.
+\end{requirement}
+\begin{testmethod}
 The output is in standard netCDF UGRID format when the input is also in standard netCDF UGRID format coming from \dflowfm.
 The netCDF UGRID data files are supported by QUICKPLOT and other post-processing environments such as QGIS.\footnote{The output is identical to the WAQMORF output (SIMONA box-file) when WAQUA input is used (only available in backward compatibility mode).}
+\end{testmethod}
 
-\item The program should read relevant data directly from \dflowfm map-files instead of intermediate XYZ files as required by WAQMORF for SIMONA results.
+\item \begin{requirement}
+The program should read relevant data directly from \dflowfm map-files instead of intermediate XYZ files as required by WAQMORF for SIMONA results.
+\end{requirement}
+\begin{testmethod}
 All quantities previously read from the XYZ files are now read from the \dflowfm map.nc files (unless running in backward compatibility mode with WAQMORF).
+\end{testmethod}
 
-\item A simple graphical user interface could support users in process of creating the input file.
+\item \begin{requirement}
+A simple graphical user interface could support users in process of creating the input file.
+\end{requirement}
+\begin{testmethod}
 The graphical user interface that you get by running \dfastmi in default mode or by explicitly specifying \keyw{-{}-mode gui} has been tested manually as described in \autoref{Sec:GuiTests}.
+\end{testmethod}
 
-\item It would be nice if the software would be more generally applicable than just the Dutch rivers.
+\item \begin{requirement}
+It would be nice if the software would be more generally applicable than just the Dutch rivers.
+\end{requirement}
+\begin{testmethod}
 A rivers configuration file has been introduced to allow the program to be applied to other systems without recompilation.
 Reading the rivers configuration is covered by unit tests and system tests.
+\end{testmethod}
 
-\item It would be nice if the software would be able to run besides Dutch also in English.
+\item \begin{requirement}
+It would be nice if the software would be able to run besides Dutch also in English.
+\end{requirement}
+\begin{testmethod}
 This requirement is modified by requirement 15.
 All texts shown by \dfastmi are read from a language configuration file.
 An English and a Dutch version of that configuration file are provided.
 Most system tests are carried out using the default English configuration, but a few tests are carried out using the Dutch configuration.
+\end{testmethod}
 
-\item \dfastmi version 3 implements a new algorithm using more than 3 discharge.
+\item \begin{requirement}
+\dfastmi version 3 implements a new algorithm using more than 3 discharge.
+\end{requirement}
+\begin{testmethod}
 The new algorithms are covered by unit tests and system tests at both the source code and binary testing phase.
+\end{testmethod}
 
-\item The report output needs to reflect all input settings.
+\item \begin{requirement}
+The report output needs to reflect all input settings.
+\end{requirement}
+\begin{testmethod}
 This has been manually verified, and system tests are used to guarantee that all output items continue to be reported.
+\end{testmethod}
 
-\item The support for the Dutch language isn’t a requirement anymore since the user manual and other tools, such as the simulation engines, only use English.
+\item \begin{requirement}
+The support for the Dutch language isn’t a requirement anymore since the user manual and other tools, such as the simulation engines, only use English.
+\end{requirement}
+\begin{testmethod}
 Although the multi-language feature is still included in the source code for backward compatibility, the focus is on maintaining the English version.
 The unit and system tests focus on running the software in the English mode.
+\end{testmethod}
 
-\item The program should also support \dflowfm fourier-files.
+\item \begin{requirement}
+The program should also support \dflowfm fourier-files.
+\end{requirement}
+\begin{testmethod}
 \dfastmi version 3.1 supports also the \dflowfm fourier-files as created when using the \file{fourier\_last\_s.fou} listed in the user manual.
+The integration tests have been extended to include this functionality.
+\end{testmethod}
 \end{enumerate}
 
 \section{Manual system tests} \label{Sec:GuiTests}

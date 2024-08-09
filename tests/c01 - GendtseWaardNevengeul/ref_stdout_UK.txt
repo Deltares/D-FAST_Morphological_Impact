@@ -113,7 +113,7 @@ Confirm using "y" or restart the location selection using "n" ...
 y
 
 
-The next three questions will be used to characterize the intervention. If a intervention
+The next three questions will be used to characterize the intervention. If an intervention
 impacts the hydrodynamics in the main channel at multiple locations, answer the
 questions for the part of the intervention that is expected to have the most impact
 on the navigation channel.

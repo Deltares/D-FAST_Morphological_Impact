@@ -433,7 +433,7 @@ class Test_select:
     ):
         """
         given : dialog_view
-        when  : selecting a file for a intervention edit
+        when  : selecting a file for an intervention edit
         then  : the intervention file should be updated correctly
         """
         # Create a mock QFileDialog.getExistingDirectory function
