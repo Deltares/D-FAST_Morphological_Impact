@@ -175,6 +175,7 @@ def _run_interactive_mode_once(
             tstag,
             q_fit,
             discharges,
+            apply_q,
             fraction_of_year,
             nlength,
         )
@@ -573,6 +574,7 @@ def _write_report_nodata(
     tstag: float,
     q_fit: Tuple[float, float],
     discharges: QRuns,
+    apply_q: Tuple[bool, bool, bool],
     fraction_of_year: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
@@ -601,6 +603,9 @@ def _write_report_nodata(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     discharges : QRuns
         Tuple of (at most) three characteristic discharges.
+    apply_q : Tuple[bool, bool, bool]
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
     fraction_of_year : Tuple[float, float, float]
         Fraction of year represented by each characteristic discharge.
     nlength : float
@@ -612,22 +617,22 @@ def _write_report_nodata(
         Flag indicating whether the program should be closed.
     """
     ApplicationSettingsHelper.log_text("---")
-    number_of_discharges = dfastmi.batch.core.count_discharges(discharges)
+    number_of_discharges = dfastmi.batch.core.count_discharges(apply_q)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
         ApplicationSettingsHelper.log_text(
             "need_multiple_input", dict={"reach": reach, "numq": number_of_discharges}
         )
-    if discharges[0] is not None:
+    if apply_q[0]:
         ApplicationSettingsHelper.log_text(
             "lowwater", dict={"border": q_location, "q": discharges[0]}
         )
-    if discharges[1] is not None:
+    if apply_q[1]:
         ApplicationSettingsHelper.log_text(
             "transition", dict={"border": q_location, "q": discharges[1]}
         )
-    if discharges[2] is not None:
+    if apply_q[2]:
         ApplicationSettingsHelper.log_text(
             "highwater", dict={"border": q_location, "q": discharges[2]}
         )
@@ -646,6 +651,7 @@ def _write_report_nodata(
             tstag,
             q_fit,
             discharges,
+            apply_q,
             fraction_of_year,
             nlength,
         )
