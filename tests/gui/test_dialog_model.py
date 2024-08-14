@@ -77,7 +77,7 @@ def mock_reference_files() -> FilenameDict:
 
 @pytest.fixture
 def mock_intervention_files() -> FilenameDict:
-    """Fixture for creating mock interventionment files."""
+    """Fixture for creating mock intervention files."""
     return {80.1: "intervention1.txt", 80.2: "intervention2.txt"}
 
 
@@ -219,9 +219,9 @@ def test_check_configuration(
     """
     Test case for checking configuration.
 
-    given: A DialogModel instance and mocked branch, reach, reference files, and interventionment files.
+    given: A DialogModel instance and mocked branch, reach, reference files, and intervention files.
     when: Checking the configuration.
-    then: The configuration is checked with the expected branch, reach, reference files, and interventionment files.
+    then: The configuration is checked with the expected branch, reach, reference files, and intervention files.
     """
     # Mocking the method calls inside the methods
     dialog_model.get_configuration = MagicMock(return_value=ConfigParser())
@@ -262,7 +262,7 @@ def test_get_configuration(
     """
     Test case for getting configuration.
 
-    given: A DialogModel instance and mocked branch, reach, reference files, and interventionment files.
+    given: A DialogModel instance and mocked branch, reach, reference files, and intervention files.
     when: Getting the configuration.
     then: The configuration is retrieved and checked for correctness.
     """
@@ -311,7 +311,7 @@ def test_get_configuration_with_reach(
     """
     Test case for getting configuration.
 
-    given: A DialogModel instance and mocked branch, reach, reference files, and interventionment files.
+    given: A DialogModel instance and mocked branch, reach, reference files, and intervention files.
     when: Getting the configuration.
     then: The configuration is retrieved and checked for correctness.
     """

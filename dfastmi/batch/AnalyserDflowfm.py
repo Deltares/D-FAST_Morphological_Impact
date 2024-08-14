@@ -120,7 +120,7 @@ class AnalyserDflowfm:
             Dictionary of the names of the data file containing the simulation
             results to be processed. The conditions (discharge, wave conditions,
             ...) are the key in the dictionary. Per condition a tuple of two file
-            names is given: a reference file and a file with intervention.
+            names is given: a reference file and a file with interventions to the river.
         xykm : shapely.geometry.linestring.LineString
             Original river chainage line.
         plotting_options : PlotOptions
