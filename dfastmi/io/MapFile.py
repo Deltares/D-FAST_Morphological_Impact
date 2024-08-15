@@ -159,7 +159,10 @@ class MapFile(OutputFile):
         self._copy_var_data(variable, target_dataset)
 
     def _copy_var_dimensions(
-        self, variable: nc.Variable, source_dataset: nc.Dataset, target_dataset: nc.Dataset
+        self,
+        variable: nc.Variable,
+        source_dataset: nc.Dataset,
+        target_dataset: nc.Dataset,
     ):
         for dim_name in variable.dimensions:
             dimension = source_dataset.dimensions[dim_name]
