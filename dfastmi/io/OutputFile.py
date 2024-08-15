@@ -146,7 +146,7 @@ class OutputFile(ABC):
             data = var[...] - self._get_start_index(var)
 
         return data
-    
+
     def _get_node_coordinate_data(self, standard_names: List[str]) -> np.ndarray:
         with nc.Dataset(self._file) as dataset:
             mesh2d = dataset.variables[self.mesh2d_name]
