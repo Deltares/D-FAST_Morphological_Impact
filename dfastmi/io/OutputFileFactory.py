@@ -31,8 +31,9 @@ from pathlib import Path
 from typing import Callable
 
 from dfastmi.io.FouFile import FouFile
-from dfastmi.io.OutputFile import OutputFile
 from dfastmi.io.map_file import MapFile
+from dfastmi.io.OutputFile import OutputFile
+
 
 class OutputFileFactory:
     """
@@ -52,9 +53,7 @@ class OutputFileFactory:
             OutputFileFactory._creators[file_name_suffix] = creator
 
     @staticmethod
-    def generate(
-        file: Path
-    ) -> OutputFile:
+    def generate(file: Path) -> OutputFile:
         """
         Call the Constructor function to generate OutputFile object.
 
@@ -69,13 +68,12 @@ class OutputFileFactory:
             OutputFile object based on the given file suffix, if no valid FileNameRetriever can be found default MapFile is returned.
         """
         file_name_suffix = str(file).lower()[-7:]
-        constructor = OutputFileFactory._creators.get(
-            file_name_suffix
-        )
+        constructor = OutputFileFactory._creators.get(file_name_suffix)
         if constructor:
             return constructor(file)
         else:
             return MapFile(file)
+
 
 OutputFileFactory.register_creator("_fou.nc", FouFile)
 OutputFileFactory.register_creator("_map.nc", MapFile)

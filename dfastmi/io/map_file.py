@@ -35,6 +35,7 @@ import numpy.ma as ma
 
 from dfastmi.io.OutputFile import OutputFile
 
+
 class MapFile(OutputFile):
     @property
     def face_node_connectivity(self) -> ma.masked_array:
@@ -115,7 +116,6 @@ class MapFile(OutputFile):
             return var.getncattr("start_index")
         return 0
 
-    
     @property
     def face_dimension_name(self) -> str:
         """Get the name of the face dimension.

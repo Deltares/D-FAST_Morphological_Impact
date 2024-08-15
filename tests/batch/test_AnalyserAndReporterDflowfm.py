@@ -84,7 +84,7 @@ class Test_analyse_and_report_dflowfm_mode:
 
     def set_plotting_off(self):
         self.plotting_options.plotting = False
-    
+
     def _get_mocked_mapfile(self, read_face_variable):
         map_file = Mock(spec=MapFile)
         map_file.node_x_coordinates = read_face_variable
@@ -93,7 +93,7 @@ class Test_analyse_and_report_dflowfm_mode:
         map_file.y_velocity.return_value = read_face_variable
         map_file.water_depth.return_value = read_face_variable
         return map_file
-    
+
     def _get_mocked_xykm_data(self, xykm):
         xykm_data = Mock(spec=XykmData)
         xykm_data.iface = numpy.array([0, 1, 2, 3, 4])
@@ -198,7 +198,10 @@ class Test_analyse_and_report_dflowfm_mode:
 
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
-            patch("dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate", return_value=mocked_mapfile),
+            patch(
+                "dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate",
+                return_value=mocked_mapfile,
+            ),
             patch(
                 "dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity",
                 return_value=face_node_connectivity,
@@ -211,7 +214,6 @@ class Test_analyse_and_report_dflowfm_mode:
             ) as mocked_plotting_zoom_xy_and_save,
             patch("dfastmi.batch.ReporterDflowfm.savefig") as mocked_plotting_savefig,
             patch("dfastmi.batch.AnalyserDflowfm.XykmData", return_value=xykm_data),
-            
         ):
 
             mocked_plotting_plot_overview.return_value = (
@@ -223,7 +225,7 @@ class Test_analyse_and_report_dflowfm_mode:
 
             cwd = os.getcwd()
             tstdir = "tests/c01 - GendtseWaardNevengeul"
-            
+
             try:
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(

@@ -37,8 +37,9 @@ import numpy as np
 
 FACE_LOCATION = "face"
 
-class OutputFile (ABC):
-    """BaseClass of the 'output' data for the provided dflowfm netcdf output file. """
+
+class OutputFile(ABC):
+    """BaseClass of the 'output' data for the provided dflowfm netcdf output file."""
 
     def __init__(self, file: Path):
         """Initializes a new instance of the 'FouFile' class for the provided fou file.
@@ -53,7 +54,8 @@ class OutputFile (ABC):
         self._face_dimension_name = None
 
     @abstractmethod
-    def x_velocity(self,
+    def x_velocity(
+        self,
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """Get the x-velocity at faces.

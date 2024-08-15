@@ -28,10 +28,10 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from typing import Optional
-from dfastmi.io.OutputFile import OutputFile
-
 
 import numpy as np
+
+from dfastmi.io.OutputFile import OutputFile
 
 
 class FouFile(OutputFile):
@@ -49,9 +49,9 @@ class FouFile(OutputFile):
             Time step offset index from the last time step written.
         """
         u0 = self.read_face_variable(
-                "Last 003: U-component of cell-centre velocity, last values",
-                time_index_from_last=time_index_from_last,
-            )
+            "Last 003: U-component of cell-centre velocity, last values",
+            time_index_from_last=time_index_from_last,
+        )
         return u0
 
     def y_velocity(
@@ -68,9 +68,9 @@ class FouFile(OutputFile):
             Time step offset index from the last time step written.
         """
         v0 = self.read_face_variable(
-                "Last 004: V-component of cell-centre velocity, last values",
-                time_index_from_last=time_index_from_last,
-            )
+            "Last 004: V-component of cell-centre velocity, last values",
+            time_index_from_last=time_index_from_last,
+        )
         return v0
 
     def water_depth(

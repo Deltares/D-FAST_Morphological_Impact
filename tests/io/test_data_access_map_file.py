@@ -9,8 +9,8 @@ import numpy
 import pytest
 
 from dfastmi.io.FouFile import FouFile
-from dfastmi.io.OutputFileFactory import OutputFileFactory
 from dfastmi.io.map_file import MapFile
+from dfastmi.io.OutputFileFactory import OutputFileFactory
 
 
 def open_map_file() -> MapFile:
