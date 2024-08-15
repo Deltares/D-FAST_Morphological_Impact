@@ -13,6 +13,7 @@ from mock import Mock
 from dfastmi.batch import AnalyserAndReporterDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationData import SedimentationData
+from dfastmi.batch.XykmData import XykmData
 from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
@@ -36,6 +37,7 @@ class Test_analyse_and_report_dflowfm_mode:
     xykm: shapely.geometry.linestring.LineString
     plotting_options: PlotOptions
     initialized_config: AConfigurationInitializerBase
+    xykm: shapely.geometry.linestring.LineString
 
     @pytest.fixture
     def setup(self):
@@ -82,6 +84,35 @@ class Test_analyse_and_report_dflowfm_mode:
 
     def set_plotting_off(self):
         self.plotting_options.plotting = False
+    
+    def _get_mocked_mapfile(self, read_face_variable):
+        map_file = Mock(spec=MapFile)
+        map_file.node_x_coordinates = read_face_variable
+        map_file.node_y_coordinates = read_face_variable
+        map_file.x_velocity.return_value = read_face_variable
+        map_file.y_velocity.return_value = read_face_variable
+        map_file.water_depth.return_value = read_face_variable
+        return map_file
+    
+    def _get_mocked_xykm_data(self, xykm):
+        xykm_data = Mock(spec=XykmData)
+        xykm_data.iface = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.xykm = xykm
+        xykm_data.face_node_connectivity_index.mask.shape = ()
+        xykm_data.face_node_connectivity_index.data.shape = numpy.array([1, 1])
+        xykm_data.xmin = 1
+        xykm_data.ymin = 1
+        xykm_data.xmax = 2
+        xykm_data.ymax = 2
+        xykm_data.xykline = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.interest_region = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.xni = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.yni = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.sni = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.nni = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.dxi = numpy.array([0, 1, 2, 3, 4])
+        xykm_data.dyi = numpy.array([0, 1, 2, 3, 4])
+        return xykm_data
 
     def given_no_file_names_when_analyse_and_report_dflowfm_then_return_true(
         self,
@@ -160,10 +191,18 @@ class Test_analyse_and_report_dflowfm_mode:
 
         self.set_file_names()
 
-        mocked_mapfile = Mock(spec=MapFile)
+        face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
+        mocked_mapfile = self._get_mocked_mapfile(face_node_connectivity)
+
+        xykm_data = self._get_mocked_xykm_data(self.xykm)
 
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
+            patch("dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate", return_value=mocked_mapfile),
+            patch(
+                "dfastmi.batch.AnalyserDflowfm.AnalyserDflowfm._get_face_node_connectivity",
+                return_value=face_node_connectivity,
+            ),
             patch(
                 "dfastmi.batch.ReporterDflowfm.plot_overview"
             ) as mocked_plotting_plot_overview,
@@ -171,6 +210,8 @@ class Test_analyse_and_report_dflowfm_mode:
                 "dfastmi.batch.ReporterDflowfm.zoom_xy_and_save"
             ) as mocked_plotting_zoom_xy_and_save,
             patch("dfastmi.batch.ReporterDflowfm.savefig") as mocked_plotting_savefig,
+            patch("dfastmi.batch.AnalyserDflowfm.XykmData", return_value=xykm_data),
+            
         ):
 
             mocked_plotting_plot_overview.return_value = (
@@ -182,6 +223,7 @@ class Test_analyse_and_report_dflowfm_mode:
 
             cwd = os.getcwd()
             tstdir = "tests/c01 - GendtseWaardNevengeul"
+            
             try:
                 os.chdir(tstdir)
                 succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(

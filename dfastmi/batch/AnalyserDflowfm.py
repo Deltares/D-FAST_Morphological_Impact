@@ -40,9 +40,10 @@ from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
-from dfastmi.io.map_file import MapFile
+from dfastmi.io.OutputFile import OutputFile
+from dfastmi.io.OutputFileFactory import OutputFileFactory
 from dfastmi.kernel.core import dzq_from_du_and_h, main_computation
-from dfastmi.kernel.typehints import BoolVector, Vector
+from dfastmi.kernel.typehints import Vector
 
 
 class AnalyserDflowfm:
@@ -139,10 +140,10 @@ class AnalyserDflowfm:
             return None
 
         self._reporter.report_load_mesh()
-        map_file = MapFile(one_fm_filename)
-        xn = map_file.node_x_coordinates
-        yn = map_file.node_y_coordinates
-        face_node_connectivity = self._get_face_node_connectivity(map_file)
+        ouput_file = OutputFileFactory.generate(one_fm_filename)
+        xn = ouput_file.node_x_coordinates
+        yn = ouput_file.node_y_coordinates
+        face_node_connectivity = self._get_face_node_connectivity(ouput_file)
 
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
@@ -434,8 +435,8 @@ class AnalyserDflowfm:
             t_pos = numpy.zeros(dx.shape)
             t_neg = numpy.zeros(dx.shape)
 
-        map_file1 = MapFile(filenames[0])
-        map_file2 = MapFile(filenames[1])
+        output_file1 = OutputFileFactory.generate(filenames[0])
+        output_file2 = OutputFileFactory.generate(filenames[1])
 
         for ifld in range(n_fields):
             # if last time step is needed, pass None to allow for files without time specification
@@ -443,14 +444,14 @@ class AnalyserDflowfm:
                 ifld = None
 
             # reference data
-            u0 = map_file1.x_velocity(time_index_from_last=ifld)[iface]
-            v0 = map_file1.y_velocity(time_index_from_last=ifld)[iface]
+            u0 = output_file1.x_velocity(time_index_from_last=ifld)[iface]
+            v0 = output_file1.y_velocity(time_index_from_last=ifld)[iface]
             umag0 = numpy.sqrt(u0**2 + v0**2)
-            h0 = map_file1.water_depth(time_index_from_last=ifld)[iface]
+            h0 = output_file1.water_depth(time_index_from_last=ifld)[iface]
 
             # data with intervention
-            u1 = map_file2.x_velocity(time_index_from_last=ifld)[iface]
-            v1 = map_file2.y_velocity(time_index_from_last=ifld)[iface]
+            u1 = output_file2.x_velocity(time_index_from_last=ifld)[iface]
+            v1 = output_file2.y_velocity(time_index_from_last=ifld)[iface]
             umag1 = numpy.sqrt(u1**2 + v1**2)
 
             dzq1 = dzq_from_du_and_h(umag0, h0, umag1, self._ucrit, default=0.0)
@@ -481,8 +482,8 @@ class AnalyserDflowfm:
 
         return dzq
 
-    def _get_face_node_connectivity(self, map_file: MapFile) -> numpy.ndarray:
-        face_node_connectivity = map_file.face_node_connectivity
+    def _get_face_node_connectivity(self, output_file: OutputFile) -> numpy.ndarray:
+        face_node_connectivity = output_file.face_node_connectivity
 
         if face_node_connectivity.mask.shape == ():
             # all faces have the same number of nodes; empty mask

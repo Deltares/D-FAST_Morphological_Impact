@@ -8,17 +8,19 @@ import netCDF4
 import numpy
 import pytest
 
+from dfastmi.io.FouFile import FouFile
+from dfastmi.io.OutputFileFactory import OutputFileFactory
 from dfastmi.io.map_file import MapFile
 
 
 def open_map_file() -> MapFile:
     filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-    return MapFile(filename)
+    return OutputFileFactory.generate(filename)
 
 
-def open_fou_file() -> MapFile:
+def open_fou_file() -> FouFile:
     filename = "tests/files/e02_f001_c011_simplechannel_fou.nc"
-    return MapFile(filename)
+    return OutputFileFactory.generate(filename)
 
 
 @pytest.fixture
@@ -325,10 +327,10 @@ class Test_copy_ugrid:
         """
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
 
-        map_file = MapFile(src_filename)
+        map_file = OutputFileFactory.generate(src_filename)
         map_file.copy_ugrid(self.dst_filename)
 
-        map_file = MapFile(self.dst_filename)
+        map_file = OutputFileFactory.generate(self.dst_filename)
         datac = map_file.face_node_connectivity
         dataref = 2352
         assert datac[-1][1] == dataref
