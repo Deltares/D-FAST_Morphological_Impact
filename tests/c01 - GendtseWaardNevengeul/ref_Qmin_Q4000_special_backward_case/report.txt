@@ -51,7 +51,7 @@ Critical flow velocity              : 0.3 m/s
 Condition             | Reference file (without intervention)  | File with intervention
  3000.0 m3/s          | ---                                    | ---                                        (intervention not active)
  4000.0 m3/s          | ---                                    | ---                                        (intervention not active)
- 6000.0 m3/s          | reference-Q3_map.nc                    | intervention-Q3_map.nc                          
+ 6000.0 m3/s          | reference-Q3_map.nc                    | intervention-Q3_map.nc                     
 
 ================================================================================
 
