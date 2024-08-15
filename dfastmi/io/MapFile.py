@@ -136,9 +136,8 @@ class MapFile(OutputFile):
 
         return self._face_dimension_name
 
-    @staticmethod
     def _copy_var(
-        source_dataset: nc.Dataset, var_name: str, target_dataset: nc.Dataset
+        self, source_dataset: nc.Dataset, var_name: str, target_dataset: nc.Dataset
     ) -> None:
         """
         Copy a single variable from one netCDF file to another.
@@ -156,12 +155,11 @@ class MapFile(OutputFile):
             Dataset object representing the destination file.
         """
         variable = source_dataset.variables[var_name]
-        MapFile._copy_var_dimensions(variable, source_dataset, target_dataset)
-        MapFile._copy_var_data(variable, target_dataset)
+        self._copy_var_dimensions(variable, source_dataset, target_dataset)
+        self._copy_var_data(variable, target_dataset)
 
-    @staticmethod
     def _copy_var_dimensions(
-        variable: nc.Variable, source_dataset: nc.Dataset, target_dataset: nc.Dataset
+        self, variable: nc.Variable, source_dataset: nc.Dataset, target_dataset: nc.Dataset
     ):
         for dim_name in variable.dimensions:
             dimension = source_dataset.dimensions[dim_name]
@@ -170,8 +168,7 @@ class MapFile(OutputFile):
                     dim_name, (len(dimension) if not dimension.isunlimited() else None)
                 )
 
-    @staticmethod
-    def _copy_var_data(variable: nc.Variable, target_dataset: nc.Dataset):
+    def _copy_var_data(self, variable: nc.Variable, target_dataset: nc.Dataset):
         variable_copy = target_dataset.createVariable(
             variable.name, variable.datatype, variable.dimensions
         )
@@ -197,7 +194,7 @@ class MapFile(OutputFile):
 
                 mesh_variable = source_dataset.variables[self.mesh2d_name]
 
-                MapFile._copy_var(source_dataset, self.mesh2d_name, target_dataset)
+                self._copy_var(source_dataset, self.mesh2d_name, target_dataset)
 
                 mesh_attrs = [
                     "face_node_connectivity",
@@ -208,31 +205,29 @@ class MapFile(OutputFile):
                     "node_coordinates",
                 ]
                 for mesh_attr in mesh_attrs:
-                    MapFile._copy_mesh_attr_variable(
+                    self._copy_mesh_attr_variable(
                         mesh_variable, mesh_attr, source_dataset, target_dataset
                     )
 
-    @staticmethod
     def _copy_mesh_attr_variable(
-        mesh_variable, mesh_attr, source_dataset, target_dataset
+        self, mesh_variable, mesh_attr, source_dataset, target_dataset
     ):
-        var_names = MapFile._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
+        var_names = self._get_var_names_from_var_attribute(mesh_variable, mesh_attr)
         for var_name in var_names:
-            MapFile._copy_var(source_dataset, var_name, target_dataset)
+            self._copy_var(source_dataset, var_name, target_dataset)
 
             # check if variable has bounds attribute, if so copy those as well
             variable = source_dataset.variables[var_name]
 
             bounds_attr = "bounds"
-            bounds_var_names = MapFile._get_var_names_from_var_attribute(
+            bounds_var_names = self._get_var_names_from_var_attribute(
                 variable, bounds_attr
             )
             for bounds_var_name in bounds_var_names:
-                MapFile._copy_var(source_dataset, bounds_var_name, target_dataset)
+                self._copy_var(source_dataset, bounds_var_name, target_dataset)
 
-    @staticmethod
     def _get_var_names_from_var_attribute(
-        variable: nc.Variable, attr_name: str
+        self, variable: nc.Variable, attr_name: str
     ) -> List[str]:
         try:
             var_names = variable.getncattr(attr_name).split()

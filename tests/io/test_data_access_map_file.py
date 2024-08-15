@@ -291,7 +291,8 @@ class Test_copy_var:
 
         src = netCDF4.Dataset(src_filename)
         dst = netCDF4.Dataset(self.dst_filename, "a")
-        MapFile._copy_var(src, "mesh2d_s1", dst)
+        src_map_file = MapFile(src_filename)
+        src_map_file._copy_var(src, "mesh2d_s1", dst)
         src.close()
         dst.close()
 
