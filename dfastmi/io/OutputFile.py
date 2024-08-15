@@ -51,8 +51,7 @@ class OutputFile(ABC):
                 The path to the map file.
         """
         self._file = file
-        self._mesh2d_name = None
-        self._face_dimension_name = None
+        self._mesh2d_name = None        
 
     @abstractmethod
     def x_velocity(
@@ -146,6 +145,11 @@ class OutputFile(ABC):
             data = var[...] - self._get_start_index(var)
 
         return data
+
+    def _get_start_index(self, var: nc.Variable) -> int:
+        if "start_index" in var.ncattrs():
+            return var.getncattr("start_index")
+        return 0
     
     def _get_node_coordinate_data(self, standard_names: List[str]) -> np.ndarray:
         with nc.Dataset(self._file) as dataset:

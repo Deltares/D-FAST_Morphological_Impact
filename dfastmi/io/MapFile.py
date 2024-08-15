@@ -36,6 +36,12 @@ from dfastmi.io.OutputFile import OutputFile
 
 
 class MapFile(OutputFile):
+    def __init__(self, map_file:Path):
+        # Call the base class constructor using super()
+        super().__init__(map_file)
+        self._face_dimension_name = None
+
+
     def x_velocity(
         self,
         time_index_from_last: Optional[int] = None,
@@ -90,11 +96,6 @@ class MapFile(OutputFile):
             time_index_from_last=time_index_from_last,
         )
         return h0
-
-    def _get_start_index(self, var: nc.Variable) -> int:
-        if "start_index" in var.ncattrs():
-            return var.getncattr("start_index")
-        return 0
 
     @property
     def face_dimension_name(self) -> str:
