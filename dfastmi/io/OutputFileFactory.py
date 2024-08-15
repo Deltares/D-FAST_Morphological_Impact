@@ -31,9 +31,8 @@ from pathlib import Path
 from typing import Callable
 
 from dfastmi.io.FouFile import FouFile
-from dfastmi.io.map_file import MapFile
 from dfastmi.io.OutputFile import OutputFile
-
+from dfastmi.io.MapFile import MapFile
 
 class OutputFileFactory:
     """

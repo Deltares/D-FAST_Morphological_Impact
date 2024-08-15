@@ -17,7 +17,7 @@ from dfastmi.batch.XykmData import XykmData
 from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
-from dfastmi.io.map_file import MapFile
+from dfastmi.io.MapFile import MapFile
 from dfastmi.kernel.typehints import Vector
 from tests.batch.Helper_AnalyserAndReporterDflowfm import (  # needed for fixture
     TestCase_display_needs_tide_old_zmin_zmax,
