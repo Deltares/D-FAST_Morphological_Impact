@@ -31,31 +31,11 @@ from typing import List, Optional
 
 import netCDF4 as nc
 import numpy as np
-import numpy.ma as ma
 
 from dfastmi.io.OutputFile import OutputFile
 
 
 class MapFile(OutputFile):
-    @property
-    def face_node_connectivity(self) -> ma.masked_array:
-        """Get the face-node connectivity from the 2d mesh.
-
-        Returns
-        -------
-        ma.masked_array
-            Array with shape (N,M) where N is the number of faces and M the maximum number of nodes per face.
-            If not all the faces have the same number of nodes, a boolean mask is provided with shape (N,M)
-            where each True value indicates a fill value.
-        """
-        with nc.Dataset(self._file) as dataset:
-            mesh2d = dataset.variables[self.mesh2d_name]
-            var_name = mesh2d.getncattr("face_node_connectivity")
-            var = dataset.variables[var_name]
-            data = var[...] - self._get_start_index(var)
-
-        return data
-
     def x_velocity(
         self,
         time_index_from_last: Optional[int] = None,
