@@ -36,11 +36,10 @@ from dfastmi.io.OutputFile import OutputFile
 
 
 class MapFile(OutputFile):
-    def __init__(self, map_file:Path):
+    def __init__(self, map_file: Path):
         # Call the base class constructor using super()
         super().__init__(map_file)
         self._face_dimension_name = None
-
 
     def x_velocity(
         self,

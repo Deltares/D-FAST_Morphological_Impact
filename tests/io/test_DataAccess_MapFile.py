@@ -10,6 +10,7 @@ import pytest
 
 from dfastmi.io.MapFile import MapFile
 
+
 def open_map_file() -> MapFile:
     filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
     return MapFile(filename)

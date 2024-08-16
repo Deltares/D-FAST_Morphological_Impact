@@ -7,13 +7,16 @@ import pytest
 
 from dfastmi.io.FouFile import FouFile
 
+
 def open_fou_file() -> FouFile:
     filename = "tests/files/e02_f001_c011_simplechannel_fou.nc"
     return FouFile(filename)
 
+
 @pytest.fixture
 def fou_file() -> FouFile:
     return open_fou_file()
+
 
 @contextmanager
 def captured_output():
@@ -129,4 +132,4 @@ class Test_data_access_get_mesh2d_name:
         Testing mesh2d_name property.
         """
         mesh2d_name = fou_file.mesh2d_name
-        assert mesh2d_name == "mesh2d"    
+        assert mesh2d_name == "mesh2d"
