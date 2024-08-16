@@ -49,7 +49,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class Test_data_access_read_face_variable:
+class Test_OutputFile:
     @pytest.mark.parametrize(
         "data_file, dataref",
         [
@@ -154,7 +154,7 @@ class Test_data_access_read_face_variable:
             mock_dataset = MagicMock()
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset    
             mock_dataset.get_variables_by_attributes.return_value = [mock_var]
-            
+
             datac = test_output_file.read_face_variable(varname)
             dataref = 1.0
             assert datac[1] == dataref
