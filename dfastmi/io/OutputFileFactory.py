@@ -51,6 +51,14 @@ class OutputFileFactory:
         """Register creator function to create a OutputFile object."""
         if file_name_suffix not in OutputFileFactory._creators:
             OutputFileFactory._creators[file_name_suffix] = creator
+    
+    @staticmethod
+    def unregister_creator(
+        file_name_suffix: str
+    ):
+        """Unregister creator function to create a OutputFile object."""
+        if file_name_suffix in OutputFileFactory._creators:
+            del OutputFileFactory._creators[file_name_suffix]
 
     @staticmethod
     def generate(file: Path) -> OutputFile:
