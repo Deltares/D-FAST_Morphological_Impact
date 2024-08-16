@@ -47,8 +47,8 @@ class OutputFile(ABC):
 
         Arguments
         ---------
-            fou_file : Path
-                The path to the map file.
+            file : Path
+                The path to the dflowfm output file.
         """
         self._file = file
         self._mesh2d_name = None
