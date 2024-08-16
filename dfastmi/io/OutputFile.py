@@ -57,7 +57,7 @@ class OutputFile(ABC):
     def x_velocity(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray:
+    ) -> np.ndarray: # pragma: no cover
         """Get the x-velocity at faces.
 
         Arguments
@@ -77,7 +77,7 @@ class OutputFile(ABC):
     def y_velocity(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray:
+    ) -> np.ndarray: # pragma: no cover
         """Get the y-velocity at faces.
 
         Returns
@@ -93,7 +93,7 @@ class OutputFile(ABC):
     def water_depth(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray:
+    ) -> np.ndarray: # pragma: no cover
         """Get the y-velocity at faces.
 
         Returns
@@ -145,7 +145,12 @@ class OutputFile(ABC):
             data = var[...] - self._get_start_index(var)
 
         return data
-
+    
+    def _get_start_index(self, var: nc.Variable) -> int:
+        if "start_index" in var.ncattrs():
+            return var.getncattr("start_index")
+        return 0
+    
     def _get_node_coordinate_data(self, standard_names: List[str]) -> np.ndarray:
         with nc.Dataset(self._file) as dataset:
             mesh2d = dataset.variables[self.mesh2d_name]
