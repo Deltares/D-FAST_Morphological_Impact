@@ -36,6 +36,7 @@ from dfastmi.io.OutputFile import OutputFile
 
 
 class MapFile(OutputFile):
+    """D-HYDRO FM Map 'output' data for the provided dflowfm netcdf output file."""    
     def __init__(self, map_file: Path):
         # Call the base class constructor using super()
         super().__init__(map_file)
@@ -46,13 +47,15 @@ class MapFile(OutputFile):
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """Get the x-velocity at faces.
-
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         u0 = self.read_face_variable(
             "sea_water_x_velocity", time_index_from_last=time_index_from_last
@@ -65,12 +68,15 @@ class MapFile(OutputFile):
     ) -> np.ndarray:
         """Get the y-velocity at faces.
 
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         v0 = self.read_face_variable(
             "sea_water_y_velocity", time_index_from_last=time_index_from_last
@@ -82,13 +88,15 @@ class MapFile(OutputFile):
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """Get the y-velocity at faces.
-
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         h0 = self.read_face_variable(
             "sea_floor_depth_below_sea_surface",

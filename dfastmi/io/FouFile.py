@@ -35,18 +35,21 @@ from dfastmi.io.OutputFile import OutputFile
 
 
 class FouFile(OutputFile):
+    """D-HYDRO FM fou 'output' data for the provided dflowfm netcdf output file."""
     def x_velocity(
         self,
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """Get the x-velocity at faces.
-
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         u0 = self.read_face_variable(
             "Last 003: U-component of cell-centre velocity, last values",
@@ -59,13 +62,15 @@ class FouFile(OutputFile):
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """Get the y-velocity at faces.
-
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         v0 = self.read_face_variable(
             "Last 004: V-component of cell-centre velocity, last values",
@@ -77,14 +82,16 @@ class FouFile(OutputFile):
         self,
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
-        """Get the y-velocity at faces.
-
+        """Get the water depth at faces.
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         s0 = self.read_face_variable(
             "Last 001: water level, last values",

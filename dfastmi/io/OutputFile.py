@@ -59,17 +59,15 @@ class OutputFile(ABC):
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:  # pragma: no cover
         """Get the x-velocity at faces.
-
         Arguments
         ---------
-        discharges : Vector
-            A vector of discharges (Q) included in hydrograph [m3/s].
-
-        Return
-        ------
-        celerity : Vector
-            A vector of values each representing the bed celerity for the
-            period given by the corresponding entry in Q [m/s].
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
+        Returns
+        -------
+        numpy.ndarray
+            Array with shape (N,) where N is the number of faces.
         """
         pass
 
@@ -77,15 +75,17 @@ class OutputFile(ABC):
     def y_velocity(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray:  # pragma: no cover
+    ) -> np.ndarray: # pragma: no cover
         """Get the y-velocity at faces.
-
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         pass
 
@@ -93,15 +93,17 @@ class OutputFile(ABC):
     def water_depth(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray:  # pragma: no cover
-        """Get the y-velocity at faces.
-
+    ) -> np.ndarray: # pragma: no cover
+        """Get the water depth at faces.
+        Arguments
+        ---------
+        time_index_from_last : Optional[int]
+            Time step offset index from the last time step written.
+        
         Returns
         -------
         numpy.ndarray
             Array with shape (N,) where N is the number of faces.
-        time_index_from_last : Optional[int]
-            Time step offset index from the last time step written.
         """
         pass
 
