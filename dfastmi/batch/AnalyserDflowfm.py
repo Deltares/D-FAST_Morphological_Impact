@@ -140,10 +140,10 @@ class AnalyserDflowfm:
             return None
 
         self._reporter.report_load_mesh()
-        ouput_file = OutputFileFactory.generate(one_fm_filename)
-        xn = ouput_file.node_x_coordinates
-        yn = ouput_file.node_y_coordinates
-        face_node_connectivity = self._get_face_node_connectivity(ouput_file)
+        output_file = OutputFileFactory.generate(one_fm_filename)
+        xn = output_file.node_x_coordinates
+        yn = output_file.node_y_coordinates
+        face_node_connectivity = self._get_face_node_connectivity(output_file)
 
         xykm_data = self._get_xykm_data(xykm, xn, yn, face_node_connectivity)
 
