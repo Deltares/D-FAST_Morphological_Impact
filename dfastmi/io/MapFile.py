@@ -36,7 +36,8 @@ from dfastmi.io.OutputFile import OutputFile
 
 
 class MapFile(OutputFile):
-    """D-HYDRO FM Map 'output' data for the provided dflowfm netcdf output file."""    
+    """D-HYDRO FM Map 'output' data for the provided dflowfm netcdf output file."""
+
     def __init__(self, map_file: Path):
         # Call the base class constructor using super()
         super().__init__(map_file)
@@ -51,7 +52,7 @@ class MapFile(OutputFile):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -72,7 +73,7 @@ class MapFile(OutputFile):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -92,7 +93,7 @@ class MapFile(OutputFile):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray

@@ -36,6 +36,7 @@ from dfastmi.io.OutputFile import OutputFile
 
 class FouFile(OutputFile):
     """D-HYDRO FM fou 'output' data for the provided dflowfm netcdf output file."""
+
     def x_velocity(
         self,
         time_index_from_last: Optional[int] = None,
@@ -45,7 +46,7 @@ class FouFile(OutputFile):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -66,7 +67,7 @@ class FouFile(OutputFile):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -87,7 +88,7 @@ class FouFile(OutputFile):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray

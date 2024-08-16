@@ -63,7 +63,7 @@ class OutputFile(ABC):
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -75,13 +75,13 @@ class OutputFile(ABC):
     def y_velocity(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray: # pragma: no cover
+    ) -> np.ndarray:  # pragma: no cover
         """Get the y-velocity at faces.
         Arguments
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -93,13 +93,13 @@ class OutputFile(ABC):
     def water_depth(
         self,
         time_index_from_last: Optional[int] = None,
-    ) -> np.ndarray: # pragma: no cover
+    ) -> np.ndarray:  # pragma: no cover
         """Get the water depth at faces.
         Arguments
         ---------
         time_index_from_last : Optional[int]
             Time step offset index from the last time step written.
-        
+
         Returns
         -------
         numpy.ndarray
