@@ -6,12 +6,10 @@ import numpy
 import pytest
 
 from dfastmi.io.FouFile import FouFile
-from dfastmi.io.OutputFileFactory import OutputFileFactory
-
 
 def open_fou_file() -> FouFile:
     filename = "tests/files/e02_f001_c011_simplechannel_fou.nc"
-    return OutputFileFactory.generate(filename)
+    return FouFile(filename)
 
 @pytest.fixture
 def fou_file() -> FouFile:

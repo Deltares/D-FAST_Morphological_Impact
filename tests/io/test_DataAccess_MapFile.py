@@ -8,19 +8,11 @@ import netCDF4
 import numpy
 import pytest
 
-from dfastmi.io.FouFile import FouFile
 from dfastmi.io.MapFile import MapFile
-from dfastmi.io.OutputFileFactory import OutputFileFactory
-
 
 def open_map_file() -> MapFile:
     filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-    return OutputFileFactory.generate(filename)
-
-
-def open_fou_file() -> FouFile:
-    filename = "tests/files/e02_f001_c011_simplechannel_fou.nc"
-    return OutputFileFactory.generate(filename)
+    return MapFile(filename)
 
 
 @pytest.fixture
@@ -44,7 +36,6 @@ class Test_data_access_read_face_variable:
         "data_file, dataref",
         [
             (open_map_file(), 1.2839395399603417),
-            (open_fou_file(), 1.2839395356652856),
         ],
     )
     def test_x_velocity(self, data_file: MapFile, dataref: float):
@@ -58,7 +49,6 @@ class Test_data_access_read_face_variable:
         "data_file, dataref",
         [
             (open_map_file(), 0.00015686700534273124),
-            (open_fou_file(), 0.0001568670009850459),
         ],
     )
     def test_y_velocity(self, data_file: MapFile, dataref: float):
@@ -72,7 +62,6 @@ class Test_data_access_read_face_variable:
         "data_file, dataref",
         [
             (open_map_file(), 3.894498393076889),
-            (open_fou_file(), 3.89449840620317),
         ],
     )
     def test_water_depth(self, data_file: MapFile, dataref: float):
@@ -328,10 +317,10 @@ class Test_copy_ugrid:
         """
         src_filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
 
-        map_file = OutputFileFactory.generate(src_filename)
+        map_file = MapFile(src_filename)
         map_file.copy_ugrid(self.dst_filename)
 
-        map_file = OutputFileFactory.generate(self.dst_filename)
+        map_file = MapFile(self.dst_filename)
         datac = map_file.face_node_connectivity
         dataref = 2352
         assert datac[-1][1] == dataref
