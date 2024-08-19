@@ -18,7 +18,7 @@ class Test_OutputFileFactory:
 
     def test_creation_of_MapFileType(self):
         """
-        Testing if generate Mapfile is donw with key
+        Testing if generate Mapfile is done with key
         """
         output_file = OutputFileFactory.generate("myfile_net.nc")
         assert isinstance(output_file, MapFile)
