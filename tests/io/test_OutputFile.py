@@ -64,6 +64,19 @@ class Test_OutputFile:
         mock_dim.isunlimited.return_value = dimension_isunlimited
         return mock_var
     
+    def _setup_mesh2d_mock(self, getncattr_return_value : str) -> MagicMock :
+        mock_mesh2d = MagicMock()
+        mock_mesh2d.name = "myMesh2d"
+        mock_mesh2d.getncattr.return_value = (getncattr_return_value)
+        return mock_mesh2d
+
+    def _setup_coordinate_mock(self, coordinate_standard_name : str, coor_ref : float = 1.0) -> MagicMock:
+        mock_coordinate = MagicMock()
+        return_value = numpy.array([[0.0], [coor_ref], [2.0]])
+        mock_coordinate.standard_name = coordinate_standard_name
+        mock_coordinate.__getitem__.return_value = return_value
+        return mock_coordinate
+    
     @pytest.mark.parametrize(
         "data_file, dataref",
         [
@@ -370,28 +383,16 @@ class Test_OutputFile:
         Testing read_node_x_coordinates
         """
 
-        mock_mesh2d_var = MagicMock()
-        mock_mesh2d_var.name = "myMesh2d"
+        mock_mesh2d = self._setup_mesh2d_mock("projection_x_coordinate projection_y_coordinate")
 
-        mock_mesh2d = MagicMock()
-        mock_mesh2d.getncattr.return_value = (
-            "projection_x_coordinate projection_y_coordinate"
-        )
-
-        mock_x_coordinate = MagicMock()
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_x_coordinate.standard_name = "projection_x_coordinate"
-        mock_x_coordinate.__getitem__.return_value = return_value
-
-        mock_y_coordinate = MagicMock()
-        return_value = numpy.array([[3.0], [4.0], [5.0]])
-        mock_y_coordinate.standard_name = "projection_y_coordinate"
-        mock_y_coordinate.__getitem__.return_value = return_value
+        coor_ref = 80.1
+        mock_x_coordinate = self._setup_coordinate_mock("projection_x_coordinate", coor_ref)
+        mock_y_coordinate = self._setup_coordinate_mock("projection_y_coordinate")
 
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_mesh2d_variable",
-                return_value=mock_mesh2d_var,
+                return_value=mock_mesh2d,
             ),
             patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,
         ):
@@ -404,36 +405,24 @@ class Test_OutputFile:
             }
 
             x_coor = test_output_file.node_x_coordinates
-            coor_ref = 1.0
             assert x_coor[1] == coor_ref
 
+    
     def test_read_node_y_coordinates(self, test_output_file: OutputFile):
         """
         Testing read_node_y_coordinates
         """
 
-        mock_mesh2d_var = MagicMock()
-        mock_mesh2d_var.name = "myMesh2d"
+        mock_mesh2d = self._setup_mesh2d_mock("projection_x_coordinate projection_y_coordinate")
 
-        mock_mesh2d = MagicMock()
-        mock_mesh2d.getncattr.return_value = (
-            "projection_x_coordinate projection_y_coordinate"
-        )
-
-        mock_x_coordinate = MagicMock()
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_x_coordinate.standard_name = "projection_x_coordinate"
-        mock_x_coordinate.__getitem__.return_value = return_value
-
-        mock_y_coordinate = MagicMock()
-        return_value = numpy.array([[3.0], [4.0], [5.0]])
-        mock_y_coordinate.standard_name = "projection_y_coordinate"
-        mock_y_coordinate.__getitem__.return_value = return_value
+        coor_ref = 80.1
+        mock_x_coordinate = self._setup_coordinate_mock("projection_x_coordinate")
+        mock_y_coordinate = self._setup_coordinate_mock("projection_y_coordinate", coor_ref)
 
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_mesh2d_variable",
-                return_value=mock_mesh2d_var,
+                return_value=mock_mesh2d,
             ),
             patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,
         ):
@@ -445,8 +434,7 @@ class Test_OutputFile:
                 "projection_y_coordinate": mock_y_coordinate,
             }
 
-            y_coor = test_output_file.node_y_coordinates
-            coor_ref = 4.0
+            y_coor = test_output_file.node_y_coordinates            
             assert y_coor[1] == coor_ref
 
     def test_read_node_x_coordinates_via_longitude(self, test_output_file: OutputFile):
@@ -454,26 +442,16 @@ class Test_OutputFile:
         Testing read_node_x_coordinates via longitude
         """
 
-        mock_mesh2d_var = MagicMock()
-        mock_mesh2d_var.name = "myMesh2d"
+        mock_mesh2d = self._setup_mesh2d_mock("longitude latitude")
 
-        mock_mesh2d = MagicMock()
-        mock_mesh2d.getncattr.return_value = "longitude latitude"
-
-        mock_x_coordinate = MagicMock()
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_x_coordinate.standard_name = "longitude"
-        mock_x_coordinate.__getitem__.return_value = return_value
-
-        mock_y_coordinate = MagicMock()
-        return_value = numpy.array([[3.0], [4.0], [5.0]])
-        mock_y_coordinate.standard_name = "latitude"
-        mock_y_coordinate.__getitem__.return_value = return_value
+        coor_ref = 80.1
+        mock_x_coordinate = self._setup_coordinate_mock("longitude", coor_ref)
+        mock_y_coordinate = self._setup_coordinate_mock("latitude")       
 
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_mesh2d_variable",
-                return_value=mock_mesh2d_var,
+                return_value=mock_mesh2d,
             ),
             patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,
         ):
@@ -486,7 +464,6 @@ class Test_OutputFile:
             }
 
             x_coor = test_output_file.node_x_coordinates
-            coor_ref = 1.0
             assert x_coor[1] == coor_ref
 
     def test_read_node_y_coordinates_via_latitude(self, test_output_file: OutputFile):
@@ -494,26 +471,16 @@ class Test_OutputFile:
         Testing read_node_y_coordinates via latitude
         """
 
-        mock_mesh2d_var = MagicMock()
-        mock_mesh2d_var.name = "myMesh2d"
+        mock_mesh2d = self._setup_mesh2d_mock("longitude latitude")
 
-        mock_mesh2d = MagicMock()
-        mock_mesh2d.getncattr.return_value = "longitude latitude"
-
-        mock_x_coordinate = MagicMock()
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_x_coordinate.standard_name = "longitude"
-        mock_x_coordinate.__getitem__.return_value = return_value
-
-        mock_y_coordinate = MagicMock()
-        return_value = numpy.array([[3.0], [4.0], [5.0]])
-        mock_y_coordinate.standard_name = "latitude"
-        mock_y_coordinate.__getitem__.return_value = return_value
+        coor_ref = 80.1
+        mock_x_coordinate = self._setup_coordinate_mock("longitude")
+        mock_y_coordinate = self._setup_coordinate_mock("latitude", coor_ref)       
 
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_mesh2d_variable",
-                return_value=mock_mesh2d_var,
+                return_value=mock_mesh2d,
             ),
             patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,
         ):
@@ -526,7 +493,6 @@ class Test_OutputFile:
             }
 
             y_coor = test_output_file.node_y_coordinates
-            coor_ref = 4.0
             assert y_coor[1] == coor_ref
 
     def test_read_face_node_connectivity(self, test_output_file: OutputFile):
@@ -534,20 +500,17 @@ class Test_OutputFile:
         Testing read_face_node_connectivity
         """
 
-        mock_mesh2d_var = MagicMock()
-        mock_mesh2d_var.name = "myMesh2d"
-
-        mock_mesh2d = MagicMock()
-        mock_mesh2d.getncattr.return_value = "face_node_connectivity"
+        mock_mesh2d = self._setup_mesh2d_mock("face_node_connectivity")
 
         mock_face_node_connectivity = MagicMock()
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_face_node_connectivity.__getitem__.return_value = return_value
+        node_index_ref = 1.0
+        return_value_node_indices = numpy.array([[0.0], [node_index_ref], [2.0]])
+        mock_face_node_connectivity.__getitem__.return_value = return_value_node_indices
 
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_mesh2d_variable",
-                return_value=mock_mesh2d_var,
+                return_value=mock_mesh2d,
             ),
             patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,
         ):
@@ -559,8 +522,7 @@ class Test_OutputFile:
             }
 
             face_node_connectivity = test_output_file.face_node_connectivity
-            ref = 1.0
-            assert face_node_connectivity[1] == ref
+            assert face_node_connectivity[1] == node_index_ref
 
     def test_read_face_node_connectivity_with_start_index(
         self, test_output_file: OutputFile
@@ -569,22 +531,20 @@ class Test_OutputFile:
         Testing read_face_node_connectivity with a start index (1)
         """
 
-        mock_mesh2d_var = MagicMock()
-        mock_mesh2d_var.name = "myMesh2d"
-
-        mock_mesh2d = MagicMock()
-        mock_mesh2d.getncattr.return_value = "face_node_connectivity"
+        mock_mesh2d = self._setup_mesh2d_mock("face_node_connectivity")
 
         mock_face_node_connectivity = MagicMock()
-        return_value = numpy.array([[3.0], [4.0], [5.0]])
+        node_index_ref = 3.0
+        start_index = 1
+        return_value_node_indices = numpy.array([[3.0], [node_index_ref + start_index], [5.0]])
         mock_face_node_connectivity.ncattrs.return_value = "start_index"
-        mock_face_node_connectivity.getncattr.return_value = 1
-        mock_face_node_connectivity.__getitem__.return_value = return_value
+        mock_face_node_connectivity.getncattr.return_value = start_index
+        mock_face_node_connectivity.__getitem__.return_value = return_value_node_indices
 
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_mesh2d_variable",
-                return_value=mock_mesh2d_var,
+                return_value=mock_mesh2d,
             ),
             patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,
         ):
@@ -595,9 +555,8 @@ class Test_OutputFile:
                 "face_node_connectivity": mock_face_node_connectivity,
             }
 
-            face_node_connectivity = test_output_file.face_node_connectivity
-            coor_ref = 3.0
-            assert face_node_connectivity[1] == coor_ref
+            face_node_connectivity = test_output_file.face_node_connectivity            
+            assert face_node_connectivity[1] == node_index_ref
 
     def test_read_mesh2d_name(self, test_output_file: OutputFile):
         """
@@ -633,7 +592,7 @@ class Test_OutputFile:
                 mock_mesh2d,
             ]
             with pytest.raises(Exception) as cm:
-                mesh2d_name = test_output_file.mesh2d_name
+                _ = test_output_file.mesh2d_name
             assert (
                 str(cm.value)
                 == "Currently only one 2D mesh supported ... this file contains 3 2D meshes."
@@ -650,7 +609,7 @@ class Test_OutputFile:
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
             mock_dataset.get_variables_by_attributes.return_value = []
             with pytest.raises(Exception) as cm:
-                mesh2d_name = test_output_file.mesh2d_name
+                _ = test_output_file.mesh2d_name
             assert (
                 str(cm.value)
                 == "Currently only one 2D mesh supported ... this file contains 0 2D meshes."
