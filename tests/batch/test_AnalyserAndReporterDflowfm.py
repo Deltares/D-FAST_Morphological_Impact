@@ -58,9 +58,9 @@ class Test_analyse_and_report_dflowfm_mode:
         self.initialized_config = initialized_config
 
     def set_file_names(self):
-        self.filenames[0] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames[1] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames[2] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.filenames[0] = ("intervention-Q1_map.nc", "intervention-Q1_map.nc")
+        self.filenames[1] = ("intervention-Q2_map.nc", "intervention-Q2_map.nc")
+        self.filenames[2] = ("intervention-Q3_map.nc", "intervention-Q3_map.nc")
 
     def set_plotting_on(self, tmp_path):
         self.plotting_options.plotting = True
@@ -125,9 +125,9 @@ class Test_analyse_and_report_dflowfm_mode:
         self.initialized_config.needs_tide = display_needs_tide_old_zmin_zmax.needs_tide
         outputdir = tmp_path
 
-        self.filenames["0"] = ("measure-Q1_map.nc", "measure-Q1_map.nc")
-        self.filenames["1"] = ("measure-Q2_map.nc", "measure-Q2_map.nc")
-        self.filenames["2"] = ("measure-Q3_map.nc", "measure-Q3_map.nc")
+        self.filenames["0"] = ("intervention-Q1_map.nc", "intervention-Q1_map.nc")
+        self.filenames["1"] = ("intervention-Q2_map.nc", "intervention-Q2_map.nc")
+        self.filenames["2"] = ("intervention-Q3_map.nc", "intervention-Q3_map.nc")
 
         succes = AnalyserAndReporterDflowfm.analyse_and_report_dflowfm(
             display_needs_tide_old_zmin_zmax.display,
