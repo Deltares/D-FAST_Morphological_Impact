@@ -87,7 +87,9 @@ class Test_data_access_read_face_variable:
         dataref = 3.887132830889389
         assert datac[1] == dataref
 
-    def test_read_face_variable_fails_with_standard_name_and_long_name_throw_exception(self, fou_file: FouFile):
+    def test_read_face_variable_fails_with_standard_name_and_long_name_throw_exception(
+        self, fou_file: FouFile
+    ):
         """
         Testing read_face_variable: variable by long name.
         """
