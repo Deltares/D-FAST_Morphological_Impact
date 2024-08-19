@@ -69,7 +69,7 @@ class Test_data_access_read_face_variable:
         datac = data_file.water_depth()
         assert datac[1] == dataref
 
-    def test_read_face_variable_04(self, fou_file: FouFile):
+    def test_read_face_variable_by_standard_name(self, fou_file: FouFile):
         """
         Testing read_face_variable: variable by standard name.
         """
@@ -78,7 +78,7 @@ class Test_data_access_read_face_variable:
         dataref = 3.887132830889389
         assert datac[1] == dataref
 
-    def test_read_face_variable_05(self, fou_file: FouFile):
+    def test_read_face_variable_by_long_name(self, fou_file: FouFile):
         """
         Testing read_face_variable: variable by long name.
         """
@@ -87,13 +87,13 @@ class Test_data_access_read_face_variable:
         dataref = 3.887132830889389
         assert datac[1] == dataref
 
-    def test_read_face_variable_06(self, fou_file: FouFile):
+    def test_read_face_variable_fails_with_standard_name_and_long_name_throw_exception(self, fou_file: FouFile):
         """
         Testing read_face_variable: variable by long name.
         """
         varname = "water level"
         with pytest.raises(Exception) as cm:
-            datac = fou_file.read_face_variable(varname)
+            _ = fou_file.read_face_variable(varname)
         assert (
             str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
         )

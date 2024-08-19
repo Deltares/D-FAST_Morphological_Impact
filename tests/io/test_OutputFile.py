@@ -53,6 +53,17 @@ def captured_output():
 
 
 class Test_OutputFile:
+    def _setup_netcdf_variable_mock(self, dataref : float, variable_length : int = 1, dimension_isunlimited : bool = False) -> MagicMock:
+        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)        
+        return_value = numpy.array([[0.0], [dataref], [2.0]])
+        mock_var.__getitem__.return_value = return_value
+        mock_var.__len__.return_value = variable_length
+
+        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
+        mock_var.get_dims.return_value = [mock_dim]
+        mock_dim.isunlimited.return_value = dimension_isunlimited
+        return mock_var
+    
     @pytest.mark.parametrize(
         "data_file, dataref",
         [
@@ -92,7 +103,7 @@ class Test_OutputFile:
         datac = data_file.water_depth()
         assert datac[1] == dataref
 
-    def test_read_face_variable_standard_more_than_1_return_value(
+    def test_read_face_variable_standard_more_than_1_return_value_throws_an_exception(
         self, test_output_file: OutputFile
     ):
         """
@@ -111,25 +122,19 @@ class Test_OutputFile:
             mock_dataset = MagicMock()
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
             with pytest.raises(Exception) as cm:
-                datac = test_output_file.read_face_variable(varname)
+                _ = test_output_file.read_face_variable(varname)
             assert (
                 str(cm.value)
                 == 'Expected one variable for "standard_name", but obtained 3.'
             )
-
+    
     def test_read_face_variable_standard(self, test_output_file: OutputFile):
         """
         Testing read_face_variable: variable by standard name.
         """
 
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 1
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = False
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref)
         varname = "standard_name"
 
         with (
@@ -142,7 +147,7 @@ class Test_OutputFile:
             mock_dataset = MagicMock()
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
             datac = test_output_file.read_face_variable(varname)
-            dataref = 1.0
+            
             assert datac[1] == dataref
 
     def test_read_face_variable_standard_not_mocking_get_face_vars_by_standard_name(
@@ -152,14 +157,8 @@ class Test_OutputFile:
         Testing read_face_variable: variable by standard name.
         """
 
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 1
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = False
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref)
         varname = "standard_name"
 
         with (patch("dfastmi.io.OutputFile.nc.Dataset") as mock_nc_dataset,):
@@ -168,7 +167,6 @@ class Test_OutputFile:
             mock_dataset.get_variables_by_attributes.return_value = [mock_var]
 
             datac = test_output_file.read_face_variable(varname)
-            dataref = 1.0
             assert datac[1] == dataref
 
     def test_read_face_variable_long_name(self, test_output_file: OutputFile):
@@ -176,14 +174,8 @@ class Test_OutputFile:
         Testing read_face_variable: variable by long name.
         """
 
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 1
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = False
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref)
         varname = "long_name"
 
         with (
@@ -201,7 +193,6 @@ class Test_OutputFile:
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
 
             datac = test_output_file.read_face_variable(varname)
-            dataref = 1.0
             assert datac[1] == dataref
 
     def test_read_face_variable_long_name_not_mocking_get_face_vars_by_long_name(
@@ -211,14 +202,8 @@ class Test_OutputFile:
         Testing read_face_variable: variable by long name.
         """
 
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 1
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = False
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref)
         varname = "long_name"
 
         with (
@@ -232,8 +217,7 @@ class Test_OutputFile:
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
             mock_dataset.get_variables_by_attributes.return_value = [mock_var]
 
-            datac = test_output_file.read_face_variable(varname)
-            dataref = 1.0
+            datac = test_output_file.read_face_variable(varname)            
             assert datac[1] == dataref
 
     def test_read_face_variable_long_name_is_unlimited_no_time_slice(
@@ -242,17 +226,10 @@ class Test_OutputFile:
         """
         Testing read_face_variable: variable by long name.
         """
-
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 1
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = True
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref, dimension_isunlimited=True)
         varname = "long_name"
-
+        
         with (
             patch(
                 "dfastmi.io.OutputFile.OutputFile._get_face_vars_by_standard_name",
@@ -267,8 +244,7 @@ class Test_OutputFile:
             mock_dataset = MagicMock()
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
 
-            datac = test_output_file.read_face_variable(varname)
-            dataref = 1.0
+            datac = test_output_file.read_face_variable(varname)            
             assert datac[1] == dataref
 
     def test_read_face_variable_long_name_is_unlimited_with_1_time_slice(
@@ -278,14 +254,8 @@ class Test_OutputFile:
         Testing read_face_variable: variable by long name.
         """
 
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 2
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = True
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref, variable_length=2, dimension_isunlimited=True)
         varname = "long_name"
 
         with (
@@ -303,7 +273,6 @@ class Test_OutputFile:
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
 
             datac = test_output_file.read_face_variable(varname, 1)
-            dataref = 1.0
             assert datac[1] == dataref
 
     def test_read_face_variable_long_name_is_time_independent_variable_with_1_time_slice_throws_exeption(
@@ -313,14 +282,8 @@ class Test_OutputFile:
         Testing read_face_variable: variable by long name.
         """
 
-        mock_var = MagicMock(spec=netCDF4._netCDF4.Variable)
-        return_value = numpy.array([[0.0], [1.0], [2.0]])
-        mock_var.__getitem__.return_value = return_value
-        mock_var.__len__.return_value = 2
-
-        mock_dim = MagicMock(spec=netCDF4._netCDF4.Dimension)
-        mock_var.get_dims.return_value = [mock_dim]
-        mock_dim.isunlimited.return_value = False
+        dataref = 80.1
+        mock_var = self._setup_netcdf_variable_mock(dataref, variable_length=2)
         varname = "long_name"
         mock_var.name = varname
 
@@ -339,13 +302,13 @@ class Test_OutputFile:
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
 
             with pytest.raises(Exception) as cm:
-                datac = test_output_file.read_face_variable(varname, 1)
+                _ = test_output_file.read_face_variable(varname, 1)
             assert (
                 str(cm.value)
                 == f'Trying to access time-independent variable "{varname}" with time offset -2.'
             )
 
-    def test_read_face_variable_long_name_more_than_1_return_value(
+    def test_read_face_variable_long_name_more_than_1_return_value_throws_an_exception(
         self, test_output_file: OutputFile
     ):
         """
@@ -368,13 +331,13 @@ class Test_OutputFile:
             mock_dataset = MagicMock()
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
             with pytest.raises(Exception) as cm:
-                datac = test_output_file.read_face_variable(varname)
+                _ = test_output_file.read_face_variable(varname)
             assert (
                 str(cm.value)
                 == 'Expected one variable for "long_name", but obtained 3.'
             )
 
-    def test_read_face_variable_long_name_no_return_value(
+    def test_read_face_variable_long_name_no_return_value_throws_an_exception(
         self, test_output_file: OutputFile
     ):
         """
@@ -396,7 +359,7 @@ class Test_OutputFile:
             mock_dataset = MagicMock()
             mock_nc_dataset.return_value.__enter__.return_value = mock_dataset
             with pytest.raises(Exception) as cm:
-                datac = test_output_file.read_face_variable(varname)
+                _ = test_output_file.read_face_variable(varname)
             assert (
                 str(cm.value)
                 == 'Expected one variable for "long_name", but obtained 0.'
