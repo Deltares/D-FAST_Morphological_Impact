@@ -20,7 +20,7 @@ class Test_OutputFileFactory:
         """
         Testing if generate Mapfile is done with key
         """
-        output_file = OutputFileFactory.generate("myfile_net.nc")
+        output_file = OutputFileFactory.generate("myfile_map.nc")
         assert isinstance(output_file, MapFile)
 
     def test_creation_of_MapFileType_unknownKey(self):
