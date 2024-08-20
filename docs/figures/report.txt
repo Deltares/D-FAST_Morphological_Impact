@@ -44,11 +44,11 @@ Impacted length                     : 8 m
 
 Critical flow velocity              : 0.3 m/s
 
-Condition             | Reference file (without intervention)       | File with intervention
-  750.0 m3/s          | ---                                    | ---     (intervention not active)          
- 1300.0 m3/s          | ---                                    | ---     (intervention not active)          
- 1700.0 m3/s          | ---                                    | ---     (intervention not active)          
- 2100.0 m3/s          | ---                                    | ---     (intervention not active)          
+Condition             | Reference file (without intervention)  | File with intervention
+  750.0 m3/s          | ---                                    | ---                                        (intervention not active)
+ 1300.0 m3/s          | ---                                    | ---                                        (intervention not active)
+ 1700.0 m3/s          | ---                                    | ---                                        (intervention not active)
+ 2100.0 m3/s          | ---                                    | ---                                        (intervention not active)
  2500.0 m3/s          | reference-Q1_map.nc                    | intervention-Q1_map.nc                     
  3200.0 m3/s          | reference-Q2_map.nc                    | intervention-Q2_map.nc                     
 

@@ -807,7 +807,7 @@ class DialogView:
             enabled,
             self._view_model.intervention_files,
             with_intervention_label,
-            "Enter with intervention file path",
+            "Enter with interventions to the river file path",
         )
 
         discharge_value_label = QLabel(discharge_name, self._win)

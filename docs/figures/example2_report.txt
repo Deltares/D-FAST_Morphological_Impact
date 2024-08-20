@@ -48,7 +48,7 @@ Impacted length                     : 1094 m
 
 Critical flow velocity              : 0.3 m/s
 
-Condition             | Reference file (without intervention)       | File with intervention
+Condition             | Reference file (without intervention)  | File with intervention
  1300.0 m3/s          | trim-pan_Q=1300m3s-1_map.nc            | trim-pan_Q=1300m3s-1_map.nc                
  2000.0 m3/s          | trim-pan_Q=2000m3s-1_map.nc            | trim-pan_Q=2000m3s-1_map.nc                
  3000.0 m3/s          | trim-pan_Q=3000m3s-1_map.nc            | trim-pan_Q=3000m3s-1_map.nc                
