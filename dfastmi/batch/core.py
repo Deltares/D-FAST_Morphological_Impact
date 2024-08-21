@@ -483,13 +483,13 @@ def _get_root_dir(rootdir: Path) -> Path:
     return rootdir
 
 
-def count_discharges(apply_q: Tuple[bool, bool, bool]) -> int:
+def count_discharges(apply_q: BoolVector) -> int:
     """
     Count the number of discharges to be used (apply_q = True).
 
     Arguments
     ---------
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
 
@@ -708,7 +708,7 @@ def write_report(
     tstag: float,
     q_fit: Tuple[float, float],
     discharges: Vector,
-    apply_q: Tuple[bool, bool, bool],
+    apply_q: BoolVector,
     t: Vector,
     slength: float,
 ) -> None:
@@ -735,7 +735,7 @@ def write_report(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     discharges : Vector
         A tuple of 3 discharges (Q) for which simulation results are (expected to be) available.
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     t : Vector

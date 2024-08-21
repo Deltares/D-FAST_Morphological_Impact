@@ -305,7 +305,7 @@ def _interactive_get_discharges(
     Tuple[float, float],
     float,
     QRuns,
-    Tuple[bool, bool, bool],
+    BoolVector,
     float,
     Tuple[float, float, float],
     Tuple[float, float, float],
@@ -348,7 +348,7 @@ def _interactive_get_discharges(
         A discharge below which the river flow is negligible.
     discharges : QRuns
         Tuple of (at most) three characteristic discharges.
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     t_stagnant : float
@@ -429,7 +429,7 @@ def _interactive_get_and_check_discharges(
     src: TextIO,
     discharges: QRuns,
     have_files: bool,
-    apply_q: Tuple[bool, bool, bool],
+    apply_q: BoolVector,
 ) -> Tuple[
     bool,
     List[Optional[float]],
@@ -446,7 +446,7 @@ def _interactive_get_and_check_discharges(
     have_files : bool
         flag to indicate whether user specified that simulation results are
         available.
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
 
@@ -495,7 +495,7 @@ def _write_report_data(
     reduced_output: bool,
     tstag: float,
     discharges: QRuns,
-    apply_q: Tuple[bool, bool, bool],
+    apply_q: BoolVector,
     fraction_of_year: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
     nlength: float,
@@ -574,7 +574,7 @@ def _write_report_nodata(
     tstag: float,
     q_fit: Tuple[float, float],
     discharges: QRuns,
-    apply_q: Tuple[bool, bool, bool],
+    apply_q: BoolVector,
     fraction_of_year: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
@@ -603,7 +603,7 @@ def _write_report_nodata(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     discharges : QRuns
         Tuple of (at most) three characteristic discharges.
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     fraction_of_year : Tuple[float, float, float]
