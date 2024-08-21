@@ -50,7 +50,7 @@ from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFilePars
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import Vector
+from dfastmi.kernel.typehints import Vector, BoolVector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
