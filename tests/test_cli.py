@@ -1,10 +1,10 @@
 import os
-import pytest
 import sys
 from contextlib import contextmanager
 from io import StringIO
 
 import context
+import pytest
 
 import dfastmi.cli
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
