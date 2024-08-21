@@ -1,5 +1,4 @@
 import os
-import pytest
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -8,6 +7,7 @@ from io import StringIO
 import context
 import netCDF4
 import numpy
+import pytest
 
 # dfast binary path relative to tstdir
 dfastexe = "../../dfastmi.dist/dfastmi.exe"
@@ -57,7 +57,8 @@ class Test_batch_mode:
         assert outstr == ["[Errno 2] No such file or directory: 'config.cfg'"]
 
     @pytest.mark.parametrize(
-        "tstdir", "cfgfile",
+        "tstdir",
+        "cfgfile",
         [
             ("tests/c01 - GendtseWaardNevengeul", "c01.cfg"),
             ("tests/c02 - DeLymen", "c02.cfg"),
