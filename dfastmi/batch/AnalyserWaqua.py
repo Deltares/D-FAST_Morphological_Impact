@@ -36,7 +36,7 @@ import dfastmi.kernel.core
 from dfastmi.batch.OutputDataWaqua import OutputDataWaqua
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.DataTextFileOperations import DataTextFileOperations
-from dfastmi.kernel.typehints import Vector
+from dfastmi.kernel.typehints import BedChangeList, Vector
 
 
 class _WaquaLogger:
@@ -161,9 +161,25 @@ class AnalyserWaqua:
         )
         return output_data
 
-    def _process_files(self) -> Tuple[numpy.ndarray, int, int]:
+    def _process_files(self) -> Tuple[BedChangeList, int, int]:
+        """
+        Read data from samples files exported from WAQUA simulations.
+
+        Arguments
+        ---------
+        None
+
+        Returns
+        -------
+        dzq : BedChangeList
+            Array containing equilibrium bed level change.
+        first_min_velocity_m : int
+            Minimum m index used.
+        first_min_velocity_n : int
+            Minimum n index used.
+        """
         first_discharge = True
-        dzq: List[Optional[Union[float, numpy.ndarray]]]
+        dzq: BedChangeList
         dzq = [None] * len(self.discharges)
         for i in range(3):
             if self.apply_q[i]:
@@ -295,7 +311,7 @@ class AnalyserWaqua:
         self,
         fraction_of_year: Vector,
         rsigma: Vector,
-        dzq: numpy.ndarray,
+        dzq: BedChangeList,
         first_min_velocity_m: int,
         first_min_velocity_n: int,
     ) -> OutputDataWaqua:
