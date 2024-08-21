@@ -50,7 +50,7 @@ from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFilePars
 from dfastmi.io.IReach import IReach
 from dfastmi.io.Reach import Reach
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import Vector
+from dfastmi.kernel.typehints import BoolVector, Vector
 
 WAQUA_EXPORT = "WAQUA export"
 DFLOWFM_MAP = "D-Flow FM map"
@@ -483,21 +483,22 @@ def _get_root_dir(rootdir: Path) -> Path:
     return rootdir
 
 
-def count_discharges(discharges: Vector) -> int:
+def count_discharges(apply_q: BoolVector) -> int:
     """
-    Count the number of non-empty discharges.
+    Count the number of discharges to be used (apply_q = True).
 
     Arguments
     ---------
-    discharges : Vector
-        Tuple of (at most) three characteristic discharges (Q).
+    apply_q : BoolVector
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
 
     Returns
     -------
     n : int
         Number of non-empty discharges.
     """
-    return sum([q is not None for q in discharges])
+    return sum(apply_q)
 
 
 def get_filenames(
@@ -707,6 +708,7 @@ def write_report(
     tstag: float,
     q_fit: Tuple[float, float],
     discharges: Vector,
+    apply_q: BoolVector,
     t: Vector,
     slength: float,
 ) -> None:
@@ -733,6 +735,9 @@ def write_report(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     discharges : Vector
         A tuple of 3 discharges (Q) for which simulation results are (expected to be) available.
+    apply_q : BoolVector
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
     t : Vector
         A tuple of 3 values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q.
     slength : float
@@ -763,7 +768,7 @@ def write_report(
         )
         ApplicationSettingsHelper.log_text("", file=report)
     _write_report_discharges(report, q_location, tstag, discharges, t)
-    number_of_discharges = count_discharges(discharges)
+    number_of_discharges = count_discharges(apply_q)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text(
             "need_single_input", dict={"reach": reach}, file=report
@@ -779,7 +784,7 @@ def write_report(
     # Code name of the discharge level.
 
     for i in range(3):
-        if discharges[i] is not None:
+        if apply_q[i]:
             ApplicationSettingsHelper.log_text(
                 stagenames[i],
                 dict={"q": discharges[i], "border": q_location},

@@ -1269,7 +1269,7 @@ The version number should be \keyw{1.0}.
 
 Version 1.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the intervention is located.
 The specified names may be shortened, but they should uniquely identify the branch and reach amongst the names of the other branches and reaches.
-Optionally, the same block may also contain \keyw{Qmin}, \keyw{QBankfull} and \keyw{UCrit} values representative for this particular intervention if they differ from those typical for the selected reach.
+Optionally, the same block may also contain \keyw{QThreshold}, \keyw{QBankfull} and \keyw{UCrit} values representative for this particular intervention if they differ from those typical for the selected reach.
 These items are sufficient for a basic analysis.
 For a full spatial analysis the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without intervention (reference) and with intervention for the selected discharges Q1, Q2, and Q3.
 
@@ -1279,7 +1279,7 @@ Block & Keyword & Description \\ \hline
 \keyw{General} & \keyw{Mode} & \keyw{WAQUA export} or \keyw{D-Flow FM map} (the latter is the default) \\
 \keyw{General} & \keyw{Branch} & Name of the selected branch \\
 \keyw{General} & \keyw{Reach} & Name of the selected reach \\
-\keyw{General} & \keyw{QMin} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which intervention becomes active \\
+\keyw{General} & \keyw{QThreshold} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which intervention becomes active \\
 \keyw{General} & \keyw{QBankfull} & Discharge \unitbrackets{m\textsuperscript{3}/s} at which intervention reaches bankfull \\
 \keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport \\
 \keyw{Q1} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the low flow simulation \\

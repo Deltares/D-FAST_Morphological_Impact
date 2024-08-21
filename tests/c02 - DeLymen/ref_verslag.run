@@ -1,0 +1,50 @@
+Dit programma is de "WAQUA vuistregel" voor het schatten
+van lokale morfologische effecten door een lokale ingreep
+(zie RWS-WD memo WAQUA vuistregel 20-10-08).
+
+Het is een inschatting van evenwichtsbodemveranderingen
+in het zomerbed die als gevolg van een ingreep en zonder
+aangepast beheer na lange tijd ontstaan.
+
+Dit betreft het effect op de bodem in [m]:
+
+    jaargemiddeld zonder baggeren
+    maximaal (na hoogwater) zonder baggeren
+    minimaal (na laagwater) zonder baggeren
+
+Met deze bodemveranderingen kunnen knelpunten worden
+gesignaleerd. De resultaten zijn niet direkt geschikt
+voor het bepalen van de invloed op vaargeulonderhoud!
+
+De jaarlijkse sedimentvracht door de rivier bepaalt de
+termijn waarbinnen dit evenwichtseffect kan ontwikkelen.
+
+
+Dit is versie 13-06-2024.
+
+
+De resultaten zijn niet geldig voor combinaties van
+meerdere ingrepen, of een enkele ingreep over een
+traject van meer dan 4 km lengte!
+
+
+Om WAQMORF te kunnen gebruiken dient voor de
+referentiesituatie en de plansituatie hetzelfde
+WAQUA rooster te worden gebruikt.
+
+
+===================================================
+
+Het resultaat van dit programma is een uitvoer van
+karakteristieke bodemveranderingen. Dit betreft
+
+    jaargemiddelde bodemverandering [m] zonder baggeren in        "jaargem.out"
+    maximale bodemverandering [m] na hoogwater zonder baggeren in "maxmorf.out"
+    minimale bodemverandering [m] na laagwater zonder baggeren in "minmorf.out"
+
+Als elke bodemverandering jaarlijks wordt verwijderd,
+dan wordt de lengte waarover dit plaatsvindt geschat
+op 62 m vanaf de bovenstroomse rand
+van het gebied met bodemverandering.
+
+Programma geeindigd !!!

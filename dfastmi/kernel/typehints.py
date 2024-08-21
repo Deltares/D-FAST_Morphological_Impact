@@ -1,5 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Union
 
+from numpy import ndarray
+
 # Represents a tuple of four floats. The floats represent characteristic discharges (from rivers configuration file).
 QLevels = Tuple[float, float, float, float]
 
@@ -17,3 +19,6 @@ BoolVector = List[bool]
 
 # Filename dictionary
 FilenameDict = Dict[Union[int, str, Tuple[float, str]], str]
+
+# Represents a list of bed level changes. Some entries may be empty, or 0.0.
+BedChangeList = List[Optional[Union[float, ndarray]]]

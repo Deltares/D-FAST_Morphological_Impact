@@ -39,7 +39,7 @@ from dfastmi.io.Branch import Branch
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import QRuns
+from dfastmi.kernel.typehints import BoolVector, QRuns
 
 
 def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) -> None:
@@ -175,6 +175,7 @@ def _run_interactive_mode_once(
             tstag,
             q_fit,
             discharges,
+            apply_q,
             fraction_of_year,
             nlength,
         )
@@ -304,7 +305,7 @@ def _interactive_get_discharges(
     Tuple[float, float],
     float,
     QRuns,
-    Tuple[bool, bool, bool],
+    BoolVector,
     float,
     Tuple[float, float, float],
     Tuple[float, float, float],
@@ -347,7 +348,7 @@ def _interactive_get_discharges(
         A discharge below which the river flow is negligible.
     discharges : QRuns
         Tuple of (at most) three characteristic discharges.
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     t_stagnant : float
@@ -428,7 +429,7 @@ def _interactive_get_and_check_discharges(
     src: TextIO,
     discharges: QRuns,
     have_files: bool,
-    apply_q: Tuple[bool, bool, bool],
+    apply_q: BoolVector,
 ) -> Tuple[
     bool,
     List[Optional[float]],
@@ -445,7 +446,7 @@ def _interactive_get_and_check_discharges(
     have_files : bool
         flag to indicate whether user specified that simulation results are
         available.
-    apply_q : Tuple[bool, bool, bool]
+    apply_q : BoolVector
         A list of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
 
@@ -494,7 +495,7 @@ def _write_report_data(
     reduced_output: bool,
     tstag: float,
     discharges: QRuns,
-    apply_q: Tuple[bool, bool, bool],
+    apply_q: BoolVector,
     fraction_of_year: Tuple[float, float, float],
     rsigma: Tuple[float, float, float],
     nlength: float,
@@ -573,6 +574,7 @@ def _write_report_nodata(
     tstag: float,
     q_fit: Tuple[float, float],
     discharges: QRuns,
+    apply_q: BoolVector,
     fraction_of_year: Tuple[float, float, float],
     nlength: float,
 ) -> bool:
@@ -601,6 +603,9 @@ def _write_report_nodata(
         A discharge and dicharge change determining the discharge exceedance curve (from rivers configuration file).
     discharges : QRuns
         Tuple of (at most) three characteristic discharges.
+    apply_q : BoolVector
+        A list of 3 flags indicating whether each value should be used or not.
+        The Q1 value can't be set to None because it's needed for char_times.
     fraction_of_year : Tuple[float, float, float]
         Fraction of year represented by each characteristic discharge.
     nlength : float
@@ -612,22 +617,22 @@ def _write_report_nodata(
         Flag indicating whether the program should be closed.
     """
     ApplicationSettingsHelper.log_text("---")
-    number_of_discharges = dfastmi.batch.core.count_discharges(discharges)
+    number_of_discharges = dfastmi.batch.core.count_discharges(apply_q)
     if number_of_discharges == 1:
         ApplicationSettingsHelper.log_text("need_single_input", dict={"reach": reach})
     else:
         ApplicationSettingsHelper.log_text(
             "need_multiple_input", dict={"reach": reach, "numq": number_of_discharges}
         )
-    if discharges[0] is not None:
+    if apply_q[0]:
         ApplicationSettingsHelper.log_text(
             "lowwater", dict={"border": q_location, "q": discharges[0]}
         )
-    if discharges[1] is not None:
+    if apply_q[1]:
         ApplicationSettingsHelper.log_text(
             "transition", dict={"border": q_location, "q": discharges[1]}
         )
-    if discharges[2] is not None:
+    if apply_q[2]:
         ApplicationSettingsHelper.log_text(
             "highwater", dict={"border": q_location, "q": discharges[2]}
         )
@@ -646,6 +651,7 @@ def _write_report_nodata(
             tstag,
             q_fit,
             discharges,
+            apply_q,
             fraction_of_year,
             nlength,
         )

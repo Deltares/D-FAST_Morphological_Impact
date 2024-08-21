@@ -60,20 +60,26 @@ class Test_batch_mode:
         self.maxDiff = None
         assert outstr == ["[Errno 2] No such file or directory: 'config.cfg'"]
 
-    def test_batch_mode_01(self):
+    @pytest.mark.parametrize(
+        "tstdir, cfgfile",
+        [
+            ("tests/c01 - GendtseWaardNevengeul", "c01.cfg"),
+            ("tests/c02 - DeLymen", "c02.cfg"),
+        ],
+    )
+    def test_batch_mode_01(self, tstdir, cfgfile):
         """
         Testing batch_mode: running configuration file - Dutch report.
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         outdir = tstdir + os.sep + "output"
         refdir = tstdir
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.core.batch_mode("c01.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode(cfgfile, rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -315,19 +321,19 @@ class Test_batch_mode:
 
 class Test_batch_countq:
     @pytest.mark.parametrize(
-        "vector_data, expected_non_empty_discharges_count",
+        "vector_data, expected_true_flags_count",
         [
-            ([0.123, None, 0.456, 0.789, None], 3),
-            ([0.123, 0.123, 0.456, 0.789, 0.123], 5),
-            ([None, None, None, None, None], 0),
+            ([True, False, True, True, False], 3),
+            ([True, True, True, True, True], 5),
+            ([False, False, False, False, False], 0),
         ],
     )
-    def given_vector_with_discharges_when_countq_then_return_expected_amount_of_non_empty_discharges(
-        self, vector_data: Vector, expected_non_empty_discharges_count: int
+    def given_vector_with_flags_when_countq_then_return_expected_amount_of_true_flags(
+        self, vector_data: Vector, expected_true_flags_count: int
     ):
         assert (
             dfastmi.batch.core.count_discharges(vector_data)
-            == expected_non_empty_discharges_count
+            == expected_true_flags_count
         )
 
 
@@ -345,6 +351,7 @@ class Test_batch_write_report:
         tstag = 0.1
         q_fit = [0.1, 0.1]
         Q = [0.2, 0.2, 0.2]
+        apply_q = [True, True, True]
         T = [0.3, 0.3, 0.3]
 
         ApplicationSettingsHelper.PROGTEXTS = None
@@ -359,6 +366,7 @@ class Test_batch_write_report:
             tstag,
             q_fit,
             Q,
+            apply_q,
             T,
             slength,
         )

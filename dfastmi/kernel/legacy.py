@@ -55,10 +55,10 @@ def char_discharges(
 
     Returns
     -------
-    Q : QRuns
+    discharges : QRuns
         A tuple of 3 discharges for which simulations should be run (can later
         be adjusted by the user)
-    applyQ : BoolVector
+    apply_q : BoolVector
         A tuple of 3 flags indicating whether each value should be used or not.
         The Q1 value can't be set to None because it's needed for char_times.
     """
