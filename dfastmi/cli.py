@@ -39,7 +39,7 @@ from dfastmi.io.Branch import Branch
 from dfastmi.io.IReach import IReach
 from dfastmi.io.ReachLegacy import ReachLegacy
 from dfastmi.io.RiversObject import RiversObject
-from dfastmi.kernel.typehints import QRuns, BoolVector
+from dfastmi.kernel.typehints import BoolVector, QRuns
 
 
 def interactive_mode(src: TextIO, rivers: RiversObject, reduced_output: bool) -> None:
