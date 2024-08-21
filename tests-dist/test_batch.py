@@ -1,4 +1,5 @@
 import os
+import pytest
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -55,12 +56,18 @@ class Test_batch_mode:
         self.maxDiff = None
         assert outstr == ["[Errno 2] No such file or directory: 'config.cfg'"]
 
-    def test_batch_mode_01(self):
+    @pytest.mark.parametrize(
+        "tstdir", "cfgfile",
+        [
+            ("tests/c01 - GendtseWaardNevengeul", "c01.cfg"),
+            ("tests/c02 - DeLymen", "c02.cfg"),
+        ],
+    )
+    def test_batch_mode_01(self, tstdir, cfgfile):
         """
         Testing batch_mode: normal run using WAQUA txt files (NL).
         """
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
             result = subprocess.run(
@@ -71,7 +78,7 @@ class Test_batch_mode:
                     "--rivers",
                     "Dutch_rivers_v1.ini",
                     "--config",
-                    "c01.cfg",
+                    cfgfile,
                     "--language",
                     "NL",
                 ],

@@ -60,20 +60,26 @@ class Test_batch_mode:
         self.maxDiff = None
         assert outstr == ["[Errno 2] No such file or directory: 'config.cfg'"]
 
-    def test_batch_mode_01(self):
+    @pytest.mark.parametrize(
+        "tstdir", "cfgfile",
+        [
+            ("tests/c01 - GendtseWaardNevengeul", "c01.cfg"),
+            ("tests/c02 - DeLymen", "c02.cfg"),
+        ],
+    )
+    def test_batch_mode_01(self, tstdir, cfgfile):
         """
         Testing batch_mode: running configuration file - Dutch report.
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         outdir = tstdir + os.sep + "output"
         refdir = tstdir
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.core.batch_mode("c01.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode(cfgfile, rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
