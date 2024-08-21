@@ -13,7 +13,7 @@ from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.ReporterDflowfm import ReporterDflowfm
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
-from dfastmi.io.map_file import MapFile
+from dfastmi.io.MapFile import MapFile
 
 
 class Test_ReporterDflowfm_Report:

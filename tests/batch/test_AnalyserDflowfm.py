@@ -10,7 +10,7 @@ from dfastmi.batch.AnalyserDflowfm import AnalyserDflowfm
 from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.config.AConfigurationInitializerBase import AConfigurationInitializerBase
-from dfastmi.io.map_file import MapFile
+from dfastmi.io.MapFile import MapFile
 from tests.batch.Helper_AnalyserAndReporterDflowfm import (  # needed for fixture
     TestCase_display_needs_tide_old_zmin_zmax,
     TestCase_display_old_zmin_zmax,
@@ -167,6 +167,7 @@ class Test_AnalyserDflowfm:
         self._set_file_name_based_on_number()
 
         face_node_connectivity = numpy.array([0, 1, 2, 3, 4])
+
         xykm_data = self._get_mocked_xykm_data(self.xykm)
 
         map_file = self._get_mocked_mapfile(numpy.array([0, 1, 2, 3, 4]))
@@ -178,7 +179,10 @@ class Test_AnalyserDflowfm:
             ),
             patch("dfastmi.batch.AnalyserDflowfm.XykmData", return_value=xykm_data),
             patch("dfastmi.batch.AnalyserDflowfm.os.path.isfile", return_value=True),
-            patch("dfastmi.batch.AnalyserDflowfm.MapFile", return_value=map_file),
+            patch(
+                "dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate",
+                return_value=map_file,
+            ),
         ):
 
             analyser = AnalyserDflowfm(
@@ -222,7 +226,10 @@ class Test_AnalyserDflowfm:
             ),
             patch("dfastmi.batch.AnalyserDflowfm.XykmData", return_value=xykm_data),
             patch("dfastmi.batch.AnalyserDflowfm.os.path.isfile", return_value=True),
-            patch("dfastmi.batch.AnalyserDflowfm.MapFile", return_value=map_file),
+            patch(
+                "dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate",
+                return_value=map_file,
+            ),
             patch(
                 "dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h"
             ) as dzq_from_du_and_h,
@@ -285,7 +292,10 @@ class Test_AnalyserDflowfm:
             ),
             patch("dfastmi.batch.AnalyserDflowfm.XykmData", return_value=xykm_data),
             patch("dfastmi.batch.AnalyserDflowfm.os.path.isfile", return_value=True),
-            patch("dfastmi.batch.AnalyserDflowfm.MapFile", return_value=map_file),
+            patch(
+                "dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate",
+                return_value=map_file,
+            ),
             patch(
                 "dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h"
             ) as dzq_from_du_and_h,
@@ -345,7 +355,10 @@ class Test_AnalyserDflowfm:
             ),
             patch("dfastmi.batch.AnalyserDflowfm.XykmData", return_value=xykm_data),
             patch("dfastmi.batch.AnalyserDflowfm.os.path.isfile", return_value=True),
-            patch("dfastmi.batch.AnalyserDflowfm.MapFile", return_value=map_file),
+            patch(
+                "dfastmi.batch.AnalyserDflowfm.OutputFileFactory.generate",
+                return_value=map_file,
+            ),
             patch(
                 "dfastmi.batch.AnalyserDflowfm.dzq_from_du_and_h"
             ) as dzq_from_du_and_h,

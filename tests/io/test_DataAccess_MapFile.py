@@ -8,16 +8,11 @@ import netCDF4
 import numpy
 import pytest
 
-from dfastmi.io.map_file import MapFile
+from dfastmi.io.MapFile import MapFile
 
 
 def open_map_file() -> MapFile:
     filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-    return MapFile(filename)
-
-
-def open_fou_file() -> MapFile:
-    filename = "tests/files/e02_f001_c011_simplechannel_fou.nc"
     return MapFile(filename)
 
 
@@ -42,7 +37,6 @@ class Test_data_access_read_face_variable:
         "data_file, dataref",
         [
             (open_map_file(), 1.2839395399603417),
-            (open_fou_file(), 1.2839395356652856),
         ],
     )
     def test_x_velocity(self, data_file: MapFile, dataref: float):
@@ -56,7 +50,6 @@ class Test_data_access_read_face_variable:
         "data_file, dataref",
         [
             (open_map_file(), 0.00015686700534273124),
-            (open_fou_file(), 0.0001568670009850459),
         ],
     )
     def test_y_velocity(self, data_file: MapFile, dataref: float):
@@ -70,7 +63,6 @@ class Test_data_access_read_face_variable:
         "data_file, dataref",
         [
             (open_map_file(), 3.894498393076889),
-            (open_fou_file(), 3.89449840620317),
         ],
     )
     def test_water_depth(self, data_file: MapFile, dataref: float):
@@ -289,7 +281,8 @@ class Test_copy_var:
 
         src = netCDF4.Dataset(src_filename)
         dst = netCDF4.Dataset(self.dst_filename, "a")
-        MapFile._copy_var(src, "mesh2d_s1", dst)
+        src_map_file = MapFile(src_filename)
+        src_map_file._copy_var(src, "mesh2d_s1", dst)
         src.close()
         dst.close()
 
