@@ -1,4 +1,5 @@
 import os
+import pytest
 import sys
 from contextlib import contextmanager
 from io import StringIO
@@ -22,14 +23,21 @@ def captured_output():
 
 
 class Test_interactive_mode:
-    def test_interactive_mode_01(self):
+
+    @pytest.mark.parametrize(
+        "tstdir",
+        [
+            ("tests/c01 - GendtseWaardNevengeul"),
+            ("tests/c02 - DeLymen"),
+        ],
+    )
+    def test_interactive_mode_01(self, tstdir):
         """
         Testing interactive_mode in Dutch.
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.NL.ini")
         rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):

@@ -1,4 +1,5 @@
 import os
+import pytest
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -22,12 +23,19 @@ def captured_output():
 
 
 class Test_interactive_mode:
-    def test_interactive_mode_01(self):
+
+    @pytest.mark.parametrize(
+        "tstdir",
+        [
+            ("tests/c01 - GendtseWaardNevengeul"),
+            ("tests/c02 - DeLymen"),
+        ],
+    )
+    def test_interactive_mode_01(self, tstdir):
         """
         Testing interactive_mode in Dutch.
         """
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         try:
             os.chdir(tstdir)
             infile = open("waqmorf.in", "r")
