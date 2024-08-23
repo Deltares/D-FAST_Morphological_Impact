@@ -27,10 +27,6 @@ can be reached.
 This is version 3.0.0.
 
 
-The results are not valid for a combination of multiple interventions, or for a
-single intervention extending over a distance more than 4 km!
-
-
 In order to use D-FAST Morphological Impact you need to run reference and
 scenario simulations on the same computational mesh.
 
