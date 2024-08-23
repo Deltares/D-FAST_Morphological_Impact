@@ -1,6 +1,9 @@
 \chapter{Examples}
 
-The first two examples are taken from \citet{GiriJagers2022} although that report tested a number of slightly different hydrographs.
+This chapter describes some examples of the \dfmi analysis.
+The first two examples are taken from \citet{GiriJagers2022}.
+That report tested a pilot implementation of \dfmi version 3 and used a number of slightly different hydrographs; the examples presented here use the final configuration as included in the \dfmi distribution.
+The input files of the examples are included in the \file{examples} folder of the \dfmi distribution.
 
 \section{Example 1: secondary channel along the Nederrijn}
 
@@ -37,7 +40,7 @@ After specifying all input files, the dialog will look like \autoref{Palmers_con
 \label{Palmers_config}
 \end{figure}
 
-\verbfilenobox[\scriptsize]{figures/example1.cfg}
+\verbfilenobox[\scriptsize]{../examples/01 - Palmerswaard/example1.cfg}
 
 The \dfmi analysis is performed when you click on the \button{Compute} button.
 The program will show a message that the analysis has successfully ended, and that a report.txt file has been written to the output folder.
@@ -61,7 +64,7 @@ The content of the report file is shown below:
 \label{Palmers_fig_zoomed}
 \end{figure}
 
-\verbfilenobox[\scriptsize]{figures/example1_report.txt}
+\verbfilenobox[\scriptsize]{../examples_references/01 - Palmerswaard/output/report.txt}
 
 \autoref{Palmers_mor} shows the results of a reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}).
 The figure shows the morphological evolution of the Delft3D simulation.
@@ -104,7 +107,7 @@ After specifying all input files, the dialog will look like \autoref{Pannerden_c
 \label{Pannerden_config}
 \end{figure}
 
-\verbfilenobox[\scriptsize]{figures/example2.cfg}
+\verbfilenobox[\scriptsize]{../examples/02 - Pannerdensch Kanaal/example2.cfg}
 
 The \dfmi analysis is performed when you click on the \button{Compute} button.
 The program will show a message that the analysis has successfully ended, and that a report.txt file has been written to the output folder.
@@ -120,7 +123,7 @@ The content of the report file is shown below:
 \label{Pannerden_fig_zoomed}
 \end{figure}
 
-\verbfilenobox[\scriptsize]{figures/example2_report.txt}
+\verbfilenobox[\scriptsize]{../examples_references/02 - Pannerdensch Kanaal/output/report.txt}
 
 \autoref{Pannerden_mor} shows the results of a reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}).
 The figure shows the morphological evolution of the Delft3D simulation.

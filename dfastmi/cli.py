@@ -205,7 +205,7 @@ def _interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool
     ApplicationSettingsHelper.log_text("header_legacy", dict={"version": version})
     _interactive_get_bool(src, "confirm")
 
-    ApplicationSettingsHelper.log_text("limits")
+    ApplicationSettingsHelper.log_text("limits_legacy")
     ApplicationSettingsHelper.log_text("qblocks")
     tdum = False
     while not tdum:
@@ -230,7 +230,7 @@ def _interactive_mode_opening(src: TextIO, version: str, report: TextIO) -> bool
     ApplicationSettingsHelper.log_text(
         "header_legacy", dict={"version": version}, file=report
     )
-    ApplicationSettingsHelper.log_text("limits", file=report)
+    ApplicationSettingsHelper.log_text("limits_legacy", file=report)
     ApplicationSettingsHelper.log_text("===", file=report)
     if have_files:
         ApplicationSettingsHelper.log_text(

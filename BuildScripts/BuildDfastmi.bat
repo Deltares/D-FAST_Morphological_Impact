@@ -54,4 +54,7 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=docs/dfastmi_release_notes.pdf=dfastmi/dfastmi_release_notes.pdf ^
  %cmd_box_args%
 
+rem include example files into the distribution
+xcopy /E examples dfastmi.dist\examples\
+
 rem end of build

@@ -419,14 +419,11 @@ def _log_header(report: TextIO, cfg_version: Version) -> None:
     None
     """
     prog_version = dfastmi.__version__
-    if cfg_version == Version("1.0"):
-        header = "header_legacy"
-    else:
-        header = "header"
+    legacy = "_legacy" if cfg_version == Version("1.0") else ""
     ApplicationSettingsHelper.log_text(
-        header, dict={"version": prog_version}, file=report
+        "header" + legacy, dict={"version": prog_version}, file=report
     )
-    ApplicationSettingsHelper.log_text("limits", file=report)
+    ApplicationSettingsHelper.log_text("limits" + legacy, file=report)
     _report_section_break(report)
 
 
