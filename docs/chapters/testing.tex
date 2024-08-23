@@ -22,7 +22,7 @@ For the verification of \dfastmi 2.0 four sets of input files for the Nederrijn 
 \end{enumerate}
 
 For the verification of \dfastmi 3.0 applications on Nederrijn, Pannerdensch Kanaal and Meuse have been used.
-The argumentation is reported separately (in a `Validation report').
+The argumentation is reported separately (in a `Validation Document').
 
 
 \section{Regression}
@@ -208,7 +208,7 @@ The netCDF UGRID data files are supported by QUICKPLOT and other post-processing
 The program should read relevant data directly from \dflowfm map-files instead of intermediate XYZ files as required by WAQMORF for SIMONA results.
 \end{requirement}
 \begin{testmethod}
-All quantities previously read from the XYZ files is now read from the \dflowfm map.nc files (unless running in backward compatibility mode with WAQMORF).
+All quantities previously read from the XYZ files are now read from the \dflowfm map.nc files (unless running in backward compatibility mode with WAQMORF).
 \end{testmethod}
 
 \item \begin{requirement}
@@ -258,6 +258,13 @@ Although the multi-language feature is still included in the source code for bac
 The unit and system tests focus on running the software in the English mode.
 \end{testmethod}
 
+\item \begin{requirement}
+The program should also support \dflowfm fourier-files.
+\end{requirement}
+\begin{testmethod}
+\dfastmi version 3.1 supports also the \dflowfm fourier-files as created when using the \file{fourier\_last\_s.fou} as distributed with the RWS 6\textsuperscript{th} generation river schematisations and as listed in chapter 5 of the \dfmi User Manual.
+The integration tests have been extended to include this functionality.
+\end{testmethod}
 \end{enumerate}
 
 \section{Manual system tests} \label{Sec:GuiTests}

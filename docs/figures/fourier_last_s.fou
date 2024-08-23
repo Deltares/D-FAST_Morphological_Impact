@@ -1,0 +1,21 @@
+* This Fourier file is prepared for computing statistics for river modelling
+* For stationary computations
+*
+* In the MDU file the following keywords are advised:
+* FouUpdateStep = 2   # Fourier-timestep equal to HIS-output-timestep
+* HisInterval = 300.  # Every 5 minutes HIS-output
+*
+* The following parameters will be output:
+* - wl: last water level(from average over last 25 steps = 2 hours)
+* - uc: velocity magnitude (from average over last 25 steps = 2 hours)
+* - ux: velocity in x-direction (from average over last 25 steps = 2 hours)
+* - uy: velocity in y-direction (from average over last 25 steps = 2 hours)
+* - q1: discharge through flow links (from average over last 25 steps = 2 hours)
+*
+*
+*var  tstart  tstop  tsteps  knfac  v0plu  layno  param
+ wl     -1      -1     25      1.     0.           last
+ uc     -1      -1     25      1.     0.     1     last
+ ux     -1      -1     25      1.     0.     1     last
+ uy     -1      -1     25      1.     0.     1     last
+ q1     -1      -1     25      1.     0.     1     last

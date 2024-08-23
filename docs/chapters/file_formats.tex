@@ -188,7 +188,7 @@ The specified names may be shortened, but they should uniquely identify the bran
 The same block may also contain \keyw{QThreshold} and \keyw{UCrit} values representative for this particular intervention if they differ from those typical for the selected reach.
 Furthermore, this block may contain \keyw{FigureDir} and \keyw{OutputDir} specifying where the figures and other output files should be written.
 The \keyw{RiverKM} keyword to specify the chainage along the reach of interest is needed for estimating the initial year dredging volumes.
-Last but not least, the user needs to specify the names of the D-Flow FM map-files containing the results of the simulations without intervention (reference) and with intervention for the selected flow conditions.
+Last but not least, the user needs to specify the names of the D-Flow FM map- or fourier-files containing the results of the simulations without intervention (reference) and with intervention for the selected flow conditions.
 These names must be specified in a continuous sequences of numbered blocks named \keyw{C1}, \keyw{C2}, etc.
 The order of the blocks is not important: the relevant blocks are identified by means of the \keyw{Discharge} and optionally \keyw{TideBC} specified per block.
 There should be a match for every stage of the configured ``hydrograph'' for the selected branch/reach.
@@ -208,8 +208,8 @@ Should be \keyw{3.0}. \\
 \keyw{General} & \keyw{OutputDir} & Directory for storing output files. \\
 \keyw{C}<i> & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of condition <i>. \\
 \keyw{C}<i> & \keyw{TideBC} & Tidal boundary of condition <i>. \\
-\keyw{C}<i> & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition <i>. \\
-\keyw{C}<i> & \keyw{WithIntervention} & Name of D-Flow FM map-file that includes the intervention <i>. \\
+\keyw{C}<i> & \keyw{Reference} & Name of D-Flow FM map- or fourier-file to be used for reference condition <i>. \\
+\keyw{C}<i> & \keyw{WithIntervention} & Name of D-Flow FM map- or fourier-file that includes the intervention <i>. \\
 \end{tabular}
 
 \subsubsection*{Example}
@@ -268,5 +268,5 @@ The length and content of the report vary depending on the availability of the s
 \section{Spatial output file}
 
 \dfastmi generates one UGRID netCDF file containing the spatial results of the analysis.
-The mesh information is copied from the D-Flow FM map file and the three data fields (erosion and sedimentation patterns for mean, minimum, and maximum impact) follow standardized conventions for data stored at cell centres (\keyw{face}-values) on an unstructured mesh.
+The mesh information is copied from the first D-Flow FM map- or fourier-file read, and the three data fields (erosion and sedimentation patterns for mean, minimum, and maximum impact) follow standardized conventions for data stored at cell centres (\keyw{face}-values) on an unstructured mesh.
 As a result the data may be visualized using a number of visualization tools such as QUICKPLOT and QGIS.

@@ -8,13 +8,17 @@ import netCDF4
 import numpy
 import pytest
 
-from dfastmi.io.map_file import MapFile
+from dfastmi.io.MapFile import MapFile
+
+
+def open_map_file() -> MapFile:
+    filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
+    return MapFile(filename)
 
 
 @pytest.fixture
 def map_file() -> MapFile:
-    filename = "tests/files/e02_f001_c011_simplechannel_map.nc"
-    return MapFile(filename)
+    return open_map_file()
 
 
 @contextmanager
@@ -29,6 +33,45 @@ def captured_output():
 
 
 class Test_data_access_read_face_variable:
+    @pytest.mark.parametrize(
+        "data_file, dataref",
+        [
+            (open_map_file(), 1.2839395399603417),
+        ],
+    )
+    def test_x_velocity(self, data_file: MapFile, dataref: float):
+        """
+        Testing x_velocity.
+        """
+        datac = data_file.x_velocity()
+        assert datac[1] == dataref
+
+    @pytest.mark.parametrize(
+        "data_file, dataref",
+        [
+            (open_map_file(), 0.00015686700534273124),
+        ],
+    )
+    def test_y_velocity(self, data_file: MapFile, dataref: float):
+        """
+        Testing y_velocity.
+        """
+        datac = data_file.y_velocity()
+        assert datac[1] == dataref
+
+    @pytest.mark.parametrize(
+        "data_file, dataref",
+        [
+            (open_map_file(), 3.894498393076889),
+        ],
+    )
+    def test_water_depth(self, data_file: MapFile, dataref: float):
+        """
+        Testing water_depth.
+        """
+        datac = data_file.water_depth()
+        assert datac[1] == dataref
+
     def test_read_face_variable_04(self, map_file: MapFile):
         """
         Testing read_face_variable: variable by standard name.
@@ -50,17 +93,6 @@ class Test_data_access_read_face_variable:
     def test_read_face_variable_06(self, map_file: MapFile):
         """
         Testing read_face_variable: variable by long name.
-        """
-        varname = "water level"
-        with pytest.raises(Exception) as cm:
-            datac = map_file.read_face_variable(varname)
-        assert (
-            str(cm.value) == 'Expected one variable for "water level", but obtained 0.'
-        )
-
-    def test_read_face_variable_07(self, map_file: MapFile):
-        """
-        Testing read_face_variable: multiple mesh2dids.
         """
         varname = "water level"
         with pytest.raises(Exception) as cm:
@@ -249,7 +281,8 @@ class Test_copy_var:
 
         src = netCDF4.Dataset(src_filename)
         dst = netCDF4.Dataset(self.dst_filename, "a")
-        MapFile._copy_var(src, "mesh2d_s1", dst)
+        src_map_file = MapFile(src_filename)
+        src_map_file._copy_var(src, "mesh2d_s1", dst)
         src.close()
         dst.close()
 
