@@ -301,3 +301,61 @@ class Test_batch_mode:
             result = ncRes.variables[f]
             refdat = ncRef.variables[f]
             assert (result[...] == refdat[...]).all()
+
+    @pytest.mark.parametrize(
+        "case, config",
+        [
+            ("01 - Palmerswaard", "example1.cfg"),
+            ("02 - Pannerdensch Kanaal", "example2.cfg"),
+        ],
+    )
+    def test_batch_examples(self, case, config):
+        """
+        Testing batch_mode: example cases user manual
+        """
+        cwd = os.getcwd()
+        tstdir = "examples" + os.sep + case
+        refdir = "examples_references" + os.sep + case + os.sep + "output"
+        try:
+            os.chdir(tstdir)
+            result = subprocess.run(
+                [
+                    dfastexe,
+                    "--mode",
+                    "BATCH",
+                    "--config",
+                    config,
+                ],
+                capture_output=True,
+            )
+            outstr = result.stdout.decode("UTF-8").splitlines()
+        finally:
+            os.chdir(cwd)
+        #
+        # for s in outstr:
+        #    print(s)
+        self.maxDiff = None
+        assert outstr == []
+        #
+        prefixes = "This is version"
+        #
+        result = (
+            open(tstdir + os.sep + "output" + os.sep + "report.txt", "r")
+            .read()
+            .splitlines()
+        )
+        refstr = open(refdir + os.sep + "report.txt", "r").read().splitlines()
+        result = [x for x in result if not x.startswith(prefixes)]
+        refstr = [x for x in refstr if not x.startswith(prefixes)]
+        assert result == refstr
+        #
+        ncRes = netCDF4.Dataset(
+            tstdir + os.sep + "output" + os.sep + "dfastmi_results.nc"
+        )
+        ncRef = netCDF4.Dataset(refdir + os.sep + "dfastmi_results.nc")
+
+        fields = ["avgdzb", "mindzb", "maxdzb"]
+        for f in fields:
+            result = ncRes.variables[f]
+            refdat = ncRef.variables[f]
+            assert (result[...] == refdat[...]).all()

@@ -294,6 +294,40 @@ class Test_batch_mode:
         #
         compare_text_files(outdir, refdir, "sedimentation_volumes.xyz")
 
+    @pytest.mark.parametrize(
+        "case, config",
+        [
+            ("01 - Palmerswaard", "example1.cfg"),
+            ("02 - Pannerdensch Kanaal", "example2.cfg"),
+        ],
+    )
+    def test_batch_examples(self, case, config):
+        """
+        Testing batch_mode: example cases user manual
+        """
+        ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v3.ini")
+        cwd = os.getcwd()
+        tstdir = "examples" + os.sep + case
+        outdir = tstdir + os.sep + "output"
+        refdir = "examples_references" + os.sep + case + os.sep + "output"
+        try:
+            os.chdir(tstdir)
+            with captured_output() as (out, err):
+                dfastmi.batch.core.batch_mode(config, rivers, False)
+            outstr = out.getvalue().splitlines()
+        finally:
+            os.chdir(cwd)
+        #
+        compare_text_files(outdir, refdir, "report.txt", prefixes=("This is version"))
+        #
+        compare_netcdf_fields(
+            outdir,
+            refdir,
+            "dfastmi_results.nc",
+            ["avgdzb", "mindzb", "maxdzb"],
+        )
+
     def given_configuration_file_version_different_as_river_file_version_when_running_batch_mode_core_then_throw_exception_version_mis_match(
         self,
     ):
