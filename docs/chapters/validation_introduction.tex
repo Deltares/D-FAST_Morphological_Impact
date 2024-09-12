@@ -1,0 +1,25 @@
+\chapter{Introduction}
+In 2020 the rapid assessment tool \dfastmi (MI) was developed for the 6th generation models based on \dflowfm.
+The algorithms implemented in \dfmi version 2 correspond to the algorithms implemented in the older equivalent tool WAQMORF for the SIMONA Suite.
+In 2021 a number of extensions to the \dfastmi algorithms were implemented in a pilot version and evaluated.
+\dfmi version 3, the current release is based on the first of these extensions, namely the stepped-hydrograph for the reaches with dominant river discharge forcing.
+
+This document describes the cases used to validate this version.
+It is subdivided into three chapters:
+
+\begin{itemize}
+\item \nameref{Chp:Backward}. This chapter verifies that results of \dfmi 3, when running in the classic 3-discharge backward compatibility mode, are identical to the results obtained using \dfmi 2 and WAQMORF.
+This validates that the results of the backward compatibility mode are correct, as the old results have already been accepted as realistic in previous studies.
+\item \nameref{Chp:Morphology}. This chapter compares the results of \dfmi 3, when using the new stepped-hydrograph mode, with the results of actual long-term morphological simulations.
+This validates that the results of the new stepped-hydrograph mode agree with those obtained using long-term morphological simulations for a number of reference interventions (note that this does not guarantee that results will agree for all possible interventions). 
+\item \nameref{Chp:Verschil}. This chapter compares the results of \dfmi 3, when using the new stepped-hydrograph mode, with the results obtained using the classic 3-discharge approach.
+This verifies that the results of the new stepped-hydrograph approach do not deviate substantially from results obtained using the old method.
+Note that the old results were accepted as realistic in previous studies.
+\end{itemize}
+
+All analyses have been carried using results obtained from either Delft3D 4 or WAQUA.
+However, \dfmi 3 is intended for use with results obtained from \dflowfm.
+During the initial development of \dfmi 2 it was verified that the 3-discharge method gave similar results when using WAQUA results and when using \dflowfm results \citep{DFAST2020}.
+This is as expected since both models have been calibrated in a similar way against the same data sets.
+Therefore, it is expected that differences will be mainly observed when studying small interventions that are barely resolved on the computational mesh.
+This conclusion also holds for the new stepped-hydrograph method implemented in \dfastmi 3.
