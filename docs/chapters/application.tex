@@ -7,6 +7,17 @@ To apply \dfastmi one should carry out the following six steps.
 Verify that it is appropriate to use \dfmi instrument; see \autoref{Chp:Guidance}.
 Determine the branch and reach on which it is located; use the \dfmi GUI for this\footnote{The reaches are specified in the GUI both by a descriptive name and by an approximate indication of the river chainage.
 Follow item \ref{reach_bnd} of \autoref{Sec:Limitations} if an intervention is located across or near a branch/reach boundary.}.
+\dfmi is currently configured to support the evaluation of interventions in the following reaches:
+\begin{itemize}
+\item Bovenrijn (Rkm 859-867)
+\item Waal (Rkm 868-951)
+\item Pannerdensch-Kanaal (Rkm 868-879)
+\item Nederrijn (Rkm 880-922)
+\item Lek (Rkm 923-989)
+\item IJssel (Rkm 880-1000)
+\item Merwede (Rkm 951-980)
+\item Meuse (Rkm 16-227)
+\end{itemize}
 Determine the threshold discharge $Q_\text{thr}$ (at Lobith/Borgharen) at which the intervention (indirectly) starts to influence the flow pattern in the main channel.
 The threshold discharge is critical for determining the fraction of the year that the intervention influences the flow, and hence the duration over which the bed level difference (compared to the reference situation) can develop.
 As a result, this value is critical for determining the total volume of sedimentation (or erosion) that can be expected after one year.
@@ -30,21 +41,17 @@ Meuse & Borgharen & 750, 1300, 1700, 2100, 2500, 3200 \SI{}{\metre\cubed\per\sec
 These flow conditions have been pre-configured for the latest \dflowfm schematizations.
 It is not necessary to run simulations for conditions at which the intervention doesn't influence the flow patterns (i.e.~discharges associated with stagnant conditions due to closure of barriers, and discharges below the intervention specific $Q_\text{thr}$).
 At this stage, \dfmi already reports the impacted length (`aanzandingslengte'), which is the distance over which a bed level change can built up during the period that the discharge of the river is above the threshold discharge.
+\dfmi is not suitable for interventions that only (start to) have a noticeable effect at (or above) the highest discharge.
 
 \item Perform for each condition the hydrodynamic simulations for both the reference situation and the situation with intervention.
 Verify that
 \begin{itemize}
 \item the \dflowfm results are stable
-\item the intervention is properly represented on the mesh used (check a.o. proper alignment of groynes and levees, channel shape and bed roughness)
+\item the intervention is properly represented on the mesh used (check a.o.~proper alignment of groynes and levees, channel shape and bed roughness)
 \item all simulations use the same base mesh (changes in dry areas may result in slight differences in the mesh effectively used)
 \item there is a visible difference in the velocities in the main channel between the simulations with and without intervention
 \end{itemize}
-For steady state conditions, it is preferred to use the mean flow conditions over a certain period to suppress any instabilities and fluctuations in the instantaneous flow conditions.
-These results can be obtained by using the Fourier option of \dflowfm.
-For this purpose, a standardized Fourier input file \file{fourier\_last\_s.fou} is included that contains the following configuration:
-\vspace{\baselineskip}
-\verbfilenobox[\scriptsize]{figures/fourier_last_s.fou}
-\vspace{\baselineskip}
+See \autoref{Sec:SteadyState} for recommendations regarding steady-state results.
 
 \item Run \dfastmi to compute for each grid point in the main channel, the following three variables
 
@@ -72,3 +79,14 @@ For this estimate the user needs to accumulate the equilibrium bed level change 
 If there are disjunct sedimentation areas, the accumulation should be carried out for each of the areas individually.
 If areas are shorter than the impacted length, then the total equilibrium impact can be reached within one year.
 \end{enumerate}
+
+\section{How to get steady-state results?}\label{Sec:SteadyState}
+
+The dynamic solver of \dflowfm is used to obtain steady-state results by providing a constant forcing over a suitably long simulation period.
+However, even with a constant forcing some fluctuations may remain in the computed flow fields, e.g.~due to natural formation and shedding of eddies, and sensitivity of numerical formulations related to for instance drying-flooding.
+Therefore, it is preferred to use, for steady-state conditions, the mean flow conditions over a certain period to suppress any instabilities and fluctuations in the instantaneous flow conditions.
+These results can be obtained by using the Fourier option of \dflowfm.
+For this purpose, a standardized Fourier input file \file{fourier\_last\_s.fou} is included that contains the following configuration:
+\vspace{\baselineskip}
+\verbfilenobox[\scriptsize]{figures/fourier_last_s.fou}
+\vspace{\baselineskip}

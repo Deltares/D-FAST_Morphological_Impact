@@ -1,7 +1,7 @@
 \chapter{Introduction}
 
 This manual describes \dfastmi version 3 which provides a rapid, first estimate of the bed level changes to be anticipated in the main channel due to the implementation of local river adjustments outside the main channel (so-called interventions).
-The program is a successor to the WAQMORF and \dfastmi version 2 programs that implemented the rule of thumb developed in the context of Rijkswaterstaat programme Stroomlijn by \citep{Sieben2008}.
+The program is a successor to the WAQMORF and \dfastmi version 2 programs that implemented the rule of thumb developed in the context of Rijkswaterstaat programme Stroomlijn by \citet{Sieben2010}.
 This new version follows the same conceptual approach, but uses a fixed set of flow conditions independent of the intervention instead of three intervention-dependent flow conditions.
 It assumes a seasonal discharge variation that can be represented by means of series of flow conditions.
 Bed level changes outside the immediate vicinity of influence of the intervention are ignored in this analysis.
@@ -56,9 +56,9 @@ Finally, we reproduce below the introductory section of the text included in eve
 
 \begin{Verbatim}[frame=single, framesep=5pt]
 D-FAST Morphological Impact implements an algorithm to estimate the local
-morphological effects of a local intervention (i.e. an adjustment to the river).
-The conceptual framework was originally introduced in
-    "RWS-WD memo WAQUA vuistregel 20-10-08"
+morphological effects of a local intervention (i.e. an adjustment to the
+river). The conceptual framework was originally introduced in
+    "RWS-WD memo WAQUA vuistregel (Sieben, 2010)"
 but it has been extended and improved over the years. Check the user manual
 for the details of the currently implemented algorithm.
 
@@ -66,11 +66,11 @@ It is based on an estimation of the equilibrium bed level changes in the
 main channel that would occur eventually when river maintenance would not
 be adjusted.
 
-The effect is expressed in [m] as:
+The effect is expressed as:
 
-    year-averaged bed level change without dredging
-    maximum bed level change without dredging
-    minimum bed level change without dredging
+    year-averaged bed level change [m] without dredging
+    maximum bed level change [m] without dredging
+    minimum bed level change [m] without dredging
 
 By means of these estimates bottlenecks can be identified. The results are
 not suitable for direct estimation of the impact on the maintenance of the
