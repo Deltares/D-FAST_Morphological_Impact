@@ -55,6 +55,6 @@ START /B /WAIT poetry run nuitka ^
  %cmd_box_args%
 
 rem include example files into the distribution
-xcopy /E examples dfastmi.dist\examples\
+call BuildScripts\Collect_Examples.bat
 
 rem end of build
