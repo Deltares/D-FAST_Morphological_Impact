@@ -1,10 +1,10 @@
 \chapter{Validation against morphological simulations} \label{Chp:Morphology}
 
-In 2022, the pilot implementation of the stepped-hydrograph approach was tested using two cases for which the \dfastmi results (using steady state flow fields obtained using Delft3D-FLOW) were compared against long-term morphological simulations carried out using Delft3D-FLOW/MOR.
+In 2022, the pilot implementation of the \emph{stepped-hydrograph} approach was tested using two cases for which the \dfastmi results (using steady state flow fields obtained using Delft3D-FLOW) were compared against long-term morphological simulations carried out using Delft3D-FLOW/MOR.
 See \citet{GiriJagers2022} for details.
-The theory of the stepped-hydrograph is documented in \citet{JagersGiri2022} and the latest version of the \citet{um}.
+The theory of the \emph{stepped-hydrograph} approach is documented in \citet{JagersGiri2022} and the latest version of the \citet{um}.
 At that time a number of different hydrographs were compared.
-The hydrograph which selected for use in \dfmi 3 differs from the ones compared in that report.
+The hydrograph which is selected for use in \dfmi 3 differs from the ones used in that report.
 Therefore, part of that analysis has been repeated here:
 
 \begin{itemize}
@@ -14,7 +14,7 @@ Therefore, part of that analysis has been repeated here:
 
 \section{Palmerswaard} \label{Sec:Palmerswaard}
 
-The intervention concerns a secondary channel planned in the Palmerswaard which is located at river kilometer (Rkm) 910-912 in the reach upstream of the Amerongen barrier at Rkm 922.
+The intervention concerns a secondary channel planned in the "Palmerswaard" which is located along the river Rhine (Nederrijn) at river kilometer (Rkm) 910-912 in the reach upstream of the Amerongen barrier at Rkm 922.
 An overview of the intervention is given in \autoref{Palmers_proj}.
 This case is included as Example 1 in the \citet{um}.
 For this analysis, the Nederrijn grid of the DVR\footnote{Duurzame Vaarweg Rijntakken} model has been used.
@@ -33,7 +33,7 @@ For consistency with the morphological simulation using Delft3D-FLOW, the \dfmi 
 Since the intervention is located on the Rhine branches, the new \dfmi method requires simulation results for 6 steady discharges: 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
 However, since the intervention is located in the backwater curve of the Amerongen barrier which is closed at discharges below \SI{1500}{\metre\cubed\per\second} causing largely stagnant flow conditions, the lowest discharge isn't relevant for this case.
 
-\citet{GiriJagers2022} observed that the morphological impact of this intervention was properly reproduced using a \dfmi analysis using the full set of discharges in the stepped-hydrograph of the morphological simulation.
+\citet{GiriJagers2022} observed that the morphological impact of this intervention was properly reproduced using a \dfmi analysis using the full set of discharges in the \emph{stepped-hydrograph} of the morphological simulation.
 Here we compare the results with the results of the \dfmi analysis using the simplified hydrograph consisting of only the discharges 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
 
 \begin{figure}
@@ -45,12 +45,12 @@ Visualized using QUICKPLOT.}
 \label{Palmers_mor}
 \end{figure}
 
-\autoref{Palmers_mor} shows the results of a long-term (12 year) reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}) and the year-averaged equilibrium morphological impact as computed by \dfmi version 3.
+\autoref{Palmers_mor} shows the results of a long-term (12 year) reference morphological simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}) and the year-averaged equilibrium morphological impact as computed by \dfmi version 3.
 The results match well although the asymmetry downstream of the main sedimentation patch differs.
 
 
 \section{Pannerdensch Kanaal} \label{Sec:PannerdenschCanal}
-The intervention concerns a secondary channel `green river' implemented along the right bank at Rkm 871-872 just downstream of Pannerden.
+The intervention concerns a secondary channel `green river' implemented along the right bank at Rkm 871-872 just downstream of Pannerden, along the river Rhine.
 An overview of the intervention is given in \autoref{Pannerden_proj}.
 This case is included as Example 2 in the \citet{um}.
 
@@ -72,7 +72,7 @@ Since the intervention is located on the Rhine branches, the new \dfmi method re
 Contrary to Parlmerswaard case, the lowest discharge is relevant for this case.
 Hence, \dfmi asks for the results of 12 simulations (6 discharges with and without intervention).
 
-\citet{GiriJagers2022} observed that the morphological impact of this intervention was properly reproduced using a \dfmi analysis using the full set of discharges in the stepped-hydrograph of the morphological simulation.
+\citet{GiriJagers2022} observed that the morphological impact of this intervention was properly reproduced using a \dfmi analysis using the full set of discharges in the \emph{stepped-hydrograph} of the morphological simulation.
 Here we compare the results with the results of the \dfmi analysis using the simplified hydrograph consisting of only the discharges 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second} at Lobith.
 
 \begin{figure}[b]
@@ -84,7 +84,7 @@ Visualized using QUICKPLOT.}
 \label{Pannerden_mor}
 \end{figure}
 
-\autoref{Pannerden_mor} shows the results of a long-term (15 year) reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}) and the year-averaged equilibrium morphological impact as computed by \dfmi version 3.0.0.
+\autoref{Pannerden_mor} shows the results of a long-term (15 year) reference morphological simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}) and the year-averaged equilibrium morphological impact as computed by \dfmi version 3.0.0.
 The overall results match well although \dfmi suggests sedimentation in the centre of the channel downstream of the main sedimentation area whereas the morphological simulation doesn't show that behaviour.
 This is a secondary effect compared to the primary impact.
 The results are judged as valid.
