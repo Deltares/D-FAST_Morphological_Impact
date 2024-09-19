@@ -5,6 +5,7 @@
 \newcommand{\dfmi}{\textrm{D-FAST~MI}\xspace}
 \newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
 \newcommand{\sobek}{\textrm{SOBEK}\xspace}
+\newcommand{\dfmiversion}{3.1.1}
 
 \hypersetup
 {
@@ -17,7 +18,7 @@
 \pagestyle{empty}
 \includepdf[pages=1, offset=72 -70]{cover/D-FAST-omslag-D-FAST Morphological Impact-RN.pdf} % links-rechts past precies
 \cleardoublepage
-\title{D-FAST\\ Morphological Impact 3.1.0}
+\title{D-FAST\\ Morphological Impact \dfmiversion}
 \subtitle{}
 \manualtype{Release Notes}
 %\distribution{Released for: \newline \phantom{M} \dfmi version 3.1 or higher}
@@ -34,7 +35,7 @@
 
 \begin{tabular}{ll}
 Description: & \dfastmi \\
-Version: & 3.1.0 \\
+Version: & \dfmiversion \\
 Status & release
 \end{tabular}
 
@@ -57,13 +58,14 @@ The following documentation is distributed with this release:
 \begin{enumerate}
 \item \dfastmi User Manual
 \item \dfastmi Technical Reference Manual
+\item \dfastmi Validation Document
 \end{enumerate}
 
 \chapter{Release summary}
 
-\section{Version 3.1.0}
+\section{Version 3.1.1}
 \subsection{Key changes summary}
-The key changes of this completely revised version are:
+The key changes of this update are:
 
 \begin{itemize}
 \item Support for typical \dflowfm Fourier files created by \dflowfm using the default settings as specified in the \file{fourier\_last\_s.fou} file.
@@ -71,14 +73,8 @@ The key changes of this completely revised version are:
 
 \subsection{Known issues}
 
-None
-
-\subsection{Overview of all issues}
-
-An overview of all closed issues since the release of version 3.0.0 is given in the table below.
-
 \begin{longtable}{l|l|p{8cm}}
-\caption{List of resolved issues for version 3.1.0} \\
+\caption{List of known issues} \\
 Issue & Type & Description \\ \hline
 \endfirsthead
 \multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
@@ -87,7 +83,26 @@ Issue & Type & Description \\ \hline
 \hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
 \endfoot
 \endlastfoot 
-DFAST-137 & Feature & Support for \dflowfm Fourier-files. \\
+DFAST-240 & Bug & Not all fields update properly when loading another configuration file \\
+\end{longtable}
+
+\subsection{Overview of all issues}
+
+An overview of all closed issues since the release of version 3.0.0 is given in the table below.
+
+\begin{longtable}{l|l|p{8cm}}
+\caption{List of resolved issues for version 3.1.1} \\
+Issue & Type & Description \\ \hline
+\endfirsthead
+\multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
+Issue & Type & Description \\ \hline
+\endhead
+\hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
+\endfoot
+\endlastfoot 
+DFAST-137 & Feature & Support for \dflowfm Fourier-files (since 3.1.0) \\
+DFAST-241 & Doc & Add D-FAST MI validation document (since patch 3.1.1) \\
+DFAST-242 & Bug & Revolve vulnerabilities in GDAL and libjpeg (since patch 3.1.1) \\
 \end{longtable}
 
 \section{Version 3.0.0}

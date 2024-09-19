@@ -1,0 +1,17 @@
+\chapter{Conclusion}
+
+The cases reported in \autoref{Chp:Backward} show that \dfmi version 3 gives the same results as earlier versions of \dfmi when run in backward compatibility mode using the same (WAQUA) input data.
+The cases studied in \autoref{Chp:Morphology} show that for moderate interventions (big enough to have substantial influence, but small enough to not exceed the validity assumptions of the method) \dfmi version 3 gives results that match well with the long-term morphological impact as determined by full morphological simulations especially with respect to the along-stream (1D) variability.
+The cases studied in \autoref{Chp:Verschil} show that the results of the new approach, implemented in \dfmi version 3, are in line with the results of the previous methodology implemented by WAQMORF and \dfmi version 2.
+The new approach has the benefit that it removes the variability in the flow conditions that need to be simulated.
+
+It should be noted that all analyses have been carried out using results obtained from either Delft3D 4 or WAQUA.
+However, \dfmi 3 is intended for use with results obtained from \dflowfm.
+So, can we, based on these cases, conclude anything about the validaty of \dfmi 3 when used in combination with \dflowfm results?
+During the initial development of \dfmi 2 it was verified that the 3-discharge method gave similar results when using WAQUA results and when using \dflowfm results \citep{DFAST2020}.
+This is as expected since both models have been calibrated in a similar way against the same data sets.
+Therefore, it is expected that differences will be mainly observed when studying small interventions that are barely resolved on the computational mesh.
+This conclusion also holds for the new \emph{stepped-hydrograph} method implemented in \dfmi 3.
+Hence, the validation testing reported here is also relevant for the use of \dfmi 3 in combination with \dflowfm results.
+
+The overall conclusion is that the results of \dfmi version 3 are reliable (valid) under the conditions described in chapter 3 (User Guidance) of the \citet{um}.

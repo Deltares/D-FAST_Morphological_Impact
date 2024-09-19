@@ -23,7 +23,7 @@ The combination of the total equilibrium sedimentation volume and the
 yearly sediment load of the river determines the period over which the
 equilibrium can be reached.
 
-This is version 3.0.0.
+This is version 3.1.0.
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -34,19 +34,22 @@ scenario simulations on the same computational mesh.
 
 Configuration settings used for computation:
 
-Case description                    : 
+Case description                    : Gendtse Waard - v3 analysis
 Branch                              : Bovenrijn & Waal
 Reach                               : Boven-Waal                   km  868-886
 Discharge location                  : Lobith
-Minimum flow-carrying discharge     : 4000.0 m3/s
-Impacted length                     : 299 m
+Minimum flow-carrying discharge     : 800.0 m3/s
+Impacted length                     : 1090 m
 
 Critical flow velocity              : 0.3 m/s
 
 Condition             | Reference file (without intervention)  | File with intervention
- 3000.0 m3/s          | ---                                    | ---                                        (intervention not active)
- 4000.0 m3/s          | ---                                    | ---                                        (intervention not active)
- 6000.0 m3/s          | reference-Q3_map.nc                    | intervention-Q3_map.nc                     
+ 1300.0 m3/s          | trim-wl2a_map.nc                       | trim-wl2a_map.nc                           
+ 2000.0 m3/s          | trim-wl2a_map.nc                       | trim-wl2a_map.nc                           
+ 3000.0 m3/s          | trim-wl2a_map.nc                       | trim-wl2a_map.nc                           
+ 4000.0 m3/s          | trim-wl2a_map.nc                       | trim-wl2a_map.nc                           
+ 6000.0 m3/s          | trim-wl2a_map.nc                       | trim-wl2a_map.nc                           
+ 8000.0 m3/s          | trim-wl2a_map.nc                       | trim-wl2a_map.nc                           
 
 ================================================================================
 
@@ -61,6 +64,6 @@ containing three variables containing the characteristic bed level changes:
     mindzb: minimum change [m] after low flow without dredging
 
 If the bed level changes are removed on a yearly basis, the impacted river reach
-is estimated at 299 m from the upstream edge of the impacted reach.
+is estimated at 1090 m from the upstream edge of the impacted reach.
 
 The program has ended !!!

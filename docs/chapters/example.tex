@@ -7,6 +7,8 @@ The input files of the examples are included in the \file{examples} folder of th
 
 \section{Example 1: secondary channel along the Nederrijn}
 
+\emph{The input files of this case are included in the distribution under \file{examples/01 - Palmerswaard}.}
+
 For this first example, we compare the results of \dfastmi with the results of a morphological simulation using Delft3D-FLOW.
 For consistency the \dfastmi analysis was performed using the hydrodynamic results of Delft3D-FLOW\footnote{Since \dfastmi expects \dflowfm results in netCDF UGRID format, the results were converted to the appropriate file format by means of \texttt{sim2ugrid}, see \autoref{Chp:Sim2Ugrid}.}.
 
@@ -66,19 +68,23 @@ The content of the report file is shown below:
 
 \verbfilenobox[\scriptsize]{../examples_references/01 - Palmerswaard/output/report.txt}
 
-\autoref{Palmers_mor} shows the results of a reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}).
-The figure shows the morphological evolution of the Delft3D simulation.
-The overall \dfastmi results compare well with the long term (12yr) Delft3D simulation although the asymmetry downstream of the main sedimentation patch differs.
+\autoref{Palmers_mor} shows the results side by side of a reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}) and the \dfmi version 3 analysis.
+The overall \dfmi results compare well with the long term (\SI{12}{\year}) Delft3D simulation although the asymmetry downstream of the main sedimentation patch differs.
 
 \begin{figure}[H]
-\center
-\includegraphics[width=\textwidth]{figures/Palmers_mor.png}
-\caption{The bed-level difference between the variant and the reference after 1, 5 and 12 years of morphological simulation.}
+\includegraphics[width=\columnwidth/2]{figures/Palmerswaard_delft3d.png}
+\includegraphics[width=\columnwidth/2]{figures/Palmerswaard_dfastmi.png}
+%\fbox{\parbox{\columnwidth}{\todo{Results to be plotted side-by-side.}}}
+\caption{Long-term morphological impact as obtained from a 12 year morphological simulation (left) and as obtained from \dfmi version 3 (right).
+Visualized using QUICKPLOT.}
 \label{Palmers_mor}
 \end{figure}
 
 
+
 \section{Example 2: secondary channel along the Pannerdensch Kanaal}
+
+\emph{The input files of this case are included in the distribution under \file{examples/02 - Panner\-densch Kanaal}.}
 
 For this second example, we follow the same approach as example 1: we compare the results of \dfastmi with the results of a morphological simulation using Delft3D-FLOW.
 The model was based on the DVR model, but the domain was reduced to focus mainly on the Pannerdensch Kanaal \citep{BomLeeuwen2020}.
@@ -125,13 +131,14 @@ The content of the report file is shown below:
 
 \verbfilenobox[\scriptsize]{../examples_references/02 - Pannerdensch Kanaal/output/report.txt}
 
-\autoref{Pannerden_mor} shows the results of a reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}).
-The figure shows the morphological evolution of the Delft3D simulation.
-The overall \dfastmi results compare well with the long term (15yr) Delft3D simulation although \dfmi suggests sedimentation in the centre of the channel downstream of the main sedimentation area whereas the morphological simulation doesn't show that behaviour.
+\autoref{Pannerden_mor} shows the results side by side of a reference morphology simulation using Delft3D 4 (for details, see \citet{GiriJagers2022}) and the \dfmi version 3 analysis.
+The overall \dfmi results compare well with the long term (\SI{15}{\year}) Delft3D simulation although \dfmi suggests sedimentation in the centre of the channel downstream of the main sedimentation area whereas the morphological simulation doesn't show that behaviour.
 
 \begin{figure}[H]
-\center
-\includegraphics[width=\textwidth]{figures/Pannerden_mor.png}
-\caption{The bed-level difference between the variant and the reference after 1 and 15 years of morphological simulation.}
+\includegraphics[width=\columnwidth/2]{figures/Pannerden_delft3d.png}
+\includegraphics[width=\columnwidth/2]{figures/Pannerden_dfastmi.png}
+%\fbox{\parbox{\columnwidth}{\todo{Results to be plotted side-by-side.}}}
+\caption{Long-term morphological impact as obtained from a 12 year morphological simulation (left) and as obtained from \dfmi version 3 (right).
+Visualized using QUICKPLOT.}
 \label{Pannerden_mor}
 \end{figure}
