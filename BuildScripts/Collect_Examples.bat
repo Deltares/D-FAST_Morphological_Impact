@@ -9,14 +9,14 @@ set target_compatibility=%target_root%\examples_compatibility
 echo Creating %target_compatibility%
 mkdir %target_compatibility%
 
-set target=%target_compatibility%\01 - GentseWaard\
+set target=%target_compatibility%\01 - Gendtse Waard\
 echo Copying case to %target%
 mkdir "%target%"
 rem Using "c01.cf?" instead of "c01.cfg" to make sure that copy prints the name of the file copied
 copy "tests\c01 - GendtseWaardNevengeul\c01.cf?" "%target%"
 copy "tests\c01 - GendtseWaardNevengeul\*.xyz" "%target%"
 
-set target=%target_compatibility%\02 - DeLymen\
+set target=%target_compatibility%\02 - De Lymen\
 echo Copying case to %target%
 mkdir "%target%"
 rem Using "c02.cf?" instead of "c02.cfg" to make sure that copy prints the name of the file copied
