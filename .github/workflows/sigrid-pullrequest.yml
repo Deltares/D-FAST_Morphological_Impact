@@ -17,7 +17,7 @@ jobs:
         run: "./sigridci/sigridci/sigridci.py --customer deltares --system dfast-mi --source ."
       - name: "Save Sigrid CI results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: "sigrid-ci-output/**"
           retention-days: 7
