@@ -52,6 +52,7 @@ START /B /WAIT poetry run nuitka ^
  --include-data-files=docs/dfastmi_usermanual.pdf=dfastmi/dfastmi_usermanual.pdf ^
  --include-data-files=docs/dfastmi_techref.pdf=dfastmi/dfastmi_techref.pdf ^
  --include-data-files=docs/dfastmi_release_notes.pdf=dfastmi/dfastmi_release_notes.pdf ^
+ --include-data-files=docs/dfastmi_validation.pdf=dfastmi/dfastmi_validation.pdf ^
  %cmd_box_args%
 
 rem include example files into the distribution
