@@ -45,12 +45,14 @@ def relax_factors(
     celerity: Vector,
     nwidth: float,
 ) -> Vector:
+    KM_TO_M = 1000
+    TWICE = 2
     lsigma = [-1.0] * len(discharge_values)
     for i, q in enumerate(discharge_values):
         if q <= q_stagnant:
             lsigma[i] = 1.0
         else:
-            lsigma[i] = math.exp(-500 * celerity[i] * year_fraction_values[i] / nwidth)
+            lsigma[i] = math.exp(-KM_TO_M * celerity[i] * year_fraction_values[i] / (TWICE * nwidth))
     rsigma = tuple(s for s in lsigma)
 
     return rsigma

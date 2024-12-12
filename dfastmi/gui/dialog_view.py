@@ -147,6 +147,7 @@ class DialogView:
         self._create_general_widgets()
         self._create_button_bar()
         # Connect the view model's data_changed signal to update_ui slot
+        self._view_model.case_description_changed.connect(self._update_case_description)
         self._view_model.branch_changed.connect(self._update_branch)
         self._view_model.reach_changed.connect(self._update_reach)
         self._view_model.ucritical_changed.connect(self._update_ucritical)
@@ -171,6 +172,15 @@ class DialogView:
         self._view_model.analysis_exception.connect(self._show_error)
         self._update_qvalues_table()
 
+    def _update_case_description(self, description: str):
+        """
+        Update the GUI component for the case description.
+
+        Args:
+            data: The data for the branch.
+        """
+        self._case_description.setText(description)
+    
     def _update_branch(self, data):
         """
         Update the GUI components when the branch changes.
@@ -178,9 +188,6 @@ class DialogView:
         Args:
             data: The data for the branch.
         """
-        # Update case name
-        self._case_description.setText(self._view_model.model.case_description)
-
         # Update branch and reach selection
         self._branch.setCurrentText(data)
         self._reach.clear()
@@ -248,18 +255,17 @@ class DialogView:
         self._update_qvalues_table()
 
     def _update_condition_file_field(
-        self, field_postfix: str, condition_discharge: float, file_location: str
+        self, field_postfix: str, condition: str, file_location: str
     ):
         """
         Update the condition file field.
 
         Args:
             field_postfix (str): The postfix for the field.
-            condition_discharge: The condition discharge.
+            condition (str): The condition string.
             file_location (str): The file location.
         """
-        prefix = str(condition_discharge) + "_"
-        key = prefix + field_postfix
+        key = condition + "_" + field_postfix
         input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
         if input_textbox:
             input_textbox.setText(file_location)
@@ -267,10 +273,10 @@ class DialogView:
     def _update_qvalues_table(self):
         """Update the Q values table."""
         self._clear_conditions()
-        for discharge in self._view_model.current_reach.hydro_q:
-            prefix = str(discharge) + "_"
-            qval = str(discharge) + " m3/s"
-            self._add_condition_line(prefix, discharge, qval)
+        for i, condition in enumerate(self._view_model.current_reach.conditions):
+            discharge = self._view_model.current_reach.hydro_q[i]
+            prefix = condition + "_"
+            self._add_condition_line(prefix, discharge, condition)
 
     def _clear_conditions(self):
         """Remove the discharge condition rows from the table."""
@@ -1115,13 +1121,11 @@ class DialogView:
             input_textbox.setText(file)
 
             if "_" + reference_label in key:
-                key_without_suffix = float(key.replace("_" + reference_label, ""))
+                key_without_suffix = key.replace("_" + reference_label, "")
                 self._view_model.reference_files[key_without_suffix] = file
 
             if "_" + with_intervention_label in key:
-                key_without_suffix = float(
-                    key.replace("_" + with_intervention_label, "")
-                )
+                key_without_suffix = key.replace("_" + with_intervention_label, "")
                 self._view_model.intervention_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
@@ -1229,10 +1233,12 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
 
     # Create ViewModel instance with the Model
     view_model = DialogViewModel(model)
-    view_model.load_configuration(config_file)
 
     # Create View instance with the ViewModel
     view = DialogView(view_model)
+
+    # Load the configuration if specified
+    view_model.load_configuration(config_file)
 
     # Initialize the user interface and run the program
     view.activate_dialog()

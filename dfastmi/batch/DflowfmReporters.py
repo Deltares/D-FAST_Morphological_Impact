@@ -142,10 +142,10 @@ class AnalyserDflowfmReporter:
         ApplicationSettingsHelper.log_text("end_program", file=self.report)
 
     def print_riverkm_needed_for_tidal(self):
-        print("RiverKM needs to be specified for tidal applications.")
+        raise Exception("RiverKM needs to be specified for tidal applications.")
 
     def print_intervention_not_active_for_checked_conditions(self):
-        print("The intervention is not active for any of the checked conditions.")
+        raise Exception("The intervention is not active for any of the checked conditions.")
 
 
 class ReporterDflowfmReporter:

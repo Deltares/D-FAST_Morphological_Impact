@@ -279,9 +279,12 @@ def get_analysis_condition_values_for_logging(
     q: float,
     key: Union[int, tuple[float, str], float],
 ) -> Tuple[str, str, str, str]:
-    condition = "{:7.1f} m3/s".format(q)
+    if type(key) is tuple and key[1] != "-":
+        condition = "{:7.1f} m3/s, ".format(key[0]) + key[1]
+    else:
+        condition = "{:7.1f} m3/s".format(q)
 
-    if q <= initialized_config.q_threshold:
+    if initialized_config.q_threshold is not None and q <= initialized_config.q_threshold:
         reference_file_name = "---"
         intervention_file_name = "---"
         comment = "(intervention not active)"
