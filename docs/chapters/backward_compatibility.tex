@@ -236,7 +236,7 @@ We start by assuming a quasi-stationary flow pattern and an outflow of discharge
 \label{App.Fig4}
 \end{figure}
 
-The response of the main channel is represented here by a bed level change $\Delta z_b$ \unitbrackets{m} (raise or lowering) which is small relative to the local water depth.
+The response of the main channel is represented here by a bed level change $\Delta z_b$ \unitbrackets{\SI{}{\metre}} (raise or lowering) which is small relative to the local water depth.
 The mass balance of the water and the sediment in the main channel can be written as
 %
 \begin{align}
@@ -247,16 +247,16 @@ The mass balance of the water and the sediment in the main channel can be writte
 in which
 %
 \begin{symbollist}
-\item[$q_\text{mc}$] main channel unit discharge \unitbrackets{m\textsuperscript{2}/s}
-\item[$q_\text{out}$] \emph{outflow of} unit discharge \emph{to} the flood plain per unit length \unitbrackets{m\textsuperscript{2}/sm}
-\item[$s$] streamwise coordinate \unitbrackets{m}
-\item[$z_b$] bed level change due to intervention \unitbrackets{m}
-\item[$s_\text{mc}$] main channel unit sediment transport including pores \unitbrackets{m\textsuperscript{2}/s}
-\item[$s_\text{out}$] \emph{outflow of} unit sediment transport including pores \emph{to} the flood plain per unit length \unitbrackets{m\textsuperscript{2}/sm}
+\item[$q_\text{mc}$] main channel unit discharge \unitbrackets{\SI{}{\metre\squared\per\second}}
+\item[$q_\text{out}$] \emph{outflow of} unit discharge \emph{to} the flood plain per unit length \unitbrackets{\SI{}{\metre\squared\per\second\per\meter}}
+\item[$s$] streamwise coordinate \unitbrackets{\SI{}{\metre}}
+\item[$z_b$] bed level change due to intervention \unitbrackets{\SI{}{\metre}}
+\item[$s_\text{mc}$] main channel unit sediment transport including pores \unitbrackets{\SI{}{\metre\squared\per\second}}
+\item[$s_\text{out}$] \emph{outflow of} unit sediment transport including pores \emph{to} the flood plain per unit length \unitbrackets{\SI{}{\metre\squared\per\second\per\metre}}
 \end{symbollist}
 
 Note that the outflow of sediment is assumed to be a consequence of the outflow of discharge only; the conceptual framework does not allow for selective removal of only sediments.	
-The unit sediment transport capacity in the main channel, $s_\text{mc}$, is approximated by $s_\text{mc} = m \left ( q_\text{mc} / h \right )^b$ with $h$ the water depth \unitbrackets{m} in the main channel, $m$ a dimensionless calibration factor and a dimensionless sediment transport exponent $b$ about 5 \citep{Engelundh67}.
+The unit sediment transport capacity in the main channel, $s_\text{mc}$, is approximated by $s_\text{mc} = m \left ( q_\text{mc} / h \right )^b$ with $h$ the water depth \unitbrackets{\SI{}{\metre}} in the main channel, $m$ a dimensionless calibration factor and a dimensionless sediment transport exponent $b$ about 5 \citep{Engelundh67}.
 Using this approximation the gradients in the sediment transport capacity can be written as
 %
 \begin{align}
@@ -297,7 +297,7 @@ The integration of \autoref{Eq5} over this length $L$ results in a relaxation mo
 \label{Eq5b}
 \end{equation}
 %
-which $\Delta q_\text{mc}$ is the total change in unit discharge in the main channel due to the intervention \unitbrackets{m\textsuperscript{2}/s} and $\Delta s_\text{mc}$ is the total change in unit sediment transport due to the intervention \unitbrackets{m\textsuperscript{2}/s}.
+which $\Delta q_\text{mc}$ is the total change in unit discharge in the main channel due to the intervention \unitbrackets{\SI{}{\metre\squared\per\second}} and $\Delta s_\text{mc}$ is the total change in unit sediment transport due to the intervention \unitbrackets{\SI{}{\metre\squared\per\second}}.
 Please note that $q_\text{out}$ was defined above positive for fluxes towards the flood plain, however, the resulting change $\Delta q_\text{mc}$ in the unit discharge within the main channel will be negative for such conditions (equivalently for $s_\text{out}$ and $\Delta s_\text{mc}$); this introduces a sign change on the right hand side.
 %
 \begin{equation}
@@ -305,14 +305,14 @@ Please note that $q_\text{out}$ was defined above positive for fluxes towards th
 \label{Eq5dif}
 \end{equation}
 %
-with a morphological time scale \unitbrackets{s}
+with a morphological time scale \unitbrackets{\SI{}{\second}}
 %
 \begin{equation}
 T_m \approx \frac{h L}{b s_\text{mc}}
 \label{Eq5T}
 \end{equation}
 %
-and an equilibrium bed level change \unitbrackets{m} given by
+and an equilibrium bed level change \unitbrackets{\SI{}{\metre}} given by
 %
 \begin{equation}
 \Delta z_{b,\text{eq}} = -h \left ( \frac{\Delta q_\text{mc}}{q_\text{mc}} - \frac{\Delta s_\text{mc}}{b s_\text{mc}} \right )
@@ -326,7 +326,7 @@ The equilibrium value $\Delta z_{b,\text{eq}}$ depends according \autoref{Eq6} o
 The latter term is the result of the sediment flux into the secondary channel which dampens the effect of reduced sediment transport capacity in the main channel.
 Ignoring this relatively minor dampening term results in a more conservative estimate.
 For interventions over a short distance (i.e.~for the type of interventions for which the rule-of-thumb is applicable) the water level changes are an order of magnitude smaller than the bed level changes.
-Therefore, one can rewrite \autoref{Eq6} to state that the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product of the water depth and the relative change in the main channel velocity $u$ \unitbrackets{m/s}:
+Therefore, one can rewrite \autoref{Eq6} to state that the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product of the water depth and the relative change in the main channel velocity $u$ \unitbrackets{\SI{}{\metre\per\second}}:
 %
 \begin{equation}
 \Delta z_{b,\text{eq}} \approx -h \left ( \frac{\Delta u}{u} \right )
@@ -348,9 +348,9 @@ z_{b,i} = z_{b,i} (0) + [z_{b,i,\text{eq}} - z_{b,i}(0)](1 - e^{-t/T_{m,i}})
 with
 %
 \begin{symbollist}
-\item[$z_{b,i}$] \unitbrackets{m} the morphological effect of the intervention during period $i$
-\item[$z_{b,i}(0)$] \unitbrackets{m} the morphological effect at the start of period $i$
-\item[$z_{b,i,\text{eq}}$] \unitbrackets{m} the equilibrium effect of the intervention during period $i$
+\item[$z_{b,i}$] \unitbrackets{\SI{}{\metre}} the morphological effect of the intervention during period $i$
+\item[$z_{b,i}(0)$] \unitbrackets{\SI{}{\metre}} the morphological effect at the start of period $i$
+\item[$z_{b,i,\text{eq}}$] \unitbrackets{\SI{}{\metre}} the equilibrium effect of the intervention during period $i$
 \item[$t$] \unitbrackets{day} time
 \item[$T_{m,i}$] \unitbrackets{day} the morphological time scale during period $i$
 \end{symbollist}
@@ -545,25 +545,25 @@ To apply the rule-of-thumb one should carry out the following five steps.
 \item Compute the characteristic bed level change per grid point in the main channel
 
 \begin{itemize}
-\item maximum value \unitbrackets{m} at the end of the flood season
+\item maximum value \unitbrackets{\SI{}{\metre}} at the end of the flood season
 
 \begin{equation}
 z_{b,1}(0) = \frac{z_{b,1,\text{eq}} (1-\sigma_1) \sigma_2 \sigma_3 + z_{b,2,\text{eq}} (1-\sigma_2) \sigma_3 + z_{b,3,\text{eq}} (1-\sigma_3)}{1 - \sigma_1 \sigma_2 \sigma_3}
 \end{equation}
 
-\item minimum value \unitbrackets{m} at the end of the low flow season
+\item minimum value \unitbrackets{\SI{}{\metre}} at the end of the low flow season
 
 \begin{equation}
 z_{b,2}(0) = \frac{z_{b,1,\text{eq}} (1-\sigma_1) + z_{b,2,\text{eq}} (1-\sigma_2) \sigma_3 \sigma_1 + z_{b,3,\text{eq}} (1-\sigma_3) \sigma_1}{1 - \sigma_1 \sigma_2 \sigma_3}
 \end{equation}
 
-\item transitional value \unitbrackets{m} at the end of the transition block before the flood period
+\item transitional value \unitbrackets{\SI{}{\metre}} at the end of the transition block before the flood period
 
 \begin{equation}
 z_{b,3}(0) = \frac{z_{b,1,\text{eq}} (1-\sigma_1) \sigma_2 + z_{b,2,\text{eq}} (1-\sigma_2) + z_{b,3,\text{eq}} (1-\sigma_3) \sigma_1 \sigma_2}{1 - \sigma_1 \sigma_2 \sigma_3}
 \end{equation}
 
-\item year-averaged value \unitbrackets{m}
+\item year-averaged value \unitbrackets{\SI{}{\metre}}
 
 \begin{equation}
 z_{b,m} = T_1 z_{b,1}(0) + T_2 z_{b,2}(0) + T_3 z_{b,3}(0)
@@ -1207,15 +1207,15 @@ Block & Keyword & Description \\ \hline
 Used to verify whether the file wasn't accidentally modified. \\
 BranchName<i> & \keyw{Reach<j>} & Name of reach <j> within branch <i> \\
 BranchName<i> & \keyw{QLocation} & Location at which discharges for branch <i> are defined \\
-\keyw{*} & \keyw{QStagnant} & Discharge \unitbrackets{m\textsuperscript{3}/s} below which main channel flow can be assumed stagnant \\
-\keyw{*} & \keyw{QMin} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which intervention becomes active \\
-\keyw{*} & \keyw{QFit} & Two discharges \unitbrackets{m\textsuperscript{3}/s} used for representing the exceedance curve \\
-\keyw{*} & \keyw{QLevels} & Four characteristic discharges \unitbrackets{m\textsuperscript{3}/s} used by algorithm \\
-\keyw{*} & \keyw{dQ} & Two discharge adjustments \unitbrackets{m\textsuperscript{3}/s} used by algorithm \\
-\keyw{*} & \keyw{NWidth} & Normal width \unitbrackets{m} of main channel \\
-\keyw{*} & \keyw{PRLow} & Low flow propagation rate \unitbrackets{km/yr} \\
-\keyw{*} & \keyw{PRHigh} & High flow propagation rate \unitbrackets{km/yr} \\
-\keyw{*} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport
+\keyw{*} & \keyw{QStagnant} & Discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} below which main channel flow can be assumed stagnant \\
+\keyw{*} & \keyw{QMin} & Minimum discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} at which intervention becomes active \\
+\keyw{*} & \keyw{QFit} & Two discharges \unitbrackets{\SI{}{\metre\cubed\per\second}} used for representing the exceedance curve \\
+\keyw{*} & \keyw{QLevels} & Four characteristic discharges \unitbrackets{\SI{}{\metre\cubed\per\second}} used by algorithm \\
+\keyw{*} & \keyw{dQ} & Two discharge adjustments \unitbrackets{\SI{}{\metre\cubed\per\second}} used by algorithm \\
+\keyw{*} & \keyw{NWidth} & Normal width \unitbrackets{\SI{}{\metre}} of main channel \\
+\keyw{*} & \keyw{PRLow} & Low flow propagation rate \unitbrackets{\SI{}{\kilo\metre\per\year}} \\
+\keyw{*} & \keyw{PRHigh} & High flow propagation rate \unitbrackets{\SI{}{\kilo\metre\per\year}} \\
+\keyw{*} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{\SI{}{\metre\per\second}} for sediment transport
 \end{longtable}
 
 The second value of \keyw{QLevels} corresponds to the typical bankfull discharge.
@@ -1279,16 +1279,16 @@ Block & Keyword & Description \\ \hline
 \keyw{General} & \keyw{Mode} & \keyw{WAQUA export} or \keyw{D-Flow FM map} (the latter is the default) \\
 \keyw{General} & \keyw{Branch} & Name of the selected branch \\
 \keyw{General} & \keyw{Reach} & Name of the selected reach \\
-\keyw{General} & \keyw{QThreshold} & Minimum discharge \unitbrackets{m\textsuperscript{3}/s} at which intervention becomes active \\
-\keyw{General} & \keyw{QBankfull} & Discharge \unitbrackets{m\textsuperscript{3}/s} at which intervention reaches bankfull \\
-\keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{m/s} for sediment transport \\
-\keyw{Q1} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the low flow simulation \\
+\keyw{General} & \keyw{QThreshold} & Minimum discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} at which intervention becomes active \\
+\keyw{General} & \keyw{QBankfull} & Discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} at which intervention reaches bankfull \\
+\keyw{General} & \keyw{UCrit} & Critical (minimum) velocity \unitbrackets{\SI{}{\metre\per\second}} for sediment transport \\
+\keyw{Q1} & \keyw{Discharge} & Discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} of the low flow simulation \\
 \keyw{Q1} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q1 \\
 \keyw{Q1} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the intervention at Q1 \\
-\keyw{Q2} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the transitional regime \\
+\keyw{Q2} & \keyw{Discharge} & Discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} of the transitional regime \\
 \keyw{Q2} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q2 \\
 \keyw{Q2} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the intervention at Q2 \\
-\keyw{Q3} & \keyw{Discharge} & Discharge \unitbrackets{m\textsuperscript{3}/s} of the high flow simulation \\
+\keyw{Q3} & \keyw{Discharge} & Discharge \unitbrackets{\SI{}{\metre\cubed\per\second}} of the high flow simulation \\
 \keyw{Q3} & \keyw{Reference} & Name of D-Flow FM map-file to be used for reference condition at Q3 \\
 \keyw{Q3} & \keyw{WithMeasure} & Name of D-Flow FM map-file that includes the intervention at Q3 \\
 \end{tabular}

@@ -32,16 +32,16 @@ Furthermore, the tool can be used to determine whether more advanced evaluation 
 \item in the final assessment of the planning phase and/or
 \item if there are more strict requirements concerning quantification of the sedimentation in the context of the causation principle
 \end{itemize}
-\item to estimate bed level changes due to discharge extractions (rerouting flow between Maas and Waal would cause changes over large distances)
+\item to estimate bed level changes due to discharge extractions (e.g.~rerouting flow between the river branches would cause changes over large distances)
 \item to estimate bed level changes outside the main channel
-\item to estimate bed level changes due to interventions that can't be represented well in the \dflowfm schematizations
+\item to estimate bed level changes due to interventions that cannot be represented well in the \dflowfm schematizations
 \item to estimate bank erosion. \dfastbe should be considered instead.
-\item to estimate the impact of changes to the main channel, such as
+\item to estimate the impact of interventions in the main channel, such as
 \begin{itemize}
 \item to quantify the total dredging volumes
 \item to study the impact of different dredging strategies
 \end{itemize}
-\item to estimate bed level changes due to changes in water levels, discharge distribution, sediment supply and/or bed levels
+\item to estimate bed level changes due to changes in sediment supply and/or main channel bed levels
 \item to identify areas subject to erosion
 \end{itemize}
 
@@ -57,7 +57,9 @@ The impact of large interventions that influence the backwater curve, may thus n
 
 \item Interventions should be properly resolved on the \dflowfm mesh.
 The discharges used by \dfmi should give a balanced representation of the influence of the intervention on the flow patterns.
-\dfmi is not suitable for interventions that only (start to) have a noticeable effect at (or above) the highest discharge.
+Hence, \dfmi is not suitable for interventions that have been designed to only have a noticeable effect for flow conditions not included in the analysis.
+An example of such a case is an intervention that is only active above the highest discharge level.
+A conservative estimate of the possible impact of such a case can be obtained by evaluating a similar intervention for which the maximum impact on the flow field has been shifted to the highest discharge level.
 
 \item \dfastmi is not yet suited for tidally influenced areas.
 See \autoref{Sec:Tides}.
@@ -69,18 +71,25 @@ If an intervention is located close to, or even across branches, an additional v
 
 \item The morphological impact of an intervention will only accumulate over the period during which the intervention is active.
 The original WAQMORF algorithm selected discharges based on the specific characteristics of the intervention being evaluated, and as such it was not suited for evaluating multiple interventions at once.
-The new algorithm uses a fixed set of discharges, which makes it more generic, but the reported impacted length, i.e.~the distance over which the morphological changes can develop over the period of one year, still depends on the specified minimum flow-carrying discharge, i.e.~the discharge above which the intervention will be influencing the flow.
+The new algorithm uses a fixed set of discharges, which makes it more generic, but the reported impacted length $L_s$, i.e.~the distance over which the morphological changes can develop over the period of one year, still depends on the specified minimum flow-carrying discharge $Q_\text{thr}$, i.e.~the discharge above which the intervention will be influencing the flow.
 Consider the following two interventions:
+
 \begin{itemize}
-\item One that is active only at high flow.
-Let us assume that this intervention has a significant impact on the flow patterns in the main channel at those flow conditions and hence a significant long-term morphological impact.
-\item One that is active almost always active.
-Let us assume that this intervention has very little to morphological impact.
+\item One intervention that is active only at high flow (${Q_\text{thr}}_1$ is large).
+Let us assume that this intervention has a significant impact on the flow patterns in the main channel at those flow conditions and hence a significant long-term morphological impact, i.e.~a large year-averaged equilibrium bed level change $\bar{\Delta z_b}_1$.
+This intervention is associated with a small impacted length, ${L_s}_1 \ll {L_s}_2$, since its minimum flow-carrying discharge is exceeded only a small part of the year.
+Hence, when this intervention is evaluated by itself, the \emph{first-year} impact (estimated as the equilibrium effect accumulated over the impacted length) would be modest.
+
+\item One intervention that is almost always active (${Q_\text{thr}}_2 = 0$).
+Let us assume that this intervention has very little to no morphological impact by itself, i.e.~$\bar{\Delta z_b}_2 \ll \bar{\Delta z_b}_1$.
+Since this intervention is active under all flow conditions, the impacted length ${L_s}_2$ is basically equal to the distance over which any bed disturbance can travel in a year.
+However, the \emph{first-year} impact of just this intervention would also be modest since $\bar{\Delta z_b}_2$ is small.
 \end{itemize}
-The former intervention would typically be associated with a small impacted length since its minimum flow-carrying discharge is exceeded only a small part of the year; as a result the \emph{first-year} impact (estimated as the equilibrium effect accumulated over the impacted length) would be modest.
-However, when it is evaluated \emph{in combination with} the second intervention, the impacted length will be much larger since the latter intervention is active for a much larger part of the year.
-Although the equilibrium effect of the two interventions together would be similar to that of only the first intervention, the first-year effect would now be estimated to be significantly bigger.
+
+However, when the two interventions are evaluated \emph{together}, the impacted length will be based on the smaller minimum flow-carrying discharge ${Q_\text{thr}}_2$ of intervention 2 (and hence $L_s$ will be large), while the year-averaged equilibrium bed level change of the two interventions together will be similar to that of the first intervention, $\bar{\Delta z_b}_1$.
+The estimated first-year effect, obtained by integrating $\bar{\Delta z_b}_1$ over ${L_s}_2$, will be significantly bigger than each of the measures individually.
 We conclude that it's wise to only evaluate interventions together if they have similar threshold discharges.
+If the threshold discharges differ significantly, then the estimate for the first-year effect will be on the conservative side.
 
 \item When combining multiple interventions, or when making a single intervention longer, you will reach the point at which the effect of an intervention on the flow can no longer be seen as one stretch where water leaves the main channel, and one where it flows back to it (or the other way around).
 There will be multiple of these stretches due to the sequence of interventions, or due to the alongstream variation of the left and right floodplain width.
@@ -89,7 +98,7 @@ Earlier versions, therefore, suggested to restrict the use of this tool to inter
 See \autoref{Sec:DredgeVol}.
 However, it's still preferred to evaluate interventions less than the length of one flood plain section.
 
-\item \dfastmi doesn't use any information about the bed.
+\item \dfastmi doesn't use any information about the bed composition.
 It doesn't get information about non-erodible layers, nor about natural variability in the erodibility of the bed material.
 As such, it is more difficult for \dfmi to predict scour accurately than sedimentation.
 The primary purpose of \dfmi is the estimation of sedimentation that may cause problems for navigation.
@@ -98,9 +107,13 @@ As such, it is better suited for evaluating interventions that increase the flow
 \item \dfastmi conceptual model is based on a change in the discharge in the main channel.
 Such a change may be caused by changes in the floodplain, or changes in the main channel.
 When the intervention affects the floodplain, its impact on the main channel is easy to interpret since both simulations with and without the intervention use the same bed levels for that area.
-However, when the intervention affects the main channel, for instance by deepening, the resulting impact (sedimentation to get back to the original bed level) must be interpreted as relative to the bed levels of the simulation with the intervention implemented.
+However, when the intervention affects the main channel, for instance by deepening, the resulting impact (sedimentation to get back to the original bed level) must be interpreted as relative to the bed levels of the simulation \emph{with} the intervention implemented.
 Furthermore, it should be noted that \autoref{Eq:zbEqui} is evaluated using the water depth $h$ obtained from the reference simulation.
 If the intervention includes a significant change to the bed level in the main channel, this approximation may no longer be valid.
+Therefore, \dfmi is not recommended for such interventions.
+
+\item \dfastmi does not take into account the dynamic feedback that morphological change may have on the hydrodynamics.
+This general limitation is related to the following three statements.
 
 \item \dfastmi assumes that a new equilibrium can be reached by adjusting the bed level locally such that the flow velocity at that point returns to the original value.
 This is the result of the 1D conceptual approach in which the flow cannot redistribute laterally.

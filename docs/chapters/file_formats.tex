@@ -13,7 +13,7 @@ The software distinguishes 6 files:
 
 Each file type is addressed separately in the following subsections.
 
-\section{Rivers configuration file}
+\section{Rivers configuration file}\label{sec:rivers-config}
 
 The rivers configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
@@ -66,10 +66,10 @@ The options are 1 (series of discharge, bed celerity pairs) and 2 (power-law rel
 The default value is 2. \\
 \keyw{*} & \keyw{PropQ} & Strictly-monotonous increasing list of discharges \unitbrackets{\SI{}{\metre\cubed\per\second}} for which the bed celerity is given.
 Only used in case \keyw{CelerForm} equals 1. \\
-\keyw{*} & \keyw{PropC} & List of bed celerities \unitbrackets{\SI{}{\metre\per\second}} one value for each discharge specified by \keyw{PropQ}.
+\keyw{*} & \keyw{PropC} & List of bed celerities \unitbrackets{\SI{}{\kilo\metre\per\year}} one value for each discharge specified by \keyw{PropQ}.
 The length of the lists given by \keyw{PropQ} and \keyw{PropC} should be equal.
 Only used in case \keyw{CelerForm} equals 1. \\
-\keyw{*} & \keyw{CelerQ} & Two values representing the multiplication scalar and exponent of the power-law relation of the bed celerity \unitbrackets{\SI{}{\metre\per\second}} as function of the discharge \unitbrackets{\SI{}{\metre\cubed\per\second}}.
+\keyw{*} & \keyw{CelerQ} & Two values representing the multiplication scalar and exponent of the power-law relation of the bed celerity \unitbrackets{\SI{}{\kilo\metre\per\year}} as function of the discharge \unitbrackets{\SI{}{\metre\cubed\per\second}}.
 Only used in case \keyw{CelerForm} equals 2.
 \end{longtable}
 

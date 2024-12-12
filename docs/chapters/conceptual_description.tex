@@ -125,11 +125,11 @@ Based on these equations, one can derive that the bed level development during s
 where the morphological time scale $T_m$ is given by
 %
 \begin{equation}
-T_m \approx \frac{h L}{b s_\text{mc}}
+T_m = \frac{L}{c} \approx \frac{h L}{b s_\text{mc}}
 \label{Eq:MorTimeScale}
 \end{equation}
 %
-and the equilibrium bed level change $\Delta z_{b,\text{eq}}$ equals the product of the water depth and the relative change in the main channel velocity $u$ \unitbrackets{m/s}
+where $c$ is the bed celerity \unitbrackets{\SI{}{\metre\per\second}} ($\approx b s_\text{mc} / h$), and the equilibrium bed level change $\Delta z_{b,\text{eq}}$ (for one steady flow forcing) equals the product of the water depth and the relative change in the main channel velocity $u$ \unitbrackets{m/s}
 %
 \begin{equation}
 \Delta z_{b,\text{eq}} \approx -h \left ( \frac{\Delta u}{u} \right )
@@ -174,14 +174,14 @@ If the impact of the intervention increases as the discharge increases, the maxi
 However, this isn't true for all hydrographs and for all interventions.
 Similarly, the minimum bed level change is frequently reached at the end of the period with the lowest discharge, but this may also depend on the details of the hydrograph used (which may for instance include multiple low flow periods of different duration).
 For this reason, the minimum and maximum values are determined independently for every individual grid cell as the minimum and maximum over all $N$ fields of $\Delta z_{b,i}(0)$.
-The year-averaged bed level can be computed as
+The year-averaged bed level change $\bar{\Delta z_b}$ at long-term dynamic equilibrium can be computed as
 %
 \begin{equation}
 \bar{\Delta z_b} = \frac{\sum{\Delta z_{b,i,\text{eq}} T_i}}{\sum{T_i}} + \frac{\sum{(\Delta z_{b,i,\text{eq}} - \Delta z_{b,i}(0)) T_{m,i} (\sigma_i-1)}}{\sum{T_i}}
 \label{Eq:zbMean}
 \end{equation}
 %
-More details are given in \citet{JagersGiri2022} and \citet{dfmi3_valdoc}.
+More details are given in \citet{JagersGiri2022}.
 
 
 \section{Equilibrium bed level change: extending to tides}\label{Sec:Tides}
@@ -193,7 +193,26 @@ Although the current \dfastmi version includes code preparations for such extens
 
 \section{Estimate for dredging volumes}\label{Sec:DredgeVol}
 
-An order-of-magnitude estimate of the dredging (or dumping) volume that will required to keep the bed levels at the initial\footnote{If the bed levels in the main channel differ between the reference simulation and the simulation with the intervention, the level meant here is the bed level as included in the simulation \emph{with} the intervention.} level can be obtained by accumulating the equilibrium bed change over the impacted length, where the latter is defined as the distance over which a bed level disturbance can travel during the part of the year that the flow conditions are different due to the intervention being evaluated.
+An order-of-magnitude estimate of the dredging (or dumping) volume $V_\text{dredge,1yr}$ that will required to keep the bed levels at the initial\footnote{If the bed levels in the main channel differ between the reference simulation and the simulation with the intervention, the level meant here is the bed level as included in the simulation \emph{with} the intervention.} level can be obtained by accumulating the year-averaged equilibrium bed level change $\bar{\Delta z_b}$ (see \autoref{Eq:zbMean}) over the impacted length $L_s$.
+In a 1D setting with $x$ indicating the alongstream coordinate \unitbrackets{m}, we can write that down as
+%
+\begin{equation}
+V_\text{dredge,1yr} = \int_{x_0}^{x_0 + L_s} \bar{\Delta z_b}(x) dx
+\end{equation}
+%
+where $x_0$ marks the upstream border of the impacted reach.
+The impacted length $L_s$ is defined as the distance over which a bed level disturbance can travel during the part of the year that the flow conditions are different due to the intervention being evaluated, i.e.
+%
+\begin{equation}
+L_s = \sum_{i \text{ where $Q_i > Q_\text{thr}$}} c_i T'_i
+\end{equation}
+%
+where $i$ loops over the conditions for which the discharge $Q_i$ is larger than minimum flow-carrying discharge $Q_\text{thr}$.
+The rivers configuration file specifies for each flow condition $i$ the period $T_i$ and celerity $c_i$.
+These values are thus given and should not be changed.
+The effective morphological period $T'_i$ is equal to the period $T_i$ except for the first flow condition for which the discharge $Q_i$ is larger than minimum flow-carrying discharge $Q_\text{thr}$.
+For that condition the period is adjusted based on the discharge exceedance curve (given by \keyw{QFit} in the \nameref{sec:rivers-config}).
+The minimum flow-carrying discharge $Q_\text{thr}$ is thus the only parameter given by the user that affects the impacted length.
 The sediment transport during the remainder of the year may adjust the shape and location of the deposit, but the total volume remains the same.
 
 It is foreseen that this estimate may be computed automatically in a future release of \dfmi, but this is currently left as a manual step for the user.

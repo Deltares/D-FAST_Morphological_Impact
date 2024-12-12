@@ -7,7 +7,7 @@ To apply \dfastmi one should carry out the following six steps.
 Verify that it is appropriate to use \dfmi instrument; see \autoref{Chp:Guidance}.
 Determine the branch and reach on which it is located; use the \dfmi GUI for this\footnote{The reaches are specified in the GUI both by a descriptive name and by an approximate indication of the river chainage.
 Follow item \ref{reach_bnd} of \autoref{Sec:Limitations} if an intervention is located across or near a branch/reach boundary.}.
-\dfmi is currently configured to support the evaluation of interventions in the following reaches:
+The default \file{Dutch\_rivers\_v3.ini} rivers configuration file supports the evaluation of interventions in the following reaches:
 \begin{itemize}
 \item Bovenrijn (Rkm 859-867)
 \item Waal (Rkm 868-951)
@@ -33,12 +33,13 @@ For the Dutch rivers these values are given by the following table
 \newline
 \begin{tabular}{l|l|l}
 river & location & flow conditions \\ \hline
-Rhine branches & Lobith & 1300, 2000, 3000, 4000, 6000, 8000 \SI{}{\metre\cubed\per\second}\\
-Meuse & Borgharen & 750, 1300, 1700, 2100, 2500, 3200 \SI{}{\metre\cubed\per\second}
+Rhine branches & Lobith & steady state 1300, 2000, 3000, 4000, 6000, 8000 \SI{}{\metre\cubed\per\second}\\
+Meuse & Borgharen & \emph{details to be confirmed}
+\comment{750, 1300, 1700, 2100, 2500, 3200 \SI{}{\metre\cubed\per\second}}
 \end{tabular}
 \newline
 \newline
-These flow conditions have been pre-configured for the latest \dflowfm schematizations\footnote{The rationale behind the selection of these flow conditions and the associated bed celerity values is given in \autoref{Sec:memo_Sieben24}.}.
+These flow conditions have been pre-configured for the latest \dflowfm schematizations of these rivers\footnote{The rationale behind the selection of these flow conditions and the associated bed celerity values is given in \autoref{Sec:memo_Sieben24}.}.
 It is not necessary to run simulations for conditions at which the intervention doesn't influence the flow patterns (i.e.~discharges associated with stagnant conditions due to closure of barriers, and discharges below the intervention specific $Q_\text{thr}$).
 At this stage, \dfmi already reports the impacted length (`aanzandingslengte'), which is the distance over which a bed level change can built up during the period that the discharge of the river is above the threshold discharge.
 \dfmi is not suitable for interventions that only (start to) have a noticeable effect at (or above) the highest discharge.
