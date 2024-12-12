@@ -284,7 +284,10 @@ def get_analysis_condition_values_for_logging(
     else:
         condition = "{:7.1f} m3/s".format(q)
 
-    if initialized_config.q_threshold is not None and q <= initialized_config.q_threshold:
+    if (
+        initialized_config.q_threshold is not None
+        and q <= initialized_config.q_threshold
+    ):
         reference_file_name = "---"
         intervention_file_name = "---"
         comment = "(intervention not active)"

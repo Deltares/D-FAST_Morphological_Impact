@@ -145,7 +145,9 @@ class AnalyserDflowfmReporter:
         raise Exception("RiverKM needs to be specified for tidal applications.")
 
     def print_intervention_not_active_for_checked_conditions(self):
-        raise Exception("The intervention is not active for any of the checked conditions.")
+        raise Exception(
+            "The intervention is not active for any of the checked conditions."
+        )
 
 
 class ReporterDflowfmReporter:
