@@ -52,7 +52,9 @@ def relax_factors(
         if q <= q_stagnant:
             lsigma[i] = 1.0
         else:
-            lsigma[i] = math.exp(-KM_TO_M * celerity[i] * year_fraction_values[i] / (TWICE * nwidth))
+            lsigma[i] = math.exp(
+                -KM_TO_M * celerity[i] * year_fraction_values[i] / (TWICE * nwidth)
+            )
     rsigma = tuple(s for s in lsigma)
 
     return rsigma

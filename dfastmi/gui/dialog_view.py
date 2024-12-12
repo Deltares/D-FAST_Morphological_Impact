@@ -180,7 +180,7 @@ class DialogView:
             data: The data for the branch.
         """
         self._case_description.setText(description)
-    
+
     def _update_branch(self, data):
         """
         Update the GUI components when the branch changes.

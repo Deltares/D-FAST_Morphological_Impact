@@ -90,7 +90,7 @@ class DialogViewModel(QObject):
         str: The case description.
         """
         return self.model.case_description
-    
+
     @case_description.setter
     def case_description(self, description: str):
         """
@@ -102,7 +102,7 @@ class DialogViewModel(QObject):
         """
         self.model.case_description = description
         self.case_description_changed.emit(description)
-    
+
     @property
     def current_branch(self) -> IBranch:
         """
@@ -480,7 +480,7 @@ class DialogViewModel(QObject):
             Name of the configuration file to be opened.
         """
         self.model.load_configuration(filename)
-        
+
         # this is effectively assign self.model.case_description to its own value such that case_description_change.emit is called
         self.case_description = self.model.case_description
 

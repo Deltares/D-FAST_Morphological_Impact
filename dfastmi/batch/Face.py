@@ -72,20 +72,20 @@ def face_mean(
     else:
         # possibly varying number of nodes
         max_nnodes = face_node_connectivity.data.shape[1]
-        
+
         # collect all node values per face
         face_node_connectivity_data = face_node_connectivity.data
         face_node_connectivity_data[face_node_connectivity.mask] = 0
         vfn = numpy.ma.array(
             vn[face_node_connectivity_data], mask=face_node_connectivity.mask
         )
-        
+
         # determine number of (non-masked) nodes per face
         nnodes = max_nnodes - face_node_connectivity.mask.sum(axis=1)
-        
+
         # sum values per face
         vfsum = vfn.sum(axis=1)
-        
+
         # divide by the number of nodes per face
         vf = vfsum / nnodes
 
