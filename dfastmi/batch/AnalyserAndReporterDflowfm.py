@@ -87,7 +87,7 @@ def analyse_and_report_dflowfm(
     analyser = AnalyserDflowfm(
         display, report, old_zmin_zmax, outputdir, initialized_config
     )
-    
+
     condition_list = []
     for i in range(len(initialized_config.discharges)):
         condition = "{:.1f} m3/s".format(initialized_config.discharges[i])

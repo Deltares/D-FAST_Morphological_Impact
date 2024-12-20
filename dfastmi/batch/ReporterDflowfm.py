@@ -27,8 +27,8 @@ INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
 
-from typing import List
 from pathlib import Path
+from typing import List
 
 import netCDF4
 import numpy
@@ -61,7 +61,7 @@ class ReporterDflowfm:
         outputdir: Path,
         plotting_options: PlotOptions,
         report_data: OutputDataDflowfm,
-        condition_list: List[str]
+        condition_list: List[str],
     ):
         """
         write report data to a netCDF UGRID file similar to D-Flow FM.
@@ -181,7 +181,9 @@ class ReporterDflowfm:
                 dzb,
                 meshname,
                 facedim,
-                long_name="bed level change at end of period {}: {}".format(i + 1, condition_list[i]),
+                long_name="bed level change at end of period {}: {}".format(
+                    i + 1, condition_list[i]
+                ),
                 unit="m",
             )
             if rsigma[i] < 1 and isinstance(dzq[i], numpy.ndarray):
