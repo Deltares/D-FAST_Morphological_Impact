@@ -87,12 +87,20 @@ def analyse_and_report_dflowfm(
     analyser = AnalyserDflowfm(
         display, report, old_zmin_zmax, outputdir, initialized_config
     )
+    
+    condition_list = []
+    for i in range(len(initialized_config.discharges)):
+        condition = "{:.1f} m3/s".format(initialized_config.discharges[i])
+        if initialized_config.needs_tide and initialized_config.tide_bc[i] != "-":
+            condition = condition + " " + initialized_config.tide_bc[i]
+        condition_list.append(condition)
+
     report_data = analyser.analyse(normal_width, filenames, xykm, plotting_options)
 
     if analyser.missing_data:
         return True
 
     reporter = ReporterDflowfm(display)
-    reporter.report(outputdir, plotting_options, report_data)
+    reporter.report(outputdir, plotting_options, report_data, condition_list)
 
     return not analyser.missing_data
