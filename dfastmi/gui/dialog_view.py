@@ -153,12 +153,9 @@ class DialogView:
         self._view_model.ucritical_changed.connect(self._update_ucritical)
         self._view_model.qthreshold_changed.connect(self._update_qthreshold)
         self._view_model.slength_changed.connect(self._update_sedimentation_length)
-        self._view_model.make_plot_changed.connect(
-            self._update_enabled_of_make_plot_dependent_view_items
-        )
-        self._view_model.save_plot_changed.connect(
-            self._update_enabled_of_save_plot_dependent_view_items
-        )
+        self._view_model.make_plot_changed.connect(self._update_make_plot)
+        self._view_model.save_plot_changed.connect(self._update_save_plot)
+        self._view_model.close_plot_changed.connect(self._update_close_plot)
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
 
@@ -1175,19 +1172,24 @@ class DialogView:
         if self._view_model.make_plot != self._make_plots_edit.isChecked():
             self._view_model.make_plot = self._make_plots_edit.isChecked()
 
-    def _update_enabled_of_make_plot_dependent_view_items(self, value: bool):
+    def _update_make_plot(self, value: bool):
+        self._make_plots_edit.setChecked(value)
         self._save_plots.setEnabled(value)
         self._save_plots_edit.setEnabled(value)
         self._close_plots.setEnabled(value)
         self._close_plots_edit.setEnabled(value)
 
-    def _update_enabled_of_save_plot_dependent_view_items(self, value: bool):
+    def _update_save_plot(self, value: bool):
+        self._save_plots_edit.setChecked(value)
         self._figure_dir.setEnabled(value)
         self._figure_dir_edit.setEnabled(value)
         figure_dir_button = self._general_widget.findChild(
             QPushButton, "figure_dir_edit_button"
         )
         figure_dir_button.setEnabled(value)
+
+    def _update_close_plot(self, value: bool):
+        self._close_plots_edit.setChecked(value)
 
     def _update_output_directory_input(self, value: str):
         self._output_dir.setText(value)

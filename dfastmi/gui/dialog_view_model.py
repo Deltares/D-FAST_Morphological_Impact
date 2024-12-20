@@ -57,6 +57,7 @@ class DialogViewModel(QObject):
     slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
+    close_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
     analysis_exception = pyqtSignal(str, str)
@@ -249,6 +250,21 @@ class DialogViewModel(QObject):
         """
         self.model.save_plots = value
         self.save_plot_changed.emit(value)
+
+    @property
+    def close_plot(self) -> bool:
+        """
+        Get of the close plot setting.
+        """
+        return self.model.close_plots
+
+    @close_plot.setter
+    def close_plot(self, value: bool):
+        """
+        Set of the close plot setting.
+        """
+        self.model.close_plots = value
+        self.close_plot_changed.emit(value)
 
     @property
     def output_dir(self) -> str:
