@@ -67,6 +67,7 @@ class ConditionConfig(BaseModel):
     """Represents the configuration settings for a specific condition."""
 
     Discharge: float
+    Tide: str
     Reference: str
     WithIntervention: str
 
@@ -297,17 +298,18 @@ class DialogModel:
         intervention_files: FilenameDict,
     ) -> None:
         """Get condition configuration."""
-        for i, discharge in enumerate(reach.hydro_q):
+        for i, condition_string in enumerate(reach.conditions):
             if (
-                discharge in reference_files.keys()
-                or discharge in intervention_files.keys()
+                condition_string in reference_files.keys()
+                or condition_string in intervention_files.keys()
             ):
                 cond = f"C{i+1}"
 
                 condition = ConditionConfig(
-                    Discharge=discharge,
-                    Reference=reference_files.get(discharge, ""),
-                    WithIntervention=intervention_files.get(discharge, ""),
+                    Discharge=reach.hydro_q[i],
+                    Tide=reach.tide_boundary_condition[i],
+                    Reference=reference_files.get(condition_string, ""),
+                    WithIntervention=intervention_files.get(condition_string, ""),
                 )
 
                 config[cond] = condition.model_dump()

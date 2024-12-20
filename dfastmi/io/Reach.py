@@ -52,6 +52,7 @@ class Reach(AReach):
 
     use_tide: bool = False
     tide_boundary_condition: Tuple[str, ...] = ()
+    conditions: Tuple[str, ...] = ()
 
     celer_form: int = 0
     _celer_object: ICelerObject = None
