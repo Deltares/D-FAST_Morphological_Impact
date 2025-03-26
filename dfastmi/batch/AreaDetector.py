@@ -37,12 +37,12 @@ import numpy
 class AreaData:
     """Class for keeping track of area data."""
 
-    area: numpy.ndarray = numpy.zeros(0)
+    area: numpy.ndarray = field(default_factory=numpy.zeros(0))
     """
     area
     """
 
-    volume: numpy.ndarray = numpy.zeros(0)
+    volume: numpy.ndarray = field(default_factory=numpy.zeros(0))
     """
     area volume
     """
@@ -52,7 +52,7 @@ class AreaData:
     List of sub areas
     """
 
-    total_area_weight: numpy.ndarray = numpy.zeros(0)
+    total_area_weight: numpy.ndarray = field(default_factory=numpy.zeros(0))
     """
     total area weight
     """
