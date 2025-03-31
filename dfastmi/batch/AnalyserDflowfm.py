@@ -266,7 +266,7 @@ class AnalyserDflowfm:
         self, filenames: Dict[Any, Tuple[str, str]]
     ) -> Optional[str]:
         for i in range(3):
-            if (
+            if self._q_threshold is None or (
                 self._discharges[i] is not None
                 and self._discharges[i] > self._q_threshold
             ):
@@ -281,7 +281,10 @@ class AnalyserDflowfm:
         for i in range(len(self._discharges)):
             if not self._missing_data and self._discharges[i] is not None:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
-                if self._rsigma[i] == 1 or self._discharges[i] <= self._q_threshold:
+                if self._rsigma[i] == 1 or (
+                    self._q_threshold is not None
+                    and self._discharges[i] <= self._q_threshold
+                ):
                     # no celerity or intervention not active, so ignore field
                     pass
                 elif key in filenames:
@@ -328,7 +331,10 @@ class AnalyserDflowfm:
             if self._discharges[i] is None:
                 # ignore period
                 dzq[i] = 0
-            elif self._discharges[i] <= self._q_threshold:
+            elif (
+                self._q_threshold is not None
+                and self._discharges[i] <= self._q_threshold
+            ):
                 # intervention inactive, so zero-effect for this period
                 dzq[i] = numpy.zeros_like(iface, dtype=float)
             else:
@@ -357,7 +363,7 @@ class AnalyserDflowfm:
                     # intervention inactive, so zero-effect for this period
                     dzq[i] = numpy.zeros_like(iface, dtype=float)
                 elif key in filenames.keys():
-                    if t:
+                    if t and t != "-":
                         n_fields_request = self._n_fields
                     else:
                         n_fields_request = 1
