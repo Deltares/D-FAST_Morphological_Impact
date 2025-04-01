@@ -32,7 +32,7 @@ import fiona
 import numpy
 import shapely
 import shapely.geometry
-from dfastcommons.io.xyc import XYCModel
+from dfastio.xyc.models import XYCModel
 
 fiona.supported_drivers["kml"] = "rw"  # enable KML support which is disabled by default
 fiona.supported_drivers["KML"] = "rw"  # enable KML support which is disabled by default
@@ -123,7 +123,7 @@ class DataTextFileOperations:
 
         """
         # get the chainage file
-        xykm = XYCModel.read_xyc(kmfile, ncol=3)
+        xykm = XYCModel.read_xyc(kmfile, num_columns=3)
 
         # make sure that chainage is increasing with node index
         if xykm.coords[0][2] > xykm.coords[1][2]:
