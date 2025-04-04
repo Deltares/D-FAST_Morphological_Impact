@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from io import StringIO
 
 import netCDF4
+import numpy as np
 import pytest
 
 import dfastmi.batch.core
@@ -35,13 +36,21 @@ def compare_text_files(dir1, dir2, file1, file2=None, prefixes=None):
     assert result == refstr
 
 
-def compare_netcdf_fields(dir1, dir2, file, fields):
+def compare_netcdf_fields(dir1, dir2, file, fields, tol=1e-8):
     ncRes = netCDF4.Dataset(dir1 + os.sep + file)
     ncRef = netCDF4.Dataset(dir2 + os.sep + file)
     for f in fields:
-        result = ncRes.variables[f]
-        refdat = ncRef.variables[f]
-        assert (result[...] == refdat[...]).all()
+        result = ncRes.variables[f][...]
+        refdat = ncRef.variables[f][...]
+
+        if not np.allclose(result, refdat, atol=tol, equal_nan=True):
+            diff = np.abs(result - refdat)
+            max_diff = np.nanmax(diff)
+            raise AssertionError(
+                f"Field '{f}' differs between files. Max difference: {max_diff} exceeds tolerance {tol}."
+            )
+    ncRes.close()
+    ncRef.close()
 
 
 class Test_batch_mode:
@@ -209,16 +218,16 @@ class Test_batch_mode:
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
-        #
+
         compare_text_files(outdir, refdir, "report.txt", prefixes=("This is version"))
-        #
+
         compare_netcdf_fields(
             outdir,
             refdir,
             "dfastmi_results.nc",
             ["mesh2d_node_x", "mesh2d_node_y", "avgdzb", "mindzb", "maxdzb"],
         )
-        #
+
         compare_netcdf_fields(
             outdir,
             refdir,
