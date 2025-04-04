@@ -205,7 +205,6 @@ class Test_batch_mode:
         """
         Same as test_batch_mode_04 but includes centreline snapping.
         """
-        print("ssss")
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
         cwd = os.getcwd()
         tstdir = "tests/c01 - GendtseWaardNevengeul"
