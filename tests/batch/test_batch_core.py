@@ -36,7 +36,7 @@ def compare_text_files(dir1, dir2, file1, file2=None, prefixes=None):
     assert result == refstr
 
 
-def compare_netcdf_fields(dir1, dir2, file, fields, tol=1e-6):
+def compare_netcdf_fields(dir1, dir2, file, fields, tol=1e-8):
     ncRes = netCDF4.Dataset(dir1 + os.sep + file)
     ncRef = netCDF4.Dataset(dir2 + os.sep + file)
     for f in fields:
