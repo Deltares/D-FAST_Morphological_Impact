@@ -41,6 +41,13 @@ def compare_netcdf_fields(dir1, dir2, file, fields):
     for f in fields:
         result = ncRes.variables[f]
         refdat = ncRef.variables[f]
+        A1 = result[...]
+        A2 = refdat[...]
+        eql = A1 == A2
+        if not eql.all():
+            for i in range(len(eql)):
+                if not eql[i]:
+                    print(f, "[", i, "]: res=", A1[i], "ref=", A2[i])
         assert (result[...] == refdat[...]).all()
 
 
