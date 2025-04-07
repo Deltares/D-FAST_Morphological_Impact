@@ -463,7 +463,11 @@ class AnalyserDflowfm:
             yn1 = output_file2.node_y_coordinates
             FNC1 = self._get_face_node_connectivity(output_file2)
             
-            if numpy.array_equal(FNC0, FNC1) and numpy.array_equal(xn0, xn1) and numpy.array_equal(yn0, yn1):
+            if (
+                numpy.array_equal(FNC0, FNC1)
+                and numpy.array_equal(xn0, xn1)
+                and numpy.array_equal(yn0, yn1)
+            ):
                 pass
             else:
                 xyf0 = face_mean(xn0, FNC0) + 1j * face_mean(yn0, FNC0)
