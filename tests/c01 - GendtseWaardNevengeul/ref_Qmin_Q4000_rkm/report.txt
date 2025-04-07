@@ -23,7 +23,7 @@ The combination of the total equilibrium sedimentation volume and the
 yearly sediment load of the river determines the period over which the
 equilibrium can be reached.
 
-This is version 3.0.0.
+This is version 3.1.2.
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
