@@ -452,7 +452,7 @@ class AnalyserDflowfm:
             
             xn0 = output_file1.node_x_coordinates
             yn0 = output_file1.node_y_coordinates
-            FNC0 = self._get_face_node_connectivity(output_file1)[iface,:]
+            FNC0 = self._get_face_node_connectivity(output_file1)[iface]
 
             # data with intervention
             u1 = output_file2.x_velocity(time_index_from_last=ifld)
