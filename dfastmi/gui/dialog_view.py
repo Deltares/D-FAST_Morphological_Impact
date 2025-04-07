@@ -1229,10 +1229,12 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
 
     # Create ViewModel instance with the Model
     view_model = DialogViewModel(model)
-    view_model.load_configuration(config_file)
 
     # Create View instance with the ViewModel
     view = DialogView(view_model)
 
+    # Set the appropriate configuration
+    view_model.load_configuration(config_file)
+    
     # Initialize the user interface and run the program
     view.activate_dialog()

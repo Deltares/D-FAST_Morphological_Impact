@@ -35,6 +35,7 @@ import numpy
 from shapely.geometry.linestring import LineString
 
 from dfastmi.batch.DflowfmReporters import AnalyserDflowfmReporter
+from dfastmi.batch.Face import face_mean
 from dfastmi.batch.OutputDataDflowfm import OutputDataDflowfm
 from dfastmi.batch.PlotOptions import PlotOptions
 from dfastmi.batch.SedimentationVolume import comp_sedimentation_volume
@@ -448,11 +449,29 @@ class AnalyserDflowfm:
             v0 = output_file1.y_velocity(time_index_from_last=ifld)[iface]
             umag0 = numpy.sqrt(u0**2 + v0**2)
             h0 = output_file1.water_depth(time_index_from_last=ifld)[iface]
+            
+            xn0 = output_file1.node_x_coordinates
+            yn0 = output_file1.node_y_coordinates
+            FNC0 = self._get_face_node_connectivity(output_file1)[iface,:]
 
             # data with intervention
-            u1 = output_file2.x_velocity(time_index_from_last=ifld)[iface]
-            v1 = output_file2.y_velocity(time_index_from_last=ifld)[iface]
+            u1 = output_file2.x_velocity(time_index_from_last=ifld)
+            v1 = output_file2.y_velocity(time_index_from_last=ifld)
             umag1 = numpy.sqrt(u1**2 + v1**2)
+            
+            xn1 = output_file2.node_x_coordinates
+            yn1 = output_file2.node_y_coordinates
+            FNC1 = self._get_face_node_connectivity(output_file2)
+            
+            if numpy.array_equal(FNC0, FNC1) and numpy.array_equal(xn0, xn1) and numpy.array_equal(yn0, yn1):
+                pass
+            else:
+                xyf0 = face_mean(xn0, FNC0) + 1j * face_mean(yn0, FNC0)
+                xyf1 = face_mean(xn1, FNC1) + 1j * face_mean(yn1, FNC1)
+                xyfi, i0, i1 = numpy.intersect1d(xyf0, xyf1, return_indices = True)
+                umag2 = umag1[i1]
+                umag1 = umag0.copy()
+                umag1[i0] = umag2
 
             dzq1 = dzq_from_du_and_h(umag0, h0, umag1, self._ucrit, default=0.0)
 

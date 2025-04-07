@@ -59,7 +59,7 @@ def face_mean(
         vfn = numpy.ma.array(
             vn[face_node_connectivity_data], mask=face_node_connectivity.mask
         )
-        vf = vfn.all(axis=1)
+        vf = numpy.ma.mean(vfn, axis=1)
 
     return vf
 
