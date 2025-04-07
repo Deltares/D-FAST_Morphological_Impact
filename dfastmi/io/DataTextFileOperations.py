@@ -123,7 +123,7 @@ class DataTextFileOperations:
 
         """
         # get the chainage file
-        xykm = XYCModel.read_xyc(kmfile, num_columns=3)
+        xykm = XYCModel.read(kmfile, num_columns=3)
 
         # make sure that chainage is increasing with node index
         if xykm.coords[0][2] > xykm.coords[1][2]:
