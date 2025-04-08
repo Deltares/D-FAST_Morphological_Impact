@@ -147,17 +147,15 @@ class DialogView:
         self._create_general_widgets()
         self._create_button_bar()
         # Connect the view model's data_changed signal to update_ui slot
+        self._view_model.case_description_changed.connect(self._update_case_description)
         self._view_model.branch_changed.connect(self._update_branch)
         self._view_model.reach_changed.connect(self._update_reach)
         self._view_model.ucritical_changed.connect(self._update_ucritical)
         self._view_model.qthreshold_changed.connect(self._update_qthreshold)
         self._view_model.slength_changed.connect(self._update_sedimentation_length)
-        self._view_model.make_plot_changed.connect(
-            self._update_enabled_of_make_plot_dependent_view_items
-        )
-        self._view_model.save_plot_changed.connect(
-            self._update_enabled_of_save_plot_dependent_view_items
-        )
+        self._view_model.make_plot_changed.connect(self._update_make_plot)
+        self._view_model.save_plot_changed.connect(self._update_save_plot)
+        self._view_model.close_plot_changed.connect(self._update_close_plot)
         self._view_model.figure_dir_changed.connect(self._update_figure_directory_input)
         self._view_model.output_dir_changed.connect(self._update_output_directory_input)
 
@@ -171,6 +169,15 @@ class DialogView:
         self._view_model.analysis_exception.connect(self._show_error)
         self._update_qvalues_table()
 
+    def _update_case_description(self, description: str):
+        """
+        Update the GUI component for the case description.
+
+        Args:
+            data: The data for the branch.
+        """
+        self._case_description.setText(description)
+
     def _update_branch(self, data):
         """
         Update the GUI components when the branch changes.
@@ -178,9 +185,6 @@ class DialogView:
         Args:
             data: The data for the branch.
         """
-        # Update case name
-        self._case_description.setText(self._view_model.model.case_description)
-
         # Update branch and reach selection
         self._branch.setCurrentText(data)
         self._reach.clear()
@@ -248,18 +252,17 @@ class DialogView:
         self._update_qvalues_table()
 
     def _update_condition_file_field(
-        self, field_postfix: str, condition_discharge: float, file_location: str
+        self, field_postfix: str, condition: str, file_location: str
     ):
         """
         Update the condition file field.
 
         Args:
             field_postfix (str): The postfix for the field.
-            condition_discharge: The condition discharge.
+            condition (str): The condition string.
             file_location (str): The file location.
         """
-        prefix = str(condition_discharge) + "_"
-        key = prefix + field_postfix
+        key = condition + "_" + field_postfix
         input_textbox = self._general_widget.findChild(ValidatingLineEdit, key)
         if input_textbox:
             input_textbox.setText(file_location)
@@ -267,10 +270,10 @@ class DialogView:
     def _update_qvalues_table(self):
         """Update the Q values table."""
         self._clear_conditions()
-        for discharge in self._view_model.current_reach.hydro_q:
-            prefix = str(discharge) + "_"
-            qval = str(discharge) + " m3/s"
-            self._add_condition_line(prefix, discharge, qval)
+        for i, condition in enumerate(self._view_model.current_reach.conditions):
+            discharge = self._view_model.current_reach.hydro_q[i]
+            prefix = condition + "_"
+            self._add_condition_line(prefix, discharge, condition)
 
     def _clear_conditions(self):
         """Remove the discharge condition rows from the table."""
@@ -1115,13 +1118,11 @@ class DialogView:
             input_textbox.setText(file)
 
             if "_" + reference_label in key:
-                key_without_suffix = float(key.replace("_" + reference_label, ""))
+                key_without_suffix = key.replace("_" + reference_label, "")
                 self._view_model.reference_files[key_without_suffix] = file
 
             if "_" + with_intervention_label in key:
-                key_without_suffix = float(
-                    key.replace("_" + with_intervention_label, "")
-                )
+                key_without_suffix = key.replace("_" + with_intervention_label, "")
                 self._view_model.intervention_files[key_without_suffix] = file
 
     def _show_message(self, message: str) -> None:
@@ -1171,19 +1172,24 @@ class DialogView:
         if self._view_model.make_plot != self._make_plots_edit.isChecked():
             self._view_model.make_plot = self._make_plots_edit.isChecked()
 
-    def _update_enabled_of_make_plot_dependent_view_items(self, value: bool):
+    def _update_make_plot(self, value: bool):
+        self._make_plots_edit.setChecked(value)
         self._save_plots.setEnabled(value)
         self._save_plots_edit.setEnabled(value)
         self._close_plots.setEnabled(value)
         self._close_plots_edit.setEnabled(value)
 
-    def _update_enabled_of_save_plot_dependent_view_items(self, value: bool):
+    def _update_save_plot(self, value: bool):
+        self._save_plots_edit.setChecked(value)
         self._figure_dir.setEnabled(value)
         self._figure_dir_edit.setEnabled(value)
         figure_dir_button = self._general_widget.findChild(
             QPushButton, "figure_dir_edit_button"
         )
         figure_dir_button.setEnabled(value)
+
+    def _update_close_plot(self, value: bool):
+        self._close_plots_edit.setChecked(value)
 
     def _update_output_directory_input(self, value: str):
         self._output_dir.setText(value)
@@ -1229,10 +1235,12 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
 
     # Create ViewModel instance with the Model
     view_model = DialogViewModel(model)
-    view_model.load_configuration(config_file)
 
     # Create View instance with the ViewModel
     view = DialogView(view_model)
+
+    # Load the configuration if specified
+    view_model.load_configuration(config_file)
 
     # Initialize the user interface and run the program
     view.activate_dialog()

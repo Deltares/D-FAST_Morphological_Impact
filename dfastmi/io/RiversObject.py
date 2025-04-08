@@ -208,6 +208,13 @@ class RiversObject:
         reach.use_tide = river_data.getboolean("Tide", reach, False)
         # for Tide = True
         reach.tide_boundary_condition = river_data.getstrings("TideBC", reach)
+        if reach.use_tide:
+            reach.conditions = [
+                str(q) + " m3/s, " + t if t != "-" else str(q) + " m3/s"
+                for q, t in zip(reach.hydro_q, reach.tide_boundary_condition)
+            ]
+        else:
+            reach.conditions = [str(q) + " m3/s" for q in reach.hydro_q]
 
         reach.celer_form = river_data.getint("CelerForm", reach, 2)
         if reach.celer_form == 1:

@@ -49,6 +49,7 @@ from dfastmi.kernel.typehints import FilenameDict
 class DialogViewModel(QObject):
     """Represents the ViewModel for the dialog interface."""
 
+    case_description_changed = pyqtSignal(str)
     branch_changed = pyqtSignal(str)
     reach_changed = pyqtSignal(AReach)
     ucritical_changed = pyqtSignal(float)
@@ -56,11 +57,12 @@ class DialogViewModel(QObject):
     slength_changed = pyqtSignal(str)
     make_plot_changed = pyqtSignal(bool)
     save_plot_changed = pyqtSignal(bool)
+    close_plot_changed = pyqtSignal(bool)
     figure_dir_changed = pyqtSignal(str)
     output_dir_changed = pyqtSignal(str)
     analysis_exception = pyqtSignal(str, str)
-    reference_files_changed = pyqtSignal(str, float, str)
-    intervention_files_changed = pyqtSignal(str, float, str)
+    reference_files_changed = pyqtSignal(str, str, str)
+    intervention_files_changed = pyqtSignal(str, str, str)
     _reference_files: FilenameDict = {}
     _intervention_files: FilenameDict = {}
     _ucrit_cache: Dict[Tuple[Branch, AReach], float] = {}
@@ -82,6 +84,25 @@ class DialogViewModel(QObject):
         self.model = model
         self._initialize_qthreshold()
         self._initialize_ucritical()
+
+    @property
+    def case_description(self) -> str:
+        """
+        str: The case description.
+        """
+        return self.model.case_description
+
+    @case_description.setter
+    def case_description(self, description: str):
+        """
+        Setter for the case description.
+        After set notify the view of the change.
+
+        Arguments:
+            description (str): The case description to set.
+        """
+        self.model.case_description = description
+        self.case_description_changed.emit(description)
 
     @property
     def current_branch(self) -> IBranch:
@@ -229,6 +250,21 @@ class DialogViewModel(QObject):
         """
         self.model.save_plots = value
         self.save_plot_changed.emit(value)
+
+    @property
+    def close_plot(self) -> bool:
+        """
+        Get of the close plot setting.
+        """
+        return self.model.close_plots
+
+    @close_plot.setter
+    def close_plot(self, value: bool):
+        """
+        Set of the close plot setting.
+        """
+        self.model.close_plots = value
+        self.close_plot_changed.emit(value)
 
     @property
     def output_dir(self) -> str:
@@ -461,6 +497,9 @@ class DialogViewModel(QObject):
         """
         self.model.load_configuration(filename)
 
+        # this is effectively assign self.model.case_description to its own value such that case_description_change.emit is called
+        self.case_description = self.model.case_description
+
         branch = self.model.rivers.get_branch(self.model.branch_name)
         if not branch:
             branch = self.model.rivers.branches[0]
@@ -497,19 +536,24 @@ class DialogViewModel(QObject):
             if section_name.lower().startswith("c"):
                 section = self.model.config[section_name]
                 cond_discharge = section.getfloat("Discharge", 0.0)
+                cond_tide = section.get("TideBC", "-")
+                if self.current_reach.use_tide and cond_tide != "-":
+                    condition = str(cond_discharge) + " m3/s, " + cond_tide
+                else:
+                    condition = str(cond_discharge) + " m3/s"
 
-                self._reference_files[cond_discharge] = section.get("Reference", "")
+                self._reference_files[condition] = section.get("Reference", "")
                 self.reference_files_changed.emit(
-                    "reference", cond_discharge, self._reference_files[cond_discharge]
+                    "reference", condition, self._reference_files[condition]
                 )
 
-                self._intervention_files[cond_discharge] = section.get(
+                self._intervention_files[condition] = section.get(
                     "WithIntervention", ""
                 )
                 self.intervention_files_changed.emit(
                     "with_intervention",
-                    cond_discharge,
-                    self._intervention_files[cond_discharge],
+                    condition,
+                    self._intervention_files[condition],
                 )
 
     def check_configuration(self) -> bool:
