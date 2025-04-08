@@ -137,21 +137,36 @@ class Test_batch_mode:
         compare_text_files(outdir, refdir, "max_dzb.out", "ref_maxmorf.out")
         compare_text_files(outdir, refdir, "min_dzb.out", "ref_minmorf.out")
 
-    def test_batch_mode_03(self):
+    @pytest.mark.parametrize(
+        "tstdir, cfgfile, rivfile, refsubdir",
+        [
+            (
+                "tests/c01 - GendtseWaardNevengeul",
+                "Qmin_4000.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "ref_Qmin_Q4000",
+            ),
+            (
+                "tests/c03 - Pontwaard",
+                "input_var1_dfast311_part_fou.cfg",
+                "dfastmi/Dutch_rivers_v3.ini",
+                "output_ref",
+            ),
+        ],
+    )
+    def test_batch_mode_03(self, tstdir, cfgfile, rivfile, refsubdir):
         """
-        Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
-        Version 1 configuration files.
+        Testing batch_mode with netCDF output.
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
+        rivers = RiversObject(rivfile)
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         outdir = tstdir + os.sep + "output"
-        refdir = tstdir + os.sep + "ref_Qmin_Q4000"
+        refdir = tstdir + os.sep + refsubdir
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.core.batch_mode("Qmin_4000.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode(cfgfile, rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)

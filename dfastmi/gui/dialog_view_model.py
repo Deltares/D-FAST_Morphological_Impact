@@ -471,10 +471,7 @@ class DialogViewModel(QObject):
             reach = self.current_branch.reaches[0]
         self.current_reach = reach
 
-        self._qthreshold_cache[(self.current_branch, self.current_reach)] = (
-            self.model.qthreshold
-        )
-        self._initialize_qthreshold()
+        self.qthreshold = self.model.qthreshold
 
         self._ucrit_cache[(self.current_branch, self.current_reach)] = (
             self.model.ucritical

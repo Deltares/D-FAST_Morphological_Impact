@@ -34,6 +34,6 @@ Stichting Deltares. All rights reserved.
 
 from typing import Any, List
 
-__version__ = "3.1.1"
+__version__ = "3.1.2"
 
 __all__: List[Any] = []
