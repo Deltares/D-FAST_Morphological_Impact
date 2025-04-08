@@ -541,7 +541,7 @@ class AnalyserDflowfm:
         else:
             xyf1 = face_mean(xn1, FNC1) + 1j * face_mean(yn1, FNC1)
             xyf2 = face_mean(xn2, FNC2) + 1j * face_mean(yn2, FNC2)
-            xyfi, i1, i2 = numpy.intersect1d(xyf1, xyf2, return_indices=True)
+            _, i1, i2 = numpy.intersect1d(xyf1, xyf2, return_indices=True)
 
         return grids_match, i1, i2
 
