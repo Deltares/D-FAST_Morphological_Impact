@@ -514,12 +514,12 @@ class AnalyserDflowfm:
 
         Returns
         -------
-        match_grids : bool
+        grids_match : bool
             Flag indicating whether the two grids match.
         i1 : numpy.ndarray
-            Matching indices in mesh1 (empty if match_grids = True).
+            Matching indices in mesh1 (empty if grids_match = True).
         i2 : numpy.ndarray
-            Matching indices in mesh2 (empty if match_grids = True).
+            Matching indices in mesh2 (empty if grids_match = True).
         """
         xn1 = output_file1.node_x_coordinates
         yn1 = output_file1.node_y_coordinates
@@ -543,7 +543,7 @@ class AnalyserDflowfm:
             xyf2 = face_mean(xn2, FNC2) + 1j * face_mean(yn2, FNC2)
             xyfi, i1, i2 = numpy.intersect1d(xyf1, xyf2, return_indices=True)
 
-        return match_grids, i1, i2
+        return grids_match, i1, i2
 
     def _get_face_node_connectivity(self, output_file: OutputFile) -> numpy.ndarray:
         face_node_connectivity = output_file.face_node_connectivity
