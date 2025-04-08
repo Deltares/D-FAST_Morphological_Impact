@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Copyright © 2024 Stichting Deltares.
 
@@ -26,15 +25,14 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-import os
+
 from typing import Tuple
 
 import fiona
-import geopandas
 import numpy
-import pandas
 import shapely
 import shapely.geometry
+from dfastio.xyc.models import XYCModel
 
 fiona.supported_drivers["kml"] = "rw"  # enable KML support which is disabled by default
 fiona.supported_drivers["KML"] = "rw"  # enable KML support which is disabled by default
@@ -109,65 +107,6 @@ class DataTextFileOperations:
         boxfile.close()
 
     @staticmethod
-    def read_xyc(
-        filename: str, ncol: int = 2, delimiter=None, has_header=False
-    ) -> shapely.geometry.linestring.LineString:
-        """
-        Read lines from a file.
-
-        Arguments
-        ---------
-        filename : str
-            Name of the file to be read.
-        ncol : int
-            Number of columns to be read (2 or 3)
-
-        Returns
-        -------
-        L : shapely.geometry.linestring.LineString
-            Line strings.
-        """
-        fileroot, ext = os.path.splitext(filename)
-        if ext.lower() == ".xyc":
-            if ncol == 3:
-                colnames = ["Val", "X", "Y"]
-            else:
-                colnames = ["X", "Y"]
-            header = 0 if has_header else None
-            if delimiter != None:
-                P = pandas.read_csv(
-                    filename,
-                    names=colnames,
-                    skipinitialspace=True,
-                    header=header,
-                    delimiter=delimiter,
-                )
-            else:
-                P = pandas.read_csv(
-                    filename,
-                    names=colnames,
-                    skipinitialspace=True,
-                    header=header,
-                    delim_whitespace=True,
-                )
-
-            nPnts = len(P.X)
-            x = P.X.to_numpy().reshape((nPnts, 1))
-            y = P.Y.to_numpy().reshape((nPnts, 1))
-            if ncol == 3:
-                z = P.Val.to_numpy().reshape((nPnts, 1))
-                LC = numpy.concatenate((x, y, z), axis=1)
-            else:
-                LC = numpy.concatenate((x, y), axis=1)
-            L = shapely.geometry.LineString(LC)
-
-        else:
-            GEO = geopandas.read_file(filename)["geometry"]
-            L = GEO[0]
-
-        return L
-
-    @staticmethod
     def get_xykm(
         kmfile: str,
     ) -> shapely.geometry.linestring.LineString:
@@ -184,7 +123,7 @@ class DataTextFileOperations:
 
         """
         # get the chainage file
-        xykm = DataTextFileOperations.read_xyc(kmfile, ncol=3)
+        xykm = XYCModel.read(kmfile, num_columns=3)
 
         # make sure that chainage is increasing with node index
         if xykm.coords[0][2] > xykm.coords[1][2]:
