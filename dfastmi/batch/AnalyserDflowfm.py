@@ -500,7 +500,7 @@ class AnalyserDflowfm:
         output_file1,
         output_file2,
         iface: numpy.ndarray,
-    ) -> bool, numpy.ndarray, numpy.ndarray:
+    ) -> (bool, numpy.ndarray, numpy.ndarray):
         """
         Check whether the grids on two output files match, and return mapping.
 
