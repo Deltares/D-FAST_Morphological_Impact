@@ -140,8 +140,18 @@ class Test_batch_mode:
     @pytest.mark.parametrize(
         "tstdir, cfgfile, rivfile, refsubdir",
         [
-            ("tests/c01 - GendtseWaardNevengeul", "Qmin_4000.cfg", "dfastmi/Dutch_rivers_v1.ini", "ref_Qmin_Q4000"),
-            ("tests/c03 - Pontwaard", "input_var1_dfast311_part_fou.cfg", "dfastmi/Dutch_rivers_v3.ini", "output_ref"),
+            (
+                "tests/c01 - GendtseWaardNevengeul",
+                "Qmin_4000.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "ref_Qmin_Q4000",
+            ),
+            (
+                "tests/c03 - Pontwaard",
+                "input_var1_dfast311_part_fou.cfg",
+                "dfastmi/Dutch_rivers_v3.ini",
+                "output_ref",
+            ),
         ],
     )
     def test_batch_mode_03(self, tstdir, cfgfile, rivfile, refsubdir):
