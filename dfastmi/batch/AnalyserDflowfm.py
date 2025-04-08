@@ -494,7 +494,6 @@ class AnalyserDflowfm:
 
         return dzq
 
-
     def _map_grids(
         self,
         output_file1,
