@@ -427,6 +427,11 @@ class AnalyserDflowfm:
             self._reporter.report_file_not_found(filenames[1])
             return None
 
+        output_file1 = OutputFileFactory.generate(filenames[0])
+        output_file2 = OutputFileFactory.generate(filenames[1])
+
+        grids_match, i1, i2 = self._map_grids(output_file1, output_file2, iface)
+
         ifld: Optional[int]
         if n_fields > 1:
             ustream_pos = numpy.zeros(dx.shape)
@@ -436,51 +441,34 @@ class AnalyserDflowfm:
             t_pos = numpy.zeros(dx.shape)
             t_neg = numpy.zeros(dx.shape)
 
-        output_file1 = OutputFileFactory.generate(filenames[0])
-        output_file2 = OutputFileFactory.generate(filenames[1])
-
         for ifld in range(n_fields):
             # if last time step is needed, pass None to allow for files without time specification
             if n_fields == 1:
                 ifld = None
 
             # reference data
-            u0 = output_file1.x_velocity(time_index_from_last=ifld)[iface]
-            v0 = output_file1.y_velocity(time_index_from_last=ifld)[iface]
-            umag0 = numpy.sqrt(u0**2 + v0**2)
-            h0 = output_file1.water_depth(time_index_from_last=ifld)[iface]
-
-            xn0 = output_file1.node_x_coordinates
-            yn0 = output_file1.node_y_coordinates
-            FNC0 = self._get_face_node_connectivity(output_file1)[iface]
+            u1 = output_file1.x_velocity(time_index_from_last=ifld)[iface]
+            v1 = output_file1.y_velocity(time_index_from_last=ifld)[iface]
+            umag1 = numpy.sqrt(u1**2 + v1**2)
+            h1 = output_file1.water_depth(time_index_from_last=ifld)[iface]
 
             # data with intervention
-            u1 = output_file2.x_velocity(time_index_from_last=ifld)
-            v1 = output_file2.y_velocity(time_index_from_last=ifld)
-            umag1 = numpy.sqrt(u1**2 + v1**2)
+            u2 = output_file2.x_velocity(time_index_from_last=ifld)
+            v2 = output_file2.y_velocity(time_index_from_last=ifld)
+            umag2 = numpy.sqrt(u2**2 + v2**2)
 
-            xn1 = output_file2.node_x_coordinates
-            yn1 = output_file2.node_y_coordinates
-            FNC1 = self._get_face_node_connectivity(output_file2)
+            # map intervention data to reference mesh
+            if not grids_match:
+                umag_temp = umag2[i2]
+                umag2 = umag1.copy()
+                umag2[i1] = umag_temp
 
-            if (
-                numpy.array_equal(FNC0, FNC1)
-                and numpy.array_equal(xn0, xn1)
-                and numpy.array_equal(yn0, yn1)
-            ):
-                pass
-            else:
-                xyf0 = face_mean(xn0, FNC0) + 1j * face_mean(yn0, FNC0)
-                xyf1 = face_mean(xn1, FNC1) + 1j * face_mean(yn1, FNC1)
-                xyfi, i0, i1 = numpy.intersect1d(xyf0, xyf1, return_indices=True)
-                umag2 = umag1[i1]
-                umag1 = umag0.copy()
-                umag1[i0] = umag2
+            # compute the equilibrium bed level change
+            dzq2 = dzq_from_du_and_h(umag1, h1, umag2, self._ucrit, default=0.0)
 
-            dzq1 = dzq_from_du_and_h(umag0, h0, umag1, self._ucrit, default=0.0)
-
+            # in case of tides: determine values for maximum ebb and flood conditions
             if n_fields > 1:
-                ustream = u0 * dx + v0 * dy
+                ustream = u1 * dx + v1 * dy
 
                 # positive flow -> flow in downstream direction -> biggest flow in positive direction during peak ebb flow
                 ipos = ustream > 0.0
@@ -488,7 +476,7 @@ class AnalyserDflowfm:
 
                 ipos = ustream > ustream_pos
                 ustream_pos[ipos] = ustream[ipos]
-                dzq_pos[ipos] = dzq1[ipos]
+                dzq_pos[ipos] = dzq2[ipos]
 
                 # negative flow -> flow in upstream direction -> biggest flow in negative direction during peak flood flow
                 ineg = ustream < 0.0
@@ -496,14 +484,67 @@ class AnalyserDflowfm:
 
                 ineg = ustream < ustream_neg
                 ustream_neg[ineg] = ustream[ineg]
-                dzq_neg[ineg] = dzq1[ineg]
+                dzq_neg[ineg] = dzq2[ineg]
 
+        # in case of tides: average over ebb and flood conditions
         if n_fields > 1:
             dzq = (t_pos * dzq_pos + t_neg * dzq_neg) / numpy.maximum(t_pos + t_neg, 1)
         else:
-            dzq = dzq1
+            dzq = dzq2
 
         return dzq
+
+
+    def _map_grids(
+        self,
+        output_file1,
+        output_file2,
+        iface: numpy.ndarray,
+    ) -> bool, numpy.ndarray, numpy.ndarray:
+        """
+        Check whether the grids on two output files match, and return mapping.
+
+        Arguments
+        ---------
+        output_file1 : OutputFile
+            Reference simulation file.
+        output_file2 : OutputFile
+            Simulation file with intervention.
+        iface : numpy.ndarray
+            Array containing the subselection of cells.
+
+        Returns
+        -------
+        match_grids : bool
+            Flag indicating whether the two grids match.
+        i1 : numpy.ndarray
+            Matching indices in mesh1 (empty if match_grids = True).
+        i2 : numpy.ndarray
+            Matching indices in mesh2 (empty if match_grids = True).
+        """
+        xn1 = output_file1.node_x_coordinates
+        yn1 = output_file1.node_y_coordinates
+        FNC1 = self._get_face_node_connectivity(output_file1)[iface]
+
+        xn2 = output_file2.node_x_coordinates
+        yn2 = output_file2.node_y_coordinates
+        FNC2 = self._get_face_node_connectivity(output_file2)
+
+        grids_match = (
+            numpy.array_equal(FNC1, FNC2)
+            and numpy.array_equal(xn1, xn2)
+            and numpy.array_equal(yn1, yn2)
+        )
+
+        if grids_match:
+            i1 = numpy.zeros(0)
+            i2 = numpy.zeros(0)
+        else:
+            xyf1 = face_mean(xn1, FNC1) + 1j * face_mean(yn1, FNC1)
+            xyf2 = face_mean(xn2, FNC2) + 1j * face_mean(yn2, FNC2)
+            xyfi, i1, i2 = numpy.intersect1d(xyf1, xyf2, return_indices=True)
+
+        return match_grids, i1, i2
 
     def _get_face_node_connectivity(self, output_file: OutputFile) -> numpy.ndarray:
         face_node_connectivity = output_file.face_node_connectivity
