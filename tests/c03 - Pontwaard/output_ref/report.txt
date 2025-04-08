@@ -1,0 +1,69 @@
+D-FAST Morphological Impact implements an algorithm to estimate the local
+morphological effects of a local intervention (i.e. an adjustment to the
+river). The conceptual framework was originally introduced in
+    "RWS-WD memo WAQUA vuistregel (Sieben, 2010)"
+but it has been extended and improved over the years. Check the user manual
+for the details of the currently implemented algorithm.
+
+It is based on an estimation of the equilibrium bed level changes in the
+main channel that would occur eventually when river maintenance would not
+be adjusted.
+
+The effect is expressed as:
+
+    year-averaged bed level change [m] without dredging
+    maximum bed level change [m] without dredging
+    minimum bed level change [m] without dredging
+
+By means of these estimates bottlenecks can be identified. The results are
+not suitable for direct estimation of the impact on the maintenance of the
+navigation channel!
+
+The combination of the total equilibrium sedimentation volume and the
+yearly sediment load of the river determines the period over which the
+equilibrium can be reached.
+
+This is version 3.1.2.
+
+
+In order to use D-FAST Morphological Impact you need to run reference and
+scenario simulations on the same computational mesh.
+
+
+================================================================================
+
+Configuration settings used for computation:
+
+Case description                    : Pontwaard var1
+Branch                              : Pannerdensch Kanaal & Nederrijn-Lek
+Reach                               : Lek                          km  948-989
+Discharge location                  : Lobith
+Minimum flow-carrying discharge     : 1500.0 m3/s
+Impacted length                     : 989 m
+
+Critical flow velocity              : 0.3 m/s
+
+Condition             | Reference file (without intervention)  | File with intervention
+ 1300.0 m3/s          | ---                                    | ---                                        (intervention not active)
+ 2000.0 m3/s          | RIJN_0006_fou.nc                       | RIJN_0006_fou.nc                           
+ 3000.0 m3/s          | RIJN_0006_fou.nc                       | RIJN_0006_fou.nc                           
+ 4000.0 m3/s          | RIJN_0006_fou.nc                       | RIJN_0006_fou.nc                           
+ 6000.0 m3/s          | RIJN_0006_fou.nc                       | RIJN_0006_fou.nc                           
+ 8000.0 m3/s          | RIJN_0006_fou.nc                       | RIJN_0006_fou.nc                           
+
+================================================================================
+
+The result of this program is one netCDF file named:
+
+    dfastmi_results.nc
+
+containing three variables containing the characteristic bed level changes:
+
+    avgdzb: year-averaged change [m] without dredging
+    maxdzb: maximum change [m] after flood without dredging
+    mindzb: minimum change [m] after low flow without dredging
+
+If the bed level changes are removed on a yearly basis, the impacted river reach
+is estimated at 989 m from the upstream edge of the impacted reach.
+
+The program has ended !!!
