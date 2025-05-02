@@ -133,9 +133,11 @@ class Test_ReporterDflowfm_Report:
         report_data = self.set_report_data_without_xykm(tmp_path)
 
         mocked_mapfile = Mock(spec=MapFile)
+        mocked_outputfile = Mock(spec=MapFile)
 
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
+            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
             patch(
                 "dfastmi.batch.ReporterDflowfm.plot_overview"
             ) as mocked_plotting_plot_overview,
@@ -146,7 +148,9 @@ class Test_ReporterDflowfm_Report:
         ):
 
             reporter = ReporterDflowfm(display)
+            print("a")
             reporter.report(tmp_path, plotting_options, report_data)
+            print("b")
 
             assert mocked_mapfile.add_variable.call_count == 10
             assert mocked_plotting_plot_overview.call_count == 0
@@ -159,9 +163,11 @@ class Test_ReporterDflowfm_Report:
         report_data = self.set_report_data_without_xykm(tmp_path)
 
         mocked_mapfile = Mock(spec=MapFile)
+        mocked_outputfile = Mock(spec=MapFile)
 
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
+            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
             patch(
                 "dfastmi.batch.ReporterDflowfm.plot_overview"
             ) as mocked_plotting_plot_overview,
@@ -190,10 +196,12 @@ class Test_ReporterDflowfm_Report:
         report_data = self.set_report_data_with_xykm(tmp_path)
 
         mocked_mapfile = Mock(spec=MapFile)
+        mocked_outputfile = Mock(spec=MapFile)
 
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
+            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
             patch(
                 "dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file"
             ),
@@ -221,10 +229,12 @@ class Test_ReporterDflowfm_Report:
         report_data = self.set_report_data_with_xykm(tmp_path)
 
         mocked_mapfile = Mock(spec=MapFile)
+        mocked_outputfile = Mock(spec=MapFile)
 
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
+            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
             patch(
                 "dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file"
             ),
