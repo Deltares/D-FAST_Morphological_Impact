@@ -248,7 +248,7 @@ class AnalyserDflowfm:
         self._missing_data = False
 
         # determine the name of the first FM data file that will be used
-        if 0 in filenames.keys():  # the keys are 0,1,2
+        if 2 in filenames.keys():  # the keys are 0,1,2
             one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(
                 filenames
             )
@@ -312,7 +312,7 @@ class AnalyserDflowfm:
         dxi: numpy.ndarray,
         dyi: numpy.ndarray,
     ) -> numpy.ndarray:
-        if 0 in filenames.keys():  # the keys are 0,1,2
+        if 2 in filenames.keys():  # the keys are 0,1,2
             return self._get_dzq_based_on_numbered_keys(filenames, dxi, dyi, iface)
         else:  # the keys are the conditions
             return self._get_dzq_based_on_conditions_keys(filenames, dxi, dyi, iface)

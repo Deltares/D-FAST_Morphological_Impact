@@ -255,7 +255,7 @@ def _report_used_file_names(
     for i, q in enumerate(initialized_config.discharges):
         if not q:  # should only happen for version 1 files
             continue
-        if 0 in filenames:
+        if 2 in filenames:
             key = i
         elif initialized_config.needs_tide:
             key = (q, initialized_config.tide_bc[i])
