@@ -496,8 +496,8 @@ class AnalyserDflowfm:
 
     def _map_grids(
         self,
-        output_file1,
-        output_file2,
+        output_file1: OutputFile,
+        output_file2: OutputFile,
         iface: numpy.ndarray,
     ) -> (bool, numpy.ndarray, numpy.ndarray):
         """
