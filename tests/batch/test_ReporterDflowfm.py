@@ -137,7 +137,10 @@ class Test_ReporterDflowfm_Report:
 
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
-            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
+            patch(
+                "dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate",
+                return_value=mocked_outputfile,
+            ),
             patch(
                 "dfastmi.batch.ReporterDflowfm.plot_overview"
             ) as mocked_plotting_plot_overview,
@@ -167,7 +170,10 @@ class Test_ReporterDflowfm_Report:
 
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
-            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
+            patch(
+                "dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate",
+                return_value=mocked_outputfile,
+            ),
             patch(
                 "dfastmi.batch.ReporterDflowfm.plot_overview"
             ) as mocked_plotting_plot_overview,
@@ -201,7 +207,10 @@ class Test_ReporterDflowfm_Report:
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
-            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
+            patch(
+                "dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate",
+                return_value=mocked_outputfile,
+            ),
             patch(
                 "dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file"
             ),
@@ -234,7 +243,10 @@ class Test_ReporterDflowfm_Report:
         # private method _replace_coordinates_in_destination_file is mocked because it tries to access netCDF4 file and this test is no data access, thus this called is mocked.
         with (
             patch("dfastmi.batch.ReporterDflowfm.MapFile", return_value=mocked_mapfile),
-            patch("dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate", return_value=mocked_outputfile),
+            patch(
+                "dfastmi.batch.ReporterDflowfm.OutputFileFactory.generate",
+                return_value=mocked_outputfile,
+            ),
             patch(
                 "dfastmi.batch.ReporterDflowfm.ReporterDflowfm._replace_coordinates_in_destination_file"
             ),
