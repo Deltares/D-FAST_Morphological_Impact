@@ -142,9 +142,21 @@ class Test_batch_mode:
         [
             (
                 "tests/c01 - GendtseWaardNevengeul",
+                "c01_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref",
+            ),
+            (
+                "tests/c01 - GendtseWaardNevengeul",
                 "Qmin_4000.cfg",
                 "dfastmi/Dutch_rivers_v1.ini",
                 "ref_Qmin_Q4000",
+            ),
+            (
+                "tests/c02 - DeLymen",
+                "c02_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref",
             ),
             (
                 "tests/c03 - Pontwaard",

@@ -12,16 +12,21 @@ mkdir %target_compatibility%
 set target=%target_compatibility%\01 - Gendtse Waard\
 echo Copying case to %target%
 mkdir "%target%"
-rem Using "c01.cf?" instead of "c01.cfg" to make sure that copy prints the name of the file copied
-copy "tests\c01 - GendtseWaardNevengeul\c01.cf?" "%target%"
+copy "tests\c01 - GendtseWaardNevengeul\c01*.cfg" "%target%"
 copy "tests\c01 - GendtseWaardNevengeul\*.xyz" "%target%"
+copy "tests\c01 - GendtseWaardNevengeul\*map.nc" "%target%"
 
 set target=%target_compatibility%\02 - De Lymen\
 echo Copying case to %target%
 mkdir "%target%"
-rem Using "c02.cf?" instead of "c02.cfg" to make sure that copy prints the name of the file copied
-copy "tests\c02 - DeLymen\c02.cf?" "%target%"
+copy "tests\c02 - DeLymen\c02*.cfg" "%target%"
 copy "tests\c02 - DeLymen\*.xyz" "%target%"
+set target_subdir=%target%\reference_sds\
+mkdir "%target_subdir%"
+copy "tests\c02 - DeLymen\reference_sds\*map.nc" "%target_subdir%"
+set target_subdir=%target%\variant_sds\
+mkdir "%target_subdir%"
+copy "tests\c02 - DeLymen\variant_sds\*map.nc" "%target_subdir%"
 
 
 rem ===============================================

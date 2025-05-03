@@ -268,8 +268,11 @@ class AnalyserDflowfm:
     ) -> Optional[str]:
         for i in range(3):
             if (
-                self._discharges[i] is not None
-                and self._discharges[i] > self._q_threshold
+                self._q_threshold is None
+                or (
+                    self._discharges[i] is not None
+                    and self._discharges[i] > self._q_threshold
+                )
             ):
                 return filenames[i][0]
         return None
@@ -329,7 +332,7 @@ class AnalyserDflowfm:
             if self._discharges[i] is None:
                 # ignore period
                 dzq[i] = 0
-            elif self._discharges[i] <= self._q_threshold:
+            elif self._q_threshold is not None and self._discharges[i] <= self._q_threshold:
                 # intervention inactive, so zero-effect for this period
                 dzq[i] = numpy.zeros_like(iface, dtype=float)
             else:
