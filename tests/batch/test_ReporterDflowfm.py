@@ -151,9 +151,7 @@ class Test_ReporterDflowfm_Report:
         ):
 
             reporter = ReporterDflowfm(display)
-            print("a")
             reporter.report(tmp_path, plotting_options, report_data)
-            print("b")
 
             assert mocked_mapfile.add_variable.call_count == 10
             assert mocked_plotting_plot_overview.call_count == 0
