@@ -15,11 +15,6 @@ def run(config_file: str, ships_file: Optional[str]) -> None:
     simulation_data: list[UgridDataset] = []
     for i, file in enumerate(configuration.output_files):
         simulation_data.append(xu.open_dataset(file))
-
-        if hasattr(configuration, 'invertxaxis'):
-            invertxaxis = configuration.invertxaxis
-        else:
-            invertxaxis = False
         
         if hasattr(configuration,'bbox'):
             x_slice = slice(configuration.bbox[0],configuration.bbox[1])
@@ -40,18 +35,18 @@ def run(config_file: str, ships_file: Optional[str]) -> None:
 
     ## Ice:
     #1D:
-    ice.run_1d(simulation_data, 
-               variables, 
-               configuration.profiles_file, 
-               configuration.riverkm, 
-               invertxaxis)
+    # ice.run_1d(simulation_data, 
+    #            variables, 
+    #            configuration.profiles_file, 
+    #            configuration.riverkm, 
+    #            invertxaxis)
 
     ## 2D:
-    # ice.run_2d(simulation_data[0][variables.h], 
-    #            simulation_data[0][variables.uc], 
-    #            configuration.water_uplift_correction, 
-    #            configuration.bed_change_correction,
-    #            configuration.riverkm)
+    ice.run_2d(simulation_data[0][variables.h], 
+               simulation_data[0][variables.uc], 
+               configuration.waterupliftcorrection, 
+               configuration.bedchangecorrection,
+               configuration.riverkm)
 
     # water_depth = [simulation_data[0][variables.h],simulation_data[1][variables.h]]
     # flow_velocity = [simulation_data[0][variables.uc],simulation_data[1][variables.uc]]

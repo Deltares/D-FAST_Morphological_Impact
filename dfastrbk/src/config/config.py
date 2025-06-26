@@ -2,6 +2,7 @@ from pathlib import Path
 from configparser import ConfigParser
 from dfastio import xyc
 from dfastrbk.src.batch.support import get_abs_path
+from dfastmi.io.DFastAnalysisConfigFileParser import DFastAnalysisConfigFileParser
 
 class Ship:
     def __init__(self, reach: str, ships_file: str):
@@ -36,19 +37,18 @@ class Config:
                                               self.config[self.section]['Reference']))
         
         # Handle optional file input
-        with_intervention = self.config_parser[self.section].get('WithIntervention')
+        data = DFastAnalysisConfigFileParser(self.config)
+        with_intervention = data.getstring(self.section, 'WithIntervention')
         if with_intervention:
             self.output_files.append(get_abs_path(self.config_dir, with_intervention))
+
+        # Handle boolean flags from 'General' section
+        for flag in ['InvertXAxis', 'WaterUpliftCorrection', 'BedChangeCorrection']:
+            setattr(self, flag.lower(), data.getboolean('General', flag, 'False'))
 
         # Parse bounding box if present
         if 'BoundingBox' in self.config:
             self.bbox = [float(self.config['BoundingBox'][key]) for key in self.config_parser['BoundingBox']]
-
-        # Handle boolean flags from 'General' section
-        for flag in ['InvertXAxis', 'WaterUpliftCorrection', 'BedChangeCorrection']:
-            if flag in self.config:
-                setattr(self, flag.lower(), self.config.getboolean('General', flag))
-
 
         self.ship_params = Ship(self.reach, self.ships_file)
 
