@@ -337,7 +337,6 @@ class CrossFlow:
             crit_value = criteria[1] if discharge < 50.0 else criteria[0]
             if np.any(yi < 0):
                 crit_value = -crit_value
-
             crit_handle = ax.hlines(crit_value, xi[start_idx], xi[end_idx - 1], color='red', lw=1, ls='-')
 
         return crit_handle

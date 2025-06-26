@@ -13,6 +13,9 @@ varn_face_y_bnd = 'mesh2d_face_y_bnd'
 def slice_simulation_data(simulation_data: UgridDataset, 
                           profiles_file: Path,
                           riverkm: LineString) -> Tuple:
+    #TODO: decouple profile_data from [rkm, segment_idx and face_idx] 
+    # such that for multiple simulations with the same grid, only one grid can be sliced
+
     # Step 1: Return profile line(s) as dataframe
     prof_line_df = read_profile_lines(profiles_file)
 

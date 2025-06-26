@@ -11,15 +11,14 @@ def run(simulation_data: list,
         profiles_file: Path,
         riverkm: LineString,
         ship_params: config.Ship,
-        invert_xaxis: bool):
+        invert_xaxis: bool = False):
     
     #TODO: loop over geom_idx
+    #TODO: add information about which line is plotted in the profiles_file
     geom_idx = 0
     transverse_velocity = []
 
-    for data in simulation_data:
-        #TODO: fix this
-        
+    for data in simulation_data:   
         profile_data, prof_line_df, rkm, segment_idx, face_idx = dflowfm.slice_simulation_data(data, 
                                                                         profiles_file,
                                                                         riverkm)

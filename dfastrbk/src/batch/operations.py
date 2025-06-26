@@ -31,11 +31,14 @@ def insert_array_roots(x: np.ndarray, y: np.ndarray) -> tuple:
     """
     Interpolate arrays and append the roots (zero-crossings)
     """
+    
     z = find_roots(x, y)
     # Insert zero-crossings to the original arrays
+    
+    #TODO: there's a small bug where the zero-crossing is inserted in front of an element with the same x
     idx = x.searchsorted(z)
-    x_mod = np.insert(x,idx+1,z) # we add +1 to include the last element of the block
-    y_mod = np.insert(y,idx+1,0)
+    x_mod = np.insert(x,idx,z)
+    y_mod = np.insert(y,idx,0)
 
     return x_mod, y_mod
 
