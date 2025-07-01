@@ -34,31 +34,30 @@ def run(config_file: str, ships_file: Optional[str]) -> None:
     variables = Variables(varn_h, varn_uc, varn_ucx, varn_ucy)
 
     ## Ice:
-    #1D:
-    # ice.run_1d(simulation_data, 
-    #            variables, 
-    #            configuration.profiles_file, 
-    #            configuration.riverkm, 
-    #            invertxaxis)
+    if configuration.plottype == '1D':
+        ice.run_1d(simulation_data, 
+                   variables, 
+                   configuration.profiles_file, 
+                   configuration.riverkm, 
+                   configuration.invertxaxis)
+        
+        cross_flow.run(simulation_data, 
+                       variables, 
+                       configuration.profiles_file,
+                       configuration.riverkm,
+                       configuration.ship_params,
+                       configuration.invertxaxis)
+        
+    elif configuration.plottype == '2D':
+        ice.run_2d(simulation_data[0][variables.h], 
+                simulation_data[0][variables.uc], 
+                configuration.waterupliftcorrection, 
+                configuration.bedchangecorrection,
+                configuration.riverkm)
 
-    ## 2D:
-    ice.run_2d(simulation_data[0][variables.h], 
-               simulation_data[0][variables.uc], 
-               configuration.waterupliftcorrection, 
-               configuration.bedchangecorrection,
-               configuration.riverkm)
-
-    # water_depth = [simulation_data[0][variables.h],simulation_data[1][variables.h]]
-    # flow_velocity = [simulation_data[0][variables.uc],simulation_data[1][variables.uc]]
-    # ice.run_2d_diff(water_depth, 
-    #                 flow_velocity, 
-    #                 configuration.water_uplift_correction, 
-    #                 configuration.bed_change_correction)
-    
-    # ### Cross flow:
-    # cross_flow.run(simulation_data, 
-    #             variables, 
-    #             configuration.profiles_file,
-    #             configuration.riverkm,
-    #             configuration.ship_params,
-    #             invertxaxis)
+        water_depth = [simulation_data[0][variables.h],simulation_data[1][variables.h]]
+        flow_velocity = [simulation_data[0][variables.uc],simulation_data[1][variables.uc]]
+        ice.run_2d_diff(water_depth, 
+                        flow_velocity, 
+                        configuration.waterupliftcorrection, 
+                        configuration.bedchangecorrection)

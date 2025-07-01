@@ -60,7 +60,7 @@ def plot_variable(ax: Axes, x: np.ndarray, y: np.ndarray, color: str = 'black') 
 class Plot1DConfig:
     XLABEL: str = 'afstand [rivierkilometer]'
     COLORS = ('k','b','r') # reference, intervention, difference
-    LABELS = ['Referentie','Met interventie']
+    LABELS = ['Referentie','Plansituatie']
 
 @dataclass
 class Plot2DConfig:
@@ -79,14 +79,14 @@ def modify_axes(ax: Axes, x_major_tick: float, x_minor_tick: float) -> Axes:
     
 @dataclass
 class FlowfieldConfig:
-    VELOCITY_YLABEL: str = r'stroomsnelheid [$m/s$]'
-    VELOCITY_DIFF_YLABEL: str = 'verschil in\nstroomsnelheid'+r' [$m/s$]'
+    VELOCITY_YLABEL: str = r'stroomsnelheid\nmagnitude[$m/s$]'
+    VELOCITY_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie'+r' [$m/s$]'
     VELOCITY_YMIN: float = 0.0
     ANGLE_YTICKS = ticker.FixedLocator(list(range(-180, 181, 45)))
-    ANGLE_PRIMARY_YLABEL: str = r'stromingshoek [graden]'
-    ANGLE_SECONDARY_YLABEL: str = r'stromingshoek [richting]'
-    ANGLE_DIFF_YLABEL: str = 'verschil in\nstromingshoek' + r' [$graden$]'
-    ANGLE_SECONDARY_YTICKLABELS = ticker.FixedFormatter(['Z','ZW','W','NW','N','NO','O','ZO','Z'])
+    ANGLE_PRIMARY_YLABEL: str = r'stromingshoek t.o.v. profiellijn [graden]'
+    #ANGLE_SECONDARY_YLABEL: str = r'stromingshoek [richting]'
+    ANGLE_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie' + r' [$graden$]'
+    #ANGLE_SECONDARY_YTICKLABELS = ticker.FixedFormatter(['Z','ZW','W','NW','N','NO','O','ZO','Z'])
     
 @dataclass
 class FroudeConfig:
@@ -95,19 +95,21 @@ class FroudeConfig:
     class Abs:
         colorbar_label: str = 'Froude getal'
         levels: tuple = (0,0.08,0.1,0.15)
-        colors: tuple = ('grey','yellow','blue','red')
+        colormap: str = 'RdBu'
     
     class Diff:
         bins: list = [0, 0.08, 0.1, 0.15, np.inf]
         
         # the following variables are linked to the classes returned by _compute_change_classes
-        colors: tuple = ("#d1ffbf", '#49e801', '#267500', '#f80000', '#fea703', '#fffe00')
-        labels: list[str] = [f"van < {bins[3]} naar >= {bins[3]}",
-                             f"van < {bins[2]} naar >= {bins[2]}",
+        #colors: tuple = ("#d1ffbf", '#49e801', '#267500', '#f80000', '#fea703', '#fffe00')
+        colors = ('blue','red')
+        labels: list[str] = [#f"van < {bins[3]} naar >= {bins[3]}",
+                             #f"van < {bins[2]} naar >= {bins[2]}",
                              f"van < {bins[1]} naar >= {bins[1]}",
-                             f"van > {bins[1]} naar <= {bins[1]}",
-                             f"van > {bins[2]} naar <= {bins[2]}",
-                             f"van > {bins[3]} naar <= {bins[3]}"]
+                             f"van > {bins[1]} naar <= {bins[1]}"
+                             #f"van > {bins[2]} naar <= {bins[2]}",
+                             #f"van > {bins[3]} naar <= {bins[3]}"
+                             ]
 class Ice2D:
 
     def initialize_map(self) -> tuple[Figure, Axes]:
@@ -131,7 +133,7 @@ class Ice2D:
         p = data.ugrid.plot(ax=ax, 
                             add_colorbar=False, 
                             levels=FroudeConfig.Abs.levels,
-                            colors=FroudeConfig.Abs.colors)
+                            cmap=FroudeConfig.Abs.colormap)
         fig.colorbar(p,ax=ax,label=FroudeConfig.Abs.colorbar_label,orientation='horizontal',shrink=0.25)
         ax = self.modify_axes(ax)
         chainage_markers(np.array(riverkm.coords), ax, scale=1)
@@ -200,12 +202,12 @@ class Ice2D:
         """Computes how classes change between two digitized datasets"""
         classes = variant_data * np.nan
 
-        conditions = [(ref_data < 3) & (variant_data >= 3),
-            (ref_data < 2) & (variant_data >= 2),
+        conditions = [#(ref_data < 3) & (variant_data >= 3),
+            #(ref_data < 2) & (variant_data >= 2),
             (ref_data < 1) & (variant_data >= 1),
-            (ref_data > 0) & (variant_data <= 0),
-            (ref_data > 1) & (variant_data <= 1),
-            (ref_data > 2) & (variant_data <= 2)
+            (ref_data > 0) & (variant_data <= 0)
+            #(ref_data > 1) & (variant_data <= 1),
+            #(ref_data > 2) & (variant_data <= 2)
         ]
 
         for i, cond in enumerate(conditions, start=1):
@@ -239,14 +241,12 @@ class Ice1D:
         plot_variable(ax, distance, angle, color)
         return ax
     
-    def angle_direction(self, ax: Axes):
-        secax_y = ax.secondary_yaxis(-0.2)
-        for ax in [ax,secax_y]:
-            ax.yaxis.set_major_locator(FlowfieldConfig.ANGLE_YTICKS)
-            ax.set_ylim(-180, 180)
-        secax_y.yaxis.set_major_formatter(FlowfieldConfig.ANGLE_SECONDARY_YTICKLABELS)
-        secax_y.set_ylabel(FlowfieldConfig.ANGLE_SECONDARY_YLABEL)
-        return secax_y
+    # def angle_direction(self, ax: Axes):
+    #     secax_y = ax.secondary_yaxis(-0.2)
+    #     for ax in [ax,secax_y]:
+    #     secax_y.yaxis.set_major_formatter(FlowfieldConfig.ANGLE_SECONDARY_YTICKLABELS)
+    #     secax_y.set_ylabel(FlowfieldConfig.ANGLE_SECONDARY_YLABEL)
+    #     return secax_y
     
     def create_figure(self,
                       distance: np.ndarray, 
@@ -278,7 +278,8 @@ class Ice1D:
             ax2 = modify_axes(ax2,XMAJORTICK,XMINORTICK)
             if inverse_xaxis: 
                 invert_xaxis(ax)
-        self.angle_direction(ax2)
+        ax2.yaxis.set_major_locator(FlowfieldConfig.ANGLE_YTICKS)
+        ax2.set_ylim(-180, 180)
 
         ax1.legend(Plot1DConfig.LABELS, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
                       ncols=2, borderaxespad=0.)
@@ -330,7 +331,7 @@ class CrossFlow:
             xi_segment = xi[start_idx:end_idx]
             yi_segment = yi[start_idx:end_idx]
 
-            ax.fill_between(xi_segment, yi_segment, alpha=0.5, interpolate=True)
+            ax.fill_between(xi_segment, yi_segment, color='black', alpha=0.5, interpolate=True)
             ax.axvline(xi[start_idx], color='black', lw=0.5, ls='--')
             ax.axvline(xi[end_idx - 1], color='black', lw=0.5, ls='--')
 

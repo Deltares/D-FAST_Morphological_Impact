@@ -51,6 +51,7 @@ class Config:
             self.bbox = [float(self.config['BoundingBox'][key]) for key in self.config_parser['BoundingBox']]
 
         self.ship_params = Ship(self.reach, self.ships_file)
+        self.plottype = data.getstring('General', 'PlotType', 'both')
 
     def get_config_file(self) -> Path:
         return self.config_file
