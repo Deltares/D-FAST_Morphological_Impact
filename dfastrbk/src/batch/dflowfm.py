@@ -1,36 +1,37 @@
 from collections import OrderedDict
-from typing import Tuple
+from typing import Tuple, NamedTuple
 from pathlib import Path
 import numpy as np
-from shapely import LineString
+from shapely import LineString, MultiLineString
 from xugrid import UgridDataset
+from xarray import DataArray
 from pandas import DataFrame
 from dfastrbk.src.batch import geometry
 
-varn_face_x_bnd = 'mesh2d_face_x_bnd'
-varn_face_y_bnd = 'mesh2d_face_y_bnd'
+VARN_FACE_X_BND = 'mesh2d_face_x_bnd'
+VARN_FACE_Y_BND = 'mesh2d_face_y_bnd'
 
-def slice_simulation_data(simulation_data: UgridDataset, 
-                          profiles_file: Path,
-                          riverkm: LineString) -> Tuple:
-    #TODO: decouple profile_data from [rkm, segment_idx and face_idx] 
-    # such that for multiple simulations with the same grid, only one grid can be sliced
 
-    # Step 1: Return profile line(s) as dataframe
-    prof_line_df = read_profile_lines(profiles_file)
+def get_profile_data(profile_dataset: UgridDataset,
+                      variable_name: str,
+                      face_idx) -> dict:
+    profile_data = profile_dataset[variable_name].values[face_idx]
+    return profile_data
 
-    # Step 2: Intersect simulation data with profile line(s)
-    geom_idx = 0 #TODO: loop over geom_idx
-    profile_linestring = prof_line_df.geometry[geom_idx]
-    profile_data = intersect_linestring(simulation_data, profile_linestring)
+def slice_ugrid(simulation_data: UgridDataset,
+               profile: LineString,
+               profile_coords: np.ndarray,
+               riverkm_coords: np.ndarray) -> Tuple[UgridDataset, np.ndarray, np.ndarray, np.ndarray]:
     
-    # Step 3: Convert to river km
-    profile_coords = prof_line_df.get_coordinates(index_parts=True).loc[geom_idx].to_numpy()
-    edge_coords = extract_edge_coords(profile_data)
-    xykm_coords = np.array(riverkm.coords)
-    rkm, segment_idx, face_idx = slice_mesh_with_polyline(edge_coords, profile_coords, xykm_coords)
+    # Step 1: first-order filtering of faces
+    profile_data = intersect_linestring(simulation_data, profile)
     
-    return profile_data, prof_line_df, rkm, segment_idx, face_idx
+    # Step 2: second-order filtering of edges
+    edge_coords = extract_edge_coords(profile_data, VARN_FACE_X_BND, VARN_FACE_Y_BND)
+
+    rkm, segment_idx, face_idx = slice_mesh_with_polyline(edge_coords, profile_coords, riverkm_coords)
+    
+    return profile_data, rkm, segment_idx, face_idx
 
 def read_profile_lines(profiles_file: Path) -> DataFrame:
     profile_lines = geometry.ProfileLines(profiles_file)
@@ -38,27 +39,37 @@ def read_profile_lines(profiles_file: Path) -> DataFrame:
     prof_line_df['angle'] = profile_lines.get_angles()
     return prof_line_df
 
-def intersect_linestring(simulation_data: UgridDataset, profile_linestring) -> UgridDataset:
-    return simulation_data.ugrid.intersect_linestring(profile_linestring)
+def intersect_linestring(simulation_data: UgridDataset, 
+                         profile: LineString) -> UgridDataset:
+    """Returns only the data on faces intersected by the profile line"""
+    if isinstance(profile, MultiLineString):
+        profile = geometry.merge_lines(profile)
+    return simulation_data.ugrid.intersect_linestring(profile)
 
-def extract_edge_coords(profile_data: UgridDataset) -> np.ndarray:
+def extract_edge_coords(profile_data: UgridDataset,
+                        varn_face_x_bnd: str,
+                        varn_face_y_bnd: str) -> np.ndarray:
     x_bnd = profile_data[varn_face_x_bnd].values
     y_bnd = profile_data[varn_face_y_bnd].values
     return np.unique(np.stack((x_bnd, y_bnd), axis=-1), axis=0)
 
 def slice_mesh_with_polyline(edge_coords: np.ndarray, 
                              profile_coords: np.ndarray,
-                             xykm_coords: np.ndarray):
+                             xykm_coords: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Slices mesh edges with a profile line and returns for each intersection point:
+        pkm: projected value of xykm, found by interpolation
+        segment_idx: index of segment of profile line
+        face_idx: index of mesh face"""
     intersects, face_indices = find_intersects(edge_coords, profile_coords)
     assert len(intersects) != 0, "No intersects found between profile line(s) and simulation data. Expand the bounding box, or change the profile line(s)"
     
     profile_distances, segment_indices = calculate_intersect_distance(profile_coords, intersects)
-    rkm, segment_idx, face_idx = _order_intersection_points(intersects,
+    pkm, segment_idx, face_idx = _order_intersection_points(intersects,
                                                 profile_distances,
                                                 segment_indices,
                                                 face_indices,
                                                 xykm_coords)
-    return rkm, segment_idx, face_idx
+    return pkm, segment_idx, face_idx
     
 def find_intersects(edge_coords: np.ndarray, line_coords: np.ndarray) -> tuple[np.ndarray, 
                                                                                 np.ndarray]:

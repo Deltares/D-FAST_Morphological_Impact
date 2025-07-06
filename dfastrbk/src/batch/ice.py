@@ -2,41 +2,30 @@ from typing import NamedTuple
 from pathlib import Path
 from xarray import DataArray
 from xugrid import UgridDataset
+import numpy as np
 from dfastrbk.src.batch import plotting, dflowfm, geometry
 from dfastrbk.src.kernel import froude
 from shapely import LineString
 
-varn_froude: str = 'mesh2d_froude'
+def run_1d(uc: list[np.ndarray],
+           ucx: list[np.ndarray],
+           ucy: list[np.ndarray],
+           rkm: np.ndarray, 
+           invert_xaxis: bool) -> None:
 
-def run_1d(simulation_data: list, 
-           variables: NamedTuple, 
-           profiles_file: Path, 
-           riverkm: LineString,
-           invert_xaxis: bool): 
-
-    #TODO: fix this, wuch faster to only slice ref. simulation grid once
-    # Then filter the variant simulation data by the resulting indices
     velocity_magnitude = []
     velocity_angle = []
+    
+    for m, x, y in zip(uc,ucx,ucy):
+        velocity_magnitude.append(m)
+        flow_angle = geometry.vector_angle(x,y)
+        velocity_angle.append(flow_angle)
 
-    for data in simulation_data:
-        profile_data, _, rkm, _, face_idx = dflowfm.slice_simulation_data(data,
-                                                                        profiles_file,
-                                                                        riverkm)
-        
-        flow_velocity = profile_data[variables.uc].values[face_idx]
-        flow_angle = geometry.vector_angle(profile_data[variables.ucx].values[face_idx],
-                                profile_data[variables.ucy].values[face_idx])
-        
-        velocity_magnitude.append(flow_velocity)
-        velocity_angle.append(flow_angle)    
-        
     plotter_1D = plotting.Ice1D()
     plotter_1D.create_figure(rkm,
                              velocity_magnitude,
                              velocity_angle,
                              invert_xaxis)
-
 
 def run_2d(water_depth: DataArray, 
            flow_velocity: DataArray, 

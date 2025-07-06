@@ -49,7 +49,7 @@ def parse_arguments() -> tuple:
         rivers_file = "Dutch_rivers_v3.ini"
     if ships_file == "unspecified":
         #TODO: fix this path
-        ships_file = "src/ship_dimensions.ini"
+        ships_file = "dfastrbk/src/ship_dimensions.ini"
 
     return config_file, rivers_file, ships_file
 

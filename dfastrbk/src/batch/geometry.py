@@ -1,10 +1,10 @@
+from dataclasses import dataclass, field
 import numpy as np
 import shapely
-from shapely import LineString
+from shapely import LineString, MultiLineString, ops
 from pathlib import Path
 import pandas
 import geopandas as gpd
-from dataclasses import dataclass
 
 def vector_angle(u0: np.ndarray,
                  v0: np.ndarray) -> np.ndarray:
@@ -162,6 +162,7 @@ def extract_coordinates(geometries: list) -> np.ndarray:
 class ProfileLines:
     """Class for handling profile lines"""
     filepath: Path
+    dataframe: gpd.GeoDataFrame = field(init=False, default_factory=gpd.GeoDataFrame)
 
     def read_file(self) -> gpd.GeoDataFrame:
         """
@@ -171,26 +172,29 @@ class ProfileLines:
             raise FileNotFoundError(f"File not found: {self.filepath}")
         try:
             self.dataframe = gpd.read_file(self.filepath)
+            self.dataframe = self.get_exploded_df()
         except Exception as e:
             raise IOError(f"Error reading file {self.filepath}: {e}")
-        return self.dataframe
-
-    def get_exploded_df(self) -> gpd.GeoDataFrame:
-        """
-        Explode the GeoDataFrame and reset index.
-        """
-        exploded_df = self.dataframe.explode()
-        exploded_df.reset_index(drop=True, inplace=True)
-        return exploded_df
+        return self.get_exploded_df()
 
     def get_angles(self):
         """
         Calculate angles for the geometries in the GeoDataFrame.
         """
-        exploded_df = self.get_exploded_df()
-        exploded_df['angle'] = exploded_df.geometry.apply(lambda geom: calculate_angle(geom.coords))
-        return exploded_df['angle']
+        self.dataframe['angle'] = self.dataframe.geometry.apply(
+            lambda geom: calculate_angle(geom.coords) if hasattr(geom, "coords") else np.nan
+        )
+        return self.dataframe['angle']
 
+    def get_exploded_df(self) -> gpd.GeoDataFrame:
+        exploded_df = self.dataframe.explode()
+        exploded_df.reset_index(drop=True, inplace=True)
+        return exploded_df
+
+def merge_lines(lines: MultiLineString):
+    """"Merge individual line segments."""
+    return ops.linemerge(lines)
+       
 def calculate_angle(coords):
     vertices = np.array(coords)
     return np.degrees(np.arctan2(np.diff(vertices[:, 1]), np.diff(vertices[:, 0])))

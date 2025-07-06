@@ -70,7 +70,7 @@ class Plot2DConfig:
 
 def modify_axes(ax: Axes, x_major_tick: float, x_minor_tick: float) -> Axes:
     #x-axis:
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(x_minor_tick))
+    #ax.xaxis.set_minor_locator(ticker.MultipleLocator(x_minor_tick))
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/x_major_tick}"))
     
     ax.tick_params(which='major',length=8)
@@ -79,11 +79,11 @@ def modify_axes(ax: Axes, x_major_tick: float, x_minor_tick: float) -> Axes:
     
 @dataclass
 class FlowfieldConfig:
-    VELOCITY_YLABEL: str = r'stroomsnelheid\nmagnitude[$m/s$]'
-    VELOCITY_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie'+r' [$m/s$]'
+    VELOCITY_YLABEL: str = 'stroomsnelheid\nmagnitude' + r' [$m/s$]'
+    VELOCITY_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie' + r' [$m/s$]'
     VELOCITY_YMIN: float = 0.0
     ANGLE_YTICKS = ticker.FixedLocator(list(range(-180, 181, 45)))
-    ANGLE_PRIMARY_YLABEL: str = r'stromingshoek t.o.v. profiellijn [graden]'
+    ANGLE_PRIMARY_YLABEL: str = 'stromingshoek t.o.v.\nprofiellijn [graden]'
     #ANGLE_SECONDARY_YLABEL: str = r'stromingshoek [richting]'
     ANGLE_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie' + r' [$graden$]'
     #ANGLE_SECONDARY_YTICKLABELS = ticker.FixedFormatter(['Z','ZW','W','NW','N','NO','O','ZO','Z'])
