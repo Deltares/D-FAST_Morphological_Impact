@@ -10,7 +10,8 @@ from shapely import LineString
 def run_1d(uc: list[np.ndarray],
            ucx: list[np.ndarray],
            ucy: list[np.ndarray],
-           rkm: np.ndarray, 
+           profile_angles: np.ndarray,
+           rkm: np.ndarray,
            invert_xaxis: bool) -> None:
 
     velocity_magnitude = []
@@ -18,7 +19,8 @@ def run_1d(uc: list[np.ndarray],
     
     for m, x, y in zip(uc,ucx,ucy):
         velocity_magnitude.append(m)
-        flow_angle = geometry.vector_angle(x,y)
+        flow_angle = geometry.vector_angle(x,y) - profile_angles
+        flow_angle = (flow_angle + 180) % 360 - 180 # shortest angular difference
         velocity_angle.append(flow_angle)
 
     plotter_1D = plotting.Ice1D()

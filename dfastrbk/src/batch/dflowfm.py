@@ -42,8 +42,6 @@ def read_profile_lines(profiles_file: Path) -> DataFrame:
 def intersect_linestring(simulation_data: UgridDataset, 
                          profile: LineString) -> UgridDataset:
     """Returns only the data on faces intersected by the profile line"""
-    if isinstance(profile, MultiLineString):
-        profile = geometry.merge_lines(profile)
     return simulation_data.ugrid.intersect_linestring(profile)
 
 def extract_edge_coords(profile_data: UgridDataset,

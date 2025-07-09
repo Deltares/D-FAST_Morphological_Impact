@@ -77,7 +77,7 @@ def max_rolling_integral(x: np.ndarray,
     if x[-1] - x[0] < window:
         return np.sum(np.abs(y)), [0, len(y)-1]
     else:
-        for i in enumerate(y):
+        for i, _ in enumerate(y):
             current_sum += np.sum(np.abs(y[i]))
 
             while x[i] - x[start] >= window:

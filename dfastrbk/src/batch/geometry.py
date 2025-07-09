@@ -191,9 +191,9 @@ class ProfileLines:
         exploded_df.reset_index(drop=True, inplace=True)
         return exploded_df
 
-def merge_lines(lines: MultiLineString):
-    """"Merge individual line segments."""
-    return ops.linemerge(lines)
+# def merge_lines(lines: MultiLineString):
+#     """"Merge individual line segments."""
+#     return ops.linemerge(lines)
        
 def calculate_angle(coords):
     vertices = np.array(coords)

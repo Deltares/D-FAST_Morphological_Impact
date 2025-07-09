@@ -4,8 +4,10 @@ from typing import Optional, NamedTuple
 from xugrid import UgridDataset
 import xugrid as xu
 from tqdm import tqdm
+import pandas as pd
 from dfastrbk.src.config.config import Config
 from dfastrbk.src.batch import cross_flow, ice, dflowfm
+from dfastrbk.src.batch.plotting import Plot2D
 
 def run(config_file: str, ships_file: Optional[str]) -> None:
     print("Running analysis...")
@@ -25,6 +27,7 @@ def run(config_file: str, ships_file: Optional[str]) -> None:
             simulation_data[i] = simulation_data[i].ugrid.sel(x=x_slice,y=y_slice)
        
         varn_h = 'mesh2d_waterdepth'
+        varn_bl = 'mesh2d_flowelem_bl'
         if 'time' in list(simulation_data[i].coords):
             simulation_data[i] = simulation_data[i].isel(time=-1)
             varn_ucx, varn_ucy = 'mesh2d_ucx', 'mesh2d_ucy'
@@ -32,12 +35,11 @@ def run(config_file: str, ships_file: Optional[str]) -> None:
         else:
             varn_ucx, varn_ucy = 'mesh2d_last003', 'mesh2d_last004'
             varn_uc = 'mesh2d_last002'
-            varn_bl = 'mesh2d_flowelem_bl'
             varn_H = 'mesh2d_last001'
             simulation_data[i][varn_h] = simulation_data[i][varn_H] - simulation_data[i][varn_bl]
 
-    Variables = namedtuple('Variables', ['h', 'uc', 'ucx', 'ucy'])
-    variables = Variables(varn_h, varn_uc, varn_ucx, varn_ucy)
+    Variables = namedtuple('Variables', ['h', 'uc', 'ucx', 'ucy', 'bl'])
+    variables = Variables(varn_h, varn_uc, varn_ucx, varn_ucy, varn_bl)
 
     if configuration.plottype == '1D':
         run_1d_analysis(configuration, simulation_data, variables)
@@ -49,40 +51,52 @@ def run(config_file: str, ships_file: Optional[str]) -> None:
         run_1d_analysis(configuration, simulation_data, variables)
         run_2d_analysis(configuration, simulation_data)
     else:
-        raise ValueError("Unknown plot type.")
+        raise ValueError(f"Unknown plot type {configuration.plottype}.")
         
-def run_1d_analysis(configuration: Config, simulation_data: list[UgridDataset], variables: NamedTuple):
+def run_1d_analysis(configuration: Config, 
+                    simulation_data: list[UgridDataset], 
+                    variables: NamedTuple):
     prof_line_df = dflowfm.read_profile_lines(configuration.profiles_file)
     riverkm_coords = np.array(configuration.riverkm.coords)
+    bedlevel = simulation_data[-1][variables.bl]
+    bedlevel_masked = bedlevel.where(bedlevel != 999)
 
-    for profile_line in tqdm(prof_line_df.geometry, desc="geometry"):
-        
+    for geom_idx, profile_line in enumerate(tqdm(prof_line_df.geometry, desc="geometry")):
         profile_coords = np.array(profile_line.coords)
-
+    
         profile_data = {}
         for variable, name in variables._asdict().items():
             profile_data[variable] = []
 
-        for data in tqdm(simulation_data, desc = "simulation data", leave=True):
+        for data in tqdm(simulation_data, desc = "simulation data", leave=False):
             for variable, name in variables._asdict().items():
-                profile_dataset, rkm, _, face_idx = dflowfm.slice_ugrid(data, 
+                profile_dataset, rkm, segment_idx, face_idx = dflowfm.slice_ugrid(data, 
                                                                         profile_line,
                                                                         profile_coords,
                                                                          riverkm_coords)
+                profile_angles = np.array(prof_line_df['angle'].iloc[geom_idx][segment_idx])
                 profile_data[variable].append(dflowfm.get_profile_data(profile_dataset,name,face_idx))
     
-        ice.run_1d(profile_data["uc"],
-                    profile_data["ucx"],
-                    profile_data["ucy"],
-                    rkm,
-                    configuration.invertxaxis)
+        # ice.run_1d(profile_data["uc"],
+        #             profile_data["ucx"],
+        #             profile_data["ucy"],
+        #             profile_angles,
+        #             rkm,
+        #             configuration.invertxaxis)
         
-        # cross_flow.run(profile_data,
-        #                 variables,
+        # cross_flow.run(profile_data["ucx"],
+        #                profile_data['ucy'],
+        #                 profile_angles,
+        #                 rkm,
         #                 configuration.ship_params,
         #                 configuration.invertxaxis)
 
-def run_2d_analysis(configuration, simulation_data):
+        Plot2D().plot_profile_line(profile_line, 
+                                   bedlevel_masked)
+
+def run_2d_analysis(configuration: Config, 
+                    simulation_data: list[UgridDataset],
+                    variables: NamedTuple):
     ice.run_2d(simulation_data[0][variables.h], 
                 simulation_data[0][variables.uc], 
                 configuration.waterupliftcorrection, 

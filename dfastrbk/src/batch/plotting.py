@@ -2,6 +2,7 @@ from typing import Optional, Tuple, Any
 from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
+import shapely.plotting 
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
@@ -63,16 +64,40 @@ class Plot1DConfig:
     LABELS = ['Referentie','Plansituatie']
 
 @dataclass
-class Plot2DConfig:
+class Plot2D:
     xlabel: str = 'x-coördinaat [km]'
     ylabel: str = 'y-coördinaat [km]'
     #background_image = ctx.providers.OpenStreetMap.Mapnik #ctx.providers.Esri.WorldImagery
 
-def modify_axes(ax: Axes, x_major_tick: float, x_minor_tick: float) -> Axes:
-    #x-axis:
-    #ax.xaxis.set_minor_locator(ticker.MultipleLocator(x_minor_tick))
-    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/x_major_tick}"))
+    def initialize_map(self) -> tuple[Figure, Axes]:
+        fig = initialize_figure()
+        ax = initialize_subplot(fig,1,1,1,self.xlabel,self.ylabel)
+        #add_satellite_image(ax, Plot2D.background_image)
+        ax.grid(True)
+        return fig, ax
     
+    def modify_axes(self, ax: Axes):
+        ax.set_title('') 
+        ax.set_aspect('equal')
+        ax.set_xlabel(self.xlabel)
+        ax.set_ylabel(self.ylabel)
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/XMAJORTICK:.1f}"))
+        ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/XMAJORTICK:.1f}"))
+        return ax
+    
+    def plot_profile_line(self, profile: LineString, bedlevel: xr.DataArray):
+        """Plot the profile line in a 2D plot"""
+        fig, ax = self.initialize_map()
+        p = bedlevel.ugrid.plot(ax=ax,add_colorbar=False,cmap='terrain',center=False)
+        fig.colorbar(p,ax=ax,label='bodemligging [m]',orientation='horizontal',shrink=0.25)
+        shapely.plotting.plot_line(profile, ax=ax, add_points=False, color='black')
+        self.modify_axes(ax)
+        plt.show()
+        return fig, ax
+
+def modify_axes(ax: Axes, x_major_tick: float) -> Axes:
+    #x-axis:
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/x_major_tick}"))
     ax.tick_params(which='major',length=8)
     ax.tick_params(which='minor',length=4)
     return ax
@@ -111,36 +136,22 @@ class FroudeConfig:
                              #f"van > {bins[3]} naar <= {bins[3]}"
                              ]
 class Ice2D:
-
-    def initialize_map(self) -> tuple[Figure, Axes]:
-        fig = initialize_figure()
-        ax = initialize_subplot(fig,1,1,1,Plot2DConfig.xlabel,Plot2DConfig.ylabel)
-        #add_satellite_image(ax, Plot2DConfig.background_image)
-        ax.grid(True)
-        return fig, ax
-    
-    def modify_axes(self, ax: Axes):
-        ax.set_title('') 
-        ax.set_aspect('equal')
-        ax.set_xlabel(Plot2DConfig.xlabel)
-        ax.set_ylabel(Plot2DConfig.ylabel)
-        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/XMAJORTICK:.1f}"))
-        ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/XMAJORTICK:.1f}"))
-        return ax
     
     def create_map(self, data: DataArray, riverkm: LineString) -> None:
-        fig, ax = self.initialize_map()
+        plot_init = Plot2D()
+        fig, ax = plot_init.initialize_map()
         p = data.ugrid.plot(ax=ax, 
                             add_colorbar=False, 
                             levels=FroudeConfig.Abs.levels,
                             cmap=FroudeConfig.Abs.colormap)
         fig.colorbar(p,ax=ax,label=FroudeConfig.Abs.colorbar_label,orientation='horizontal',shrink=0.25)
-        ax = self.modify_axes(ax)
+        ax = Plot2D().modify_axes(ax)
         chainage_markers(np.array(riverkm.coords), ax, scale=1)
         plt.show()
     
-    def create_diff_map(self, ref_data: xr.DataArray, variant_data: xr.DataArray,) -> None:
+    def create_diff_map(self, ref_data: xr.DataArray, variant_data: xr.DataArray, riverkm: LineString) -> None:
         plt.close('all')
+        plot_init = Plot2D()
         bins = FroudeConfig.Diff.bins
         colors = FroudeConfig.Diff.colors
         labels = FroudeConfig.Diff.labels
@@ -154,7 +165,7 @@ class Ice2D:
         variant_data.values = classes
 
         # Step 3: Background plot
-        fig, ax = self.initialize_map()
+        fig, ax = plot_init.initialize_map()
         color = "lightgrey"
         ref_masked = ref_data[ref_data_digitized==0]
         ref_masked.ugrid.plot(ax=ax,
@@ -167,12 +178,12 @@ class Ice2D:
         ax, legend_elements = self._plot_diff_map(ax, variant_data, labels, colors)
         
         # Step 5: finalisation
-        ax = self.modify_axes(ax)
+        ax = Plot2D().modify_axes(ax)
         lgd = fig.legend([Patch(facecolor=color), *legend_elements], 
                    [f"< {bins[1]} in referentie",*labels])
         lgd.set_title(FroudeConfig.legend_title)
         ax.grid(True)
-        #chainage_markers(np.array(riverkm.coords), ax, scale=1)
+        chainage_markers(np.array(riverkm.coords), ax, scale=1)
         plt.show()
 
     def _plot_diff_map(self, 
@@ -240,7 +251,7 @@ class Ice1D:
         """
         plot_variable(ax, distance, angle, color)
         return ax
-    
+
     # def angle_direction(self, ax: Axes):
     #     secax_y = ax.secondary_yaxis(-0.2)
     #     for ax in [ax,secax_y]:
@@ -274,8 +285,8 @@ class Ice1D:
             ax4 = self.plot_velocity_angle(ax4,distance,angle[1]-angle[0],Plot1DConfig.COLORS[-1])
         
         for ax in [ax1,ax2]:
-            ax1 = modify_axes(ax1,XMAJORTICK,XMINORTICK)
-            ax2 = modify_axes(ax2,XMAJORTICK,XMINORTICK)
+            ax1 = modify_axes(ax1,XMAJORTICK)
+            ax2 = modify_axes(ax2,XMAJORTICK)
             if inverse_xaxis: 
                 invert_xaxis(ax)
         ax2.yaxis.set_major_locator(FlowfieldConfig.ANGLE_YTICKS)
@@ -377,7 +388,7 @@ class CrossFlow:
                                     ship_length, 
                                     self.config.CRITERIA)
         for ax in axs:
-            modify_axes(ax, XMAJORTICK, XMINORTICK)
+            modify_axes(ax, XMAJORTICK)
             ax.axhline(0,color='black',ls='--')
             if inverse_xaxis: 
                 invert_xaxis(ax)
