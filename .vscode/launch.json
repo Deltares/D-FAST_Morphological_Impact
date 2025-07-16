@@ -11,7 +11,7 @@
             "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
             "args": [
                 "--config",
-                "dfastrbk/examples/c03 - RMM/config.ini"
+                "dfastrbk/examples/c01 - Waal/config.ini"
             ]
         },
         {

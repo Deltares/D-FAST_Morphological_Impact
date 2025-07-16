@@ -1,6 +1,4 @@
-from typing import Tuple, List
 import numpy as np
-
 
 # def append_array_roots(x: np.ndarray, y: np.ndarray) -> tuple:
 #     """
@@ -47,7 +45,7 @@ def find_roots(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     s = np.abs(np.diff(np.sign(y))).astype(bool)
     return x[:-1][s] + np.diff(x)[s]/(np.abs(y[1:][s]/y[:-1][s])+1)
 
-def split_into_blocks(x: np.ndarray, y: np.ndarray) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+def split_into_blocks(x: np.ndarray, y: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """Splits x and y into blocks, separated by 0 in y."""
     x_split = []
     y_split = []

@@ -1,16 +1,59 @@
 from collections import OrderedDict
-from typing import Tuple, NamedTuple
+from typing import NamedTuple
 from pathlib import Path
 import numpy as np
-from shapely import LineString, MultiLineString
+import xugrid as xu
+from shapely import LineString
 from xugrid import UgridDataset
-from xarray import DataArray
+import pandas as pd
 from pandas import DataFrame
 from dfastrbk.src.batch import geometry
+from dfastrbk.src.config import Config, get_output_files
 
 VARN_FACE_X_BND = 'mesh2d_face_x_bnd'
 VARN_FACE_Y_BND = 'mesh2d_face_y_bnd'
 
+class Variables(NamedTuple):
+    """Class of relevant variables.
+    h: water depth
+    uc: flow velocity magnitude
+    ucx: flow velocity, x-component
+    ucy: flow velocity, y-componentn
+    bl: bed level"""
+    h: str
+    uc: str
+    ucx: str
+    ucy: str
+    bl: str
+
+def load_simulation_data(configuration: Config, section: str) -> list[UgridDataset]:
+    """Load and preprocess simulation datasets."""
+    datasets = []
+    output_files = get_output_files(configuration.config, 
+                                    configuration.configdir, 
+                                    section)
+    for file in output_files:
+        ds = xu.open_dataset(file)
+
+        if configuration.general.bbox is not None:
+            x_slice = slice(configuration.general.bbox[0], configuration.general.bbox[1])
+            y_slice = slice(configuration.general.bbox[2], configuration.general.bbox[3])
+            ds = ds.ugrid.sel(x=x_slice, y=y_slice)
+
+        ds = extract_variables(ds)
+        datasets.append(ds)
+    return datasets
+
+def extract_variables(ds: UgridDataset) -> UgridDataset:
+    """Extract and standardize variable names from dataset."""
+    if 'time' in ds.coords:
+        ds = ds.isel(time=-1)
+    else:
+        ds['mesh2d_waterdepth'] = ds['mesh2d_last001'] - ds['mesh2d_flowelem_bl']
+        ds['mesh2d_ucmag'] = ds['mesh2d_last002']
+        ds['mesh2d_ucx'] = ds['mesh2d_last003']
+        ds['mesh2d_ucy'] = ds['mesh2d_last004']
+    return ds
 
 def get_profile_data(profile_dataset: UgridDataset,
                       variable_name: str,
@@ -19,19 +62,12 @@ def get_profile_data(profile_dataset: UgridDataset,
     return profile_data
 
 def slice_ugrid(simulation_data: UgridDataset,
-               profile: LineString,
                profile_coords: np.ndarray,
-               riverkm_coords: np.ndarray) -> Tuple[UgridDataset, np.ndarray, np.ndarray, np.ndarray]:
+               riverkm_coords: np.ndarray) -> tuple[UgridDataset, np.ndarray, np.ndarray, np.ndarray]:
     
-    # Step 1: first-order filtering of faces
-    profile_data = intersect_linestring(simulation_data, profile)
-    
-    # Step 2: second-order filtering of edges
-    edge_coords = extract_edge_coords(profile_data, VARN_FACE_X_BND, VARN_FACE_Y_BND)
-
+    edge_coords = extract_edge_coords(simulation_data, VARN_FACE_X_BND, VARN_FACE_Y_BND)
     rkm, segment_idx, face_idx = slice_mesh_with_polyline(edge_coords, profile_coords, riverkm_coords)
-    
-    return profile_data, rkm, segment_idx, face_idx
+    return simulation_data, rkm, segment_idx, face_idx
 
 def read_profile_lines(profiles_file: Path) -> DataFrame:
     profile_lines = geometry.ProfileLines(profiles_file)
@@ -49,11 +85,11 @@ def extract_edge_coords(profile_data: UgridDataset,
                         varn_face_y_bnd: str) -> np.ndarray:
     x_bnd = profile_data[varn_face_x_bnd].values
     y_bnd = profile_data[varn_face_y_bnd].values
-    return np.unique(np.stack((x_bnd, y_bnd), axis=-1), axis=0)
+    return np.stack((x_bnd, y_bnd), axis=-1)
 
 def slice_mesh_with_polyline(edge_coords: np.ndarray, 
                              profile_coords: np.ndarray,
-                             xykm_coords: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+                             xykm_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Slices mesh edges with a profile line and returns for each intersection point:
         pkm: projected value of xykm, found by interpolation
         segment_idx: index of segment of profile line
@@ -69,8 +105,8 @@ def slice_mesh_with_polyline(edge_coords: np.ndarray,
                                                 xykm_coords)
     return pkm, segment_idx, face_idx
     
-def find_intersects(edge_coords: np.ndarray, line_coords: np.ndarray) -> tuple[np.ndarray, 
-                                                                                np.ndarray]:
+def find_intersects(edge_coords: np.ndarray, 
+                    line_coords: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
 
     """	Find intersection points between mesh edges and a line.
     Parameters:
@@ -104,7 +140,7 @@ def find_intersects(edge_coords: np.ndarray, line_coords: np.ndarray) -> tuple[n
 
     intersects = geometry.extract_coordinates(intersects)
     face_idx = np.asarray(face_idx)
-    
+    #pd.DataFrame(np.column_stack((intersects[:,0],intersects[:,1],face_idx))).to_csv('intersects.csv')
     return intersects, face_idx
 
 def calculate_intersect_distance(line_coords: np.ndarray, 
@@ -125,70 +161,78 @@ def _order_intersection_points(intersects: np.ndarray,
     """Correctly orders the intersection points between a UGRID mesh and profile line.
 
     Parameters:
-    intersects (np.ndarray): Intersection points.
-    profile_distances (np.ndarray): Distances along the profile line.
-    segment_idx (np.ndarray): Segment indices of the profile line.
-    face_idx (np.ndarray): Face indices of mesh.
-    river_km (np.ndarray): x,y coordinates of river kilometers (rkm)
+    intersects: Intersection points.
+    profile_distances: Distances along the profile line.
+    segment_idx: Segment indices of the profile line.
+    face_idx: Face indices of mesh.
+    river_km: x,y coordinates of river kilometers (rkm)
 
     Returns:
     tuple[np.ndarray, np.ndarray, np.ndarray]: Grouped rkm, segment indices, and face indices."""
 
     # 1. Sort along profile line
-    sorted_data = [sort_a_by_b(d, profile_distances) for d in [intersects, segment_idx, face_idx]]
-    intersects_sorted, segment_idx_sorted, face_idx_sorted = sorted_data
+    sorted_data = [sort_a_by_b(a, profile_distances) for a in [intersects, segment_idx, face_idx]]
+    intersects, segment_idx, face_idx = sorted_data
 
     # 2. Group face indices
-    face_idx_grouped, group_idx = group_duplicates(face_idx_sorted)
-    segment_idx_grouped = segment_idx_sorted[group_idx]
-    intersects_grouped = intersects_sorted[group_idx]
+    face_idx, group_idx = group_duplicates(face_idx)
+    segment_idx = segment_idx[group_idx]
+    intersects = intersects[group_idx]
 
     # 3. Convert to rkm, in metres
-    rkm = convert_to_rkm(intersects_grouped, river_km, 1000)
+    rkm = convert_to_rkm(intersects, river_km, 1000)
 
     # 4. Ensure the overall direction is downstream (so the first rkm < last rkm)
     if rkm[0] > rkm[-1]:
         rkm               = rkm[::-1]
-        segment_idx_grouped = segment_idx_grouped[::-1]
-        face_idx_grouped    = face_idx_grouped[::-1]
+        segment_idx = segment_idx[::-1]
+        face_idx    = face_idx[::-1]
 
-    # 5. Take the longest strictly increasing subsequence of rkm
-    lis_idx = _lis_strict_indices(rkm)
+    # 5. strictly increasing sequence of rkm
+    mask = np.empty_like(rkm, dtype=bool)
+    mask[0] = True
+    last_r = rkm[0]
 
-    rkm_ordered         = rkm[lis_idx]
-    segment_idx_ordered = segment_idx_grouped[lis_idx]
-    face_idx_ordered    = face_idx_grouped[lis_idx]
+    for i in range(1, len(rkm)):
+        if rkm[i] >= last_r:
+            mask[i] = True
+            last_r = rkm[i]
+        else:
+            mask[i] = False
 
-    # now this is guaranteed non‐decreasing (strictly increasing)
+    rkm_ordered = rkm[mask]
+    segment_idx_ordered = segment_idx[mask]
+    face_idx_ordered = face_idx[mask]
+
+    # now this should be guaranteed non‐decreasing (strictly increasing)
     assert np.all(np.diff(rkm_ordered) >= 0)
 
     return rkm_ordered, segment_idx_ordered, face_idx_ordered
 
-def _lis_strict_indices(a: np.ndarray) -> list[int]:
-    """
-    Returns the indices of a longest strictly non-decreasing subsequence (LIS) in `a`.
-    O(n^2) dynamic programming, fine for n ~ 10^3.
-    """
-    n = len(a)
-    # dp[i] = length of LIS ending at i
-    dp = np.ones(n, dtype=int)
-    # prev[i] = index of the previous element in that LIS (or -1 if none)
-    prev = -np.ones(n, dtype=int)
+# def _lis_strict_indices(a: np.ndarray) -> list[int]:
+#     """
+#     Returns the indices of a longest strictly non-decreasing subsequence (LIS) in `a`.
+#     """
+#     n = len(a)
+#     # dp[i] = length of LIS ending at i
+#     dp = np.ones(n, dtype=int)
+#     # prev[i] = index of the previous element in that LIS (or -1 if none)
+#     prev = -np.ones(n, dtype=int)
 
-    for i in range(n):
-        for j in range(i):
-            if a[j] <= a[i] and dp[j] + 1 > dp[i]:
-                dp[i] = dp[j] + 1
-                prev[i] = j
+#     for i in range(n):
+#         for j in range(i):
+#             if a[j] <= a[i] and dp[j] + 1 > dp[i]:
+#                 dp[i] = dp[j] + 1
+#                 prev[i] = j
 
-    # find end of the best subsequence
-    i = int(np.argmax(dp))
-    # backtrack
-    seq = []
-    while i >= 0:
-        seq.append(i)
-        i = prev[i]
-    return list(reversed(seq))
+#     # find end of the best subsequence
+#     i = int(np.argmax(dp))
+#     # backtrack
+#     seq = []
+#     while i >= 0:
+#         seq.append(i)
+#         i = prev[i]
+#     return list(reversed(seq))
 
 def sort_a_by_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Sorts the array `a` by the argsort of `b`.

@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
 import numpy as np
 import shapely
-from shapely import LineString, MultiLineString, ops
+from shapely import LineString
 from pathlib import Path
 import pandas
 import geopandas as gpd
 
 def vector_angle(u0: np.ndarray,
                  v0: np.ndarray) -> np.ndarray:
-    return np.degrees(np.arctan2(u0,v0))
+    return np.degrees(np.arctan2(v0,u0))
 
 def calculate_dx_dy(x_coords: np.ndarray, y_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -172,9 +172,11 @@ class ProfileLines:
             raise FileNotFoundError(f"File not found: {self.filepath}")
         try:
             self.dataframe = gpd.read_file(self.filepath)
+            first_col = self.dataframe.columns[0]
+            self.dataframe.set_index(first_col, inplace=True)
             self.dataframe = self.get_exploded_df()
         except Exception as e:
-            raise IOError(f"Error reading file {self.filepath}: {e}")
+            raise IOError(f"Error reading file {self.filepath}: {e}") from e
         return self.get_exploded_df()
 
     def get_angles(self):

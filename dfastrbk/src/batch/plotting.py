@@ -1,4 +1,5 @@
-from typing import Optional, Tuple, Any
+from typing import Optional, Any
+from pathlib import Path
 from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,21 +14,23 @@ from shapely import LineString
 import xarray as xr
 from xarray import DataArray
 import xugrid as xu
+from dfastmi.batch.plotting import chainage_markers, savefig
+from dfastmi.batch.PlotOptions import PlotOptions
 from dfastrbk.src.batch import operations
 from dfastrbk.src.kernel import flow
-from dfastmi.batch.plotting import chainage_markers
-#from dfastmi.batch.PlotOptions import PlotOptions
+from dfastrbk.src.config import Config
+
 #import contextily as ctx
 #from xyzservices import TileProvider
 
-FIGSIZE: Tuple[float, float] = (5.748, 5.748)  # Deltares report width
+FIGSIZE: tuple[float, float] = (5.748, 5.748)  # Deltares report width
 TEXTFONT = 'arial'
 TEXTSIZE = 12
 CRS: str = 'EPSG:28992' # Netherlands
 XMAJORTICK: float = 1000
 XMINORTICK: float = 100
 
-def initialize_figure(figsize: Optional[Tuple[float, float]] = FIGSIZE) -> Figure:
+def initialize_figure(figsize: Optional[tuple[float, float]] = FIGSIZE) -> Figure:
     font = {'family': TEXTFONT, 'size': TEXTSIZE}
     plt.rc('font', **font)
     fig = plt.figure(figsize=figsize, layout='constrained')
@@ -85,14 +88,14 @@ class Plot2D:
         ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/XMAJORTICK:.1f}"))
         return ax
     
-    def plot_profile_line(self, profile: LineString, bedlevel: xr.DataArray):
+    def plot_profile_line(self, profile: LineString, bedlevel: xr.DataArray, filename: Path):
         """Plot the profile line in a 2D plot"""
         fig, ax = self.initialize_map()
         p = bedlevel.ugrid.plot(ax=ax,add_colorbar=False,cmap='terrain',center=False)
         fig.colorbar(p,ax=ax,label='bodemligging [m]',orientation='horizontal',shrink=0.25)
         shapely.plotting.plot_line(profile, ax=ax, add_points=False, color='black')
         self.modify_axes(ax)
-        plt.show()
+        savefig(fig,filename)
         return fig, ax
 
 def modify_axes(ax: Axes, x_major_tick: float) -> Axes:
@@ -101,7 +104,11 @@ def modify_axes(ax: Axes, x_major_tick: float) -> Axes:
     ax.tick_params(which='major',length=8)
     ax.tick_params(which='minor',length=4)
     return ax
-    
+
+def construct_figure_filename(figdir: Path, base: str, extension: str) -> Path:
+    """Construct full path for saving a figure."""
+    return Path(figdir) / f"{base}{extension}"
+
 @dataclass
 class FlowfieldConfig:
     VELOCITY_YLABEL: str = 'stroomsnelheid\nmagnitude' + r' [$m/s$]'
@@ -137,9 +144,11 @@ class FroudeConfig:
                              ]
 class Ice2D:
     
-    def create_map(self, data: DataArray, riverkm: LineString) -> None:
-        plot_init = Plot2D()
-        fig, ax = plot_init.initialize_map()
+    def create_map(self, 
+                   data: DataArray, 
+                   riverkm: LineString,
+                   filename: Path) -> None:
+        fig, ax = Plot2D().initialize_map()
         p = data.ugrid.plot(ax=ax, 
                             add_colorbar=False, 
                             levels=FroudeConfig.Abs.levels,
@@ -147,11 +156,14 @@ class Ice2D:
         fig.colorbar(p,ax=ax,label=FroudeConfig.Abs.colorbar_label,orientation='horizontal',shrink=0.25)
         ax = Plot2D().modify_axes(ax)
         chainage_markers(np.array(riverkm.coords), ax, scale=1)
-        plt.show()
+        savefig(fig,filename)
     
-    def create_diff_map(self, ref_data: xr.DataArray, variant_data: xr.DataArray, riverkm: LineString) -> None:
+    def create_diff_map(self, 
+                        ref_data: xr.DataArray, 
+                        variant_data: xr.DataArray, 
+                        riverkm: LineString,
+                        filename: Path) -> None:
         plt.close('all')
-        plot_init = Plot2D()
         bins = FroudeConfig.Diff.bins
         colors = FroudeConfig.Diff.colors
         labels = FroudeConfig.Diff.labels
@@ -164,8 +176,8 @@ class Ice2D:
         classes = self._compute_change_classes(ref_data_digitized, variant_data_digitized)
         variant_data.values = classes
 
-        # Step 3: Background plot
-        fig, ax = plot_init.initialize_map()
+        # Step 3: Initialize figure with background plot
+        fig, ax = Plot2D().initialize_map()
         color = "lightgrey"
         ref_masked = ref_data[ref_data_digitized==0]
         ref_masked.ugrid.plot(ax=ax,
@@ -184,7 +196,7 @@ class Ice2D:
         lgd.set_title(FroudeConfig.legend_title)
         ax.grid(True)
         chainage_markers(np.array(riverkm.coords), ax, scale=1)
-        plt.show()
+        savefig(fig,filename)
 
     def _plot_diff_map(self, 
                        ax: Axes, 
@@ -263,7 +275,8 @@ class Ice1D:
                       distance: np.ndarray, 
                       velocity: list, 
                       angle: list,
-                      inverse_xaxis: bool) -> None:
+                      configuration: Config,
+                      filename: Path) -> None:
         """
         Create and display a figure with velocity magnitude and angle.
         """
@@ -287,27 +300,27 @@ class Ice1D:
         for ax in [ax1,ax2]:
             ax1 = modify_axes(ax1,XMAJORTICK)
             ax2 = modify_axes(ax2,XMAJORTICK)
-            if inverse_xaxis: 
+            if configuration.general.bool_flags['invertxaxis']:
                 invert_xaxis(ax)
         ax2.yaxis.set_major_locator(FlowfieldConfig.ANGLE_YTICKS)
         ax2.set_ylim(-180, 180)
 
         ax1.legend(Plot1DConfig.LABELS, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
                       ncols=2, borderaxespad=0.)
-        plt.show()
+        savefig(fig,filename)
 
 @dataclass
 class CrossFlowConfig:
     XLABEL = Plot1DConfig.XLABEL
     YLABEL: str = r'dwarsstroomsnelheid [$m/s$]'
     DIFF_YLABEL: str = 'verschil in dwars-\nstroomsnelheid' + r' [$m/s$]'
-    CRITERIA: Tuple[float, float] = (0.15, 0.3)  # criteria for transverse velocity
+    CRITERIA: tuple[float, float] = (0.15, 0.3)  # criteria for transverse velocity
 
 class CrossFlow:
     def __init__(self, config: CrossFlowConfig = CrossFlowConfig()):
         self.config = config
 
-    def prepare_data(self, distance: np.ndarray, transverse_velocity: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def prepare_data(self, distance: np.ndarray, transverse_velocity: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Prepare data by inserting array roots and subsequently splitting into blocks."""
         distance_app, transverse_velocity_app = operations.insert_array_roots(distance, transverse_velocity)
         distance_split, transverse_velocity_split = operations.split_into_blocks(distance_app, transverse_velocity_app)
@@ -320,7 +333,7 @@ class CrossFlow:
         transverse_velocity_split: np.ndarray,
         ship_depth: float,
         ship_length: float,
-        criteria: Tuple[float, float]
+        criteria: tuple[float, float]
     ) -> Optional[Line2D]:
         """
         Calculate and plot perpendicular discharge according to RBK specifications,
@@ -342,7 +355,7 @@ class CrossFlow:
             xi_segment = xi[start_idx:end_idx]
             yi_segment = yi[start_idx:end_idx]
 
-            ax.fill_between(xi_segment, yi_segment, color='black', alpha=0.5, interpolate=True)
+            ax.fill_between(xi_segment, yi_segment, color='lightgrey', interpolate=True)
             ax.axvline(xi[start_idx], color='black', lw=0.5, ls='--')
             ax.axvline(xi[end_idx - 1], color='black', lw=0.5, ls='--')
 
@@ -359,7 +372,8 @@ class CrossFlow:
                       transverse_velocity: list, 
                       ship_depth: float,
                       ship_length: float,
-                      inverse_xaxis: bool) -> None:
+                      inverse_xaxis: bool,
+                      filename: Path) -> None:
         plt.close('all')
         fig = initialize_figure()
         axs=[]
@@ -410,4 +424,4 @@ class CrossFlow:
             borderaxespad=0.
         )
 
-        plt.show()
+        savefig(fig,filename)
