@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
 from matplotlib import ticker
 from matplotlib.patches import Patch
+from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 from shapely import LineString
 import xarray as xr
@@ -42,6 +43,7 @@ def initialize_subplot(fig: Figure, nrows: int, ncols: int, index: int, xlabel: 
     ax.set_ylabel(ylabel)
     return ax
 
+#TODO: fix difference, rkm does not match exactly between reference and intervention?
 def difference_plot(ax: Axes, ylabel: str, color: str):
     secax_y2 = ax.twinx()
     secax_y2.set_ylabel(ylabel)
@@ -53,7 +55,7 @@ def difference_plot(ax: Axes, ylabel: str, color: str):
 def invert_xaxis(ax: Axes):
     ax.xaxis.set_inverted(True)
 
-def plot_variable(ax: Axes, x: np.ndarray, y: np.ndarray, color: str = 'black') -> Axes:
+def plot_variable(ax: Axes, x: np.ndarray, y: np.ndarray, color: str = 'black') -> list[Line2D]:
     p = ax.plot(x, y, '-', linewidth=0.5, color=color)
     return p
 
@@ -88,13 +90,18 @@ class Plot2D:
         ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/XMAJORTICK:.1f}"))
         return ax
     
-    def plot_profile_line(self, profile: LineString, bedlevel: xr.DataArray, filename: Path):
+    def plot_profile_line(self, 
+                          profile: LineString,
+                          bedlevel: xr.DataArray,
+                          riverkm_coords: np.ndarray,
+                          filename: Path):
         """Plot the profile line in a 2D plot"""
         fig, ax = self.initialize_map()
         p = bedlevel.ugrid.plot(ax=ax,add_colorbar=False,cmap='terrain',center=False)
         fig.colorbar(p,ax=ax,label='bodemligging [m]',orientation='horizontal',shrink=0.25)
         shapely.plotting.plot_line(profile, ax=ax, add_points=False, color='black')
         self.modify_axes(ax)
+        chainage_markers(riverkm_coords, ax, scale=1)
         savefig(fig,filename)
         return fig, ax
 
@@ -114,8 +121,8 @@ class FlowfieldConfig:
     VELOCITY_YLABEL: str = 'stroomsnelheid\nmagnitude' + r' [$m/s$]'
     VELOCITY_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie' + r' [$m/s$]'
     VELOCITY_YMIN: float = 0.0
-    ANGLE_YTICKS = ticker.FixedLocator(list(range(-180, 181, 45)))
-    ANGLE_PRIMARY_YLABEL: str = 'stromingshoek t.o.v.\nprofiellijn [graden]'
+    ANGLE_YTICKS = ticker.FixedLocator(list(np.arange(-90, 91, 22.5)))
+    ANGLE_PRIMARY_YLABEL: str = 'stromingshoek t.o.v.\nprofiellijn' + r' [$graden$]'
     #ANGLE_SECONDARY_YLABEL: str = r'stromingshoek [richting]'
     ANGLE_DIFF_YLABEL: str = 'verschil plansituatie\n-referentie' + r' [$graden$]'
     #ANGLE_SECONDARY_YTICKLABELS = ticker.FixedFormatter(['Z','ZW','W','NW','N','NO','O','ZO','Z'])
@@ -291,19 +298,23 @@ class Ice1D:
             ax1 = self.plot_velocity_magnitude(ax1, distance, v, Plot1DConfig.COLORS[i])
             ax2 = self.plot_velocity_angle(ax2, distance, a, Plot1DConfig.COLORS[i])
         
-        if len(velocity)>1:
-            ax3 = difference_plot(ax1,FlowfieldConfig.VELOCITY_DIFF_YLABEL,Plot1DConfig.COLORS[-1])
-            ax4 = difference_plot(ax2,FlowfieldConfig.ANGLE_DIFF_YLABEL,Plot1DConfig.COLORS[-1])
-            ax3 = self.plot_velocity_magnitude(ax3,distance,velocity[1]-velocity[0],Plot1DConfig.COLORS[-1])
-            ax4 = self.plot_velocity_angle(ax4,distance,angle[1]-angle[0],Plot1DConfig.COLORS[-1])
-        
+        if len(velocity) > 1:
+            for ax, data, ylabel in [
+                (ax1, velocity[1] - velocity[0], FlowfieldConfig.VELOCITY_DIFF_YLABEL),
+                (ax2, angle[1] - angle[0], FlowfieldConfig.ANGLE_DIFF_YLABEL)
+            ]:
+                ax_diff = difference_plot(ax, ylabel, Plot1DConfig.COLORS[-1])
+                plot_variable(ax_diff, distance, data, Plot1DConfig.COLORS[-1])
+                yabs_max = abs(max(ax_diff.get_ylim(), key=abs))
+                ax_diff.set_ylim(ymin=-yabs_max, ymax=yabs_max)
+
         for ax in [ax1,ax2]:
             ax1 = modify_axes(ax1,XMAJORTICK)
             ax2 = modify_axes(ax2,XMAJORTICK)
             if configuration.general.bool_flags['invertxaxis']:
                 invert_xaxis(ax)
         ax2.yaxis.set_major_locator(FlowfieldConfig.ANGLE_YTICKS)
-        ax2.set_ylim(-180, 180)
+        ax2.set_ylim(-90, 90)
 
         ax1.legend(Plot1DConfig.LABELS, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
                       ncols=2, borderaxespad=0.)
@@ -334,7 +345,7 @@ class CrossFlow:
         ship_depth: float,
         ship_length: float,
         criteria: tuple[float, float]
-    ) -> Optional[Line2D]:
+    ) -> Optional[LineCollection]:
         """
         Calculate and plot perpendicular discharge according to RBK specifications,
         along with the discharge criteria line.
@@ -355,10 +366,12 @@ class CrossFlow:
             xi_segment = xi[start_idx:end_idx]
             yi_segment = yi[start_idx:end_idx]
 
+            #TODO: fix fill between not filling in everything
             ax.fill_between(xi_segment, yi_segment, color='lightgrey', interpolate=True)
             ax.axvline(xi[start_idx], color='black', lw=0.5, ls='--')
             ax.axvline(xi[end_idx - 1], color='black', lw=0.5, ls='--')
 
+            #TODO: fix crit_value not always being correct sign
             crit_value = criteria[1] if discharge < 50.0 else criteria[0]
             if np.any(yi < 0):
                 crit_value = -crit_value

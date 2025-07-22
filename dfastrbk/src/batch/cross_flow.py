@@ -16,15 +16,16 @@ def run(ucx: list[np.ndarray],
     COLUMN_LABELS = ('afstand (rkm)',
                     'dwarsstroomsnelheid (m/s)')
     
+    rkm_km = rkm / 1000
     transverse_velocity = []
     for x, y in zip(ucx,ucy):
         cross_flow = flow.trans_velocity(x, y, profile_angles)
         transverse_velocity.append(cross_flow)
     
-    support.to_csv(outputfile,
-                   COLUMN_LABELS,
-                   rkm / 1000,
-                   transverse_velocity[0])
+        support.to_csv(outputfile,
+                    COLUMN_LABELS,
+                    rkm_km,
+                    transverse_velocity[0])
     
     plotter = plotting.CrossFlow()
     plotter.create_figure(rkm,

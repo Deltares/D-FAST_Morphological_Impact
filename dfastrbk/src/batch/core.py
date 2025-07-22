@@ -67,7 +67,7 @@ def run_1d_analysis(configuration: Config,
         figfile = construct_figure_filename(configuration.plotsettings.options.figure_save_directory,
                                             f"profile{profile_index}_location",
                                             configuration.plotsettings.options.plot_extension)
-        Plot2D().plot_profile_line(profile_line, bedlevel, figfile)
+        Plot2D().plot_profile_line(profile_line, bedlevel, riverkm_coords, figfile)
 
 def save_1d_figures(configuration: Config,
                     section: str,
@@ -100,16 +100,23 @@ def run_2d_analysis(configuration: Config,
     water_depth = [ds[variables.h] for ds in simulation_data]
     flow_velocity = [ds[variables.uc] for ds in simulation_data]
 
+    #TODO: this is already done in ice.run_2d
+    waterupliftcorrection = configuration.general.bool_flags['waterupliftcorrection']
+    bedchangecorrection = configuration.general.bool_flags['bedchangecorrection']
+
+    suffix = ''
+    if waterupliftcorrection:
+        suffix = suffix + '_wateruplift'
+    if bedchangecorrection:
+        suffix = suffix + '_bedchange'
+        
     figfiles = [construct_figure_filename(configuration.plotsettings.options.figure_save_directory,
-                                            f"{section}_{label}_Froude",
+                                            f"{section}_{label}_Froude{suffix}",
                                             configuration.plotsettings.options.plot_extension) for label in labels]
     #TODO: make riverkm optional
     ice.run_2d(
         water_depth,
         flow_velocity,
-        configuration.general.bool_flags['waterupliftcorrection'],
-        configuration.general.bool_flags['bedchangecorrection'],
-        configuration.general.riverkm,
-        configuration.plotsettings.options,
+        configuration,
         figfiles
     )

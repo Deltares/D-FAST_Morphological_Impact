@@ -60,8 +60,8 @@
 %----------------------------
 %
 
-\input{../00_references/abbreviations}
-\input{../00_references/packages}
+\input{00_references/abbreviations}
+\input{00_references/packages}
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage{pdfpages}
 \usepackage{tablefootnote}
@@ -196,6 +196,8 @@
 %----------------------------
 %
 
+\def\NVOMaasFigDir{../examples/c02 - Maas/figures/}
+
 %Second input is the level of the section.
 \gensection{\isreport}{1}{Projectomschrijving}
 \label{sec:projectplan}
@@ -218,7 +220,7 @@ Doel van dit deelproject is het ontwikkelen van een eenduidige aanpak met rekent
 
 Dit is een gecombineerde aanpak van twee verschillende aspecten (ijsafvoer en dwarsstroming op de vaarweg) vanwege een redelijke overlap in de voor evaluatie relevante variabelen.
 
-Bij het rekentool gaat het in 2025 om een serie van eenvoudige scripts, en nadrukkelijk nog niet om een tool dat uitgeleverd kan worden voor gebruik door ingenieursbureaus. Mits de resultaten veelbelovend zijn kan in een volgende stap erover worden nagedacht hoe dit omgezet kan worden in een tool dat door de markt toegepast kan worden, bijvoorbeeld een aanvulling van het set tools onder D-FAST. Daarbij moet dan ook worden bekeken hoe het beheer en onderhoud van de tool kan worden gewaarborgd. Wel wordt in 2025 geprobeerd om al zo veel mogelijk aan te sluiten bij een implementatie in bijvoorbeeld de D-FAST familie.
+Bij de rekentool gaat het in 2025 om een serie van eenvoudige scripts, en nadrukkelijk nog niet om een tool dat uitgeleverd kan worden voor gebruik door ingenieursbureaus. Mits de resultaten veelbelovend zijn kan in een volgende stap erover worden nagedacht hoe dit omgezet kan worden in een tool dat door de markt toegepast kan worden, bijvoorbeeld een aanvulling van het set tools onder D-FAST. Daarbij moet dan ook worden bekeken hoe het beheer en onderhoud van de tool kan worden gewaarborgd. Wel is in 2025 geprobeerd om al zo veel mogelijk aan te sluiten bij een implementatie in de D-FAST productlijn.
 
 \gensection{\isreport}{2}{Werkzaamheden}
 \label{}
@@ -299,7 +301,7 @@ Uit de feedback vanuit de RWS klankbordgroep zijn enkele algemene vereisten aan 
 	\item De tool moet anticiperen op aanpassing van criteria voor de dwarsstroming.
 	\item De tool moet geschikt zijn voor het berekenen van de representatieve dwarsstroming.
 	\item Voor dwarsstroming moet de tool ook een verschilplot (bijvoorbeeld op de secundaire as) genereren.
-	\item De tool moet geen afstand over de lijn visualiseren maar rivierkilometer op de x-as.
+	\item De tool moet geen afstand over de lijn visualiseren maar rivierkilometer (rkm) op de x-as.
 	\item De tool moet de mogelijkheid bieden om modelresultaten langs de raai-km van de rivier te plotten.
 	\item De tool moet de mogelijkheid bieden voor een inverse rkm-as.
 	\item De gebruiker moet zelf lijnen kunnen definiëren, waarlangs de modelresultaten worden geplot.
@@ -319,7 +321,7 @@ Ten tweede produceert de tool figuren van Froude getallen voor de situatie zonde
 
 \begin{figure*}[!h]
 \centering
-\includegraphics[width=\textwidth]{../01_figures/HKV_Froude.png}
+\includegraphics[width=\textwidth]{01_figures/HKV_Froude.png}
 \caption{Beoogde visualisatie van Froude getallen. Bron: HKV}
 \label{fig:Froude}
 \end{figure*}
@@ -336,28 +338,109 @@ Bij RWS-ZN/Maas is het normprofiel bepalend voor de RBK-toets op dwarsstroming. 
 
 \begin{figure*}[!h]
 \centering
-\includegraphics[width=\textwidth]{../01_figures/RBK_dwarsstroming.png}
+\includegraphics[width=\textwidth]{01_figures/RBK_dwarsstroming.png}
 \caption{Voorbeelden van de visualisatie van dwarsstroming. Boven: bron; RBK 6.0, Bijlage 7, Figuur 1}
 \label{fig:dwarsstroming}
 \end{figure*}
 
 \gensection{\isreport}{4}{Toepassingsgebied}
-De tool ondersteunt dezelfde riviertakken als D-FAST-MI. Dit betreft:
+De tool ondersteunt op dit moment de riviertakken waarvoor in het RBK maatgevende schipafmetingen zijn gedefinieerd. Dit betreft:
 
 \begin{itemize}
 	\item Bovenrijn (Rkm 859-867)
 	\item Waal (Rkm 868-951)
 	\item Pannerdensch-Kanaal (Rkm 868-879)
-	\item Nederrijn (Rkm 880-922)
-	\item Lek (Rkm 923-989)
+	\item Nederrijn-Lek (Rkm 880-989)
 	\item IJssel (Rkm 880-1000)
-	\item Merwede (Rkm 951-980)
-	\item Meuse (Rkm 16-227)
+	\item Zwarte Water
+	\item Merwedes (Rkm 951-980)
+	\item Maas (Rkm 16-227)
+	\item Amer 
+	\item Haringvliet 
+	\item Hollands Diep
 \end{itemize}
 
-\gensection{\isreport}{5}{Beperkingen}
+\gensection{\isreport}{4}{Beperkingen}
+
 \begin{itemize}
 	\item Als de analyse wordt uitgevoerd op een gebied met meerdere rivierassen, zoals in de RMM, mogen er geen dubbelingen in de rivierkilometers voorkomen. Er moet dus gekozen worden voor één as(lijn).
+	\item Voorlopig is het nog niet mogelijk om met de tool percentielwaarden uit te rekenen. Als alternatief kan de gebruiker bijvoorbeeld zelf de laatste tijdstap van het map.nc bestand overschrijven met de gewenste waarden; hiervoor wordt de QGIS Crayfish plugin aangeraden.
+\end{itemize}
+	
+\gensection{\isreport}{1}{Validatie}
+In dit hoofdstuk worden voorbeelden gegeven waarmee de visualisatie van resultaten wordt toegelicht en de werking van de tool is gevalideerd. Ten eerste wordt de hypothetische natuurvriendelijke oever van \citep{Groenewege25} in de Maas bij rivierkilometer 188 gepresenteerd. Ten tweede is er een eerste karakterisering gemaakt van dwarsstroming en Froude-getallen van de gehele Rijn, Maas en Rijn-Maasmonding. De exacte visualisatie van resultaten door de tool kan mogelijk nog wijzigen ten opzichte van het eindproduct.
+
+\gensection{\isreport}{2}{Natuurvriendelijke oever Maas}
+De natuurvriendelijke oever (NVO) betreft een symmetrische erosiekom van 50 m breed en 100 m lang. De resultaten worden ter illustratie voor één afvoersom gepresenteerd (S2100); overige afvoersommen kunnen in \citep{Groenewege25} worden gevonden. 
+
+\gensection{\isreport}{3}{Afvoer van ijs}
+In deze sectie worden de effecten van de NVO op de afvoer van ijs getoond.
+
+\gensection{\isreport}{4}{1D profielen}
+
+In Figuur \ref{fig:NVO_profiel0} en Figuur \ref{fig:NVO_profiel1} worden de randen van de vaarweg getoond, waarlangs stroomsnelheid en -richting worden gepresenteerd. De bodemligging in de plansituatie fungeert als achtergrond.
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/profile0_location.png}
+\caption{Locatie van profiel 0}
+\label{fig:NVO_profiel0}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/profile1_location.png}
+\caption{Locatie van profiel 1}
+\label{fig:NVO_profiel1}
+\end{figure*}
+
+Figuur\ref{fig:NVO_stroming_p0} en Figuur\ref{fig:NVO_stroming_p1} tonen stroomsnelheid en -richting langs de profielen (zwarte en blauwe lijnen). De x-as is omgekeerd (stroming van rechts naar links). Stroomsnelheid begint bij 0, en stroomrichting varieert van -90 tot 90 graden (loodrecht) ten opzichte van de profiellijn\footnote{Er is voor dit bereik gekozen vanwege eb en vloed; in de broncode zit geen afhankelijkheid van de oriëntatie van de profiellijn (stroomopwaarts of -afwaarts). Om te beoordelen of de stroming omkeert door de ingreep (richtingsverandering van meer dan 90 graden), moeten aanvullend de 2D modelresultaten worden bekeken.}. De situatie zonder ingreep wordt aangeduid met 'Referentie' en de situatie met ingreep met 'Plansituatie'. Het verschil hiertussen wordt in rood rechts op een secundaire y-as weergegeven, die gecentreerd is rond 0. Met deze figuren wordt duidelijk dat snelheidsgradiënten worden versterkt ter plekke van de NVO op rkm 188. Aan de kant van de NVO zien we tevens verandering van stromingsrichting van meer dan 10 graden.
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile0_velocity_angle.png}
+\caption{Stroomsnelheid en -richting langs profiel 0 (S2100)}
+\label{fig:NVO_stroming_p0}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile1_velocity_angle.png}
+\caption{Stroomsnelheid en -richting langs profiel 1 (S2100)}
+\label{fig:NVO_stroming_p1}
+\end{figure*}
+
+\gensection{\isreport}{4}{Froude getallen}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_difference_Froude.png}
+\caption{Verschil in Froude getallen tussen plansituatie en referentie, zonder correcties (S2100)}
+\label{fig:NVO_Froude_diff}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_difference_Froude_wateruplift_bedchange.png}
+\caption{Verschil in Froude getallen tussen plansituatie en referentie, met correcties (S2100)}
+\label{fig:NVO_Froude_diff}
+\end{figure*}
+
+\gensection{\isreport}{3}{Dwarsstroming}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile0_transverse_flow.png}
+\caption{Dwarsstroming langs profiel 0 (S2100)}
+\label{fig:NVO_Froude_ref}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile1_transverse_flow.png}
+\caption{Dwarsstroming langs profiel 1 (S2100)}
+\label{fig:NVO_Froude_diff}
+\end{figure*}
 
 %
 %
@@ -389,7 +472,7 @@ De tool ondersteunt dezelfde riviertakken als D-FAST-MI. Dit betreft:
 \FloatBarrier
 \gensection{\isreport}{1}{Referenties}
 \DeclareRobustCommand{\van}[3]{#3}
-\bibliography{../00_references/references}
+\bibliography{00_references/references}
 
 
 \vfill

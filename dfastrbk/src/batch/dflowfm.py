@@ -4,8 +4,7 @@ from pathlib import Path
 import numpy as np
 import xugrid as xu
 from shapely import LineString
-from xugrid import UgridDataset
-import pandas as pd
+from xugrid import UgridDataset, UgridDataArray
 from pandas import DataFrame
 from dfastrbk.src.batch import geometry
 from dfastrbk.src.config import Config, get_output_files
@@ -34,15 +33,18 @@ def load_simulation_data(configuration: Config, section: str) -> list[UgridDatas
                                     section)
     for file in output_files:
         ds = xu.open_dataset(file)
+        ds = extract_variables(ds)
 
         if configuration.general.bbox is not None:
-            x_slice = slice(configuration.general.bbox[0], configuration.general.bbox[1])
-            y_slice = slice(configuration.general.bbox[2], configuration.general.bbox[3])
-            ds = ds.ugrid.sel(x=x_slice, y=y_slice)
+            ds = clip_simulation_data(ds, configuration.general.bbox)
 
-        ds = extract_variables(ds)
         datasets.append(ds)
     return datasets
+
+def clip_simulation_data(data: UgridDataArray | UgridDataset,
+                         bbox: list) -> UgridDataArray | UgridDataset:
+    #TODO: implement better bbox data structure based on keywords
+    return data.ugrid.sel(x=slice(bbox[0],bbox[1]),y=slice(bbox[2],bbox[3]))
 
 def extract_variables(ds: UgridDataset) -> UgridDataset:
     """Extract and standardize variable names from dataset."""

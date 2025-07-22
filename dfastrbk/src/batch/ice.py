@@ -1,13 +1,13 @@
 from pathlib import Path
-import xarray as xr
+import xugrid as xu
+from xugrid import UgridDataArray
 from xarray import DataArray
 import numpy as np
-from shapely import LineString
 from dfastrbk.src.batch import plotting, geometry
 from dfastrbk.src.kernel import froude
 from dfastrbk.src.config import Config
 from dfastrbk.src.batch import support
-from dfastmi.batch.PlotOptions import PlotOptions
+from dfastrbk.src.batch.dflowfm import clip_simulation_data
 
 def run_1d(uc: list[np.ndarray],
            ucx: list[np.ndarray],
@@ -54,19 +54,17 @@ def run_1d(uc: list[np.ndarray],
                              configuration,
                              figfile)
 
-def run_2d(
-    water_depth: list[DataArray],
-    flow_velocity: list[DataArray],
-    water_uplift: bool,
-    bed_change: bool,
-    riverkm: LineString,
-    plotoptions: PlotOptions,
-    filenames: list[Path]
-):
+def run_2d(water_depth: list[DataArray],
+           flow_velocity: list[DataArray],
+           configuration: Config,
+           filenames: list[Path]):
+
+    riverkm = configuration.general.riverkm
+
     froude_number = []
     for idx, (h, u) in enumerate(zip(water_depth, flow_velocity)):
         fr = froude.calculate_froude_number(h, u)
-        fr = correct_model_results(fr, water_uplift, bed_change)
+        fr = correct_model_results(fr, h, configuration)
         froude_number.append(fr)
         plotting.Ice2D().create_map(fr, riverkm, filenames[idx])
 
@@ -78,26 +76,32 @@ def run_2d(
 
 def correct_model_results(froude_number: DataArray,
                           water_depth: DataArray,
-                          water_uplift: bool = False,
-                          bed_change: bool = False,
-                          bed_change_file: Path | None = None) -> DataArray:
+                          configuration: Config) -> DataArray:
+    water_uplift = configuration.general.bool_flags['waterupliftcorrection']
+    bed_change = configuration.general.bool_flags['bedchangecorrection']
+    bed_change_file = configuration.general.bedchangefile
+    bbox = configuration.general.bbox
     if bed_change:
         if bed_change_file is None:
             raise ValueError("No bed change file specified in configuration.")
-        bedlevel_change = get_bedlevel_change(bed_change_file)
+        bedlevel_change = get_bedlevel_change(bed_change_file,bbox)
         froude_number = froude.bed_change(froude_number,bedlevel_change,water_depth)
     if water_uplift:
         froude_number = froude.water_uplift(froude_number)
     return froude_number
 
-def get_bedlevel_change(file: Path):
-    ds = xr.open_dataset(file)
+def get_bedlevel_change(file: Path,
+                        bbox: list) -> UgridDataArray:
+    ds = xu.open_dataset(file)
     dfast_name = 'avgdzb'
     data_vars = list(ds.data_vars)
     if dfast_name in data_vars:
-        return ds[dfast_name]
-    
-    if len(data_vars) == 1:
-        return ds[data_vars[0]]
+        da = ds[dfast_name]
+    elif len(data_vars) == 1:
+        da = ds[data_vars[0]]
+    else:
+        raise IOError(f"NetCDF file must contain {dfast_name} or exactly one variable.")
 
-    raise IOError(f"NetCDF file must contain {dfast_name} or exactly one variable.")
+    return clip_simulation_data(da, bbox)
+
+    

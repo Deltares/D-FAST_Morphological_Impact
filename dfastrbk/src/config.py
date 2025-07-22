@@ -75,14 +75,14 @@ class GeneralSettings:
     reach: str
     bool_flags: dict
     riverkm: LineString | None
-    profiles_file: str | None
-    bedchangefile: str | None
+    profiles_file: Path | None
+    bedchangefile: Path | None
     bbox: list | None
 
     @classmethod
     def from_config(cls, 
-                    data: DFastAnalysisConfigFileParser, 
-                    config: ConfigParser, 
+                    data: DFastAnalysisConfigFileParser,
+                    config: ConfigParser,
                     configdir: Path) -> 'GeneralSettings':
         reach = data.getstring(GENERAL_SECTION, 'Reach')
         branch = data.getstring(GENERAL_SECTION, 'Branch')
@@ -97,24 +97,24 @@ class GeneralSettings:
         riverkm = xyc.models.XYCModel.read(riverkm_file, num_columns=3)
 
         profiles_file = None
-        profiles_file = ConfigFileOperations._get_absolute_path_from_relative_path(
-            str(configdir), data.getstring(GENERAL_SECTION, 'ProfileLines'))
+        profiles_file = Path(ConfigFileOperations._get_absolute_path_from_relative_path(
+            str(configdir), data.getstring(GENERAL_SECTION, 'ProfileLines')))
         
         bedchangefile = None        
-        if BEDCHANGEFILE_KEY in config:
-            bedchangefile = ConfigFileOperations._get_absolute_path_from_relative_path(
-            str(configdir), data.getstring(GENERAL_SECTION, BEDCHANGEFILE_KEY))
+        if BEDCHANGEFILE_KEY in config[GENERAL_SECTION]:
+            bedchangefile = Path(ConfigFileOperations._get_absolute_path_from_relative_path(
+            str(configdir), data.getstring(GENERAL_SECTION, BEDCHANGEFILE_KEY)))
 
         bbox = None
         if BOUNDING_BOX_SECTION in config:
             bbox = [float(config[BOUNDING_BOX_SECTION][key]) for key in config[BOUNDING_BOX_SECTION]]
 
-        return cls(branch=branch, 
-                   reach=reach, 
-                   bool_flags=bool_flags, 
-                   riverkm=riverkm, 
-                   profiles_file=profiles_file, 
-                   bedchangefile=bedchangefile, 
+        return cls(branch=branch,
+                   reach=reach,
+                   bool_flags=bool_flags,
+                   riverkm=riverkm,
+                   profiles_file=profiles_file,
+                   bedchangefile=bedchangefile,
                    bbox=bbox)
 
 class PlotSettings:

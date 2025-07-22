@@ -1,5 +1,4 @@
 """Performs corrections on the modelled Froude number specific for the discharge of ice """
-
 import numpy as np
 from xarray import DataArray
 
