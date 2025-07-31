@@ -47,7 +47,7 @@ def savefig(fig: matplotlib.figure.Figure, filename: str) -> None:
     """
     print("saving figure {file}".format(file=filename))
     matplotlib.pyplot.show(block=False)
-    fig.savefig(filename, dpi=300)
+    fig.savefig(filename, dpi=300, bbox_inches="tight")
 
 
 def setsize(fig: matplotlib.figure.Figure) -> None:

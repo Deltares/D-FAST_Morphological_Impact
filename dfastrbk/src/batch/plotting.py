@@ -16,25 +16,24 @@ import xarray as xr
 from xarray import DataArray
 import xugrid as xu
 from dfastmi.batch.plotting import chainage_markers, savefig
-from dfastmi.batch.PlotOptions import PlotOptions
-from dfastrbk.src.batch import operations
-from dfastrbk.src.kernel import flow
+#from dfastmi.batch.PlotOptions import PlotOptions
 from dfastrbk.src.config import Config
 
 #import contextily as ctx
 #from xyzservices import TileProvider
 
-FIGSIZE: tuple[float, float] = (5.748, 5.748)  # Deltares report width
+FIGWIDTH: float = 5.748   # Deltares report width
 TEXTFONT = 'arial'
 TEXTSIZE = 12
 CRS: str = 'EPSG:28992' # Netherlands
 XMAJORTICK: float = 1000
 XMINORTICK: float = 100
 
-def initialize_figure(figsize: Optional[tuple[float, float]] = FIGSIZE) -> Figure:
+def initialize_figure(figwidth: Optional[float] = FIGWIDTH) -> Figure:
     font = {'family': TEXTFONT, 'size': TEXTSIZE}
     plt.rc('font', **font)
-    fig = plt.figure(figsize=figsize, layout='constrained')
+    fig = plt.figure(layout='constrained')
+    #fig.set_figwidth(figwidth)
     return fig
 
 def initialize_subplot(fig: Figure, nrows: int, ncols: int, index: int, xlabel: str, ylabel: str):
@@ -43,7 +42,6 @@ def initialize_subplot(fig: Figure, nrows: int, ncols: int, index: int, xlabel: 
     ax.set_ylabel(ylabel)
     return ax
 
-#TODO: fix difference, rkm does not match exactly between reference and intervention?
 def difference_plot(ax: Axes, ylabel: str, color: str):
     secax_y2 = ax.twinx()
     secax_y2.set_ylabel(ylabel)
@@ -58,6 +56,11 @@ def invert_xaxis(ax: Axes):
 def plot_variable(ax: Axes, x: np.ndarray, y: np.ndarray, color: str = 'black') -> list[Line2D]:
     p = ax.plot(x, y, '-', linewidth=0.5, color=color)
     return p
+
+def plot_chainage_markers(riverkm: LineString, ax: Axes):
+    # first filter chainage by 1000 m
+    filtered_coords = np.array([coord for coord in riverkm.coords if coord[2] % 1 == 0])
+    chainage_markers(filtered_coords, ax, scale=1)
 
 # def add_satellite_image(ax: Axes, background_image: TileProvider):
 #     ctx.add_basemap(ax=ax, source=background_image, crs=CRS, attribution=False, zorder=-1)
@@ -93,15 +96,15 @@ class Plot2D:
     def plot_profile_line(self, 
                           profile: LineString,
                           bedlevel: xr.DataArray,
-                          riverkm_coords: np.ndarray,
+                          riverkm: LineString,
                           filename: Path):
         """Plot the profile line in a 2D plot"""
         fig, ax = self.initialize_map()
-        p = bedlevel.ugrid.plot(ax=ax,add_colorbar=False,cmap='terrain',center=False)
+        p = bedlevel.ugrid.plot.pcolormesh(ax=ax,add_colorbar=False,cmap='terrain',center=False)
         fig.colorbar(p,ax=ax,label='bodemligging [m]',orientation='horizontal',shrink=0.25)
         shapely.plotting.plot_line(profile, ax=ax, add_points=False, color='black')
         self.modify_axes(ax)
-        chainage_markers(riverkm_coords, ax, scale=1)
+        plot_chainage_markers(riverkm, ax)
         savefig(fig,filename)
         return fig, ax
 
@@ -162,7 +165,7 @@ class Ice2D:
                             cmap=FroudeConfig.Abs.colormap)
         fig.colorbar(p,ax=ax,label=FroudeConfig.Abs.colorbar_label,orientation='horizontal',shrink=0.25)
         ax = Plot2D().modify_axes(ax)
-        chainage_markers(np.array(riverkm.coords), ax, scale=1)
+        plot_chainage_markers(riverkm, ax)
         savefig(fig,filename)
     
     def create_diff_map(self, 
@@ -202,7 +205,7 @@ class Ice2D:
                    [f"< {bins[1]} in referentie",*labels])
         lgd.set_title(FroudeConfig.legend_title)
         ax.grid(True)
-        chainage_markers(np.array(riverkm.coords), ax, scale=1)
+        plot_chainage_markers(riverkm, ax)
         savefig(fig,filename)
 
     def _plot_diff_map(self, 
@@ -325,26 +328,17 @@ class CrossFlowConfig:
     XLABEL = Plot1DConfig.XLABEL
     YLABEL: str = r'dwarsstroomsnelheid [$m/s$]'
     DIFF_YLABEL: str = 'verschil in dwars-\nstroomsnelheid' + r' [$m/s$]'
-    CRITERIA: tuple[float, float] = (0.15, 0.3)  # criteria for transverse velocity
 
 class CrossFlow:
     def __init__(self, config: CrossFlowConfig = CrossFlowConfig()):
         self.config = config
-
-    def prepare_data(self, distance: np.ndarray, transverse_velocity: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Prepare data by inserting array roots and subsequently splitting into blocks."""
-        distance_app, transverse_velocity_app = operations.insert_array_roots(distance, transverse_velocity)
-        distance_split, transverse_velocity_split = operations.split_into_blocks(distance_app, transverse_velocity_app)
-        return distance_split, transverse_velocity_split
     
     def plot_discharge(
         self,
         ax: Axes,
-        distance_split: np.ndarray,
-        transverse_velocity_split: np.ndarray,
-        ship_depth: float,
-        ship_length: float,
-        criteria: tuple[float, float]
+        xy_segment: list[tuple],
+        indices: list[tuple],
+        crit_values: list,
     ) -> Optional[LineCollection]:
         """
         Calculate and plot perpendicular discharge according to RBK specifications,
@@ -355,36 +349,25 @@ class CrossFlow:
         """
         crit_handle = None
 
-        for xi, yi in zip(distance_split, transverse_velocity_split):
-            if not np.any(yi):
-                continue
-
-            max_integral, indices = operations.max_rolling_integral(xi, yi, ship_length)
-            discharge = flow.trans_discharge(max_integral, ship_depth)
-
-            start_idx, end_idx = indices[0], indices[-1] + 1
-            xi_segment = xi[start_idx:end_idx]
-            yi_segment = yi[start_idx:end_idx]
-
+        for (xi,yi), (start_idx, end_idx), crit_value in zip(xy_segment, indices, crit_values):
             #TODO: fix fill between not filling in everything
-            ax.fill_between(xi_segment, yi_segment, color='lightgrey', interpolate=True)
-            ax.axvline(xi[start_idx], color='black', lw=0.5, ls='--')
-            ax.axvline(xi[end_idx - 1], color='black', lw=0.5, ls='--')
+            ax.fill_between(xi, yi, color='lightgrey', interpolate=True)
+            ax.axvline(xi[start_idx], color='lightgrey', lw=0.5, ls='--')
+            ax.axvline(xi[end_idx - 1], color='lightgrey', lw=0.5, ls='--')
 
-            #TODO: fix crit_value not always being correct sign
-            crit_value = criteria[1] if discharge < 50.0 else criteria[0]
-            if np.any(yi < 0):
-                crit_value = -crit_value
+            # positive criterium:
             crit_handle = ax.hlines(crit_value, xi[start_idx], xi[end_idx - 1], color='red', lw=1, ls='-')
-
+            # negative criterium:
+            ax.hlines(-crit_value, xi[start_idx], xi[end_idx - 1], color='red', lw=1, ls='-')
+        
         return crit_handle
 
-    #TODO: save fig
     def create_figure(self, 
                       distance: np.ndarray, 
-                      transverse_velocity: list, 
-                      ship_depth: float,
-                      ship_length: float,
+                      transverse_velocity: list[np.ndarray], 
+                      xy_segments: list[list],
+                      indices: list[list],
+                      crit_values: list[np.ndarray],
                       inverse_xaxis: bool,
                       filename: Path) -> None:
         plt.close('all')
@@ -398,24 +381,17 @@ class CrossFlow:
             line, = plot_variable(ax1, distance, v, Plot1DConfig.COLORS[i])
             lines.append(line)
 
-            if i == len(transverse_velocity) - 1: # only prepare data for plot_discharge at the last iteration
-                distance_split, transverse_velocity_split = self.prepare_data(distance, v) 
-
         if len(transverse_velocity)>1:
             ax2 = initialize_subplot(fig,2,1,2,self.config.XLABEL, CrossFlowConfig.DIFF_YLABEL)
             plot_variable(ax2, distance, transverse_velocity[1] - transverse_velocity[0])
-            yabs_max = abs(max(ax2.get_ylim(), key=abs))
-            ax2.set_ylim(ymin=-yabs_max, ymax=yabs_max)
             axs.append(ax2)
 
-        crit_handle = self.plot_discharge(ax1, 
-                                    distance_split, 
-                                    transverse_velocity_split, 
-                                    ship_depth, 
-                                    ship_length, 
-                                    self.config.CRITERIA)
+        crit_handle = self.plot_discharge(ax1, xy_segments[-1], indices[-1], crit_values[-1])
+
         for ax in axs:
             modify_axes(ax, XMAJORTICK)
+            yabs_max = abs(max(ax.get_ylim(), key=abs))
+            ax.set_ylim(ymin=-yabs_max, ymax=yabs_max)
             ax.axhline(0,color='black',ls='--')
             if inverse_xaxis: 
                 invert_xaxis(ax)

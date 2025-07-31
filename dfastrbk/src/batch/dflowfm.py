@@ -5,6 +5,7 @@ import numpy as np
 import xugrid as xu
 from shapely import LineString
 from xugrid import UgridDataset, UgridDataArray
+import xarray as xr
 from pandas import DataFrame
 from dfastrbk.src.batch import geometry
 from dfastrbk.src.config import Config, get_output_files
@@ -32,44 +33,65 @@ def load_simulation_data(configuration: Config, section: str) -> list[UgridDatas
                                     configuration.configdir, 
                                     section)
     for file in output_files:
-        ds = xu.open_dataset(file)
-        ds = extract_variables(ds)
-
+        ds = xu.open_dataset(file, chunks={"time": 1})  # Adjust chunk size as needed
         if configuration.general.bbox is not None:
             ds = clip_simulation_data(ds, configuration.general.bbox)
-
+        ds = extract_variables(ds)
         datasets.append(ds)
     return datasets
 
 def clip_simulation_data(data: UgridDataArray | UgridDataset,
                          bbox: list) -> UgridDataArray | UgridDataset:
     #TODO: implement better bbox data structure based on keywords
+    """Clips simulation data based on bounding box [xmin, xmax, ymin, ymax]"""
     return data.ugrid.sel(x=slice(bbox[0],bbox[1]),y=slice(bbox[2],bbox[3]))
 
-def extract_variables(ds: UgridDataset) -> UgridDataset:
-    """Extract and standardize variable names from dataset."""
+def extract_variables(ds: xu.UgridDataset) -> xu.UgridDataset:
+    """Extract and standardize variable names from a NetCDF dataset using lazy loading and Dask."""
+    
     if 'time' in ds.coords:
         ds = ds.isel(time=-1)
     else:
-        ds['mesh2d_waterdepth'] = ds['mesh2d_last001'] - ds['mesh2d_flowelem_bl']
-        ds['mesh2d_ucmag'] = ds['mesh2d_last002']
-        ds['mesh2d_ucx'] = ds['mesh2d_last003']
-        ds['mesh2d_ucy'] = ds['mesh2d_last004']
+        bl = find_variable(ds, "altitude")
+        wl = find_variable(ds, "sea_surface_height")
+        uc = find_variable(ds, "sea_water_speed")
+        ucx = find_variable(ds, "sea_water_x_velocity")
+        ucy = find_variable(ds, "sea_water_y_velocity")
+
+        ds = ds.assign(
+            mesh2d_waterdepth=ds[wl] - ds[bl],
+            mesh2d_ucmag=ds[uc],
+            mesh2d_ucx=ds[ucx],
+            mesh2d_ucy=ds[ucy]
+        )
+
     return ds
+
+def find_variable(data: UgridDataset, standard_name: str) -> str:
+    """Finds a variable in a dataset by its 'standard_name' attribute."""
+    selected_var = next(
+        (var for var in data.data_vars if data[var].attrs.get('standard_name') == standard_name),
+        None
+    )
+    if selected_var is None:
+        raise IOError(f"No variable found with standard_name '{standard_name}'")
+    return selected_var
 
 def get_profile_data(profile_dataset: UgridDataset,
                       variable_name: str,
                       face_idx) -> dict:
-    profile_data = profile_dataset[variable_name].values[face_idx]
+    profile_data = profile_dataset[variable_name].data[face_idx]
     return profile_data
 
 def slice_ugrid(simulation_data: UgridDataset,
                profile_coords: np.ndarray,
-               riverkm_coords: np.ndarray) -> tuple[UgridDataset, np.ndarray, np.ndarray, np.ndarray]:
-    
+               riverkm_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
     edge_coords = extract_edge_coords(simulation_data, VARN_FACE_X_BND, VARN_FACE_Y_BND)
-    rkm, segment_idx, face_idx = slice_mesh_with_polyline(edge_coords, profile_coords, riverkm_coords)
-    return simulation_data, rkm, segment_idx, face_idx
+    sliced = slice_mesh_with_polyline(edge_coords, profile_coords, riverkm_coords)
+    if sliced is None:
+        return None
+    rkm, segment_idx, face_idx = sliced
+    return rkm, segment_idx, face_idx
 
 def read_profile_lines(profiles_file: Path) -> DataFrame:
     profile_lines = geometry.ProfileLines(profiles_file)
@@ -91,13 +113,17 @@ def extract_edge_coords(profile_data: UgridDataset,
 
 def slice_mesh_with_polyline(edge_coords: np.ndarray, 
                              profile_coords: np.ndarray,
-                             xykm_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+                             xykm_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
     """Slices mesh edges with a profile line and returns for each intersection point:
         pkm: projected value of xykm, found by interpolation
         segment_idx: index of segment of profile line
         face_idx: index of mesh face"""
     intersects, face_indices = find_intersects(edge_coords, profile_coords)
-    assert len(intersects) != 0, "No intersects found between profile line(s) and simulation data. Expand the bounding box, or change the profile line(s)"
+    
+    if len(intersects) == 0:
+        print("No intersects found between profile line(s) and simulation data. " \
+        "Expand the bounding box, or change the profile line(s)")
+        return None
     
     profile_distances, segment_indices = calculate_intersect_distance(profile_coords, intersects)
     pkm, segment_idx, face_idx = _order_intersection_points(intersects,

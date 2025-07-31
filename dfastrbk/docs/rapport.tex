@@ -196,7 +196,10 @@
 %----------------------------
 %
 
-\def\NVOMaasFigDir{../examples/c02 - Maas/figures/}
+\def\RijnFigDir{../examples/c01 - Waal/figures/}
+\def\MaasFigDir{../examples/c02 - Maas/figures/}
+\def\RMMFigDir{../examples/c03 - RMM/figures/}
+\def\NVOMaasFigDir{../examples/c04 - NVO Maas/figures/}
 
 %Second input is the level of the section.
 \gensection{\isreport}{1}{Projectomschrijving}
@@ -245,6 +248,7 @@ Dit leidt tot de volgende opgeleverde producten:
 \label{}
 
 \gensection{\isreport}{2}{Afvoer van ijs}
+\label{achtergrond_ijs}
 Het RBK stelt dat een goede geleiding van ijs en water gewaarborgd moet blijven (RBK, sectie 1.5):
 
 \begin{quote}
@@ -319,9 +323,10 @@ Stroomsnelheden langs deze lijnen worden door de tool over voldoende lengte gevi
 
 Ten tweede produceert de tool figuren van Froude getallen voor de situatie zonder ingreep en voor de situatie met ingreep, met een classificatie van de toe- en afname in verschillende klassen (Figuur \ref{fig:Froude}). Dit is inclusief de twee benodigde correcties (zie \ref{app:ijscorrecties}).
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
 \includegraphics[width=\textwidth]{01_figures/HKV_Froude.png}
+\captionsetup{justification=centering}
 \caption{Beoogde visualisatie van Froude getallen. Bron: HKV}
 \label{fig:Froude}
 \end{figure*}
@@ -336,15 +341,16 @@ De beoordeling van dwarsstroming is uitvoerig beschreven in bijlage 7 van het RB
 
 Bij RWS-ZN/Maas is het normprofiel bepalend voor de RBK-toets op dwarsstroming. Bij RWS-ON/Rijntakken is de rand van de vaarweg de norm. Deze wordt gemarkeerd door de bakenlijn langs de kribbakens. Bij de Waal en Nederrijn/Lek komt de bakenlijn vrijwel overeen met de normaallijn. Bij de IJssel ligt de normaallijn enkele meters uit de bakenlijn en zijn er ook trajecten waar de bakenlijn en/of de normaallijn is gewijzigd. Vanwege de diversiteit aan mogelijke profiellijnen, is ervoor gekozen om in de tool de gebruiker de mogelijkheid te bieden zelf één of meerdere lijnen aan te leveren.
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
 \includegraphics[width=\textwidth]{01_figures/RBK_dwarsstroming.png}
+\captionsetup{justification=centering}
 \caption{Voorbeelden van de visualisatie van dwarsstroming. Boven: bron; RBK 6.0, Bijlage 7, Figuur 1}
 \label{fig:dwarsstroming}
 \end{figure*}
 
 \gensection{\isreport}{4}{Toepassingsgebied}
-De tool ondersteunt op dit moment de riviertakken waarvoor in het RBK maatgevende schipafmetingen zijn gedefinieerd. Dit betreft:
+In principe kan de tool uitgevoerd worden voor alle riviertakken waarvoor maatgevende schipafmetingen zijn gedefinieerd (in het RBK). Dit betreft:
 
 \begin{itemize}
 	\item Bovenrijn (Rkm 859-867)
@@ -360,8 +366,10 @@ De tool ondersteunt op dit moment de riviertakken waarvoor in het RBK maatgevend
 	\item Hollands Diep
 \end{itemize}
 
-\gensection{\isreport}{4}{Beperkingen}
+Echter, in de praktijk ondersteunt de tool op dit moment alleen riviertakken waar de invloed van getij verwaarloosbaar klein is ten opzichte van rivierafvoer. Anticiperend op implementatie van de tool in D-FAST, is er in deze studie nog weinig aandacht besteed aan het uitbreiden van dit toepassingsgebied. Voor D-FAST-MI wordt hier namelijk al aan gewerkt, maar ten tijde van schrijven was deze functionaliteit nog niet officieel gereed. Op termijn is het de bedoeling om hierop aan te sluiten.
 
+\gensection{\isreport}{4}{Beperkingen}
+De volgende beperkingen zijn bekend:
 \begin{itemize}
 	\item Als de analyse wordt uitgevoerd op een gebied met meerdere rivierassen, zoals in de RMM, mogen er geen dubbelingen in de rivierkilometers voorkomen. Er moet dus gekozen worden voor één as(lijn).
 	\item Voorlopig is het nog niet mogelijk om met de tool percentielwaarden uit te rekenen. Als alternatief kan de gebruiker bijvoorbeeld zelf de laatste tijdstap van het map.nc bestand overschrijven met de gewenste waarden; hiervoor wordt de QGIS Crayfish plugin aangeraden.
@@ -380,67 +388,138 @@ In deze sectie worden de effecten van de NVO op de afvoer van ijs getoond.
 
 In Figuur \ref{fig:NVO_profiel0} en Figuur \ref{fig:NVO_profiel1} worden de randen van de vaarweg getoond, waarlangs stroomsnelheid en -richting worden gepresenteerd. De bodemligging in de plansituatie fungeert als achtergrond.
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
-\includegraphics[width=\textwidth]{\NVOMaasFigDir/profile0_location.png}
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/profile0_location.png}
+\captionsetup{justification=centering}
 \caption{Locatie van profiel 0}
 \label{fig:NVO_profiel0}
 \end{figure*}
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
-\includegraphics[width=\textwidth]{\NVOMaasFigDir/profile1_location.png}
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/profile1_location.png}
+\captionsetup{justification=centering}
 \caption{Locatie van profiel 1}
 \label{fig:NVO_profiel1}
 \end{figure*}
 
-Figuur\ref{fig:NVO_stroming_p0} en Figuur\ref{fig:NVO_stroming_p1} tonen stroomsnelheid en -richting langs de profielen (zwarte en blauwe lijnen). De x-as is omgekeerd (stroming van rechts naar links). Stroomsnelheid begint bij 0, en stroomrichting varieert van -90 tot 90 graden (loodrecht) ten opzichte van de profiellijn\footnote{Er is voor dit bereik gekozen vanwege eb en vloed; in de broncode zit geen afhankelijkheid van de oriëntatie van de profiellijn (stroomopwaarts of -afwaarts). Om te beoordelen of de stroming omkeert door de ingreep (richtingsverandering van meer dan 90 graden), moeten aanvullend de 2D modelresultaten worden bekeken.}. De situatie zonder ingreep wordt aangeduid met 'Referentie' en de situatie met ingreep met 'Plansituatie'. Het verschil hiertussen wordt in rood rechts op een secundaire y-as weergegeven, die gecentreerd is rond 0. Met deze figuren wordt duidelijk dat snelheidsgradiënten worden versterkt ter plekke van de NVO op rkm 188. Aan de kant van de NVO zien we tevens verandering van stromingsrichting van meer dan 10 graden.
+Figuur \ref{fig:NVO_stroming_p0} en Figuur \ref{fig:NVO_stroming_p1} tonen stroomsnelheid en -richting langs de profielen (zwarte en blauwe lijnen). De x-as is omgekeerd (stroming van rechts naar links). Stroomsnelheid begint bij 0, en stroomrichting varieert van -90 tot 90 graden (loodrecht) ten opzichte van de profiellijn\footnote{Er is voor dit bereik gekozen vanwege eb en vloed; in de broncode zit geen afhankelijkheid van de oriëntatie van de profiellijn (stroomopwaarts of -afwaarts). Om te beoordelen of de stroming omkeert door de ingreep (richtingsverandering van meer dan 90 graden), moeten aanvullend de 2D modelresultaten worden bekeken.}. De situatie zonder ingreep wordt aangeduid met 'Referentie' en de situatie met ingreep met 'Plansituatie'. Het verschil hiertussen wordt in rood rechts op een secundaire y-as weergegeven, die gecentreerd is rond 0. Met deze figuren wordt duidelijk dat snelheidsgradiënten worden versterkt ter plekke van de NVO op rkm 188. Aan de kant van de NVO zien we tevens verandering van stromingsrichting van meer dan 10 graden.
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
-\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile0_velocity_angle.png}
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/C2_profile0_velocity_angle.png}
+\captionsetup{justification=centering}
 \caption{Stroomsnelheid en -richting langs profiel 0 (S2100)}
 \label{fig:NVO_stroming_p0}
 \end{figure*}
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
-\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile1_velocity_angle.png}
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/C2_profile1_velocity_angle.png}
+\captionsetup{justification=centering}
 \caption{Stroomsnelheid en -richting langs profiel 1 (S2100)}
 \label{fig:NVO_stroming_p1}
 \end{figure*}
 
 \gensection{\isreport}{4}{Froude getallen}
+Figuur \ref{fig:NVO_Froude} laat de Froude getallen zien rondom de NVO, zonder correcties voor waterstandsopstuwing door een ijsdek of voor lokale bodemveranderingen. Het verschil tussen de plansituatie en de referentie wordt getoond in Figuur \ref{fig:NVO_Froude_diff1}. Binnen de erosiekom zien we een toename van Froude getallen van < 0.08 naar >= 0.08. Hier direct benedenstrooms van worden Froude getallen verlaagd van > 0.08 naar <= 0.08. Het toevoegen van de correctie voor waterstandsopstuwing (\ref{fig:NVO_Froude_diff2}) verkleint de verschillen met 30\% (zie Appendix \ref{app:ijscorrecties}) en vervolgens levert de correctie voor lokale bodemverandering (\ref{fig:NVO_Froude_diff3}) in dit geval relatief weinig op.
 
 \begin{figure*}[!h]
 \centering
-\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_difference_Froude.png}
-\caption{Verschil in Froude getallen tussen plansituatie en referentie, zonder correcties (S2100)}
-\label{fig:NVO_Froude_diff}
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/C2_intervention_Froude.png}
+\captionsetup{justification=centering}
+\caption{Froude getallen in plansituatie, zonder correcties (S2100)}
+\label{fig:NVO_Froude}
 \end{figure*}
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
-\includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_difference_Froude_wateruplift_bedchange.png}
-\caption{Verschil in Froude getallen tussen plansituatie en referentie, met correcties (S2100)}
-\label{fig:NVO_Froude_diff}
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/C2_difference_Froude.png}
+\captionsetup{justification=centering}
+\caption{Verschil in Froude getallen tussen plansituatie en referentie, zonder correcties (S2100)}
+\label{fig:NVO_Froude_diff1}
+\end{figure*}
+
+\begin{figure*}[hbt!]
+\centering
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/C2_difference_Froude_wateruplift.png}
+\captionsetup{justification=centering}
+\caption{Verschil in Froude getallen tussen plansituatie en referentie, met correctie voor wateropstuwing door benedenstrooms ijsdek (S2100)}
+\label{fig:NVO_Froude_diff2}
+\end{figure*}
+
+\begin{figure*}[hbt!]
+\centering
+\includegraphics[width=0.5\textwidth]{\NVOMaasFigDir/C2_difference_Froude_wateruplift_bedchange.png}
+\captionsetup{justification=centering}
+\caption{Verschil in Froude getallen tussen plansituatie en referentie, met alle correcties (S2100)}
+\label{fig:NVO_Froude_diff3}
 \end{figure*}
 
 \gensection{\isreport}{3}{Dwarsstroming}
+In deze sectie worden de effecten van de NVO op de dwarsstroming getoond.
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
 \includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile0_transverse_flow.png}
+\captionsetup{justification=centering}
 \caption{Dwarsstroming langs profiel 0 (S2100)}
 \label{fig:NVO_Froude_ref}
 \end{figure*}
 
-\begin{figure*}[!h]
+\begin{figure*}[hbt!]
 \centering
 \includegraphics[width=\textwidth]{\NVOMaasFigDir/C2_profile1_transverse_flow.png}
+\captionsetup{justification=centering}
 \caption{Dwarsstroming langs profiel 1 (S2100)}
 \label{fig:NVO_Froude_diff}
 \end{figure*}
+
+\gensection{\isreport}{1}{Karakterisering van de Rijn}
+In dit hoofdstuk wordt een eerste karakterisering gemaakt van stroming in de gehele Rijn, Maas en Rijn-Maasmonding met betrekking tot de afvoer van ijs en dwarsstroming. Voor alle 
+
+\gensection{\isreport}{2}{Opzet}
+Voor de berekeningen is gebruik gemaakt van het \texttt{dflowfm2d-rijn-j24\_6-v1a} model. De afvoersommen S4000, S6000 en S8000 zijn doorgerekend om het bereik "Lobith van 4000 tot 8000 m3/s" (zie sectie \ref{achtergrond_ijs}) te representeren. 
+
+\gensection{\isreport}{2}{Resultaten}
+
+\gensection{\isreport}{3}{Afvoer van ijs}
+
+\gensection{\isreport}{4}{1D profielen}
+
+\gensection{\isreport}{4}{Froude getallen}
+
+\gensection{\isreport}{43}{Dwarsstroming}
+
+\gensection{\isreport}{2}{Maas}
+
+\gensection{\isreport}{3}{Opzet}
+Voor de berekeningen is gebruik gemaakt van het \texttt{dflowfm2d-maas-beno2\2_6-v2a} model. De afvoersommen S1700, S2100 en S2500 zijn doorgerekend om het bereik "Borgharen van 1500 tot 2800 m3/s" (zie sectie \ref{achtergrond_ijs}) te representeren. 
+
+De randen van de vaarwegen zijn 
+
+\gensection{\isreport}{3}{Resultaten}
+
+\gensection{\isreport}{4}{Afvoer van ijs}
+
+\gensection{\isreport}{5}{1D profielen}
+
+\gensection{\isreport}{5}{Froude getallen}
+
+\gensection{\isreport}{4}{Dwarsstroming}
+
+%\gensection{\isreport}{2}{Rijn-Maasmonding}
+%
+%\gensection{\isreport}{3}{Opzet}
+%Voor de berekeningen is gebruik gemaakt van het \texttt{dflowfm2d-rmm\_vzm-j17\_6-v2a} model. Er is gerekend met gemiddeld getij, en Rijnafvoer bij Tiel van 4062.8, 5417.3 en 6616.9 m3/s en Maasafvoer bij Lith van 1235, 1742 en 2248 m3/s, om het bereik "Lobith van 4000 tot 8000 m3/s" en "Borgharen van 1500 tot 2800 m3/s" (zie sectie \ref{achtergrond_ijs}) te representeren. Het Fourier bestand is enigszins aangepast om de juiste uitvoer te krijgen, en 1 verouderd keyword ("transportmethod") is in de MDU aangepast. In het RBK staan alleen voor de takken Haringvliet, Hollands Diep, Amer en de Merwedes maatgevende schipafmetingen genoemd; zodoende is de analyse alleen voor deze takken uitgevoerd. De analyse beperkt zich hier nog tot Froude getallen in 2D.
+%
+%\gensection{\isreport}{3}{Resultaten}
+%
+%\gensection{\isreport}{4}{Afvoer van ijs}
+%
+%\gensection{\isreport}{5}{Froude getallen}
+
 
 %
 %

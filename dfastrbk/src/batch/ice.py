@@ -3,6 +3,7 @@ import xugrid as xu
 from xugrid import UgridDataArray
 from xarray import DataArray
 import numpy as np
+import pandas as pd
 from dfastrbk.src.batch import plotting, geometry
 from dfastrbk.src.kernel import froude
 from dfastrbk.src.config import Config
@@ -27,7 +28,8 @@ def run_1d(uc: list[np.ndarray],
     velocity_magnitude = []
     velocity_angle = []
     angle_diff = []
-    
+    rkm_km = rkm / 1000
+
     for m, x, y in zip(uc,ucx,ucy):
         velocity_magnitude.append(m)
         flow_angle = geometry.vector_angle(x,y)
@@ -38,15 +40,20 @@ def run_1d(uc: list[np.ndarray],
                       for angles in velocity_angle]
     angle_diff = [np.where(angles > 90, angles - 180, angles) for angles in angle_diff]
     angle_diff = [np.where(angles < -90, angles + 180, angles) for angles in angle_diff]
-
-    support.to_csv(outputfile,
-                   COLUMN_LABELS,
-                   rkm / 1000,
-                   velocity_magnitude[0],
-                   velocity_angle[0],
-                   profile_angles,
-                   angle_diff[0])
     
+    labels = ["Reference", "WithIntervention", "Difference"]
+    data = [
+            (velocity_magnitude[0], velocity_angle[0], angle_diff[0]),
+            (velocity_magnitude[1], velocity_angle[1], angle_diff[1]) if len(velocity_magnitude) > 1 else None,
+            (velocity_magnitude[1] - velocity_magnitude[0],
+             velocity_angle[1] - velocity_angle[0],
+             angle_diff[1] - angle_diff[0]) if len(velocity_magnitude) > 1 else None
+        ]
+    
+    with pd.ExcelWriter(outputfile) as writer:
+        for label, d in zip(labels, data):
+            if d is not None:
+                support.to_excel(writer, COLUMN_LABELS, label, rkm_km, d[0], d[1], profile_angles, d[2])
 
     plotting.Ice1D().create_figure(rkm,
                              velocity_magnitude,
