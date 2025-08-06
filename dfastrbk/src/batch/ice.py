@@ -1,9 +1,11 @@
 from pathlib import Path
 import xugrid as xu
+import xarray as xr
 from xugrid import UgridDataArray
 from xarray import DataArray
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 from dfastrbk.src.batch import plotting, geometry
 from dfastrbk.src.kernel import froude
 from dfastrbk.src.config import Config
@@ -59,26 +61,29 @@ def run_1d(uc: list[np.ndarray],
                              velocity_magnitude,
                              angle_diff,
                              configuration,
-                             figfile)
+                             figfile)   
 
 def run_2d(water_depth: list[DataArray],
            flow_velocity: list[DataArray],
            configuration: Config,
-           filenames: list[Path]):
+           filenames: list[Path]) -> None:
 
     riverkm = configuration.general.riverkm
+    if configuration.general.profiles_file != "":
+        profile_lines = gpd.read_file(Path(configuration.general.profiles_file))
 
     froude_number = []
     for idx, (h, u) in enumerate(zip(water_depth, flow_velocity)):
         fr = froude.calculate_froude_number(h, u)
         fr = correct_model_results(fr, h, configuration)
         froude_number.append(fr)
-        plotting.Ice2D().create_map(fr, riverkm, filenames[idx])
+        plotting.Ice2D().create_map(fr, riverkm, profile_lines, filenames[idx])
 
-    if len(froude_number)>0:
+    if len(froude_number)>1:
         plotting.Ice2D().create_diff_map(froude_number[0], 
                                          froude_number[1], 
                                          riverkm,
+                                         profile_lines,
                                          filenames[2])
 
 def correct_model_results(froude_number: DataArray,

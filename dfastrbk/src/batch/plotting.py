@@ -1,8 +1,10 @@
 from typing import Optional, Any
 from pathlib import Path
+from geopandas import GeoDataFrame
 from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
+import dask
 import shapely.plotting 
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -60,7 +62,7 @@ def plot_variable(ax: Axes, x: np.ndarray, y: np.ndarray, color: str = 'black') 
 def plot_chainage_markers(riverkm: LineString, ax: Axes):
     # first filter chainage by 1000 m
     filtered_coords = np.array([coord for coord in riverkm.coords if coord[2] % 1 == 0])
-    chainage_markers(filtered_coords, ax, scale=1)
+    chainage_markers(filtered_coords, ax, scale=1, ndec=0)
 
 # def add_satellite_image(ax: Axes, background_image: TileProvider):
 #     ctx.add_basemap(ax=ax, source=background_image, crs=CRS, attribution=False, zorder=-1)
@@ -157,21 +159,25 @@ class Ice2D:
     def create_map(self, 
                    data: DataArray, 
                    riverkm: LineString,
+                   profile_line_df: GeoDataFrame,
                    filename: Path) -> None:
         fig, ax = Plot2D().initialize_map()
         p = data.ugrid.plot(ax=ax, 
-                            add_colorbar=False, 
-                            levels=FroudeConfig.Abs.levels,
-                            cmap=FroudeConfig.Abs.colormap)
+                    add_colorbar=False, 
+                    levels=FroudeConfig.Abs.levels,
+                    cmap=FroudeConfig.Abs.colormap,
+                    extend='max')
         fig.colorbar(p,ax=ax,label=FroudeConfig.Abs.colorbar_label,orientation='horizontal',shrink=0.25)
         ax = Plot2D().modify_axes(ax)
         plot_chainage_markers(riverkm, ax)
+        profile_line_df.plot(ax=ax,linewidth=1,color='green')
         savefig(fig,filename)
     
     def create_diff_map(self, 
                         ref_data: xr.DataArray, 
                         variant_data: xr.DataArray, 
                         riverkm: LineString,
+                        profile_line_df: GeoDataFrame,
                         filename: Path) -> None:
         plt.close('all')
         bins = FroudeConfig.Diff.bins
@@ -206,6 +212,7 @@ class Ice2D:
         lgd.set_title(FroudeConfig.legend_title)
         ax.grid(True)
         plot_chainage_markers(riverkm, ax)
+        profile_line_df.plot(ax=ax,linewidth=0.5,color='black')
         savefig(fig,filename)
 
     def _plot_diff_map(self, 
@@ -337,7 +344,6 @@ class CrossFlow:
         self,
         ax: Axes,
         xy_segment: list[tuple],
-        indices: list[tuple],
         crit_values: list,
     ) -> Optional[LineCollection]:
         """
@@ -349,16 +355,16 @@ class CrossFlow:
         """
         crit_handle = None
 
-        for (xi,yi), (start_idx, end_idx), crit_value in zip(xy_segment, indices, crit_values):
+        for (xi, yi), crit_value in zip(xy_segment, crit_values):
             #TODO: fix fill between not filling in everything
             ax.fill_between(xi, yi, color='lightgrey', interpolate=True)
-            ax.axvline(xi[start_idx], color='lightgrey', lw=0.5, ls='--')
-            ax.axvline(xi[end_idx - 1], color='lightgrey', lw=0.5, ls='--')
+            ax.axvline(xi[0], color='lightgrey', lw=0.5, ls='--')
+            ax.axvline(xi[-1], color='lightgrey', lw=0.5, ls='--')
 
             # positive criterium:
-            crit_handle = ax.hlines(crit_value, xi[start_idx], xi[end_idx - 1], color='red', lw=1, ls='-')
+            crit_handle = ax.hlines(crit_value, xi[0], xi[-1], color='red', lw=1, ls='-')
             # negative criterium:
-            ax.hlines(-crit_value, xi[start_idx], xi[end_idx - 1], color='red', lw=1, ls='-')
+            ax.hlines(-crit_value, xi[0], xi[-1], color='red', lw=1, ls='-')
         
         return crit_handle
 
@@ -366,7 +372,6 @@ class CrossFlow:
                       distance: np.ndarray, 
                       transverse_velocity: list[np.ndarray], 
                       xy_segments: list[list],
-                      indices: list[list],
                       crit_values: list[np.ndarray],
                       inverse_xaxis: bool,
                       filename: Path) -> None:
@@ -375,6 +380,8 @@ class CrossFlow:
         axs=[]
         ax1 = initialize_subplot(fig,len(transverse_velocity),1,1,self.config.XLABEL,self.config.YLABEL)
         axs.append(ax1)
+
+        crit_handle = self.plot_discharge(ax1, xy_segments[-1], crit_values[-1])
 
         lines=[]
         for i, v in enumerate(transverse_velocity):
@@ -385,8 +392,6 @@ class CrossFlow:
             ax2 = initialize_subplot(fig,2,1,2,self.config.XLABEL, CrossFlowConfig.DIFF_YLABEL)
             plot_variable(ax2, distance, transverse_velocity[1] - transverse_velocity[0])
             axs.append(ax2)
-
-        crit_handle = self.plot_discharge(ax1, xy_segments[-1], indices[-1], crit_values[-1])
 
         for ax in axs:
             modify_axes(ax, XMAJORTICK)

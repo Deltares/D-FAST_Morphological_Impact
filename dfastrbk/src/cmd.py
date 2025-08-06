@@ -22,8 +22,7 @@ def run(config_file: str, ships_file: str) -> None:
     )
 
     prof_line_df = None
-    if configuration.plotsettings.type != '2D':
-        prof_line_df, riverkm = preprocess_1d(configuration)
+    prof_line_df, riverkm = preprocess_1d(configuration)
 
     for section in configuration.keys():
         if "Reference" in configuration.config[section]:

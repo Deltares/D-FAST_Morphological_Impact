@@ -52,23 +52,15 @@ def run(ucx: list[np.ndarray],
                     'max. dwarsstroomsnelheid magnitude(m3/s)',
                     'criterium (m/s)',
                     'overschrijding (0=FALSE,1=TRUE)')
-    discharges, crit_values, indices, xy_segments = TransverseDischarge().compute(rkm,
+    discharges, crit_values, xy_blocks = TransverseDischarge().compute(rkm,
                                            transverse_velocity,
                                            configuration.ship_params.depth,
                                            configuration.ship_params.length,
                                            CRITERIA)
-    convert_m_to_km = 1000
-
-    def prepare_data_for_excel(xy_seg, discharge, crit_value):
-        x_start = [xy[0][0]/convert_m_to_km for xy in xy_seg]
-        x_end = [xy[0][-1]/convert_m_to_km for xy in xy_seg]
-        y_max = [max(abs(xy[1])) for xy in xy_seg]
-        exceedance = y_max > abs(crit_value)
-        return (x_start, x_end, discharge, y_max, crit_value, exceedance)
 
     data = []
-    for i,_ in enumerate(discharges):
-        data.append(prepare_data_for_excel(xy_segments[i], discharges[i], crit_values[i]))
+    for i, discharge in enumerate(discharges):
+        data.append(prepare_data_for_excel(xy_blocks[i], discharge, crit_values[i]))
     
     with pd.ExcelWriter(outputfiles[1]) as writer:
         for label, d in zip(SHEET_LABELS, data):
@@ -83,12 +75,19 @@ def run(ucx: list[np.ndarray],
     plotter = plotting.CrossFlow()
     plotter.create_figure(rkm,
                           transverse_velocity,
-                          xy_segments,
-                          indices,
+                          xy_blocks,
                           crit_values,
                           configuration.general.bool_flags['invertxaxis'],
                           figfile)
-
+    
+def prepare_data_for_excel(xy_block, discharge, crit_value):
+    CONVERT_M_TO_KM = 1000
+    x_start = [xy[0][0]/CONVERT_M_TO_KM for xy in xy_block]
+    x_end = [xy[0][-1]/CONVERT_M_TO_KM for xy in xy_block]
+    y_max = [max(abs(xy[1])) for xy in xy_block]
+    exceedance = y_max > abs(crit_value)
+    return (x_start, x_end, discharge, y_max, crit_value, exceedance)
+    
 class TransverseDischarge:
     def prepare_data(self,
                      distance: np.ndarray, 
@@ -107,14 +106,14 @@ class TransverseDischarge:
         """Computes the transverse discharge from transverse velocity, ship depth and ship length"""
         discharges = []
         crit_values = []
-        indices = []
-        xy_segments = [] # of shape case, block, ()
+        #indices = []
+        xy_segments = []
 
         for tv in transverse_velocity:
             distance_split, tv_split = self.prepare_data(distance, tv)
             discharge_case = []
             crit_case = []
-            indices_case = []
+            #indices_case = []
             xy_segments_case = []
 
             for xi, yi in zip(distance_split, tv_split):
@@ -126,7 +125,7 @@ class TransverseDischarge:
                 discharge_case.append(discharge)
 
                 start_idx, end_idx = max_indices[0], max_indices[-1] + 1
-                indices_case.append((start_idx, end_idx))
+                #indices_case.append((start_idx, end_idx))
 
                 xi_segment = xi[start_idx:end_idx]
                 yi_segment = yi[start_idx:end_idx]
@@ -136,7 +135,7 @@ class TransverseDischarge:
 
             discharges.append(np.array(discharge_case))
             crit_values.append(np.array(crit_case))
-            indices.append(indices_case)
+            #indices.append(indices_case)
             xy_segments.append(xy_segments_case)
 
-        return discharges, crit_values, indices, xy_segments
+        return discharges, crit_values, xy_segments

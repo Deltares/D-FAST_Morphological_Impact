@@ -22,4 +22,4 @@ def to_excel(writer: pd.ExcelWriter,
         raise ValueError("Number of column labels must match number of column value arrays.")
     
     df = pd.DataFrame(np.column_stack(column_values), columns=column_labels)
-    df.to_excel(writer, sheet_name, header=True, index=False, float_format='%.3f')
+    df.to_excel(writer, sheet_name=sheet_name, header=True, index=False, float_format='%.3f')

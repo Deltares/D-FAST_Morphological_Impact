@@ -3,9 +3,9 @@ from typing import NamedTuple
 from pathlib import Path
 import numpy as np
 import xugrid as xu
+#import pandas as pd
 from shapely import LineString
 from xugrid import UgridDataset, UgridDataArray
-import xarray as xr
 from pandas import DataFrame
 from dfastrbk.src.batch import geometry
 from dfastrbk.src.config import Config, get_output_files
@@ -33,7 +33,8 @@ def load_simulation_data(configuration: Config, section: str) -> list[UgridDatas
                                     configuration.configdir, 
                                     section)
     for file in output_files:
-        ds = xu.open_dataset(file, chunks={"time": 1})  # Adjust chunk size as needed
+        ds = xu.open_dataset(file, chunks={"time": 1, "x": 100, "y": 100})
+
         if configuration.general.bbox is not None:
             ds = clip_simulation_data(ds, configuration.general.bbox)
         ds = extract_variables(ds)
@@ -57,6 +58,8 @@ def extract_variables(ds: xu.UgridDataset) -> xu.UgridDataset:
         uc = find_variable(ds, "sea_water_speed")
         ucx = find_variable(ds, "sea_water_x_velocity")
         ucy = find_variable(ds, "sea_water_y_velocity")
+
+        ds[bl] = ds[bl].ugrid.to_face().mean("nmax") # bed elevation on nodes to faces
 
         ds = ds.assign(
             mesh2d_waterdepth=ds[wl] - ds[bl],
@@ -132,44 +135,72 @@ def slice_mesh_with_polyline(edge_coords: np.ndarray,
                                                 face_indices,
                                                 xykm_coords)
     return pkm, segment_idx, face_idx
-    
-def find_intersects(edge_coords: np.ndarray, 
-                    line_coords: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
 
-    """	Find intersection points between mesh edges and a line.
+def find_intersects(edge_coords: np.ndarray, 
+                    line_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Find intersection points between mesh edges and a line.
+    
     Parameters:
-    edge_coords: coordinates of the mesh edges (nfaces,nedges,2)
-    line_coords: coordinates of the profile line (N,2)
+    - edge_coords: (nfaces, nmax, 2), with NaNs for unused vertices
+    - line_coords: (N, 2)
     
     Returns:
-    intersects: coordinates of the intersection points (N,2)
-    face_idx: indices of the mesh faces where the intersection occurs (N,1)"""
-    intersects = [] # coordinates of intersection points
-    face_idx = [] # index of the face where the intersection occurs
-    nfaces = edge_coords.shape[0] # number of faces/cells
-    nedges = edge_coords.shape[1] # number of edges, i.e. rectangle or triangle
+    - intersects: (M, 2) array of intersection points
+    - face_idx: (M,) array of face indices
+    """
+
+    intersects = []
+    face_idx = []
+    nfaces, nmax, _ = edge_coords.shape
     b = LineString(line_coords)
 
     for i in range(nfaces):
-        for j in range(nedges):
-            next_j = (j + 1) % nedges
-            a1 = edge_coords[i,j,:]
-            a2 = edge_coords[i,next_j,:]
+        # Extract non-NaN vertices for this face
+        face_vertices = edge_coords[i]
+        valid_mask = ~np.isnan(face_vertices[:, 0])
+        valid_vertices = face_vertices[valid_mask]
 
+        n_valid = valid_vertices.shape[0]
+        if n_valid < 2:
+            continue  # skip degenerate faces
+
+        # Loop through valid edges
+        for j in range(n_valid):
+            a1 = valid_vertices[j]
+            a2 = valid_vertices[(j + 1) % n_valid]  # wrap around
             a = LineString([a1, a2])
 
             try:
                 intersect = a.intersection(b)
                 if not intersect.is_empty:
-                    intersects.append(intersect)
-                    face_idx.extend([i] * len(intersect.geoms) if intersect.geom_type == 'MultiPoint' else [i])
-            except: # if no intersection is found
-                pass
+                    coords = extract_coordinates([intersect])
+                    if coords.size > 0:
+                        intersects.extend(coords)
+                        face_idx.extend([i] * len(coords))
+            except Exception:
+                pass 
 
-    intersects = geometry.extract_coordinates(intersects)
+    intersects = np.array(intersects)
     face_idx = np.asarray(face_idx)
-    #pd.DataFrame(np.column_stack((intersects[:,0],intersects[:,1],face_idx))).to_csv('intersects.csv')
+
+    #Optional for debugging:
+    #pd.DataFrame(np.column_stack((intersects[:,0], intersects[:,1], face_idx))).to_csv('intersects.csv')
     return intersects, face_idx
+
+def extract_coordinates(geom_list):
+    coords = []
+    for g in geom_list:
+        if g.geom_type == 'Point':
+            coords.append([g.x, g.y])
+        elif g.geom_type == 'MultiPoint':
+            coords.extend([[pt.x, pt.y] for pt in g.geoms])
+        elif g.geom_type == 'LineString':
+            mid_idx = len(g.coords) // 2
+            coords.append(list(g.coords[mid_idx]))
+        elif g.geom_type == 'GeometryCollection':
+            for subg in g.geoms:
+                coords.extend(extract_coordinates([subg]))
+    return np.array(coords)
 
 def calculate_intersect_distance(line_coords: np.ndarray, 
                                   intersects: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
@@ -180,7 +211,6 @@ def calculate_intersect_distance(line_coords: np.ndarray,
     profile_distances, segment_idx = geometry.find_distances_to_points(line_coords, intersects)
     return profile_distances, segment_idx
 
-#TODO: "fix" ordering
 def _order_intersection_points(intersects: np.ndarray,
                profile_distances: np.ndarray,
                segment_idx: np.ndarray,
@@ -237,31 +267,6 @@ def _order_intersection_points(intersects: np.ndarray,
 
     return rkm_ordered, segment_idx_ordered, face_idx_ordered
 
-# def _lis_strict_indices(a: np.ndarray) -> list[int]:
-#     """
-#     Returns the indices of a longest strictly non-decreasing subsequence (LIS) in `a`.
-#     """
-#     n = len(a)
-#     # dp[i] = length of LIS ending at i
-#     dp = np.ones(n, dtype=int)
-#     # prev[i] = index of the previous element in that LIS (or -1 if none)
-#     prev = -np.ones(n, dtype=int)
-
-#     for i in range(n):
-#         for j in range(i):
-#             if a[j] <= a[i] and dp[j] + 1 > dp[i]:
-#                 dp[i] = dp[j] + 1
-#                 prev[i] = j
-
-#     # find end of the best subsequence
-#     i = int(np.argmax(dp))
-#     # backtrack
-#     seq = []
-#     while i >= 0:
-#         seq.append(i)
-#         i = prev[i]
-#     return list(reversed(seq))
-
 def sort_a_by_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Sorts the array `a` by the argsort of `b`.
 
@@ -296,5 +301,3 @@ def convert_to_rkm(intersects, river_km, conversion_factor = 1):
     conversion_factor: optional, to convert km to another unit (default = 1)"""
     rkm = geometry.project_km_on_line(intersects, river_km) * conversion_factor
     return rkm
-
-

@@ -27,7 +27,8 @@ def run_analysis(configuration: Config,
     '2D': lambda: run_2d_analysis(configuration, 
                                     section,
                                     simulation_data, 
-                                    variables),
+                                    variables,
+                                    prof_line_df),
     }
     plot_actions['both'] = lambda: (plot_actions['1D'], plot_actions['2D'])
 
@@ -116,14 +117,12 @@ def save_1d_figures(configuration: Config,
 def run_2d_analysis(configuration: Config, 
                     section: str,
                     simulation_data: list[UgridDataset], 
-                    variables: Variables):
+                    variables: Variables,
+                    prof_line_df: DataFrame):
     """Run 2D Froude number analysis and plotting."""
     labels = ("reference", "intervention","difference")
 
-    water_depth = [ds[variables.h] for ds in simulation_data]
-    flow_velocity = [ds[variables.uc] for ds in simulation_data]
-
-    #TODO: this is already done in ice.run_2d
+    #TODO: this is already done in ice.run_2d:
     waterupliftcorrection = configuration.general.bool_flags['waterupliftcorrection']
     bedchangecorrection = configuration.general.bool_flags['bedchangecorrection']
 
@@ -132,14 +131,25 @@ def run_2d_analysis(configuration: Config,
         suffix = suffix + '_wateruplift'
     if bedchangecorrection:
         suffix = suffix + '_bedchange'
-        
-    figfiles = [construct_figure_filename(configuration.plotsettings.options.figure_save_directory,
-                                            f"{section}_{label}_Froude{suffix}",
-                                            configuration.plotsettings.options.plot_extension) for label in labels]
-    #TODO: make riverkm optional
-    ice.run_2d(
-        water_depth,
-        flow_velocity,
-        configuration,
-        figfiles
-    )
+
+    padding = 1000 # metres
+
+    ## TODO: this is only built in for the report but depends on profile lines, 
+    # which should not be required for 2D analysis
+    for geom_idx, profile_line in enumerate(tqdm(prof_line_df.geometry, desc="geometry", position=0, leave=True)):
+        bounds = profile_line.bounds
+        bbox = [bounds[0] - padding, bounds[2] + padding, bounds[1] - padding, bounds[3] + padding]
+
+        water_depth = [clip_simulation_data(ds[variables.h], bbox) for ds in simulation_data]
+        flow_velocity = [clip_simulation_data(ds[variables.uc], bbox) for ds in simulation_data]
+        figfiles = [construct_figure_filename(configuration.plotsettings.options.figure_save_directory,
+                                                f"{section}_{label}_profile{geom_idx}_Froude{suffix}",
+                                                configuration.plotsettings.options.plot_extension) for label in labels]
+        #TODO: make riverkm optional
+        if water_depth[0].size != 0:
+            ice.run_2d(
+                water_depth,
+                flow_velocity,
+                configuration,
+                figfiles
+            )
