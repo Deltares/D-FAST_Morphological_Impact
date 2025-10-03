@@ -93,8 +93,8 @@ def slice_ugrid(simulation_data: UgridDataset,
     sliced = slice_mesh_with_polyline(edge_coords, profile_coords, riverkm_coords)
     if sliced is None:
         return None
-    rkm, segment_idx, face_idx = sliced
-    return rkm, segment_idx, face_idx
+    rkm, path_distances, segment_idx, face_idx = sliced
+    return rkm, path_distances, segment_idx, face_idx
 
 def read_profile_lines(profiles_file: Path) -> DataFrame:
     profile_lines = geometry.ProfileLines(profiles_file)
@@ -119,6 +119,7 @@ def slice_mesh_with_polyline(edge_coords: np.ndarray,
                              xykm_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
     """Slices mesh edges with a profile line and returns for each intersection point:
         pkm: projected value of xykm, found by interpolation
+        path_distances: distance along path formed by intersection points
         segment_idx: index of segment of profile line
         face_idx: index of mesh face"""
     intersects, face_indices = find_intersects(edge_coords, profile_coords)
@@ -129,12 +130,14 @@ def slice_mesh_with_polyline(edge_coords: np.ndarray,
         return None
     
     profile_distances, segment_indices = calculate_intersect_distance(profile_coords, intersects)
-    pkm, segment_idx, face_idx = _order_intersection_points(intersects,
+    pkm, intersects_ordered, segment_idx, face_idx = _order_intersection_points(intersects,
                                                 profile_distances,
                                                 segment_indices,
                                                 face_indices,
                                                 xykm_coords)
-    return pkm, segment_idx, face_idx
+    
+    path_distances = geometry.calculate_curve_distance(intersects_ordered[:,0], intersects_ordered[:,1])
+    return pkm, path_distances, segment_idx, face_idx
 
 def find_intersects(edge_coords: np.ndarray, 
                     line_coords: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -177,8 +180,8 @@ def find_intersects(edge_coords: np.ndarray,
                     if coords.size > 0:
                         intersects.extend(coords)
                         face_idx.extend([i] * len(coords))
-            except Exception:
-                pass 
+            except:
+                pass
 
     intersects = np.array(intersects)
     face_idx = np.asarray(face_idx)
@@ -243,6 +246,7 @@ def _order_intersection_points(intersects: np.ndarray,
     # 4. Ensure the overall direction is downstream (so the first rkm < last rkm)
     if rkm[0] > rkm[-1]:
         rkm               = rkm[::-1]
+        intersects  = intersects[::-1]
         segment_idx = segment_idx[::-1]
         face_idx    = face_idx[::-1]
 
@@ -259,13 +263,14 @@ def _order_intersection_points(intersects: np.ndarray,
             mask[i] = False
 
     rkm_ordered = rkm[mask]
+    intersects_ordered = intersects[mask]
     segment_idx_ordered = segment_idx[mask]
     face_idx_ordered = face_idx[mask]
 
     # now this should be guaranteed non‐decreasing (strictly increasing)
     assert np.all(np.diff(rkm_ordered) >= 0)
 
-    return rkm_ordered, segment_idx_ordered, face_idx_ordered
+    return rkm_ordered, intersects_ordered, segment_idx_ordered, face_idx_ordered
 
 def sort_a_by_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Sorts the array `a` by the argsort of `b`.

@@ -71,7 +71,7 @@ def run_1d_analysis(configuration: Config,
             if sliced_ugrid is None:
                 continue
 
-            rkm, isegment, iface = sliced_ugrid
+            rkm, path_distances, isegment, iface = sliced_ugrid
             angles = np.array(prof_line_df['angle'].iloc[geom_idx][isegment])
             for var, name in variables._asdict().items():
                 profile_data[var].append(dflowfm.get_profile_data(data, name, iface))
@@ -79,7 +79,7 @@ def run_1d_analysis(configuration: Config,
         if sliced_ugrid is None: # profile line does not slice reference nor intervention simulation data
             continue
         
-        save_1d_figures(configuration, section, profile_index, profile_data, angles, rkm)
+        save_1d_figures(configuration, section, profile_index, profile_data, angles, rkm, path_distances)
         
         bedlevel = data[variables.bl].where(lambda x: x != 999)
         figfile = construct_figure_filename(configuration.plotsettings.options.figure_save_directory,
@@ -92,7 +92,8 @@ def save_1d_figures(configuration: Config,
                     profile_index: str,
                     profile_data: dict,
                     angles: np.ndarray,
-                    rkm: np.ndarray):
+                    rkm: np.ndarray,
+                    path_distances: np.ndarray):
     """Generate and save 1D figures and CSV files."""
     figdir = configuration.plotsettings.options.figure_save_directory
     figext = configuration.plotsettings.options.plot_extension
@@ -112,7 +113,14 @@ def save_1d_figures(configuration: Config,
     figfile = construct_figure_filename(figdir, base, figext)
     outputfiles.append((outputdir / base).with_suffix('.xlsx'))
 
-    cross_flow.run(profile_data["ucx"], profile_data["ucy"], angles, rkm, configuration, figfile, outputfiles)
+    cross_flow.run(profile_data["ucx"], 
+                   profile_data["ucy"], 
+                   path_distances,
+                   angles, 
+                   rkm,
+                   configuration, 
+                   figfile, 
+                   outputfiles)
 
 def run_2d_analysis(configuration: Config, 
                     section: str,

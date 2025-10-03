@@ -23,7 +23,7 @@
 \newcommand{\addmemosignatures}{0} %0=no; 1=yes
 
 %Add colon in \mySubtitle if desired or leave empty if no substitle is desired. 
-\def\myTitle{Verkenning tool voor effecten ijsvorming en dwarsstroming}
+\def\myTitle{Verkenning tool voor effecten ijsafvoer en dwarsstroming}
 \def\mySubtitle{}
 
 \def\myOrganisationi{Deltares}
@@ -32,7 +32,7 @@
 \def\myPhonei{+31\,(0)64\,691\,1978}
 \def\myEmaili{robert.groenewege@deltares.nl}
 
-\def\myVersion{0.2}
+\def\myVersion{0.3}
 \def\myDate{\today}
 
 %
@@ -77,6 +77,7 @@
 \NewEnviron{requirement}%\usepackage{environ}
 {\emph{"\BODY"} \par\addvspace{5pt} }
 \NewEnviron{testmethod}{\BODY \vspace{5pt}}
+
 %
 %
 %
@@ -102,7 +103,7 @@
 %prevent sentence break between pages		
 \widowpenalties 1 10000
 \raggedbottom
-	
+
 \begin{document}
 
 \title{\myTitle}
@@ -138,7 +139,7 @@
 \classification{}
 \status{concept}
 \disclaimer{}
-\summary{De beoordeling van de rivierkundige effecten van voorgenomen ingrepen in de grote rivieren in Nederland wordt met behulp van het Rivierkundig Beoordelingskader (RBK \citep{RWS23}) uitgevoerd. Echter blijkt in de praktijk de beoordeling van de invloed van ingrepen op ijsafvoer lastig uit te voeren; een eenduidige, efficiënte methodiek ontbreekt. Ook voor de beoordeling van effecten van ingrepen op dwarsstroming zijn (en worden) door initiatiefnemers verschillende aanpakken ontwikkeld. Met een uniforme aanpak kan de kwaliteit beter worden geborgd.
+\summary{De beoordeling van de rivierkundige effecten van voorgenomen ingrepen in de grote rivieren in Nederland wordt met behulp van het Rivierkundig Beoordelingskader (RBK) \citep{RWS23} uitgevoerd. Echter blijkt in de praktijk de beoordeling van de invloed van ingrepen op ijsafvoer lastig uit te voeren; een eenduidige, efficiënte methodiek ontbreekt. Ook voor de beoordeling van effecten van ingrepen op dwarsstroming zijn (en worden) door initiatiefnemers verschillende aanpakken ontwikkeld. Met een uniforme aanpak kan de kwaliteit beter worden geborgd.
 
 Het doel van deze studie is het ontwikkelen van een eenduidige aanpak met rekentool, voor de RBK-bepaling van dwarsstroom- en ijsafvoereffecten. Hiermee moet, naar gelang de behoefte, eenduidig op uniforme wijze de grootte van dwarsstroming en dwarsstromingseffecten en de relevante variabelen voor het schatten van de invloed van maatregelen op de doorvoer van ijs kunnen worden bepaald, conform de specificaties in het RBK. Dit is een gecombineerde aanpak van twee verschillende aspecten (ijsafvoer en dwarsstroming op de vaarweg) vanwege een redelijke overlap in de voor evaluatie relevante variabelen.
 
@@ -236,6 +237,23 @@ Het wordt aanbevolen om de rekentool binnen de D-FAST productlijn op te nemen en
   \end{figure}
 }
 
+\newcommand{\insertfrfigure}[3]{
+	\begin{figure}[hbt!]
+		\centering
+		\begin{subfigure}[b]{\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{#1}
+		\end{subfigure}\hfill
+		\begin{subfigure}[b]{\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.2\textheight,keepaspectratio]{#2}
+		\end{subfigure}
+		\captionsetup{justification=centering}
+		\caption{#3}
+		\label{#3}
+	\end{figure}
+}
+
 %Second input is the level of the section.
 \gensection{\isreport}{1}{Projectomschrijving}
 \label{sec:projectplan}
@@ -243,7 +261,7 @@ Het wordt aanbevolen om de rekentool binnen de D-FAST productlijn op te nemen en
 \gensection{\isreport}{2}{Aanleiding}
 De rivierkundige effecten van voorgenomen ingrepen (maatregelen) in de grote rivieren in Nederland worden bij vergunningverlening door Rijkswaterstaat (RWS) beoordeeld. Zo moet een goede geleiding van ijs gewaarborgd blijven om de kans op ijsdammen,  waterstandsopstuwing en overstromingen te minimaliseren. Ook de component van de stroming dwars op de vaarweg (dwarsstroming) mag niet te groot worden omdat dit hinder of onveiligheid voor scheepvaart kan opleveren. 
 
-De beoordeling van de effecten van ingrepen wordt met behulp van het Rivierkundig Beoordelingskader (RBK \citep{RWS23}) uitgevoerd. Echter blijkt in de praktijk de beoordeling van de invloed van ingrepen op ijsafvoer lastig uit te voeren; een eenduidige, efficiënte methodiek ontbreekt. Ook voor de beoordeling van effecten van ingrepen op dwarsstroming zijn (en worden) door initiatiefnemers verschillende aanpakken ontwikkeld. Met een uniforme aanpak kan de kwaliteit beter worden geborgd. 
+De beoordeling van de effecten van ingrepen wordt met behulp van het Rivierkundig Beoordelingskader (RBK) \citep{RWS23} uitgevoerd. Echter blijkt in de praktijk de beoordeling van de invloed van ingrepen op ijsafvoer lastig uit te voeren; een eenduidige, efficiënte methodiek ontbreekt. Ook voor de beoordeling van effecten van ingrepen op dwarsstroming zijn (en worden) door initiatiefnemers verschillende aanpakken ontwikkeld. Met een uniforme aanpak kan de kwaliteit beter worden geborgd. 
 
 In 2024 is door Kaderrichtlijn Water (KRW) projecten voor de Rijntakken een aanpak gevolgd voor het kwantitatieve onderdeel van de beoordeling van effecten op ijsafvoer. Voor SITO Rivierkunde is de invloed van onregelmatige oevers op rivierfuncties (veilige afvoer van water, sediment en ijs, dwarsstroming, vlot en veilig varen en ondersteuning laagwaterstanden) onderzocht door \citet{Groenewege25}. Beide ontwikkelingen geven perspectief op generiek gebruik dat in een rekentool geformaliseerd kan worden.
 
@@ -256,7 +274,7 @@ Het doel van deze studie is het ontwikkelen van een eenduidige aanpak met rekent
 
 Dit is een gecombineerde aanpak van twee verschillende aspecten (ijsafvoer en dwarsstroming op de vaarweg) vanwege een redelijke overlap in de voor evaluatie relevante variabelen.
 
-Bij de rekentool gaat het in 2025 om een serie van eenvoudige scripts, en nadrukkelijk nog niet om een tool die uitgeleverd kan worden voor gebruik door ingenieursbureaus. Mits de resultaten veelbelovend zijn kan in een volgende stap erover worden nagedacht hoe dit omgezet kan worden in een tool dat door de markt toegepast kan worden, bijvoorbeeld een aanvulling van de set tools onder D-FAST. D-FAST is een softwareproductlijn ontwikkeld door Deltares en bestaat momenteel uit 2 applicaties: D-FAST Morphological Impact (MI) en D-FAST Bank Erosion (BE). Met D-FAST MI kan een eerste inschatting gemaakt worden van het effect van een maatregel op de bodem van de hoofdgeul. D-FAST BE is een hulpmiddel voor een snelle beoordeling van de erosie van de rivieroever. Met eventuele implementatie van deze rekentool in D-FAST moet dan ook worden bekeken hoe het beheer en onderhoud van de tool kan worden gewaarborgd. Wel is in 2025 geprobeerd om al zo veel mogelijk aan te sluiten bij de code van D-FAST-MI en -BE.
+Bij de rekentool gaat het in 2025 om een serie van eenvoudige scripts, en nadrukkelijk nog niet om een tool die uitgeleverd kan worden voor gebruik door ingenieursbureaus. Mits de resultaten veelbelovend zijn kan in een volgende stap erover worden nagedacht hoe dit omgezet kan worden in een tool die door de markt toegepast kan worden, bijvoorbeeld een aanvulling van de set tools onder D-FAST. D-FAST is een softwareproductlijn ontwikkeld door Deltares en bestaat momenteel uit 2 applicaties: D-FAST Morphological Impact (MI) en D-FAST Bank Erosion (BE). Met D-FAST MI kan een eerste inschatting gemaakt worden van het effect van een maatregel op de bodem van de hoofdgeul. D-FAST BE is een hulpmiddel voor een snelle beoordeling van de erosie van de rivieroever. Met eventuele implementatie van deze rekentool in D-FAST moet dan ook worden bekeken hoe het beheer en onderhoud van de tool kan worden gewaarborgd. Wel is in 2025 geprobeerd om al zo veel mogelijk aan te sluiten bij de code van D-FAST-MI en -BE.
 
 Het doel van dit rapport is het toelichten van de ontwikkelde rekentool, aan de hand van een algemene beschrijving, validatie met een geselecteerde ingreep, en een eerste karakterisering van het huidige functioneren van de Rijn en Maas.
 
@@ -275,9 +293,9 @@ De volgende werkzaamheden zijn uitgevoerd:
 
 Dit leidt tot de volgende opgeleverde producten:
 \begin{itemize}
-	\item prototype van de tool
+	\item prototype van de tool (zie bijgeleverde broncode)
 	\item rapport (voorliggend document)
-	\item instructies voor installeren en gebruik (zie User Manual)
+	\item instructies voor installeren en gebruik (zie Bijlage \ref{app:gebruiksinstructies})
 \end{itemize}
 
 
@@ -329,10 +347,10 @@ De tool is te gebruiken als "command line interface" (CLI) zonder een grafische 
 \begin{itemize}
 	\item map- of fourier uitvoerbestanden van D-HYDRO simulaties;
 	\item configuratiebestanden van de riviertakken (naam, trajecten, afmetingen van schepen, enz.);
-	\item configuratiebestand van de analyse (hiermee kunnen gebruikers verwijzen naar de relevante D-HYDRO simulaties).
+	\item configuratiebestand van de analyse (hiermee kunnen gebruikers verwijzen naar de relevante D-HYDRO simulaties en resultaten van D-FAST-MI).
 \end{itemize}
 
-De uitvoer van de tool bestaat uit figuren en netCDF bestanden. In de volgende secties is dit verder uitgewerkt.
+De uitvoer van de tool bestaat uit figuren, Excel bestanden en netCDF bestanden. In de volgende secties is dit verder uitgewerkt.
 
 \gensection{\isreport}{2}{Algemeen ontwerp}
 
@@ -373,7 +391,7 @@ Uit de feedback vanuit de RWS klankbordgroep zijn enkele algemene vereisten aan 
 	De tool moet de mogelijkheid bieden om modelresultaten langs de raai-km van de rivier te plotten.
 	\end{requirement}
 	\begin{testmethod}
-	Om resultaten langs de raai-km van de rivier te plotten, moet in het configuratiebestand voor het keyword \texttt{RiverKM} onder \texttt{General} een XYC bestand \citep[zie]{dfastmi_usermanual} met raai-km's worden opgegeven.
+	Om resultaten langs de raai-km van de rivier te plotten, moet in het configuratiebestand voor het keyword \texttt{RiverKM} onder \texttt{General} een XYC bestand \citep{dfastmi_usermanual} met raai-km's worden opgegeven.
 	\end{testmethod}
 	
 	\item \begin{requirement}
@@ -412,7 +430,9 @@ Ten tweede produceert de tool figuren van Froude getallen voor de situatie zonde
 
 \gensection{\isreport}{2}{Beoordeling van dwarsstroming}
 \label{sec:beschrijving_dwarsstroming}
-De beoordeling van dwarsstroming is uitvoerig beschreven in het RBK \citep[bijlage 7]{RWS23}. De tool automatiseert de stappen voor de bepaling en presentatie van dwarsstroming. De geproduceerde figuren volgen de opzet van Figuur \ref{fig:dwarsstroming}, maar visualiseren óók het variërende criterium (0.15 of 0.3 $m/s$) dat hoort bij het lokale dwarsstroomdebiet. De dwarsstroming wordt gepresenteerd langs de lijn(en) die de gebruiker zelf opgeeft (zie volgende alinea). Overschrijdingen van het (lokale) criterium worden ook apart weggeschreven in een Excel bestand. Het is mogelijk om in één figuur zowel de lijn voor een situatie zonder ingreep als de lijn voor een situatie met ingreep te visualiseren, zodat het effect van de ingreep inzichtelijk is. Op de secundaire as wordt het verschil tussen de situatie zonder en met ingreep toegevoegd. Dit leidt tot drie lijnen:
+De beoordeling van dwarsstroming is uitvoerig beschreven in het RBK \citep[bijlage 7]{RWS23}. De tool automatiseert de stappen voor de bepaling en presentatie van (representatieve) dwarsstroming. 
+
+De geproduceerde figuren volgen de opzet van Figuur \ref{fig:dwarsstroming}, maar visualiseren óók het variërende criterium (0.15 of 0.3 $m/s$) dat hoort bij het lokale dwarsstroomdebiet. De dwarsstroming wordt gepresenteerd langs de lijn(en) die de gebruiker zelf opgeeft (zie volgende alinea). Overschrijdingen van het (lokale) criterium worden ook apart weggeschreven in een Excel bestand. Het is mogelijk om in één figuur zowel de lijn voor een situatie zonder ingreep als de lijn voor een situatie met ingreep te visualiseren, zodat het effect van de ingreep inzichtelijk is. Op de secundaire as wordt het verschil tussen de situatie zonder en met ingreep toegevoegd. Dit leidt tot drie lijnen:
 \begin{enumerate}
 	\item Referentie (zwarte lijn)
 	\item Met ingreep (blauwe lijn)
@@ -455,10 +475,10 @@ De volgende beperkingen aan de rekentool zijn momenteel bekend (zie ook hoofdstu
 \begin{itemize}
 	\item Als de analyse wordt uitgevoerd op een gebied met meerdere rivierassen, zoals in de RMM, mogen er in de invoer geen dubbelingen in de rivierkilometers voorkomen. Er moet dus gekozen worden voor één as(lijn).
 	\item Voorlopig is het nog niet mogelijk om met de tool maximale stroming tijdens eb en vloed uit te rekenen. Als alternatief kan de gebruiker zelf een fourier of map-bestand als invoer opgeven met maximale stroming tijdens eb en/of vloed ter hoogte van de ingreep.
-	\item De berekening van dwarsstroomdebiet is afhankelijk van een correcte rivierkilometrering, dus daar waar verspringingen plaatsvinden (bv. op de IJssel tussen rkm 905 en 910) moet de uitvoer als onnauwkeurig worden beschouwd.
+	\item De berekening van dwarsstroomdebiet is momenteel afhankelijk van een correcte rivierkilometrering, omdat dit als de parameter voor afstand wordt gekozen. Daar waar verspringingen plaatsvinden is het berekende dwarsstroomdebiet onnauwkeurig. Bijvoorbeeld op de IJssel tussen rkm 905 en 910 wordt de afstand overschat en dus ook het berekende dwarsstroomdebiet. In een volgende versie kan dit worden verholpen.
 	\item Daar waar de stroomsnelheid zeer klein is, kan in de figuren de stromingsrichting ten opzichte van de profiellijn grote uitslagen tonen.
 	\item De tool produceert nog geen 2D figuren van stroomsnelheid en -richting. Dit zou handig zijn om het stroomvoerend profiel te bepalen.
-	\item Voor andere schipafmetingen, bv. de recreatievaart, is de tool nog niet getest. Voor het modelleren van de stroming met D-HYDRO geldt de richtlijn dat de resolutie van het rekenrooster rond de ingreep in langsrichting fijner moet zijn dan de lengte van het schip.
+	\item Voor andere schipafmetingen, bv. de recreatievaart, is de tool nog niet getest. Er kan al wel gesteld worden dat een correcte uitvoer van de tool onder andere berust op correcte invoer, waaronder een nauwkeurige representatie van de stroming met D-HYDRO. Hiervoor geldt de richtlijn dat de resolutie van het rekenrooster rond de ingreep in langsrichting fijner moet zijn dan de lengte van het schip.
 \end{itemize}
 	
 \gensection{\isreport}{1}{Validatie}
@@ -577,19 +597,21 @@ In onderstaande kaarten zijn de normaallijnen aangegeven met groene lijnen. Ook 
 \gensection{\isreport}{4}{Boven-Rijn en Waal}
 Over het algemeen worden de Boven-Rijn en Waal gedomineerd door Froude getallen tussen 0.10 en 0.15 (bij een afvoer van 4000 $m^3/s$ en gecorrigeerd voor een benedenstrooms ijsdek). Desalniettemin bestaan er enkele knelpunten, die in onderstaande figuren zijn uitgelicht. 
 
-\insertdoublefigure{\RijnFigDir//BovenrijnWaal/figures/C1_reference_profile2_Froude_wateruplift.png}{\RijnFigDir//BovenrijnWaal/figures/C1_profile2_velocity_angle.png}{Knelpunt in de buitenbocht, rkm 882.5-883.}
-\insertdoublefigure{\RijnFigDir//BovenrijnWaal/figures/C1_reference_profile6_Froude_wateruplift.png}{\RijnFigDir//BovenrijnWaal/figures/C1_profile6_velocity_angle.png}{Knelpunt in de binnenbocht, rkm 928-929.}
-\insertdoublefigure{\RijnFigDir//BovenrijnWaal/figures/C1_reference_profile7_Froude_wateruplift.png}{\RijnFigDir//BovenrijnWaal/figures/C1_profile7_velocity_angle.png}{Knelpunt in de buitenbocht, rkm 953-955.}
 
+\insertfrfigure{\RijnFigDir//BovenrijnWaal/figures/C1_reference_profile2_Froude_wateruplift.png}{\RijnFigDir//BovenrijnWaal/figures/C1_profile2_velocity_angle.png}{Knelpunt in de buitenbocht, rkm 882.5-883.}
+\insertfrfigure{\RijnFigDir//BovenrijnWaal/figures/C1_reference_profile6_Froude_wateruplift.png}{\RijnFigDir//BovenrijnWaal/figures/C1_profile6_velocity_angle.png}{Knelpunt in de binnenbocht, rkm 928-929.}
+\insertfrfigure{\RijnFigDir//BovenrijnWaal/figures/C1_reference_profile7_Froude_wateruplift.png}{\RijnFigDir//BovenrijnWaal/figures/C1_profile7_velocity_angle.png}{Knelpunt in de buitenbocht, rkm 953-955.}
+
+	
 \FloatBarrier
 \gensection{\isreport}{4}{IJssel}
 Over het algemeen zijn Froude getallen in de IJssel niet hoog (bij een afvoer van 4000 $m^3/s$ en gecorrigeerd voor een benedenstrooms ijsdek). De Boven-IJssel tot ongeveer rkm 900 is gedomineerd door Froude getallen tussen 0.10 en 0.15. Van rkm 900 tot rkm 977 is het vooral gedomineerd door lagere Froude getallen tussen 0.08 en 0.10. Het traject tussen rkm 977 en rkm 994 is weer gedomineerd door hogere Froude getallen, tussen 0.10 en 0.15. Tussen rkm 994 en de monding van de IJssel bestaat de hoogste kans op een ijsblokkade; dit hele traject is gekenmerkt door Froude getallen onder 0.08. In onderstaande figuren zijn enkele knelpunten ter illustratie uitgelicht.
 
-\insertdoublefigure{\RijnFigDir//IJssel/figures/C1_reference_profile1_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile0_velocity_angle.png}{Knelpunt in de buitenbochten, rkm 891-899.75.}
-\insertdoublefigure{\RijnFigDir//IJssel/figures/C1_reference_profile6_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile2_velocity_angle.png}{Knelpunt in de buitenbocht, rkm 919.}
-\insertdoublefigure{\RijnFigDir//IJssel/figures/C1_reference_profile8_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile3_velocity_angle.png}{Knelpunt in de buitenbochten, rkm 937-938.5.}
-\insertdoublefigure{\RijnFigDir//IJssel/figures/C1_reference_profile9_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile7_velocity_angle.png}{Knelpunt in het traject rkm 942-943.5.}
-\insertdoublefigure{\RijnFigDir//IJssel/figures/C1_reference_profile27_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile11_velocity_angle.png}{Knelpunt in het traject rkm 994-1006.}
+\insertfrfigure{\RijnFigDir//IJssel/figures/C1_reference_profile1_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile0_velocity_angle.png}{Knelpunt in de buitenbochten, rkm 891-899.75.}
+\insertfrfigure{\RijnFigDir//IJssel/figures/C1_reference_profile6_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile2_velocity_angle.png}{Knelpunt in de buitenbocht, rkm 919.}
+\insertfrfigure{\RijnFigDir//IJssel/figures/C1_reference_profile8_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile3_velocity_angle.png}{Knelpunt in de buitenbochten, rkm 937-938.5.}
+\insertfrfigure{\RijnFigDir//IJssel/figures/C1_reference_profile9_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile7_velocity_angle.png}{Knelpunt in het traject rkm 942-943.5.}
+\insertfrfigure{\RijnFigDir//IJssel/figures/C1_reference_profile27_Froude_wateruplift.png}{\RijnFigDir//IJssel/figures/C1_profile11_velocity_angle.png}{Knelpunt in het traject rkm 994-1006.}
 
 \FloatBarrier
 \gensection{\isreport}{4}{Nederrijn-Lek en Pannerdens Kanaal}
@@ -597,13 +619,13 @@ Over het algemeen is het Pannerdens Kanaal gedomineerd door Froude getallen tuss
 
 Ter illustratie zijn hieronder de Froude getallen in figuren gepresenteerd.
 
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile6_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile6_velocity_angle.png}{Froude getallen op het Pannerdens Kanaal.}
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile0_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile0_velocity_angle.png}{Froude getallen op de Nederrijn, rkm 878-893.}
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile1_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile1_velocity_angle.png}{Froude getallen op de Nederrijn, rkm 894-909.}
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile2_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile2_velocity_angle.png}{Froude getallen op de Nederrijn, rkm 909-924.}
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile3_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile3_velocity_angle.png}{Froude getallen op de Nederrijn en Lek, rkm 924-939.}
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile4_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile4_velocity_angle.png}{Froude getallen op de Lek, rkm 939-955.}
-\insertdoublefigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile5_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile5_velocity_angle.png}{Froude getallen op de Lek, rkm 955-970.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile6_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile6_velocity_angle.png}{Froude getallen op het Pannerdens Kanaal.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile0_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile0_velocity_angle.png}{Froude getallen op de Nederrijn, rkm 878-893.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile1_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile1_velocity_angle.png}{Froude getallen op de Nederrijn, rkm 894-909.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile2_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile2_velocity_angle.png}{Froude getallen op de Nederrijn, rkm 909-924.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile3_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile3_velocity_angle.png}{Froude getallen op de Nederrijn en Lek, rkm 924-939.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile4_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile4_velocity_angle.png}{Froude getallen op de Lek, rkm 939-955.}
+\insertfrfigure{\RijnFigDir//NederrijnLek/figures/C1_reference_profile5_Froude_wateruplift.png}{\RijnFigDir//NederrijnLek/figures/C1_profile5_velocity_angle.png}{Froude getallen op de Lek, rkm 955-970.}
 
 \FloatBarrier
 \gensection{\isreport}{3}{Dwarsstroming}
@@ -679,7 +701,7 @@ In dit hoofdstuk wordt een eerste karakterisering gemaakt van stroming in de geh
 \gensection{\isreport}{2}{Opzet}
 Voor de berekeningen is gebruik gemaakt van het \texttt{dflowfm2d-maas-beno22\_6-v2a} model. De afvoersommen S1700, S2100 en S2500 zijn doorgerekend om het bereik "Borgharen van 1500 tot 2800 $m^3/s$" (zie sectie \ref{achtergrond_ijs}) te representeren. De Grensmaas, het Julianakanaal, Lateraalkanaal, Maas-Waalkanaal, andere aangetakte kanalen, havens, bruggen en sluizen zijn buiten beschouwing gelaten in de analyse. 
 
-De randen van de vaarwegen zijn verkregen uit een nabewerking van het normprofiel dat door RWS-ZN is aangeleverd \citep{Groenewege25}. Dit normprofiel loopt ongeveer tot Well benedenstrooms door. Om het aantal profielen te minimaliseren, zijn eerst aparte segmenten zoveel mogelijk met elkaar verbonden. In een eerste test kwamen honderden overschrijdingen van de dwarsstromingsnorm naar voren, wat deels te wijten was aan de grilligheid van het normprofiel. Daarom is het normprofiel tevens versimpeld (Douglas-Peucker algoritme met een tolerantie van 2 m), waarmee de grilligheid sterk verminderd is. Het resulterende normprofiel heeft dus geen officiële status, maar is wel geoptimaliseerd om stroming langs de profiellijnen zo goed mogelijk te representeren. Desalniettemin blijven er nog veel locaties over waar het normprofiel de oever te dicht lijkt te volgen. Daarom is ook gekeken naar stroming langs de rivieras. 
+De randen van de vaarwegen zijn verkregen uit een nabewerking van het normprofiel dat door RWS-ZN is aangeleverd (bestand \texttt{normprofiel.gdb\textbar layername=normprofiel\_breeklijn}) \citep{Groenewege25}. Dit normprofiel loopt ongeveer tot Well benedenstrooms door. Om het aantal profielen te minimaliseren, zijn eerst aparte segmenten zoveel mogelijk met elkaar verbonden. In een eerste test kwamen honderden overschrijdingen van de dwarsstromingsnorm naar voren, wat deels te wijten was aan de grilligheid van het normprofiel. Daarom is het normprofiel tevens versimpeld (Douglas-Peucker algoritme met een tolerantie van 2 m), waarmee de grilligheid sterk verminderd is. Het resulterende normprofiel heeft dus geen officiële status, maar is wel geoptimaliseerd om stroming langs de profiellijnen zo goed mogelijk te representeren. Desalniettemin blijven er nog veel locaties over waar het normprofiel de oever te dicht lijkt te volgen. Daarom is ook gekeken naar stroming langs de rivieras. 
 
 \gensection{\isreport}{2}{Resultaten}
 
@@ -689,8 +711,8 @@ In deze sectie worden enkele opmerkelijke knelpunten met betrekking tot de afvoe
 
 De Bovenmaas wordt gekenmerkt door Froude getallen rond 0.15 en daarboven (voor een afvoer van 1700 $m^3/s$ en met een benedenstrooms ijsdek). De Zandmaas wordt tussen rkm 67 en rkm 87 gekenmerkt door Froude getallen tussen 0.10 en 0.15, en tussen rkm 87 en rkm 147 door Froude getallen rond 0.08. Het traject tussen rkm 109.5 en 120.5 is een knelpunt waar Froude getallen veelal onder 0.08 liggen. Ook ter hoogte van havens en (neven)geulen of plassen ligt het Froude getal vaak onder 0.08. Zie onderstaande figuren ter illustratie. Vanaf stuw Sambeek (rkm 147) zijn in stroomafwaartse richting de laagste Froude getallen te vinden: tussen 0.04 en 0.08. 
 
-\insertdoublefigure{\MaasFigDir//figures/C1_reference_profile26_Froude_wateruplift.png}{\MaasFigDir//figures/C1_profile26_velocity_angle.png}{Knelpunt voor de afvoer van ijs, rkm 109.5-120.5.}
-\insertdoublefigure{\MaasFigDir//figures/C1_reference_profile25_Froude_wateruplift.png}{\MaasFigDir///figures/C1_profile25_velocity_angle.png}{Knelpunt voor de afvoer van ijs, rkm 135-138.}
+\insertfrfigure{\MaasFigDir//figures/C1_reference_profile26_Froude_wateruplift.png}{\MaasFigDir//figures/C1_profile26_velocity_angle.png}{Knelpunt voor de afvoer van ijs, rkm 109.5-120.5.}
+\insertfrfigure{\MaasFigDir//figures/C1_reference_profile25_Froude_wateruplift.png}{\MaasFigDir///figures/C1_profile25_velocity_angle.png}{Knelpunt voor de afvoer van ijs, rkm 135-138.}
 
 \FloatBarrier
 \gensection{\isreport}{3}{Dwarsstroming}
@@ -735,7 +757,7 @@ Gezien de huidige beperkingen van de rekentool (zie sectie \ref{beperkingen}), w
 	\item Automatisch bepalen en tonen van het stroomvoerend profiel, zodat data hierbuiten weggefilterd kan worden en ook de beoordeling van het effect van ingrepen op de afvoer van ijs wordt vergemakkelijkt.
 	\item Testen van de tool met andere schipafmetingen en herziening van de huidige maatgevende waarden, die niet per se representatief zijn voor een "klein schip" \citep{Koedijk20}.
 	\item Opstellen van richtlijnen voor gebruik van deze tool in de RMM (gefocust op selectie van gemiddeld/springtij, rivierafvoer, moment van getij, profiellijn(en), enz.).
-	\item Verbetering van het normprofiel in de Maas ten behoeve van beoordeling van dwarsstroom- en ijsafvoereffecten van ingrepen.
+	\item Ten behoeve van beoordeling van dwarsstroom- en ijsafvoereffecten van ingrepen in de Maas wordt aangeraden vloeiendere lijnen te gebruiken dan het normprofiel (bestand \texttt{normprofiel.gdb\textbar layername=normprofiel\_breeklijn}, zoals aangeleverd door RWS-ZN voor \citet{Groenewege25}).
 \end{enumerate}
 
 Tevens wordt aangeraden om voor de resterende beoordelingsaspecten uit het RBK \citep{RWS23} ook gestandaardiseerde en uniforme rekentools te ontwikkelen die op elkaar aansluiten, zodat steeds dezelfde aanpakken worden gevolgd voor de beoordeling van rivierkundige effecten van ingrepen.
@@ -848,7 +870,7 @@ De uiteindelijke, gecombineerde correctie van het met D-HYDRO berekende Froude g
 \label{app:gebruiksinstructies}
 
 \gensection{\isreport}{2}{Installatie}
-Om de rekentool te installeren moet onderstaande stappen gevolgd worden:
+Om de rekentool te installeren moeten onderstaande stappen gevolgd worden:
 \begin{enumerate}
 	\item Download de bijgesloten broncode (ZIP-bestand).
 	\item Installeer de meest recente versie van Python (https://www.python.org/downloads/).

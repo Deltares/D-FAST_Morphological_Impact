@@ -9,13 +9,27 @@ from dfastrbk.src.batch import operations
 
 def run(ucx: list[np.ndarray],
         ucy: list[np.ndarray],
+        path_distances: np.ndarray,
         profile_angles: np.ndarray,
         rkm: np.ndarray,
         configuration: Config,
         figfile: Path,
         outputfiles: Path) -> None:
+    """
+    Input:
+    ucx: (n,)
+        x-component of flow velocity 
+    ucy: (n,)
+        y-component of flow velocity
+    path_distances: (n,)
+        distance between intersection points
+    profile_angles: (n,)
+        angle of profile line segments
+    rkm: (n,)
+        projected riverkm values
+    """
     
-    SHEET_LABELS = ["Reference","WithIntervention","Difference"]
+    SHEET_LABELS = ("Reference","WithIntervention","Difference")
     CRITERIA: tuple[float, float] = (0.15, 0.3)  # criteria for transverse velocity
 
     rkm_km = rkm / 1000
@@ -49,10 +63,10 @@ def run(ucx: list[np.ndarray],
     COLUMN_LABELS = ('start (rkm)',
                      'eind (rkm)',
                     'dwarsstroomdebiet (m3/s)',
-                    'max. dwarsstroomsnelheid magnitude(m3/s)',
+                    'max. dwarsstroomsnelheid magnitude (m3/s)',
                     'criterium (m/s)',
                     'overschrijding (0=FALSE,1=TRUE)')
-    discharges, crit_values, xy_blocks = TransverseDischarge().compute(rkm,
+    discharges, crit_values, xy_blocks = TransverseDischarge().compute(rkm, path_distances,
                                            transverse_velocity,
                                            configuration.ship_params.depth,
                                            configuration.ship_params.length,
@@ -90,15 +104,29 @@ def prepare_data_for_excel(xy_block, discharge, crit_value):
     
 class TransverseDischarge:
     def prepare_data(self,
-                     distance: np.ndarray, 
+                     rkm: np.ndarray, 
+                     path_distance: np.ndarray,
                      transverse_velocity: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Prepare data by inserting array roots and subsequently splitting into blocks."""
-        distance_app, transverse_velocity_app = operations.insert_array_roots(distance, transverse_velocity)
-        distance_split, transverse_velocity_split = operations.split_into_blocks(distance_app, transverse_velocity_app)
-        return distance_split, transverse_velocity_split
+        """Prepare data by densifying, inserting array roots and subsequently splitting into blocks."""
+        # because ship length is 0.5 m precision we first densify distance such that diff(distance) <= 0.5 m:
+
+        path_distance_interp = operations.densify_array(path_distance, 0.5)
+
+        transverse_velocity_interp = np.interp(path_distance_interp, path_distance, transverse_velocity)
+        rkm_interp = np.interp(path_distance_interp, path_distance, rkm)
+
+        rkm_app, transverse_velocity_app, path_distance_app = operations.insert_array_roots(rkm_interp, 
+                                                                         transverse_velocity_interp, 
+                                                                         path_distance_interp)
+        rkm_split, transverse_velocity_split, path_distance_split = operations.split_into_blocks(rkm_app, 
+                                                                            transverse_velocity_app, 
+                                                                            path_distance_app)
+
+        return rkm_split, path_distance_split, transverse_velocity_split
     
     def compute(self,
-                distance: np.ndarray,
+                rkm: np.ndarray,
+                path_distances: np.ndarray,
                 transverse_velocity: list[np.ndarray],
                 ship_depth: float,
                 ship_length: float,
@@ -106,21 +134,21 @@ class TransverseDischarge:
         """Computes the transverse discharge from transverse velocity, ship depth and ship length"""
         discharges = []
         crit_values = []
-        #indices = []
         xy_segments = []
 
         for tv in transverse_velocity:
-            distance_split, tv_split = self.prepare_data(distance, tv)
+            rkm_split, path_distances_split, tv_split = self.prepare_data(rkm, path_distances, tv)
             discharge_case = []
             crit_case = []
-            #indices_case = []
             xy_segments_case = []
 
-            for xi, yi in zip(distance_split, tv_split):
+            for xi, prof_distance, yi in zip(rkm_split,
+                                             path_distances_split,
+                                             tv_split):
                 if not np.any(yi):
                     continue
 
-                max_integral, max_indices = operations.max_rolling_integral(xi, yi, ship_length)
+                max_integral, max_indices = operations.max_rolling_integral(prof_distance, yi, ship_length)
                 discharge = flow.trans_discharge(max_integral, ship_depth)
                 discharge_case.append(discharge)
 
@@ -135,7 +163,6 @@ class TransverseDischarge:
 
             discharges.append(np.array(discharge_case))
             crit_values.append(np.array(crit_case))
-            #indices.append(indices_case)
             xy_segments.append(xy_segments_case)
 
         return discharges, crit_values, xy_segments

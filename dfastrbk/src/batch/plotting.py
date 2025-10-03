@@ -64,6 +64,100 @@ def plot_chainage_markers(riverkm: LineString, ax: Axes):
     filtered_coords = np.array([coord for coord in riverkm.coords if coord[2] % 1 == 0])
     chainage_markers(filtered_coords, ax, scale=1, ndec=0)
 
+def align_twinx_grid_centered(primary, secondary, *,
+                              center=0.0,
+                              keep_symmetric=True,
+                              add_centerline=True,
+                              label_formatter=None,
+                              _eps=1e-12):
+    """
+    Align secondary-axis (right) ticks to the primary (left) axis horizontal gridlines,
+    and (optionally) keep the secondary axis symmetric around `center` (default: 0).
+
+    Parameters
+    ----------
+    primary : matplotlib.axes.Axes
+        Left axis.
+    secondary : matplotlib.axes.Axes
+        Right axis, created with twinx().
+    center : float
+        Value the secondary axis should be centered on (default: 0).
+    keep_symmetric : bool
+        If True, force secondary ylim to be [center - M, center + M], where
+        M = max(|ylow - center|, |yhigh - center|).
+    add_centerline : bool
+        If True, draws/updates a dashed horizontal line at secondary==center
+        (mapped into primary coordinates) so the midline is visible even if
+        the primary has no tick there.
+    label_formatter : callable or None
+        Optional function to format secondary tick labels. Receives float -> str.
+    _eps : float
+        Internal epsilon to avoid divide-by-zero loops.
+    """
+    state = {"centerline": None, "in_update": False}
+
+    def update(_evt):
+        if state["in_update"]:
+            return
+        state["in_update"] = True
+        try:
+            # Current limits
+            y1_lo, y1_hi = primary.get_ylim()
+            y2_lo, y2_hi = secondary.get_ylim()
+
+            # Ensure secondary is symmetric about `center`
+            if keep_symmetric:
+                span_lo = abs(y2_lo - center)
+                span_hi = abs(y2_hi - center)
+                M = max(span_lo, span_hi, _eps)
+                new_lo, new_hi = center - M, center + M
+                # Only set if it actually changes to avoid endless callbacks
+                if (abs(new_lo - y2_lo) > _eps) or (abs(new_hi - y2_hi) > _eps):
+                    secondary.set_ylim(new_lo, new_hi)
+                    y2_lo, y2_hi = new_lo, new_hi
+
+            # Protect against zero primary span
+            y1_span = y1_hi - y1_lo
+            if abs(y1_span) < _eps:
+                return
+
+            # Linear mapping primary -> secondary: y2 = a*y1 + b
+            a = (y2_hi - y2_lo) / y1_span
+            b = y2_lo - a * y1_lo
+
+            # Align secondary ticks to primary gridlines
+            yt1 = primary.get_yticks()
+            yt2 = a * yt1 + b
+            secondary.set_yticks(yt2)
+            if label_formatter is not None:
+                secondary.set_yticklabels([label_formatter(val) for val in yt2])
+
+            # Grid: only on primary (so lines are shared across both)
+            primary.set_axisbelow(True)
+            primary.grid(True, axis='y')
+            secondary.grid(False)
+
+            # Optional: visible centerline at secondary==center
+            if add_centerline and abs(a) > _eps:
+                y1_at_center = (center - b) / a
+                if state["centerline"] is None:
+                    # One line that we update on every callback
+                    state["centerline"] = primary.axhline(y1_at_center, color='black', ls='--', lw=1)
+                else:
+                    state["centerline"].set_ydata([y1_at_center, y1_at_center])
+                # Hide line if center is outside current primary limits (e.g., zoom)
+                vis = min(y1_lo, y1_hi) - _eps <= y1_at_center <= max(y1_lo, y1_hi) + _eps
+                state["centerline"].set_visible(vis)
+
+            primary.figure.canvas.draw_idle()
+        finally:
+            state["in_update"] = False
+
+    # Recompute whenever y-lims change (zoom/pan/autoscale)
+    primary.callbacks.connect('ylim_changed', update)
+    secondary.callbacks.connect('ylim_changed', update)
+    update(None)
+
 # def add_satellite_image(ax: Axes, background_image: TileProvider):
 #     ctx.add_basemap(ax=ax, source=background_image, crs=CRS, attribution=False, zorder=-1)
 
@@ -267,7 +361,7 @@ class Ice1D:
         Plot the velocity magnitude.
         """
         plot_variable(ax, distance, velocity, color)
-        ax.set_ylim(bottom=FlowfieldConfig.VELOCITY_YMIN)
+        #ax.set_ylim(bottom=FlowfieldConfig.VELOCITY_YMIN)
         return ax
 
     def plot_velocity_angle(self, 
@@ -308,6 +402,7 @@ class Ice1D:
             ax1 = self.plot_velocity_magnitude(ax1, distance, v, Plot1DConfig.COLORS[i])
             ax2 = self.plot_velocity_angle(ax2, distance, a, Plot1DConfig.COLORS[i])
         
+        axs_diff = []
         if len(velocity) > 1:
             for ax, data, ylabel in [
                 (ax1, velocity[1] - velocity[0], FlowfieldConfig.VELOCITY_DIFF_YLABEL),
@@ -317,6 +412,15 @@ class Ice1D:
                 plot_variable(ax_diff, distance, data, Plot1DConfig.COLORS[-1])
                 yabs_max = abs(max(ax_diff.get_ylim(), key=abs))
                 ax_diff.set_ylim(ymin=-yabs_max, ymax=yabs_max)
+                axs_diff.append(ax_diff)
+
+        # Align gridlines and keep secondary centered at 0
+        for primary_axis, secondary_axis in zip([ax1, ax2], axs_diff):
+            align_twinx_grid_centered(primary_axis, secondary_axis,
+                                    center=0.0,
+                                    keep_symmetric=True,
+                                    add_centerline=True)
+
 
         for ax in [ax1,ax2]:
             ax1 = modify_axes(ax1,XMAJORTICK)
@@ -325,6 +429,7 @@ class Ice1D:
                 invert_xaxis(ax)
         ax2.yaxis.set_major_locator(FlowfieldConfig.ANGLE_YTICKS)
         ax2.set_ylim(-90, 90)
+        #ax2.axhline(0,color='black',ls='--')
 
         ax1.legend(Plot1DConfig.LABELS, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
                       ncols=2, borderaxespad=0.)
@@ -333,7 +438,7 @@ class Ice1D:
 @dataclass
 class CrossFlowConfig:
     XLABEL = Plot1DConfig.XLABEL
-    YLABEL: str = r'dwarsstroomsnelheid [$m/s$]'
+    YLABEL: str = 'dwarsstroom-\nsnelheid' + r' [$m/s$]'
     DIFF_YLABEL: str = 'verschil in dwars-\nstroomsnelheid' + r' [$m/s$]'
 
 class CrossFlow:
@@ -380,6 +485,7 @@ class CrossFlow:
         axs=[]
         ax1 = initialize_subplot(fig,len(transverse_velocity),1,1,self.config.XLABEL,self.config.YLABEL)
         axs.append(ax1)
+        
 
         crit_handle = self.plot_discharge(ax1, xy_segments[-1], crit_values[-1])
 
@@ -400,6 +506,8 @@ class CrossFlow:
             ax.axhline(0,color='black',ls='--')
             if inverse_xaxis: 
                 invert_xaxis(ax)
+            ax.grid(visible=True,which='major',linestyle='-')
+            ax.grid(visible=True,which='minor',axis='y',linestyle='--',color='lightgrey',lw=0.5)
         
         # Combine lines and crit_handle, filtering out None
         handles = [*lines]
@@ -409,6 +517,8 @@ class CrossFlow:
             handles.append(crit_handle)
             labels.append('criteria')
 
+        ax1.yaxis.set_major_locator(ticker.MultipleLocator(0.15))
+        ax1.yaxis.set_minor_locator(ticker.MultipleLocator(0.05))
         ax1.legend(
             handles,
             labels,

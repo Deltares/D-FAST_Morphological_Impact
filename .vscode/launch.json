@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: c01 - Rijn",
+            "name": "Python Debugger: c01 - BovenrijnWaal",
             "type": "debugpy",
             "request": "launch",
             "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
@@ -14,14 +14,44 @@
                 "dfastrbk/examples/c01 - Rijn/BovenrijnWaal/config.ini"
             ]
         },
-        {
-            "name": "Python Debugger: c02 - Maas",
+                {
+            "name": "Python Debugger: c01 - IJssel",
             "type": "debugpy",
             "request": "launch",
             "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
             "args": [
                 "--config",
-                "dfastrbk/examples/c02 - Maas/config.ini"
+                "dfastrbk/examples/c01 - Rijn/IJssel/config.ini"
+            ]
+        },
+                {
+            "name": "Python Debugger: c01 - NederrijnLek",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c01 - Rijn/NederrijnLek/config.ini"
+            ]
+        },
+        {
+            "name": "Python Debugger: c02 - Maas - rivieras",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c02 - Maas/config_rivieras.ini"
+            ]
+        },
+        {
+            "name": "Python Debugger: c02 - Maas - vaarweg",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c02 - Maas/config_vaarweg.ini"
             ]
         },
         {

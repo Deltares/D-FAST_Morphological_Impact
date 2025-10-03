@@ -2,5 +2,12 @@
     "python.testing.pytestEnabled": true,
     "coverage-gutters.coverageReportFileName": "coverage-reports/coverage.xml",
     "coverage-gutters.showLineCoverage": true,
-    "coverage-gutters.showRulerCoverage": true
+    "coverage-gutters.showRulerCoverage": true,
+    "python-envs.pythonProjects": [
+        {
+            "path": "",
+            "envManager": "ms-python.python:conda",
+            "packageManager": "ms-python.python:conda"
+        }
+    ]
 }
