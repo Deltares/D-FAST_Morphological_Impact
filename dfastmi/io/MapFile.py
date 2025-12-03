@@ -26,10 +26,9 @@ Stichting Deltares. All rights reserved.
 INFORMATION
 This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-FAST_Morphological_Impact
 """
-from pathlib import Path
-from typing import List, Optional
 
-import netCDF4 as nc
+from typing import Optional
+
 import numpy as np
 
 from dfastmi.io.OutputFile import OutputFile
@@ -63,7 +62,6 @@ class MapFile(OutputFile):
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
         """Get the y-velocity at faces.
-
         Arguments
         ---------
         time_index_from_last : Optional[int]
@@ -83,7 +81,7 @@ class MapFile(OutputFile):
         self,
         time_index_from_last: Optional[int] = None,
     ) -> np.ndarray:
-        """Get the y-velocity at faces.
+        """Get the water depth at faces.
         Arguments
         ---------
         time_index_from_last : Optional[int]
