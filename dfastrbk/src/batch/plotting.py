@@ -180,7 +180,7 @@ class Plot2D:
         ax.grid(True)
         return fig, ax
     
-    def modify_axes(self, ax: Axes):
+    def modify_axes(self, ax: Axes) -> Axes:
         ax.set_title('') 
         ax.set_aspect('equal')
         ax.set_xlabel(self.xlabel)
@@ -193,7 +193,7 @@ class Plot2D:
                           profile: LineString,
                           bedlevel: xr.DataArray,
                           riverkm: LineString,
-                          filename: Path):
+                          filename: Path) -> tuple[Figure, Axes]:
         """Plot the profile line in a 2D plot"""
         fig, ax = self.initialize_map()
         p = bedlevel.ugrid.plot.pcolormesh(ax=ax,add_colorbar=False,cmap='terrain',center=False)
