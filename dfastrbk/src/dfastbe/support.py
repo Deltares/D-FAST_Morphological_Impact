@@ -27,23 +27,18 @@ INFORMATION
 This file is part of D-FAST Bank Erosion: https://github.com/Deltares/D-FAST_Bank_Erosion
 """
 
+import math
 from typing import List, Tuple
+
+import geopandas
+import numpy
 from dfastbe.io import SimulationObject
 from dfastbe.structures import MeshData
+from shapely import line_merge, union_all
+from shapely.geometry import LineString, MultiLineString, Point, Polygon
 
 # import matplotlib
 # import matplotlib.pyplot
-
-import numpy
-import math
-from shapely.geometry import (
-    LineString,
-    Point,
-    Polygon,
-    MultiLineString,
-)
-from shapely import union_all, line_merge
-import geopandas
 
 
 def project_km_on_line(
@@ -912,7 +907,7 @@ def get_slices_ab(
         Minimum relative distance from bpj1 at which slice should occur.
     bmax1 : bool
         Flag indicating whether the the relative distance along the segment bpj1-bpj should be limited to 1.
-        
+
     Returns
     -------
     a : numpy.ndarray
@@ -948,7 +943,7 @@ def move_line(
     Chainage must be increasing along all lines. For a bank on the right side a
     positive shift will move the line to the right. For a bank on the left side
     a positive shift will move the line to the left.
-    
+
     Arguments
     ---------
     xylines : numpy.ndarray
@@ -959,7 +954,7 @@ def move_line(
         the left bank.
     right_bank : bool
         Flag indicating whether line is on the right (or not).
-        
+
     Returns
     -------
     xylines_new : umpy.ndarray
@@ -986,7 +981,7 @@ def move_line_right(xylines: numpy.ndarray, dn: numpy.ndarray) -> numpy.ndarray:
     dn0 : numpy.ndarray
         Distance over which to move the line sideways. A positive shift is
         defined towards the right when looking along the line.
-        
+
     Returns
     -------
     xylines_new : umpy.ndarray
@@ -1000,7 +995,7 @@ def move_line_right(xylines: numpy.ndarray, dn: numpy.ndarray) -> numpy.ndarray:
     theta = numpy.arctan2(dxy[:, 1], dxy[:, 0])
 
     # determine shift vector nxy for each segment
-    ds = numpy.sqrt((dxy ** 2).sum(axis=1))
+    ds = numpy.sqrt((dxy**2).sum(axis=1))
     nxy = dxy[:, ::-1] * [1, -1] * (dn / ds).reshape(colvec)
 
     xylines_new = numpy.zeros((100, 2))
@@ -1029,7 +1024,12 @@ def move_line_right(xylines: numpy.ndarray, dn: numpy.ndarray) -> numpy.ndarray:
             # no erosion, so just a linear extension
             if verbose:
                 print("{}: no shifting, just linear extension".format(iseg))
-            poly = numpy.row_stack([xylines[iseg + 1], xylines[iseg],])
+            poly = numpy.row_stack(
+                [
+                    xylines[iseg + 1],
+                    xylines[iseg],
+                ]
+            )
         elif dtheta <= 0:
             # right bend
             if -0.001 * math.pi < dtheta:
@@ -1236,7 +1236,11 @@ def move_line_right(xylines: numpy.ndarray, dn: numpy.ndarray) -> numpy.ndarray:
                     pnt_intersect = poly[n[i]] + b[i] * (poly[n[i] + 1] - poly[n[i]])
                     if verbose:
                         print("  adding intersection point {}".format(pnt_intersect))
-                    ixy1, xylines_new = add_point(ixy1, xylines_new, pnt_intersect,)
+                    ixy1, xylines_new = add_point(
+                        ixy1,
+                        xylines_new,
+                        pnt_intersect,
+                    )
                     n_last = n[i]
                     s_last = s[i]
                     if a[i] < prec:
@@ -1296,7 +1300,7 @@ def add_point(
 ) -> Tuple[int, numpy.ndarray]:
     """
     Add the x,y-coordinates of a point to an array of x,y-coordinates if it differs from the last point.
-    
+
     Arguments
     ---------
     ixy1 : int
@@ -1305,7 +1309,7 @@ def add_point(
         N x 2 array containing the x- and y-coordinates of points (partially filled)
     point : numpy.ndarray
         1 x 2 array containing the x- and y-coordinates of one point
-    
+
     Results
     -------
     ixy1 : int
@@ -1512,7 +1516,7 @@ def poly_to_line(
         Array of water depths (negative for dry) at the mesh nodes.
     h0 : float
         Critical water depth for determining the banks.
-    
+
     Results
     -------
     lines : Optional[...]
@@ -1556,7 +1560,7 @@ def tri_to_line(
         Array of water depths (negative for dry) at the mesh nodes.
     h0 : float
         Critical water depth for determining the banks.
-        
+
     Returns
     -------
     Line : Optional[]
@@ -1605,10 +1609,7 @@ def tri_to_line(
     return Line
 
 
-def enlarge(
-    old_array: numpy.ndarray,
-    new_shape: Tuple
-):
+def enlarge(old_array: numpy.ndarray, new_shape: Tuple):
     """
     Copy the values of the old array to a new, larger array of specified shape.
 
@@ -1618,7 +1619,7 @@ def enlarge(
         Array containing the values.
     new_shape : Tuple
         New shape of the array.
-        
+
     Returns
     -------
     new_array : numpy.ndarray
@@ -1630,8 +1631,8 @@ def enlarge(
     print("old: ", old_shape)
     print("new: ", new_shape)
     new_array = numpy.zeros(new_shape, dtype=old_array.dtype)
-    if len(new_shape)==1:
-        new_array[:old_shape[0]] = old_array
-    elif len(new_shape)==2:
-        new_array[:old_shape[0], :old_shape[1]] = old_array
+    if len(new_shape) == 1:
+        new_array[: old_shape[0]] = old_array
+    elif len(new_shape) == 2:
+        new_array[: old_shape[0], : old_shape[1]] = old_array
     return new_array

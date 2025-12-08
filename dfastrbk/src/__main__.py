@@ -1,5 +1,7 @@
 import argparse
+
 import dfastrbk.src.cmd
+
 
 def parse_arguments() -> tuple:
     """
@@ -33,8 +35,8 @@ def parse_arguments() -> tuple:
 
     parser.add_argument(
         "--ships",
-        default = "unspecified",
-        help = "name of ship dimensions file ('ship_dimensions.ini' is default)",
+        default="unspecified",
+        help="name of ship dimensions file ('ship_dimensions.ini' is default)",
     )
 
     parser.set_defaults(reduced_output=False)
@@ -48,10 +50,11 @@ def parse_arguments() -> tuple:
     if rivers_file == "unspecified":
         rivers_file = "Dutch_rivers_v3.ini"
     if ships_file == "unspecified":
-        #TODO: fix this path
+        # TODO: fix this path
         ships_file = "dfastrbk/src/ship_dimensions.ini"
 
     return config_file, rivers_file, ships_file
+
 
 if __name__ == "__main__":
     config_file, rivers_file, ships_file = parse_arguments()

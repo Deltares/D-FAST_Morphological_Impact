@@ -1,5 +1,6 @@
-import numpy as np
 import math
+
+import numpy as np
 
 # def append_array_roots(x: np.ndarray, y: np.ndarray) -> tuple:
 #     """
@@ -14,41 +15,46 @@ import math
 #     x_sorted = np.sort(x_appended)
 #     sort_idx = np.argsort(x_appended)
 #     y_sorted = np.take_along_axis(y_appended,sort_idx,axis=0)
-    
+
 #     # # Make sure there are zero crossings at the beginning and end
 #     # if (y_appended[0] > almost_zero) | (y_appended[0] < -almost_zero):
-#     #     y_appended = np.insert(y_appended,0,0,axis=0) 
+#     #     y_appended = np.insert(y_appended,0,0,axis=0)
 #     #     x_appended = np.insert(x_appended,0,x_appended[0],axis=0)
-    
+
 #     # if (y_appended[-1] > almost_zero) | (y_appended[-1] < -almost_zero):
-#     #     y_appended = np.insert(y_appended,-1,0,axis=0) 
+#     #     y_appended = np.insert(y_appended,-1,0,axis=0)
 #     #     x_appended = np.insert(x_appended,-1,x_appended[-1],axis=0)
 
 #     return x_sorted, y_sorted
 
-def insert_array_roots(x: np.ndarray, y: np.ndarray, x2: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray | None]:
+
+def insert_array_roots(
+    x: np.ndarray, y: np.ndarray, x2: np.ndarray | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray | None]:
     """
     Interpolate arrays and append the roots (zero-crossings)
     """
     z = find_roots(x, y)
     # Insert zero-crossings to the original arrays
-    #TODO: there's a small bug where the zero-crossing is inserted in front of an element with the same x
-    idx = x.searchsorted(z, side='right')
-    x_mod = np.insert(x,idx,z)
-    y_mod = np.insert(y,idx,0)
+    # TODO: there's a small bug where the zero-crossing is inserted in front of an element with the same x
+    idx = x.searchsorted(z, side="right")
+    x_mod = np.insert(x, idx, z)
+    y_mod = np.insert(y, idx, 0)
     if x2 is not None:
         z1 = find_roots(x2, y)
-        x2_mod = np.insert(x2,idx,z1)
+        x2_mod = np.insert(x2, idx, z1)
     return x_mod, y_mod, x2_mod
+
 
 def find_roots(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Finds the x-position of zero-crossings"""
     s = np.abs(np.diff(np.sign(y))).astype(bool)
-    return x[:-1][s] + np.diff(x)[s]/(np.abs(y[1:][s]/y[:-1][s])+1)
+    return x[:-1][s] + np.diff(x)[s] / (np.abs(y[1:][s] / y[:-1][s]) + 1)
 
-def split_into_blocks(x: np.ndarray, y: np.ndarray, x2: np.ndarray | None = None) -> tuple[list[np.ndarray], 
-                                                                                           list[np.ndarray], 
-                                                                                           list[np.ndarray] | None]:
+
+def split_into_blocks(
+    x: np.ndarray, y: np.ndarray, x2: np.ndarray | None = None
+) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray] | None]:
     """Splits x and y into blocks, separated by 0 in y."""
     x_split = []
     y_split = []
@@ -66,9 +72,8 @@ def split_into_blocks(x: np.ndarray, y: np.ndarray, x2: np.ndarray | None = None
 
     return x_split, y_split, x2_split
 
-def max_rolling_integral(x: np.ndarray,
-                         y: np.ndarray, 
-                         window: float) -> tuple:
+
+def max_rolling_integral(x: np.ndarray, y: np.ndarray, window: float) -> tuple:
     """
     Maximum absolute integral over forward rolling windows with width at most window,
     without interpolation, and allowing duplicates in x.
@@ -85,7 +90,7 @@ def max_rolling_integral(x: np.ndarray,
     x : (n,) array_like
         x-coordinates (can be non-strictly increasing; duplicates allowed).
     y : (n,) array_like
-        values at x 
+        values at x
     window : float
         window width in x-units (must be > 0).
 
@@ -129,7 +134,7 @@ def max_rolling_integral(x: np.ndarray,
         return abs(float(total_area)), [0, n - 1]
 
     # Precompute cumulative trapezoidal integral: F[k] = ∫ from x[0] to x[k] (using full segments)
-    seg = 0.5 * (y[1:] + y[:-1]) * dx   # zero when dx == 0
+    seg = 0.5 * (y[1:] + y[:-1]) * dx  # zero when dx == 0
     F = np.concatenate(([0.0], np.cumsum(seg)))
 
     max_abs_area = -np.inf
@@ -138,7 +143,7 @@ def max_rolling_integral(x: np.ndarray,
 
     j = 0  # right boundary pointer
     for i in range(n):
-        j = max(j,i)
+        j = max(j, i)
         # Advance j while including next point does NOT exceed width window
         # i.e., keep x[j+1] - x[i] <= window
         while j + 1 < n and (x[j + 1] - x[i]) <= window:
@@ -154,6 +159,7 @@ def max_rolling_integral(x: np.ndarray,
             best_j = j
 
     return float(max_abs_area), [int(best_i), int(best_j)]
+
 
 def densify_array(x: np.ndarray, max_step: float) -> np.ndarray:
     """
@@ -208,4 +214,3 @@ def densify_array(x: np.ndarray, max_step: float) -> np.ndarray:
 
     x_new = np.concatenate(parts)
     return x_new
-
