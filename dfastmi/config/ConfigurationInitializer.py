@@ -233,7 +233,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
         """
         return tuple(
-            0 if discharges[i] <= q_threshold else time_fractions_of_the_year[i]
+            0 if discharges[i] <= q_stagnant else time_fractions_of_the_year[i]
             for i in range(len(time_fractions_of_the_year))
         )
 
