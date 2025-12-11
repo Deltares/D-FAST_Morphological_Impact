@@ -326,10 +326,10 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         # correct in case the sorting of the discharges changed the order
         tvec = numpy.zeros(q.shape)
         tvec[sorted_qvec] = t
-        time_fractions_of_the_year = tuple(ti for ti in tvec)
+        time_fractions_of_the_year = tuple(tvec)
 
         tvec_mi = numpy.zeros(q.shape)
         tvec_mi[sorted_qvec] = tmi
-        time_mi = tuple(ti for ti in tvec_mi)
+        time_mi = tuple(tvec_mi)
 
         return time_fractions_of_the_year, time_mi
