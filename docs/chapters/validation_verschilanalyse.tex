@@ -44,20 +44,88 @@ The impacted length is \SI{1043}{\metre} for the new analysis method, compared t
 Overall, the new method gives a result that closely resembles the results previously obtained using WAQMORF (or the backward compatibility mode of \dfmi).
 
 \section{De Lymen}\label{Sec:DeLymen}
-This concerns a section of the "Bedijkte Maas" between Batenburg and Appeltern, along the river Meuse.
+
+\emph{The input files of this case are included in the distribution under \file{examples/04 - De Lymen}.}
+
+This concerns a section of the "Bedijkte Maas" between Batenburg and Appeltern, along the river Meuse (reach between Grave and Lith).
 This case is also used for the backward compatibility tests, see \autoref{Sec:DeLymen_backward}.
+The discharge statistics (exceedance curve) has not changed.
+The celerity in this reach of the Meuse equals 0.60, 5.40, 5.98, 5.50, 5.53 and \SI{6.34}{\kilo\metre\per\year} at a discharge of 750, 1300, 1700, 2100, 2500, and \SI{3200}{\metre\cubed\per\second}, respectively, for the new analysis.
+The values used in the backward compatibility mode depend on the exact characteristic discharges that the user selects for the analysis; more about this later.
+The results of the WAQMORF-compatible analysis (based on SIMONA/WAQUA results) and the new analysis method (based on D-Hydro/Delft3D FM results) are presented side-by-side in \autoref{DeLymen_diff}.
+There are significant differences in both the magnitude of the year-averaged bed level change and the spatial sedimentation and erosion patterns.
+This difference requires a more in-depth analysis.
 
-The new simulations for this case have not yet been completed as this requires a decision regarding the use of regular steady-state simulations (so-called S-runs) or steady-state simulations corrected for dynamic ("topvervlakking") effects (so-called SD-runs) and derivation of the associated boundary conditions and laterals.
+\begin{figure}[h]
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_jaargem.png}
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_yearavg.png}
+	\caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).
+		Visualized using QUICKPLOT.}
+	\label{DeLymen_diff}
+\end{figure}
 
-%\todo{Run WAQUA for 1300, 1700, 2100, 2500, and 3200 \SI{}{\metre\cubed\per\second} at Borgharen}
+We start by looking at the sensitivity of the WAQMORF (backward compatibility mode) results.
+We consider two cases: in the first case the user specifies a threshold discharge of \SI{1500}{\metre\cubed\per\second} (which was the setting used to obtain the WAQMORF results shown above.) and in the second case the user specifies a threshold discharge of \SI{1250}{\metre\cubed\per\second} and a bank full discharge of \SI{1500}{\metre\cubed\per\second}.
+In both cases we assume that the intervention has zero effect until \SI{1500}{\metre\cubed\per\second}, and in both cases a celerity of \SI{9.33}{\kilo\metre\per\year} is used for the high flow condition represented by \SI{1971}{\metre\cubed\per\second}.
+The effect of this change is shown in \autoref{DeLymen_waqmorf_diff}.
+Note the difference in colour scale.
 
-%The results of the WAQMORF-compatible analysis and the new analysis method are presented side-by-side in \autoref{Lymen_diff}.
-%Both methods give similar results.
+For the first case, the result ends up being equal to the equilibrium bed level change at \SI{1971}{\metre\cubed\per\second}.
+This happens because due to the selected threshold discharge, the \SI{1500}{\metre\cubed\per\second} ends up being treated as a low-flow situation during which a celerity of \SI{0}{\kilo\metre\per\year} is used (effectively switching off the relaxation towards a zero bed level change).
+For the second case, the \SI{1500}{\metre\cubed\per\second} condition is treated as the transitional flow regime for which the same celerity of \SI{9.33}{\kilo\metre\per\year} is used as for the high flow regime.
+As a result, there is a substantial relaxation to a zero effect during the transitional flow regime and this cause about a factor 2 reduction in the \emph{year-averaged} bed level change.
+The spatial pattern of erosion and sedimentation is identical since it is fully determined by the only condition with a non-zero equilibrium bed level change included in the analysis: \SI{1971}{\metre\cubed\per\second}.
+The sedimentation length is also affected by the configuration difference: it is \SI{62}{\metre} for the first case and \SI{144}{\metre} for the second case.
+As a result the initial year effect (estimated by integrating the year-averaged bed level change over the sedimentation length) is approximately the same (half the effect integrated over double the distance).
 
-%\begin{figure}
-%\includegraphics[width=\columnwidth/2]{figures/report_Figure1_QP.png}
-%\includegraphics[width=\columnwidth/2]{figures/report_Figure1_v3_QP.png}
-%\caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).
-%Visualized using QUICKPLOT.}
-%\label{Lymen_diff}
-%\end{figure}
+\begin{figure}[h]
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_jaargem.png}
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_qth1250_jaargem.png}
+	\caption{Morphological impact as computed by \dfmi in backward compatibility when using a threshold discharge of \SI{1500}{\metre\cubed\per\second} (left; same as above) and when using a threshold discharge of \SI{1250}{\metre\cubed\per\second} and a bank full discharge of \SI{1500}{\metre\cubed\per\second}.
+		Note the difference in colour scale.
+		Visualized using QUICKPLOT.}
+	\label{DeLymen_waqmorf_diff}
+\end{figure}
+
+Although the user still specifies a threshold discharge for the new \dfmi v3 algorithm, it has no impact on the celerity being used for the various discharge regimes.
+Specifying a larger threshold discharge has two consequences.
+First, by definition the intervention should not have any effect at discharges below the threshold discharge and hence no simulation results have to be provided since a zero effect is assumed.
+Whether zero effect is assumed or derived from actual simulations should not lead to a different final conclusion.
+Second, the sedimentation length is computed based on the relaxation speed for all discharges higher than the threshold discharge, hence a larger threshold value results in a smaller sedimentation length.
+
+We now continue by looking at the contribution of the various discharge levels to the year-averaged result presented before in \autoref{DeLymen_diff}.
+The equilibrium bed level change of the various regimes is shown in \autoref{DeLymen_equilibrium_effects}.
+Note that no results are shown for \SI{750}{\metre\cubed\per\second} since at discharge below  \SI{1000}{\metre\cubed\per\second} --- at which the barriers close --- all flow is assumed to be stagnant and hence simulations are not needed.
+
+\begin{figure}[h]
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q1300_eq.png}
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q1700_eq.png}
+
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q2100_eq.png}
+    \includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q2500_eq.png}
+    
+	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q3200_eq.png}
+
+	\caption{Equilibrium bed level change at discharges (in sequence per row from top to bottom) 1300, 1700, 2100, 2500 and \SI{3200}{\metre\cubed\per\second}.
+		Note the different colour scale for the first two figures.
+		Visualized using QUICKPLOT.}
+	\label{DeLymen_equilibrium_effects}
+\end{figure}
+
+The sedimentation and erosion patterns change as the discharge varies.
+At \SI{2100}{\metre\cubed\per\second} the pattern agrees with the results based on the old WAQMORF approach using solely the SIMONA/WAQUA results of similar discharge \SI{1971}{\metre\cubed\per\second}.
+The sedimentation pattern in the main channel remains similar for higher discharges up to \SI{2500}{\metre\cubed\per\second}; the outer bend sedimentation is less pronounced at the highest discharge of \SI{3200}{\metre\cubed\per\second}.
+At the lowest simulated conditions (1300 and \SI{1700}{\metre\cubed\per\second}) the intervention (or at least the way it is represented in the model) has a much smaller effect.
+The effect is not zero as assumed in the WAQMORF analysis.
+The main-channel sedimentation occurs further downstream.
+This effect is visible in the year-averaged bed level change obtained using the \dfmi v3 method: the final sedimentation and erosion pattern is a weighted combination of these results.
+Although the celerities vary a bit, the weight of each condition is mainly determined by the representative duration of that discharge based on the exceedance statistics.
+Since the low-flow conditions occur more frequently, they contribute significantly to the year-averaged results.
+This brings us to the effect of discharge peak flattening: for the study presented here, the simulations at \SI{3200}{\metre\cubed\per\second} include this effect (a so-called SD-type simulation) while this effect is not included for the other discharges (so-called S-type simulations).
+Since the resulting erosion and sedimentation pattern at \SI{3200}{\metre\cubed\per\second} is very similar to the patterns obtained at the discharges 2100 and \SI{2500}{\metre\cubed\per\second}, the effect of peak flattening on the morphological response is minimal.
+We conclude therefore that given the uncertainty bounds of the \dfmi analysis, it is not necessary to introduce SD-type simulations for more discharge conditions.
+
+Overall conclusion: the results of the WAQMORF-compatible analysis and the new analysis method show significant differences as can be seen in the side-by-side presentation of the year-averaged bed level changes in \autoref{DeLymen_diff}.
+The magnitude of the morphological response obtained from the WAQMORF-analysis depends significantly on the discharge settings chosen for the analysis.
+The new analysis method is less sensitive for such choices and it takes into account the impact of the intervention under a wider range of discharge conditions.
+Therefore, the new method is preferred and accepted.
