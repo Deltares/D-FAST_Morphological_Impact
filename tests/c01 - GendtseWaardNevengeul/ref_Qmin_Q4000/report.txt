@@ -40,7 +40,7 @@ Branch                              : Bovenrijn & Waal
 Reach                               : Boven-Waal                   km  868-886
 Discharge location                  : Lobith
 Minimum flow-carrying discharge     : 4000.0 m3/s
-Impacted length                     : 299 m
+Impacted length                     : 1043 m
 
 Critical flow velocity              : 0.3 m/s
 
