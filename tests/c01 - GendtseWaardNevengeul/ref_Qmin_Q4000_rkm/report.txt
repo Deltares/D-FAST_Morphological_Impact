@@ -61,6 +61,6 @@ containing three variables containing the characteristic bed level changes:
     mindzb: minimum change [m] after low flow without dredging
 
 If the bed level changes are removed on a yearly basis, the impacted river reach
-is estimated at 299 m from the upstream edge of the impacted reach.
+is estimated at 1043 m from the upstream edge of the impacted reach.
 
 The program has ended !!!
