@@ -406,7 +406,7 @@ class DialogViewModel(QObject):
                     )
                 )
                 time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self.qthreshold,
+                    self._current_reach.qstagnant,
                     self.current_reach.hydro_q,
                     time_fractions_of_the_year,
                 )

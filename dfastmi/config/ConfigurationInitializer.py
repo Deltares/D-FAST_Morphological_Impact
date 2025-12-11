@@ -183,11 +183,8 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
             self._time_fractions_of_the_year = self.get_time_fractions_of_the_year(
                 reach.hydro_t
             )
-            qthresh = self.q_threshold
-            if qthresh is None:
-                qthresh = reach.qstagnant
             self._time_mi = self.calculate_time_mi(
-                qthresh, self.discharges, self.time_fractions_of_the_year
+                reach.qstagnant, self.discharges, self.time_fractions_of_the_year
             )
 
     @staticmethod
@@ -217,7 +214,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
 
     @staticmethod
     def calculate_time_mi(
-        q_threshold: float, discharges: Vector, time_fractions_of_the_year: Vector
+        q_stagnant: float, discharges: Vector, time_fractions_of_the_year: Vector
     ):
         """
         Calculates a vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
@@ -226,8 +223,8 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         ---------
         reach : Reach
             The reach we want to get the levels from.
-        q_threshold : float
-            Threshold discharge above which the intervention is active.
+        q_stagnant : float
+            A discharge below which the river flow is negligible.
         discharges : Vector
             A vector of discharges (Q) included in hydrograph [m3/s].
 
