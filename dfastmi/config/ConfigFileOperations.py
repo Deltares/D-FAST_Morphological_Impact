@@ -113,7 +113,14 @@ class ConfigFileOperations:
         rconfig : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
         """
-        for key in ("RiverKM", "FigureDir", "OutputDir", "Reference", "WithMeasure", "WithIntervention"):
+        for key in (
+            "RiverKM",
+            "FigureDir",
+            "OutputDir",
+            "Reference",
+            "WithMeasure",
+            "WithIntervention",
+        ):
             for qstr in config.keys():
                 if key in config[qstr]:
                     ConfigFileOperations._update_to_relative_path(
@@ -280,7 +287,14 @@ class ConfigFileOperations:
         aconfig : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
-        for key in ("RiverKM", "FigureDir", "OutputDir", "Reference", "WithMeasure", "WithIntervention"):
+        for key in (
+            "RiverKM",
+            "FigureDir",
+            "OutputDir",
+            "Reference",
+            "WithMeasure",
+            "WithIntervention",
+        ):
             for qstr in config.keys():
                 if key in config[qstr]:
                     ConfigFileOperations._update_to_absolute_path(
