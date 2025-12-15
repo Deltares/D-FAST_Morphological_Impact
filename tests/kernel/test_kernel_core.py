@@ -86,7 +86,7 @@ class Test_main_computation:
     def test_given_one_miss_value_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(
         self,
     ):
-        mis = numpy.NaN
+        mis = numpy.nan
         dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
         dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
         dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
@@ -140,7 +140,7 @@ class Test_main_computation:
     def test_given_one_miss_value_stagnant_t_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(
         self,
     ):
-        mis = numpy.NaN
+        mis = numpy.nan
         dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
         dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
         dzq3 = numpy.array([1.0, 1.0, 1.0, 1.0, 1.0])
@@ -328,7 +328,7 @@ class Test_main_computation:
     def test_given_stagnant_t_one_miss_value_one_dummy_when_main_computation_then_expect_returned_values_are_in_range_of_expected_values(
         self,
     ):
-        mis = numpy.NaN
+        mis = numpy.nan
         dzq1 = numpy.array([0.0, 0.0, 0.0, 1.0, mis])
         dzqS = numpy.array([-1.0, -1.0, -1.0, -1.0, -1.0])  # dummy
         dzq2 = numpy.array([0.0, 1.0, 1.0, 1.0, 1.0])
