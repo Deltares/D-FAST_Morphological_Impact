@@ -85,7 +85,7 @@ def dzq_from_du_and_h(
     h0: numpy.ndarray,
     u1: numpy.ndarray,
     ucrit: float,
-    default: float = numpy.NaN,
+    default: float = numpy.nan,
 ) -> numpy.ndarray:
     """
     This routine computes dzq from the velocity change and water depth.
