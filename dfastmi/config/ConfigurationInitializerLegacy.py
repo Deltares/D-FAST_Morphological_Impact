@@ -62,9 +62,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self._q_threshold = self._get_q_threshold_from_config(config)
 
         self._set_discharges(reach, config, celerity_hg, celerity_lw)
-        qthresh = self.q_threshold
-        if qthresh is None:
-            qthresh = reach.qstagnant
         self._time_mi = tuple(
             (
                 0.0
