@@ -159,6 +159,12 @@ class Test_batch_mode:
                 "output_ref",
             ),
             (
+                "tests/c02 - DeLymen",
+                "c02a_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref_c02a_netcdf",
+            ),
+            (
                 "tests/c03 - Pontwaard",
                 "input_var1_dfast311_part_fou.cfg",
                 "dfastmi/Dutch_rivers_v3.ini",
