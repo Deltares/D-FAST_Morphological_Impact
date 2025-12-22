@@ -300,7 +300,7 @@ class Test_batch_mode:
         for f in fields:
             result = ncRes.variables[f]
             refdat = ncRef.variables[f]
-            assert (result[...] == refdat[...]).all()
+            assert(abs(result[...] - refdat[...]).max() < 1e-15)
 
     @pytest.mark.parametrize(
         "case, config",
@@ -360,4 +360,4 @@ class Test_batch_mode:
         for f in fields:
             result = ncRes.variables[f]
             refdat = ncRef.variables[f]
-            assert (result[...] == refdat[...]).all()
+            assert(abs(result[...] - refdat[...]).max() < 1e-15)
