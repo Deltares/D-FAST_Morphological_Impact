@@ -5,7 +5,7 @@
 \newcommand{\dfmi}{\textrm{D-FAST~MI}\xspace}
 \newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
 \newcommand{\sobek}{\textrm{SOBEK}\xspace}
-\newcommand{\dfmiversion}{3.1.1}
+\newcommand{\dfmiversion}{3.1.3}
 
 \hypersetup
 {
@@ -63,11 +63,13 @@ The following documentation is distributed with this release:
 
 \chapter{Release summary}
 
-\section{Version 3.1.1}
+\section{Version \dfmiversion}
 \subsection{Key changes summary}
 The key changes of this update are:
 
 \begin{itemize}
+\item The impacted length depends now always on the discharge at which the barriers are opened and no longer on the discharge at which the intervention becomes active.
+This change breaks backward compatibility with previous \dfmi versions and WAQMORF; older versions should no longer be used.
 \item Support for typical \dflowfm Fourier files created by \dflowfm using the default settings as specified in the \file{fourier\_last\_s.fou} file.
 \end{itemize}
 
@@ -91,7 +93,7 @@ DFAST-240 & Bug & Not all fields update properly when loading another configurat
 An overview of all closed issues since the release of version 3.0.0 is given in the table below.
 
 \begin{longtable}{l|l|p{8cm}}
-\caption{List of resolved issues for version 3.1.1} \\
+\caption{List of resolved issues for version \dfmiversion} \\
 Issue & Type & Description \\ \hline
 \endfirsthead
 \multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
@@ -99,10 +101,15 @@ Issue & Type & Description \\ \hline
 \endhead
 \hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
 \endfoot
-\endlastfoot 
-DFAST-137 & Feature & Support for \dflowfm Fourier-files (since 3.1.0) \\
-DFAST-241 & Doc & Add D-FAST MI validation document (since patch 3.1.1) \\
+\endlastfoot
+DFAST-313 & Bug & Morphological effective period should depend on the stagnant discharge instead of threshold discharge (since 3.1.3) \\
+DFAST-299 & Bug & \dfmi results file contained invalid \texttt{face\_node\_connectivity} data when using Fourier files as data source (since 3.1.3) \\
+DFAST-298 & Bug & Classic WAQMORF mode failed for \dflowfm NetCDF simulation files when low flow condition was not needed (since 3.1.3) \\
+DFAST-213 & Bug & The threshold discharge in the GUI was not always set to the value specified in the loaded config-file (since 3.1.3)
+DFAST-279 & Bug & \dfmi corrects for differences in mesh topology between reference and intervention runs (since 3.1.2) \\
+DFAST-241 & Doc & Add \dfmi validation document (since patch 3.1.1) \\
 DFAST-242 & Bug & Revolve vulnerabilities in GDAL and libjpeg (since patch 3.1.1) \\
+DFAST-137 & Feature & Support for \dflowfm Fourier-files (since 3.1.0) \\
 \end{longtable}
 
 \section{Version 3.0.0}

@@ -204,16 +204,12 @@ where $x_0$ marks the upstream border of the impacted reach.
 The impacted length $L_s$ is defined as the distance over which a bed level disturbance can travel during the part of the year that the flow conditions are different due to the intervention being evaluated, i.e.
 %
 \begin{equation}
-L_s = \sum_{i \text{ where $Q_i > Q_\text{thr}$}} c_i T'_i
+L_s = \sum_{i \text{ where $Q_i > Q_\text{stagnant}$}} c_i T_i
 \end{equation}
 %
-where $i$ loops over the conditions for which the discharge $Q_i$ is larger than minimum flow-carrying discharge $Q_\text{thr}$.
-The rivers configuration file specifies for each flow condition $i$ the period $T_i$ and celerity $c_i$.
-These values are thus given and should not be changed.
-The effective morphological period $T'_i$ is equal to the period $T_i$ except for the first flow condition for which the discharge $Q_i$ is larger than minimum flow-carrying discharge $Q_\text{thr}$.
-For that condition the period is adjusted based on the discharge exceedance curve (given by \keyw{QFit} in the \nameref{sec:rivers-config}).
-The minimum flow-carrying discharge $Q_\text{thr}$ is thus the only parameter given by the user that affects the impacted length.
-The sediment transport during the remainder of the year may adjust the shape and location of the deposit, but the total volume remains the same.
+where $i$ loops over the conditions for which the discharge $Q_i$ is larger than the discharge $Q_\text{stagnant}$ that marks the transition between stagnant conditions (lowered barriers) and normal flow (raised barriers).
+The rivers configuration file specifies the period $T_i$ and celerity $c_i$ for each flow condition $i$ and each model reach.
+The impacted length depends thus only on the selected reach; it does not depend on the characteristics of the intervention to be evaluated.
 
 It is foreseen that this estimate may be computed automatically in a future release of \dfmi, but this is currently left as a manual step for the user.
 In case the intervention triggers multiple separate sedimentation (or erosion) areas, the volumes should be accumulated for each area individually, i.e. not only the most upstream area should be considered, and subsequently the total volume can be accumulated over all areas.

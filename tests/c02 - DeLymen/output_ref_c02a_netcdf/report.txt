@@ -35,7 +35,7 @@ scenario simulations on the same computational mesh.
 
 Configuration settings used for computation:
 
-Case description                    : 
+Case description                    : De Lymen: alternative Qthreshold
 Branch                              : Maas
 Reach                               : Grave-Lith                   km  176-200
 Discharge location                  : Borgharen
