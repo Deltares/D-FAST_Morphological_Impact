@@ -300,7 +300,7 @@ class Test_batch_mode:
         for f in fields:
             result = ncRes.variables[f]
             refdat = ncRef.variables[f]
-            assert(abs(result[...] - refdat[...]).max() < 1e-15)
+            assert abs(result[...] - refdat[...]).max() < 1e-15
 
     @pytest.mark.parametrize(
         "case, config",
@@ -375,4 +375,4 @@ class Test_batch_mode:
                     diff = val1 - val2
                     maxdiff = max(maxdiff,abs(diff))
                     text_file.write(f"value[{i}]: {val1:.18f} - {val2:.18f} = {diff:.18f}, {maxdiff:.18f}")
-                assert(abs(result[...] - refdat[...]).max() < 1e-15)
+                assert abs(result[...] - refdat[...]).max() < 1e-15
