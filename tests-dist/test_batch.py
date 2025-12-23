@@ -355,8 +355,10 @@ class Test_batch_mode:
             tstdir + os.sep + "output" + os.sep + "dfastmi_results.nc"
         )
         ncRef = netCDF4.Dataset(refdir + os.sep + "dfastmi_results.nc")
-        
-        with open(tstdir + os.sep + "output" + os.sep + "dfastmi_results.log", "w") as text_file:
+
+        with open(
+            tstdir + os.sep + "output" + os.sep + "dfastmi_results.log", "w"
+        ) as text_file:
             fields = ["avgdzb", "mindzb", "maxdzb"]
             for f in fields:
                 result = ncRes.variables[f]
@@ -373,6 +375,8 @@ class Test_batch_mode:
                     val1 = result2[i]
                     val2 = refdat2[i]
                     diff = val1 - val2
-                    maxdiff = max(maxdiff,abs(diff))
-                    text_file.write(f"value[{i}]: {val1:.18f} - {val2:.18f} = {diff:.18f}, {maxdiff:.18f}")
+                    maxdiff = max(maxdiff, abs(diff))
+                    text_file.write(
+                        f"value[{i}]: {val1:.18f} - {val2:.18f} = {diff:.18f}, {maxdiff:.18f}"
+                    )
                 assert abs(result[...] - refdat[...]).max() < 1e-15
