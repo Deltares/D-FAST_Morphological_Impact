@@ -364,12 +364,12 @@ class Test_batch_mode:
                 result = ncRes.variables[f]
                 refdat = ncRef.variables[f]
                 text_file.write(f"Variable {f}")
-                text_file.write(f"result: ", result)
-                text_file.write(f"refdat: ", refdat)
+                text_file.write(f"result: {result}")
+                text_file.write(f"refdat: {refdat}")
                 result1 = result[...]
                 refdat1 = refdat[...]
                 result2 = result1.reshape(result1.size)
-                refdat2 = refdat2.reshape(refdat2.size)
+                refdat2 = refdat1.reshape(refdat1.size)
                 maxdiff = 0
                 for i in range(result2.size):
                     val1 = result2[i]
