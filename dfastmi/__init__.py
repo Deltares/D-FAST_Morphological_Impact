@@ -32,9 +32,8 @@ are registered trademarks of Stichting Deltares, and remain the property of
 Stichting Deltares. All rights reserved.
 """
 
-from typing import Any, List
-
 from importlib.metadata import PackageNotFoundError, version
+from typing import Any, List
 
 try:
     __version__ = version("dfastmi")
