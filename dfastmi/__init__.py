@@ -34,6 +34,12 @@ Stichting Deltares. All rights reserved.
 
 from typing import Any, List
 
-__version__ = "3.1.2"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("dfastmi")
+except PackageNotFoundError:
+    # Package is not installed
+    __version__ = "unknown"
 
 __all__: List[Any] = []
