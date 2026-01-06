@@ -37,6 +37,7 @@ START /B /WAIT poetry run nuitka ^
  --include-package=netCDF4 ^
  --include-module=geopandas ^
  --include-package-data=geopandas.datasets ^
+ --include-package-data=certifi ^
  --include-module=fiona ^
  --company-name=Deltares ^
  --file-version=%VERSION% ^
