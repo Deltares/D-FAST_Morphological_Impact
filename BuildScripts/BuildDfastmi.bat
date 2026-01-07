@@ -9,7 +9,7 @@ if "%1" == "--no-console" (
     set cmd_box_args=dfastmi
 )
 
-# get version number
+rem get version number
 for /f "tokens=*" %%i in ('poetry version -s') do set VERSION=%%i
 
 echo.
