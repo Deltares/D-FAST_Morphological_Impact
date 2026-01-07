@@ -75,6 +75,7 @@ if is_nuitka:
     os.environ["PROJ_LIB"] = root + os.sep + "proj"
     os.environ["MATPLOTLIBDATA"] = root + os.sep + "matplotlib" + os.sep + "mpl-data"
     os.environ["TCL_LIBRARY"] = root + os.sep + "lib" + os.sep + "tcl8.6"
+    os.environ["PROJ_NETWORK"] = "OFF"
 
     # Patch certifi to work with Nuitka runtime file references
     _patch_certifi_for_nuitka(root)
