@@ -51,6 +51,7 @@ def _patch_certifi_for_nuitka(root: str) -> None:
     os.environ["SSL_CERT_FILE"] = cert_path
 
     import importlib.resources
+
     _original_files = importlib.resources.files
 
     def _patched_files(package):
@@ -62,6 +63,7 @@ def _patch_certifi_for_nuitka(root: str) -> None:
 
     # Now import certifi and restore
     import certifi
+
     certifi.where = lambda: cert_path
     importlib.resources.files = _original_files
 
