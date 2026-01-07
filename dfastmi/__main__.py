@@ -41,6 +41,8 @@ if is_nuitka:
     os.environ["PROJ_LIB"] = root + os.sep + "proj"
     os.environ["MATPLOTLIBDATA"] = root + os.sep + "matplotlib" + os.sep + "mpl-data"
     os.environ["TCL_LIBRARY"] = root + os.sep + "lib" + os.sep + "tcl8.6"
+    # Set SSL certificate path for certifi package
+    os.environ["SSL_CERT_FILE"] = root + os.sep + "certifi" + os.sep + "cacert.pem"
     proj_lib_dirs = os.environ.get("PROJ_LIB", "")
     import pyproj.datadir
 
