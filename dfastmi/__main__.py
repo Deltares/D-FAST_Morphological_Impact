@@ -34,6 +34,40 @@ import os
 import pathlib
 from typing import Optional, Tuple
 
+
+def _patch_certifi_for_nuitka(root: str) -> None:
+    """
+    Patch certifi to work with Nuitka's runtime file references.
+
+    This function patches importlib.resources before certifi imports to intercept
+    its resource lookup and redirect it to the correct runtime path for cacert.pem.
+
+    Arguments
+    ---------
+    root : str
+        The root directory where the executable and its data files are located.
+    """
+    cert_path = root + os.sep + "certifi" + os.sep + "cacert.pem"
+    os.environ["SSL_CERT_FILE"] = cert_path
+
+    import importlib.resources
+
+    _original_files = importlib.resources.files
+
+    def _patched_files(package):
+        if str(package) == "certifi":
+            return pathlib.Path(root) / "certifi"
+        return _original_files(package)
+
+    importlib.resources.files = _patched_files
+
+    # Now import certifi and restore
+    import certifi
+
+    certifi.where = lambda: cert_path
+    importlib.resources.files = _original_files
+
+
 is_nuitka = "__compiled__" in globals()
 if is_nuitka:
     root = str(pathlib.Path(__file__).parent)
@@ -41,6 +75,11 @@ if is_nuitka:
     os.environ["PROJ_LIB"] = root + os.sep + "proj"
     os.environ["MATPLOTLIBDATA"] = root + os.sep + "matplotlib" + os.sep + "mpl-data"
     os.environ["TCL_LIBRARY"] = root + os.sep + "lib" + os.sep + "tcl8.6"
+    os.environ["PROJ_NETWORK"] = "OFF"
+
+    # Patch certifi to work with Nuitka runtime file references
+    _patch_certifi_for_nuitka(root)
+
     proj_lib_dirs = os.environ.get("PROJ_LIB", "")
     import pyproj.datadir
 

@@ -32,8 +32,13 @@ are registered trademarks of Stichting Deltares, and remain the property of
 Stichting Deltares. All rights reserved.
 """
 
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any, List
 
-__version__ = "3.1.2"
+try:
+    __version__ = version("dfastmi")
+except PackageNotFoundError:
+    # Package is not installed
+    __version__ = "unknown"
 
 __all__: List[Any] = []

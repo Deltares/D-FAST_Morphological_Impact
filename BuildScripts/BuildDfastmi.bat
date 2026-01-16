@@ -1,17 +1,21 @@
 @echo off
 
 if "%1" == "--no-console" (
-
-set cmd_box_args=--windows-force-stderr-spec=%PROGRAM%logs.txt ^
- --windows-force-stdout-spec=%PROGRAM%output.txt ^
- --windows-disable-console ^
- dfastmi
- 
+    set cmd_box_args=--windows-force-stderr-spec=%PROGRAM%logs.txt ^
+     --windows-force-stdout-spec=%PROGRAM%output.txt ^
+     --windows-disable-console ^
+     dfastmi
 ) else (
-
-set cmd_box_args=dfastmi
-
+    set cmd_box_args=dfastmi
 )
+
+rem get version number
+for /f "tokens=*" %%i in ('poetry version -s') do set VERSION=%%i
+
+echo.
+echo Version: %VERSION%
+echo.
+
 
 cd %~dp0
 cd..
@@ -33,9 +37,11 @@ START /B /WAIT poetry run nuitka ^
  --include-package=netCDF4 ^
  --include-module=geopandas ^
  --include-package-data=geopandas.datasets ^
+ --include-package=certifi ^
+ --include-package-data=certifi ^
  --include-module=fiona ^
  --company-name=Deltares ^
- --file-version=3.1.0 ^
+ --file-version=%VERSION% ^
  --product-version=2024.01 ^
  --product-name="D-FAST Morphological Impact" ^
  --file-description="A Python tool to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
