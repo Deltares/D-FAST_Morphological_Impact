@@ -12,6 +12,12 @@ report.txt
 tests/**/report.txt
 tests/**/verslag.run
 tests/c01 - GendtseWaardNevengeul/output*
+dfastrbk/examples/
+dfastrbk/profiles/
+dfastrbk/analysis.py
+dfastrbk/docs/
+examples/
+tests/
 
 # Latex generated files
 docs/**/*.aux

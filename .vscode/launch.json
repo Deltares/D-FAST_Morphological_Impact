@@ -5,6 +5,66 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: c01 - BovenrijnWaal",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c01 - Rijn/BovenrijnWaal/config.ini"
+            ]
+        },
+                {
+            "name": "Python Debugger: c01 - IJssel",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c01 - Rijn/IJssel/config.ini"
+            ]
+        },
+                {
+            "name": "Python Debugger: c01 - NederrijnLek",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c01 - Rijn/NederrijnLek/config.ini"
+            ]
+        },
+        {
+            "name": "Python Debugger: c02 - Maas - rivieras",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c02 - Maas/config_rivieras.ini"
+            ]
+        },
+        {
+            "name": "Python Debugger: c02 - Maas - vaarweg",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c02 - Maas/config_vaarweg.ini"
+            ]
+        },
+        {
+            "name": "Python Debugger: c04 - NVO Maas",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "C:/Users/groen_rt/dfastmi_src/dfastrbk/src/__main__.py",
+            "args": [
+                "--config",
+                "dfastrbk/examples/c04 - NVO Maas/config.ini"
+            ]
+        },
+        {
             "name": "Python Debugger: Module",
             "type": "debugpy",
             "request": "launch",
@@ -19,13 +79,15 @@
                 "--rivers",
                 "..\\tests\\c01 - GendtseWaardNevengeul\\rivers_Q4000_v2.ini"
             ],
-        }, 
-        {   
+        },
+        {
             "name": "Python: Debug Tests",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "purpose": ["debug-test"],
+            "purpose": [
+                "debug-test"
+            ],
             "console": "integratedTerminal",
             "env": {
                 "PYTEST_ADDOPTS": "--no-cov"
