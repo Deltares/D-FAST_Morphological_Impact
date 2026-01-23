@@ -207,7 +207,8 @@ The impacted length $L_s$ is defined as the distance over which a bed level dist
 L_s = \sum_{i \text{ where $Q_i > Q_\text{stagnant}$}} c_i T_i
 \end{equation}
 %
-where $i$ loops over the conditions for which the discharge $Q_i$ is larger than the discharge $Q_\text{stagnant}$ that marks the transition between stagnant conditions (lowered barriers) and normal flow (raised barriers).
+where $i$ loops over the conditions for which the discharge $Q_i$ is larger than the discharge $Q_\text{stagnant}$ that marks the transition between stagnant conditions (lowered barriers) and normal flow (raised barriers).\footnote{\dfmi version 3.1 and older incorrectly used the minimum flow-carrying discharge $Q_\text{thr}$ instead of $Q_\text{stagnant}$ in the computation of the impacted length $L_s$.
+The resulting $L_s$ values were thus too small if $Q_\text{thr}$ was specified larger than $Q_\text{stagnant}$.}
 The rivers configuration file specifies the period $T_i$ and celerity $c_i$ for each flow condition $i$ and each model reach.
 The impacted length depends thus only on the selected reach; it does not depend on the characteristics of the intervention to be evaluated.
 
