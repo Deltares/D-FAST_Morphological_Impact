@@ -143,7 +143,7 @@ def _run_interactive_mode_once(
         else:
             tmi.append(0.0)
     celerity = [celerity_lw, celerity_hg, celerity_hg]
-    slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
+    slength = dfastmi.kernel.core.estimate_sedimentation_length(fraction_of_year, celerity)
     if slength > 1:
         nlength = int(slength)
     else:

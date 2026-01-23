@@ -40,7 +40,7 @@ from dfastmi.kernel.typehints import Vector
 
 def relax_factors(
     discharge_values: Vector,
-    year_fraction_values: Vector,
+    time_fractions_of_the_year: Vector,
     q_stagnant: float,
     celerity: Vector,
     nwidth: float,
@@ -50,14 +50,14 @@ def relax_factors(
         if q <= q_stagnant:
             lsigma[i] = 1.0
         else:
-            lsigma[i] = math.exp(-500 * celerity[i] * year_fraction_values[i] / nwidth)
+            lsigma[i] = math.exp(-500 * celerity[i] * time_fractions_of_the_year[i] / nwidth)
     rsigma = tuple(s for s in lsigma)
 
     return rsigma
 
 
 def estimate_sedimentation_length(
-    tmi: Vector,
+    time_fractions_of_the_year: Vector,
     celerity: Vector,
 ) -> float:
     """
@@ -65,8 +65,8 @@ def estimate_sedimentation_length(
 
     Arguments
     ---------
-    tmi : Vector
-        Morphological impact period of this discharge level [y].
+    time_fractions_of_the_year : Vector
+        Fraction of the year of this discharge level [-].
     celerity : Vector
         Celerity of this discharge level [km/y].
 
@@ -75,7 +75,7 @@ def estimate_sedimentation_length(
     L : float
         The expected yearly impacted sedimentation length [m].
     """
-    sedimentation_length_contributions = [tmi[i] * celerity[i] for i in range(len(tmi))]
+    sedimentation_length_contributions = [time_fractions_of_the_year[i] * celerity[i] for i in range(len(time_fractions_of_the_year))]
     KM_TO_M = 1000
     return sum(sedimentation_length_contributions) * KM_TO_M
 
@@ -117,19 +117,19 @@ def dzq_from_du_and_h(
 
 def main_computation(
     dzq: List[numpy.ndarray],
-    fraction_of_year: Vector,
+    time_fractions_of_the_year: Vector,
     rsigma: Vector,
 ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[numpy.ndarray]]:
     """
     This routine computes the bed level changes.
-    This routine requires that dzq, T and rsigma have the same length.
+    This routine requires that dzq, time_fractions_of_the_year and rsigma have the same length.
     A stagnant period can be represented by a period with rsigma = 1.
 
     Arguments
     ---------
     dzq : List[numpy.ndarray]
         A list of arrays containing the equilibrium bed level change for each respective discharge period.
-    fraction_of_year : Vector
+    time_fractions_of_the_year : Vector
         A tuple of periods indicating the number of days during which each discharge applies.
     rsigma : Vector
         A tuple of relaxation factors, one for each period.
@@ -150,6 +150,6 @@ def main_computation(
     dzb = blc.get_bed_level_changes(dzq, rsigma)
     dzmax = blc.get_element_wise_maximum(dzb)
     dzmin = blc.get_element_wise_minimum(dzb)
-    dzgem = blc.get_linear_average(fraction_of_year, dzb)
+    dzgem = blc.get_linear_average(time_fractions_of_the_year, dzb)
 
     return dzgem, dzmax, dzmin, dzb

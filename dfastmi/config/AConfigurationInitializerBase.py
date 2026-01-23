@@ -159,7 +159,7 @@ class AConfigurationInitializerBase(ABC):
         """
         Should only be called AFTER(!) init.
         Set the expected yearly impacted sedimentation length
-        depending on time_mi and celerity.
+        depending on time_fractions_of_the_year and celerity.
 
         Arguments
         ---------
@@ -169,4 +169,4 @@ class AConfigurationInitializerBase(ABC):
         ------
         None
         """
-        self._slength = estimate_sedimentation_length(self.time_mi, self.celerity)
+        self._slength = estimate_sedimentation_length(self.time_fractions_of_the_year, self.celerity)
