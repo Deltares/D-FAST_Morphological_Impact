@@ -393,7 +393,7 @@ class DialogViewModel(QObject):
 
         try:
             if self.current_reach.auto_time:
-                time_fractions_of_the_year, _ = ConfigurationInitializer.set_times(
+                time_fractions_of_the_year = ConfigurationInitializer.set_times(
                     self.current_reach.hydro_q,
                     self.current_reach.qfit,
                     self.current_reach.qstagnant,
