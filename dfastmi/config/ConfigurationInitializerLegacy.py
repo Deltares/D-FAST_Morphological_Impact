@@ -62,14 +62,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self._q_threshold = self._get_q_threshold_from_config(config)
 
         self._set_discharges(reach, config, celerity_hg, celerity_lw)
-        self._time_mi = tuple(
-            (
-                0.0
-                if self.discharges[i] is None or self.discharges[i] <= reach.qstagnant
-                else self.time_fractions_of_the_year[i]
-            )
-            for i in range(len(self.time_fractions_of_the_year))
-        )
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
         self._set_slength()
 

@@ -176,15 +176,12 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         """
 
         if reach.auto_time:
-            self._time_fractions_of_the_year, self._time_mi = self.set_times(
+            self._time_fractions_of_the_year = self.set_times(
                 self.discharges, reach.qfit, reach.qstagnant, self.q_threshold
             )
         else:
             self._time_fractions_of_the_year = self.get_time_fractions_of_the_year(
                 reach.hydro_t
-            )
-            self._time_mi = self.calculate_time_mi(
-                reach.qstagnant, self.discharges, self.time_fractions_of_the_year
             )
 
     @staticmethod
@@ -211,31 +208,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
             t / sum_of_time_fractions_of_the_year for t in time_fractions_of_the_year
         )
         return time_fractions_of_the_year
-
-    @staticmethod
-    def calculate_time_mi(
-        q_stagnant: float, discharges: Vector, time_fractions_of_the_year: Vector
-    ):
-        """
-        Calculates a vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
-
-        Arguments
-        ---------
-        reach : Reach
-            The reach we want to get the levels from.
-        q_stagnant : float
-            A discharge below which the river flow is negligible.
-        discharges : Vector
-            A vector of discharges (Q) included in hydrograph [m3/s].
-
-        Return
-        ------
-        A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
-        """
-        return tuple(
-            0 if discharges[i] <= q_stagnant else time_fractions_of_the_year[i]
-            for i in range(len(time_fractions_of_the_year))
-        )
 
     def _set_q_threshold(self, config: ConfigParser, q_stagnant: float) -> None:
         """
@@ -265,7 +237,7 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         q_fit: Tuple[float, float],
         q_stagnant: float,
         q_threshold: float,
-    ) -> Tuple[Vector, Vector]:
+    ) -> Vector:
         """
         Get the representative time span for each discharge.
 
@@ -284,8 +256,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         -------
         time_fractions_of_the_year : Vector
             A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-].
-        time_mi : Vector
-            A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-].
         """
 
         # make sure that the discharges are sorted low to high
@@ -297,7 +267,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
             qthresh = q_stagnant
 
         t = numpy.zeros(q.shape)
-        tmi = numpy.zeros(q.shape)
         p_do = 1.0
         p_th = math.exp(min(0.0, q_fit[0] - qthresh) / q_fit[1])
 
@@ -315,12 +284,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
                 p_up = 0.0
 
             t[i] = p_do - p_up
-
-            if discharge <= qthresh:
-                tmi[i] = max(0.0, p_th - p_up)
-            else:
-                tmi[i] = min(p_th, p_do) - p_up
-
             p_do = p_up
 
         # correct in case the sorting of the discharges changed the order
@@ -328,8 +291,4 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         tvec[sorted_qvec] = t
         time_fractions_of_the_year = tuple(tvec)
 
-        tvec_mi = numpy.zeros(q.shape)
-        tvec_mi[sorted_qvec] = tmi
-        time_mi = tuple(tvec_mi)
-
-        return time_fractions_of_the_year, time_mi
+        return time_fractions_of_the_year

@@ -47,7 +47,6 @@ class AConfigurationInitializerBase(ABC):
         self._discharges: Vector = ()
         self._rsigma: Vector = ()
         self._time_fractions_of_the_year: Vector = ()
-        self._time_mi: Vector = ()
         self._apply_q: Vector = ()
         self._celerity: Vector = ()
         self._tide_bc: Tuple[str, ...] = ()
@@ -94,11 +93,6 @@ class AConfigurationInitializerBase(ABC):
     def time_fractions_of_the_year(self) -> Vector:
         """A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-]."""
         return self._time_fractions_of_the_year
-
-    @property
-    def time_mi(self) -> Vector:
-        """A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-]."""
-        return self._time_mi
 
     @property
     def celerity(self) -> Vector:

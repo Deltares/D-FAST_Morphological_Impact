@@ -46,7 +46,6 @@ class Test_Configuration_Initializer:
 
         assert configuration_initialized.discharges == (6.7, 8.9, 10.1)
         assert configuration_initialized.apply_q == (True, True, True)
-        assert configuration_initialized.time_mi == (0.0, 0.0, 1.0)
         assert configuration_initialized.tstag == 0
         assert configuration_initialized.time_fractions_of_the_year == (0.0, 0.0, 1.0)
         assert configuration_initialized.rsigma == (1.0, 1.0, 0.0)
@@ -60,7 +59,6 @@ class Test_Configuration_Initializer:
 
         assert len(configuration_initialized.discharges) == len(reach.hydro_q)
         assert len(configuration_initialized.apply_q) == len(reach.hydro_q)
-        assert len(configuration_initialized.time_mi) == len(reach.hydro_q)
         assert configuration_initialized.tstag == 0
         assert len(configuration_initialized.time_fractions_of_the_year) == len(
             reach.hydro_q
@@ -76,7 +74,6 @@ class Test_Configuration_Initializer:
 
         assert configuration_initialized.discharges == (6.7, 8.9, 10.1)
         assert configuration_initialized.apply_q == (True, True, True)
-        assert configuration_initialized.time_mi == (0.0, 0.0, 1.0)
         assert configuration_initialized.tstag == 0
         assert configuration_initialized.time_fractions_of_the_year == (0.0, 0.0, 1.0)
         assert configuration_initialized.rsigma == (1.0, 1.0, 0.0)
@@ -90,7 +87,6 @@ class Test_Configuration_Initializer:
 
         assert configuration_initialized.discharges == (6.7, 8.9, 10.1)
         assert configuration_initialized.apply_q == (True, True, True)
-        assert configuration_initialized.time_mi == (0.0, 0.0, 1.0)
         assert configuration_initialized.tstag == 0
         assert configuration_initialized.time_fractions_of_the_year == (0.0, 0.0, 1.0)
         assert configuration_initialized.rsigma == (1.0, 1.0, 0.0)
@@ -107,7 +103,6 @@ class Test_Configuration_Initializer:
 
         assert configuration_initialized.discharges == (6.7, 8.9, 10.1)
         assert configuration_initialized.apply_q == (True, True, True)
-        assert configuration_initialized.time_mi == (0.0, 1.0, 0.0)
         assert configuration_initialized.tstag == 0
         assert configuration_initialized.time_fractions_of_the_year == (0.0, 1.0, 0.0)
         assert configuration_initialized.rsigma == (1.0, 0.0, 1.0)
@@ -127,7 +122,6 @@ class Test_Configuration_Initializer:
 
         assert configuration_initialized.discharges == (6.7, 8.9, 10.1)
         assert configuration_initialized.apply_q == (True, True, True)
-        assert configuration_initialized.time_mi == (0.0, 1.0, 0.0)
         assert configuration_initialized.tstag == 0
         assert configuration_initialized.time_fractions_of_the_year == (0.0, 1.0, 0.0)
         assert configuration_initialized.rsigma == (1.0, 0.0, 1.0)

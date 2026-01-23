@@ -136,12 +136,6 @@ def _run_interactive_mode_once(
     if have_files and not all_q:
         return True
 
-    tmi = []
-    for i, value in enumerate(apply_q):
-        if value:
-            tmi.append(fraction_of_year[i])
-        else:
-            tmi.append(0.0)
     celerity = [celerity_lw, celerity_hg, celerity_hg]
     slength = dfastmi.kernel.core.estimate_sedimentation_length(fraction_of_year, celerity)
     if slength > 1:

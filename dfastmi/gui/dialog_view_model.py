@@ -393,7 +393,7 @@ class DialogViewModel(QObject):
 
         try:
             if self.current_reach.auto_time:
-                time_fractions_of_the_year, time_mi = ConfigurationInitializer.set_times(
+                time_fractions_of_the_year, _ = ConfigurationInitializer.set_times(
                     self.current_reach.hydro_q,
                     self.current_reach.qfit,
                     self.current_reach.qstagnant,
@@ -404,11 +404,6 @@ class DialogViewModel(QObject):
                     ConfigurationInitializer.get_time_fractions_of_the_year(
                         self.current_reach.hydro_t
                     )
-                )
-                time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self._current_reach.qstagnant,
-                    self.current_reach.hydro_q,
-                    time_fractions_of_the_year,
                 )
             celerity = ConfigurationInitializer.get_bed_celerity(
                 self.current_reach, self.current_reach.hydro_q
