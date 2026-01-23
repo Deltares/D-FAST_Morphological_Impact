@@ -71,12 +71,12 @@ The effect of this change is shown in \autoref{DeLymen_waqmorf_diff}.
 Note the difference in colour scale.
 
 For the first case, the result ends up being equal to the equilibrium bed level change at \SI{1971}{\metre\cubed\per\second}.
-This happens because due to the selected threshold discharge, the \SI{1500}{\metre\cubed\per\second} ends up being treated as a low-flow situation during which a celerity of \SI{0}{\kilo\metre\per\year} is used (effectively switching off the relaxation towards a zero bed level change).
+This happens because due to the selected threshold discharge, the \SI{1500}{\metre\cubed\per\second} is treated as a low-flow situation during which a celerity of \SI{0}{\kilo\metre\per\year} is used (effectively switching off the relaxation towards a zero bed level change).
 For the second case, the \SI{1500}{\metre\cubed\per\second} condition is treated as the transitional flow regime for which the same celerity of \SI{9.33}{\kilo\metre\per\year} is used as for the high flow regime.
 As a result, there is a substantial relaxation to a zero effect during the transitional flow regime and this cause about a factor 2 reduction in the \emph{year-averaged} bed level change.
 The spatial pattern of erosion and sedimentation is identical since it is fully determined by the only condition with a non-zero equilibrium bed level change included in the analysis: \SI{1971}{\metre\cubed\per\second}.
-The sedimentation length is also affected by the configuration difference: it is \SI{62}{\metre} for the first case and \SI{144}{\metre} for the second case.
-As a result the initial year effect (estimated by integrating the year-averaged bed level change over the sedimentation length) is approximately the same (half the effect integrated over double the distance).
+The impacted length is also affected by the configuration difference: it is \SI{62}{\metre} for the first case and \SI{195}{\metre} for the second case.
+As a result the initial year effect (estimated by integrating the year-averaged bed level change over the impacted length) is approximately 50\% larger (half the effect integrated over three times the distance).
 
 \begin{figure}[h]
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_jaargem.png}
@@ -88,10 +88,9 @@ As a result the initial year effect (estimated by integrating the year-averaged 
 \end{figure}
 
 Although the user still specifies a threshold discharge for the new \dfmi v3 algorithm, it has no impact on the celerity being used for the various discharge regimes.
-Specifying a larger threshold discharge has two consequences.
-First, by definition the intervention should not have any effect at discharges below the threshold discharge and hence no simulation results have to be provided since a zero effect is assumed.
+Specifying a larger threshold discharge may only reduce the number of simulations to be run.\footnote{In \dfmi versions older than 3.2.0, the impacted length was computed by integrating the celerity over discharges above the threshold discharge. As of version 3.2.0 that integral has been corrected to start from the discharge below which the flow can be considered stagnant, e.g.\ due to barriers.}
+By definition of the `threshold discharge', the intervention should not have any effect at discharges lower than that value.
 Whether zero effect is assumed or derived from actual simulations should not lead to a different final conclusion.
-Second, the sedimentation length is computed based on the relaxation speed for all discharges higher than the threshold discharge, hence a larger threshold value results in a smaller sedimentation length.
 
 We now continue by looking at the contribution of the various discharge levels to the year-averaged result presented before in \autoref{DeLymen_diff}.
 The equilibrium bed level change of the various regimes is shown in \autoref{DeLymen_equilibrium_effects}.
