@@ -643,7 +643,7 @@ def _write_report_nodata(
     if all_done:
         dfastmi.batch.core.write_report(
             report,
-            reach.name,
+            reach,
             q_location,
             q_threshold,
             q_bankfull,

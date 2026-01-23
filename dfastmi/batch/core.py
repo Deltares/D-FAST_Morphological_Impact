@@ -700,7 +700,7 @@ def _log_length_estimate(report: TextIO, slength: float) -> None:
 
 def write_report(
     report: TextIO,
-    reach: str,
+    reach: IReach,
     q_location: str,
     q_threshold: Optional[float],
     q_bankfull: float,
