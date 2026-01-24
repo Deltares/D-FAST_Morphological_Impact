@@ -68,9 +68,11 @@ The following documentation is distributed with this release:
 The key changes of this update are:
 
 \begin{itemize}
-\item The impacted length depends now always on the discharge at which the barriers are opened and no longer on the discharge at which the intervention becomes active.
-This change breaks backward compatibility with previous \dfmi versions and WAQMORF; older versions should no longer be used.
-\item Support for typical \dflowfm Fourier files created by \dflowfm using the default settings as specified in the \file{fourier\_last\_s.fou} file.
+\item The impacted length is now the computed as the duration of the discharge period times the associated bed celerity \emph{summed over all discharge levels at which the barriers are opened} ($Q > Q_\text{stagnant}$).
+Previously, the contribution of the period during which the intervention was not active ($Q < Q_\text{thr}$) was ignored.
+Hence, the computed impacted length is now larger than before if a threshold discharge $Q_\text{thr} > Q_\text{stagnant}$ is specified.
+This change breaks backward compatibility with previous \dfmi versions and WAQMORF; previous versions of \dfmi and WAQMORF should no longer be used. (DFAST-313)
+\item Support for typical \dflowfm Fourier files created by \dflowfm using the default settings as specified in the \file{fourier\_last\_s.fou} file. (DFAST-137)
 \end{itemize}
 
 \subsection{Known issues}

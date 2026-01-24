@@ -75,8 +75,8 @@ This happens because due to the selected threshold discharge, the \SI{1500}{\met
 For the second case, the \SI{1500}{\metre\cubed\per\second} condition is treated as the transitional flow regime for which the same celerity of \SI{9.33}{\kilo\metre\per\year} is used as for the high flow regime.
 As a result, there is a substantial relaxation to a zero effect during the transitional flow regime and this cause about a factor 2 reduction in the \emph{year-averaged} bed level change.
 The spatial pattern of erosion and sedimentation is identical since it is fully determined by the only condition with a non-zero equilibrium bed level change included in the analysis: \SI{1971}{\metre\cubed\per\second}.
-The impacted length is also affected by the configuration difference: it is \SI{62}{\metre} for the first case and \SI{195}{\metre} for the second case.
-As a result the initial year effect (estimated by integrating the year-averaged bed level change over the impacted length) is approximately 50\% larger (half the effect integrated over three times the distance).
+The impacted length is also affected by the configuration difference: it is \SI{62}{\metre} for the first case and \SI{144}{\metre} for the second case.
+As a result the initial year effect (estimated by integrating the year-averaged bed level change over the impacted length) is about the same (half the effect integrated over double the distance).
 
 \begin{figure}[h]
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_jaargem.png}
@@ -88,7 +88,8 @@ As a result the initial year effect (estimated by integrating the year-averaged 
 \end{figure}
 
 Although the user still specifies a threshold discharge for the new \dfmi v3 algorithm, it has no impact on the celerity being used for the various discharge regimes.
-Specifying a larger threshold discharge may only reduce the number of simulations to be run.\footnote{In \dfmi versions older than 3.2.0, the impacted length was computed by integrating the celerity over discharges above the threshold discharge. As of version 3.2.0 that integral has been corrected to start from the discharge below which the flow can be considered stagnant, e.g.\ due to barriers.}
+The impacted length is now, based on different discharge levels and celerities, computed as \SI{195}{\metre} independent of the threshold discharge selected.\footnote{In \dfmi versions older than 3.2.0, the impacted length was computed by integrating the celerity over discharges above the threshold discharge. As of version 3.2.0 that integral has been corrected to start from the discharge below which the flow can be considered stagnant, e.g.\ due to barriers.}
+Specifying a larger threshold discharge may only reduce the number of simulations to be run.
 By definition of the `threshold discharge', the intervention should not have any effect at discharges lower than that value.
 Whether zero effect is assumed or derived from actual simulations should not lead to a different final conclusion.
 
@@ -121,8 +122,8 @@ This effect is visible in the year-averaged bed level change obtained using the 
 Although the celerities vary a bit, the weight of each condition is mainly determined by the representative duration of that discharge based on the exceedance statistics.
 Since the low-flow conditions occur more frequently, they contribute significantly to the year-averaged results.
 This brings us to the effect of discharge peak flattening: for the study presented here, the simulations at \SI{3200}{\metre\cubed\per\second} include this effect (a so-called SD-type simulation) while this effect is not included for the other discharges (so-called S-type simulations).
-Since the resulting erosion and sedimentation pattern at \SI{3200}{\metre\cubed\per\second} is very similar to the patterns obtained at the discharges 2100 and \SI{2500}{\metre\cubed\per\second}, the effect of peak flattening on the morphological response is minimal.
-We conclude therefore that given the uncertainty bounds of the \dfmi analysis, it is not necessary to introduce SD-type simulations for more discharge conditions.
+Since the erosion and sedimentation patterns for \SI{3200}{\metre\cubed\per\second} are very similar to those obtained for  discharges 2100 and \SI{2500}{\metre\cubed\per\second}, it can be concluded that the effect of peak flattening on the morphological response using the \dfmi method is minimal.
+Given the uncertainty bounds of the \dfmi analysis, it is not necessary to introduce SD-type simulations for more discharge conditions.
 
 Overall conclusion: the results of the WAQMORF-compatible analysis and the new analysis method show significant differences as can be seen in the side-by-side presentation of the year-averaged bed level changes in \autoref{DeLymen_diff}.
 The magnitude of the morphological response obtained from the WAQMORF-analysis depends significantly on the discharge settings chosen for the analysis.
