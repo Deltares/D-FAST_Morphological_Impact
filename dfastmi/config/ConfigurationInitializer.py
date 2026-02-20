@@ -262,9 +262,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
         qvec = numpy.array(discharges)
         sorted_qvec = numpy.argsort(qvec)
         q = qvec[sorted_qvec]
-        qthresh = q_threshold
-        if qthresh is None:
-            qthresh = q_stagnant
 
         t = numpy.zeros(q.shape)
         p_do = 1.0
