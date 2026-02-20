@@ -32,15 +32,14 @@ The discharge statistics (exceedance curve) has not changed.
 \begin{figure}[h]
 \includegraphics[width=\columnwidth/2]{figures/report_Figure1_QP.png}
 \includegraphics[width=\columnwidth/2]{figures/report_Figure1_v3_QP.png}
-\caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).
-Visualized using QUICKPLOT.}
+\caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).}
 \label{GendtseWaard_diff}
 \end{figure}
 
 The results of the WAQMORF-compatible analysis and the new analysis method are presented side-by-side in \autoref{GendtseWaard_diff}.
 The indicated year-averaged equilibrium sedimentation is on average slightly higher than before.
 This will have only a minor effect on the estimated sedimentation volume after one year since it is offset by a slightly reduced impacted length.
-The impacted length is \SI{1043}{\metre} for the new analysis method, compared to \SI{1319}{\metre} using the old analysis method.
+The impacted length is \SI{1090}{\metre} for the new analysis method, compared to \SI{1319}{\metre} using the old analysis method.
 Overall, the new method gives a result that closely resembles the results previously obtained using WAQMORF (or the backward compatibility mode of \dfmi).
 
 \section{De Lymen}\label{Sec:DeLymen}
@@ -59,8 +58,7 @@ This difference requires a more in-depth analysis.
 \begin{figure}[h]
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_jaargem.png}
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_yearavg.png}
-	\caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).
-		Visualized using QUICKPLOT.}
+	\caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).}
 	\label{DeLymen_diff}
 \end{figure}
 
@@ -73,7 +71,7 @@ Note the difference in colour scale.
 For the first case, the result ends up being equal to the equilibrium bed level change at \SI{1971}{\metre\cubed\per\second}.
 This happens because due to the selected threshold discharge, the \SI{1500}{\metre\cubed\per\second} is treated as a low-flow situation during which a celerity of \SI{0}{\kilo\metre\per\year} is used (effectively switching off the relaxation towards a zero bed level change).
 For the second case, the \SI{1500}{\metre\cubed\per\second} condition is treated as the transitional flow regime for which the same celerity of \SI{9.33}{\kilo\metre\per\year} is used as for the high flow regime.
-As a result, there is a substantial relaxation to a zero effect during the transitional flow regime and this cause about a factor 2 reduction in the \emph{year-averaged} bed level change.
+As a result, there is a substantial relaxation to a zero effect during the transitional flow regime and this causes about a factor 2 reduction in the \emph{year-averaged} bed level change.
 The spatial pattern of erosion and sedimentation is identical since it is fully determined by the only condition with a non-zero equilibrium bed level change included in the analysis: \SI{1971}{\metre\cubed\per\second}.
 The impacted length is also affected by the configuration difference: it is \SI{62}{\metre} for the first case and \SI{144}{\metre} for the second case.
 As a result the initial year effect (estimated by integrating the year-averaged bed level change over the impacted length) is about the same (half the effect integrated over double the distance).
@@ -82,8 +80,7 @@ As a result the initial year effect (estimated by integrating the year-averaged 
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_jaargem.png}
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_qth1250_jaargem.png}
 	\caption{Morphological impact as computed by \dfmi in backward compatibility when using a threshold discharge of \SI{1500}{\metre\cubed\per\second} (left; same as above) and when using a threshold discharge of \SI{1250}{\metre\cubed\per\second} and a bank full discharge of \SI{1500}{\metre\cubed\per\second}.
-		Note the difference in colour scale.
-		Visualized using QUICKPLOT.}
+		Note the difference in colour scale.}
 	\label{DeLymen_waqmorf_diff}
 \end{figure}
 
@@ -98,17 +95,19 @@ The equilibrium bed level change of the various regimes is shown in \autoref{DeL
 Note that no results are shown for \SI{750}{\metre\cubed\per\second} since at discharge below  \SI{1000}{\metre\cubed\per\second} --- at which the barriers close --- all flow is assumed to be stagnant and hence simulations are not needed.
 
 \begin{figure}[h]
+        \hspace*{2cm} \SI{1300}{\metre\cubed\per\second} \hfill \SI{1700}{\metre\cubed\per\second} \hspace*{3cm} \newline
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q1300_eq.png}
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q1700_eq.png}
-
+	
+        \hspace*{2cm} \SI{2100}{\metre\cubed\per\second} \hfill \SI{2500}{\metre\cubed\per\second} \hspace*{3cm} \newline
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q2100_eq.png}
-    \includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q2500_eq.png}
-    
+        \includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q2500_eq.png}
+        
+        \hspace*{1cm} \SI{3200}{\metre\cubed\per\second} (SD-type run)\newline    
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q3200_eq.png}
 
 	\caption{Equilibrium bed level change at discharges (in sequence per row from top to bottom) 1300, 1700, 2100, 2500 and \SI{3200}{\metre\cubed\per\second}.
-		Note the different colour scale for the first two figures.
-		Visualized using QUICKPLOT.}
+		Note the different colour scale for the first two figures.}
 	\label{DeLymen_equilibrium_effects}
 \end{figure}
 
@@ -122,7 +121,9 @@ This effect is visible in the year-averaged bed level change obtained using the 
 Although the celerities vary a bit, the weight of each condition is mainly determined by the representative duration of that discharge based on the exceedance statistics.
 Since the low-flow conditions occur more frequently, they contribute significantly to the year-averaged results.
 This brings us to the effect of discharge peak flattening: for the study presented here, the simulations at \SI{3200}{\metre\cubed\per\second} include this effect (a so-called SD-type simulation) while this effect is not included for the other discharges (so-called S-type simulations).
-Since the erosion and sedimentation patterns for \SI{3200}{\metre\cubed\per\second} are very similar to those obtained for  discharges 2100 and \SI{2500}{\metre\cubed\per\second}, it can be concluded that the effect of peak flattening on the morphological response using the \dfmi method is minimal.
+Since the erosion and sedimentation patterns for \SI{3200}{\metre\cubed\per\second} are very similar to those obtained for \SI{2500}{\metre\cubed\per\second}.
+The patterns are even very similar for SI{2100}{\metre\cubed\per\second} \emph{if we focus on the main channel only} which is the area for which \dfmi is primarily intended.
+Therefore, it can be concluded that the effect of peak flattening on the morphological response using the \dfmi method is limited.
 Given the uncertainty bounds of the \dfmi analysis, it is not necessary to introduce SD-type simulations for more discharge conditions.
 
 Overall conclusion: the results of the WAQMORF-compatible analysis and the new analysis method show significant differences as can be seen in the side-by-side presentation of the year-averaged bed level changes in \autoref{DeLymen_diff}.
