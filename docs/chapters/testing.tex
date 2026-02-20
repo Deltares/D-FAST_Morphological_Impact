@@ -522,11 +522,19 @@ TOTAL                                                4619    441    90%
 The quality of the \dfastmi source code and the code coverage is tracked by \href{https://sonarcloud.io/project/overview?id=Deltares_D-FAST_Morphological_Impact}{SonarCloud} and \href{https://sigrid-says.com/deltares/dfast-mi/-/overview}{Sigrid}.
 
 \subsection{SonarCloud reports}
-SonarCloud doesn't provide the code duplication graph anymore, but the duplication in the \dfmi code is still reported to be 0.0\% although there is about 12\% code duplication in the coding of the tests.
-The code coverage data is no longer passed to SonarCloud, but we have seen above that the coverage is still about 90\%.
-SonarCloud reports a major jump in the code issues in May 2025.
-Since the code wasn't changed during that period, it must be caused by an update to the SonarCloud analysis.
-See \autoref{fig:code_issues}.
+SonarCloud reports a major jump in the code duplication and issues in May 2025.
+The code wasn't changed during that period; it is due to an update to the SonarCloud analysis ... as is obvious from the large jump in the number of lines of code at the same time.
+Before that time, SonarCloud only analysed the code lines of the \dfmi program; now it also analyses the lines of testing code.
+That is where the code duplication is located (see the listed files in \autoref{fig:code_duplication}, and the remark at the bottom that there are 115 files with 0\% duplication).
+This is also where 90\% of the reported code issues are; see \autoref{fig:code_issues}.
+
+\begin{figure}
+\center
+\includegraphics[width=\textwidth]{figures/code_duplication.png}
+\includegraphics[width=\textwidth]{figures/code_duplication_details.png}
+\caption{Code duplication reported by SonarCloud}
+\label{fig:code_duplication}
+\end{figure}
 
 \begin{figure}
 \center
