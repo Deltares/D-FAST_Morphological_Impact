@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -393,7 +393,7 @@ class DialogViewModel(QObject):
 
         try:
             if self.current_reach.auto_time:
-                _, time_mi = ConfigurationInitializer.set_times(
+                time_fractions_of_the_year = ConfigurationInitializer.set_times(
                     self.current_reach.hydro_q,
                     self.current_reach.qfit,
                     self.current_reach.qstagnant,
@@ -405,16 +405,11 @@ class DialogViewModel(QObject):
                         self.current_reach.hydro_t
                     )
                 )
-                time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self.qthreshold,
-                    self.current_reach.hydro_q,
-                    time_fractions_of_the_year,
-                )
             celerity = ConfigurationInitializer.get_bed_celerity(
                 self.current_reach, self.current_reach.hydro_q
             )
             slength = dfastmi.kernel.core.estimate_sedimentation_length(
-                time_mi, celerity
+                time_fractions_of_the_year, celerity
             )
             self.slength = str(int(slength))
         except (SystemExit, KeyboardInterrupt) as exception:

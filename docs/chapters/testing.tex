@@ -440,106 +440,100 @@ Below a brief pytest report of the automated regression testing is included belo
 Note that the \keyw{\_\_main\_\_} module code is only executed in the binary testing phase.
 
 \begin{Verbatim}
----------- coverage: platform win32, python 3.9.13-final-0 -----------
-Name                                               Stmts   Miss  Cover
-----------------------------------------------------------------------
-dfastmi\__init__.py                                     4      0   100%
-dfastmi\__main__.py                                    50     50     0%
+---------- coverage: platform win32, python 3.11.12-final-0 -----------
+Name                                                Stmts   Miss  Cover
+-----------------------------------------------------------------------
+dfastmi\__init__.py                                     8      2    75%
+dfastmi\__main__.py                                    65     65     0%
 dfastmi\batch\AFileNameRetriever.py                    12      0   100%
 dfastmi\batch\AnalyserAndReporterDflowfm.py            16      0   100%
 dfastmi\batch\AnalyserAndReporterWaqua.py              12      0   100%
-dfastmi\batch\AnalyserDflowfm.py                      215     12    94%
-dfastmi\batch\AnalyserWaqua.py                        150      1    99%
-dfastmi\batch\AreaDetector.py                         108      0   100%
+dfastmi\batch\AnalyserDflowfm.py                      237     12    95%
+dfastmi\batch\AnalyserWaqua.py                        150      0   100%
+dfastmi\batch\AreaDetector.py                         111      0   100%
 dfastmi\batch\AreaPlotter.py                           78      0   100%
 dfastmi\batch\DFastUtils.py                            49     38    22%
 dfastmi\batch\DflowfmReporters.py                      95     33    65%
-dfastmi\batch\Distance.py                              54      6    89%
+dfastmi\batch\Distance.py                              54      4    93%
 dfastmi\batch\Face.py                                  69      3    96%
 dfastmi\batch\FileNameRetriever.py                     25      0   100%
-dfastmi\batch\FileNameRetrieverFactory.py              22      0   100%
+dfastmi\batch\FileNameRetrieverFactory.py              23      0   100%
 dfastmi\batch\FileNameRetrieverLegacy.py               14      0   100%
 dfastmi\batch\FileNameRetrieverUnsupported.py           7      0   100%
 dfastmi\batch\OutputDataDflowfm.py                     60      0   100%
 dfastmi\batch\OutputDataWaqua.py                        9      0   100%
 dfastmi\batch\PlotOptions.py                           81      3    96%
-dfastmi\batch\Projection.py                            56     16    71%
+dfastmi\batch\Projection.py                            47     10    79%
 dfastmi\batch\ReporterDflowfm.py                      108      0   100%
 dfastmi\batch\ReporterWaqua.py                         20      0   100%
 dfastmi\batch\SedimentationData.py                     11      0   100%
 dfastmi\batch\SedimentationVolume.py                  125      3    98%
 dfastmi\batch\XykmData.py                             115      1    99%
 dfastmi\batch\XyzFileWriter.py                         15      0   100%
-dfastmi\batch\core.py                                 211     12    94%
+dfastmi\batch\core.py                                 224     15    93%
 dfastmi\batch\plotting.py                             121     50    59%
-dfastmi\cli.py                                        235     70    70%
+dfastmi\cli.py                                        237     53    78%
 dfastmi\cmd.py                                         28     28     0%
 dfastmi\config\AConfigurationChecker.py                37      3    92%
 dfastmi\config\AConfigurationInitializerBase.py        76      0   100%
-dfastmi\config\ConfigFileOperations.py                127     16    87%
+dfastmi\config\ConfigFileOperations.py                131     13    90%
 dfastmi\config\ConfigurationChecker.py                 59     11    81%
-dfastmi\config\ConfigurationCheckerFactory.py          21      0   100%
+dfastmi\config\ConfigurationCheckerFactory.py          22      0   100%
 dfastmi\config\ConfigurationCheckerLegacy.py           55      4    93%
-dfastmi\config\ConfigurationCheckerValidator.py        13      0   100%
+dfastmi\config\ConfigurationCheckerValidator.py        14      0   100%
 dfastmi\config\ConfigurationInitializer.py            104      5    95%
-dfastmi\config\ConfigurationInitializerFactory.py      24      1    96%
+dfastmi\config\ConfigurationInitializerFactory.py      25      1    96%
 dfastmi\config\ConfigurationInitializerLegacy.py       52      0   100%
-dfastmi\gui\dialog_model.py                           140      1    99%
-dfastmi\gui\dialog_utils.py                            56      0   100%
-dfastmi\gui\dialog_view.py                            456     34    93%
-dfastmi\gui\dialog_view_model.py                      162      4    98%
+dfastmi\gui\dialog_model.py                           131      2    98%
+dfastmi\gui\dialog_utils.py                            87     25    71%
+dfastmi\gui\dialog_view.py                            451     34    92%
+dfastmi\gui\dialog_view_model.py                      208      6    97%
 dfastmi\gui\qt_tools.py                                20      6    70%
-dfastmi\io\AReach.py                                   20      0   100%
-dfastmi\io\ApplicationSettingsHelper.py                43      0   100%
-dfastmi\io\Branch.py                                   33      1    97%
-dfastmi\io\CelerObject.py                              53      1    98%
+dfastmi\io\AReach.py                                   27      1    96%
+dfastmi\io\ApplicationSettingsHelper.py                47      4    91%
+dfastmi\io\Branch.py                                   40      2    95%
+dfastmi\io\CelerObject.py                              54      1    98%
 dfastmi\io\ConfigBooleans.py                            2      0   100%
 dfastmi\io\DFastAnalysisConfigFileParser.py            34      0   100%
 dfastmi\io\DFastRiverConfigFileParser.py               87      0   100%
-dfastmi\io\DataTextFileOperations.py                   65      1    98%
-dfastmi\io\IBranch.py                                  16      0   100%
-dfastmi\io\IReach.py                                   13      0   100%
-dfastmi\io\ObservableList.py                           25      0   100%
-dfastmi\io\Reach.py                                    48      0   100%
-dfastmi\io\ReachLegacy.py                              11      0   100%
-dfastmi\io\RiversObject.py                            120      2    98%
-dfastmi\io\map_file.py                                138      3    98%
+dfastmi\io\DataTextFileOperations.py                   37      1    97%
+dfastmi\io\FouFile.py                                  16      0   100%
+dfastmi\io\IBranch.py                                  17      0   100%
+dfastmi\io\IReach.py                                   15      0   100%
+dfastmi\io\MapFile.py                                  73      0   100%
+dfastmi\io\ObservableList.py                           26      0   100%
+dfastmi\io\OutputFile.py                               80      0   100%
+dfastmi\io\OutputFileFactory.py                        26      0   100%
+dfastmi\io\Reach.py                                    49      0   100%
+dfastmi\io\ReachLegacy.py                              12      0   100%
+dfastmi\io\RiversObject.py                            121      2    98%
 dfastmi\kernel\BedLevelCalculator.py                   60      0   100%
 dfastmi\kernel\core.py                                 30      0   100%
 dfastmi\kernel\legacy.py                               55      0   100%
-dfastmi\kernel\typehints.py                             6      0   100%
+dfastmi\kernel\typehints.py                             9      0   100%
 dfastmi\resources.py                                    4      0   100%
 -----------------------------------------------------------------------
-TOTAL                                                4440    419    91%
+TOTAL                                                4619    441    90%
 
-====================== 455 passed, 33 warnings in 39.77s ======================
+====================== 487 passed, 34 warnings in 53.05s ======================
 \end{Verbatim}
 
 \section{Code check}
 The quality of the \dfastmi source code and the code coverage is tracked by \href{https://sonarcloud.io/project/overview?id=Deltares_D-FAST_Morphological_Impact}{SonarCloud} and \href{https://sigrid-says.com/deltares/dfast-mi/-/overview}{Sigrid}.
 
 \subsection{SonarCloud reports}
-During the development of D-FAST MI 3.0.0, the number of code lines has doubled.
-There is no duplication in the code anymore, see \autoref{fig:code_duplication}.
-At the time of the first upload about 40\% of the code was covered by a limited set of about 65 tests.
-The code coverage was still relatively high due to a few system tests that touched a lot of lines of code.
-Since that time, the code coverage has increased to about 90\% whereas at the same time the number of code lines has increased from about 2800 to about 7000.
-See \autoref{fig:code_coverage}.
-During the same period the number of code issues detected by SonarCloud has decreased from 240 to 25 of which 15 medium severity and 10 low severity.
-See \autoref{fig:code_issues}.
+SonarCloud reports a major jump in the code duplication and issues in May 2025.
+The code wasn't changed during that period; it is due to an update to the SonarCloud analysis ... as is obvious from the large jump in the number of lines of code at the same time.
+Before that time, SonarCloud only analysed the code lines of the \dfmi program; now it also analyses the lines of testing code.
+That is where the code duplication is located (see the listed files in \autoref{fig:code_duplication}, and the remark at the bottom that there are 115 files with 0\% duplication).
+This is also where 90\% of the reported code issues are; see \autoref{fig:code_issues}.
 
 \begin{figure}
 \center
-\includegraphics[width=10cm]{figures/code_duplication.png}
-\caption{Code duplication identified by SonarCloud. Horizontal axis: time. Vertical axis: number of lines of code (light blue) and number of duplicated lines (dark blue).}
+\includegraphics[width=\textwidth]{figures/code_duplication.png}
+\includegraphics[width=\textwidth]{figures/code_duplication_details.png}
+\caption{Code duplication reported by SonarCloud}
 \label{fig:code_duplication}
-\end{figure}
-
-\begin{figure}
-\center
-\includegraphics[width=10cm]{figures/code_coverage.png}
-\caption{Code coverage reported by SonarCloud. Horizontal axis: time. Vertical axis: number of lines of code (light blue) and number of covered lines (dark blue).}
-\label{fig:code_coverage}
 \end{figure}
 
 \begin{figure}
@@ -550,22 +544,20 @@ See \autoref{fig:code_issues}.
 \end{figure}
 
 \subsection{Sigrid report}
-Sigrid scores the overall maintainability at 3.7, with an architecture score of 3.4.
+Sigrid scores the overall maintainability at 3.8, with an architecture score of 3.2.
 See Sigrid overview report in \autoref{fig:sigrid_overview}.
-The total amount of code represents 11 person months (to develop).
-The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 91 \%).
-The open source health is scored at 4.1: the code depends on 60 open source libraries of which 5 (cftime, click-plugins, intel-openmp, mkl, tbb) are marked as high risk since the version used is more than 1 year old.
+The total amount of code represents 13 person months (to develop).
+The number of lines of code for testing is almost the same as the number of lines of code for the program itself (test/code ration = 97 \%).
+The open source health is scored at 3.0: the code depends on 68 open source libraries of which 7 (cftime, intel-openmp, mkl, tbb, pandas, pyqt5. pyqt5-qt5) are marked as medium to high risk since the version used is more than 1 year old.
+Three of the libraries (intel-openmp, mkl, tbb) are also flagged for proprietary licenses; for 30 libraries Sigrid doesn't know the license conditions.
 The are no security or reliability issues.
 \Autoref{fig:sigrid_architecture_overview} shows the Sigrid architecture overview.
-In particular the "communication centralization" score is low, and the "bounded evolution".
+In particular the "component freshness" score has decreased because changes have been limited to one component instead of improving all components; this is natural for a stable code base with minor fixes.
+The "communication centralization" scores now significantly better than before and the "bounded evolution" is no longer evaluated.
 \Autoref{fig:sigrid_architecture_comm} shows the Sigrid communication centralization overview.
-The Sigrid score for this topic is based on the number of calls between components compared to the number of calls within a component.
-A lot of internal calls compared to outside calls is considered good.
-Since we use the lower level components (io, kernel, config, batch) as libraries that provide functions to higher level components rather than independently functioning entities, the score is relatively low.
-By bundling all code into one component (all source files into one folder), we would resolve this bad score.
+The Sigrid score for this topic is based on the number of calls between components compared to the number of calls within a component; nothing has changed here, but the score has improved ... this may be due to code stability which causes the interfaces to remain stable.
 The "bounded evolution" score determines how often files are changed in the same commit.
-Due to several major renaming actions over the past weeks, which caused changes in many files, this score has gone down.
-It will likely go back up during regular developments.
+Because there have been very few code changes, there wasn't enough data to check for correlated changes across multiple components.
 
 \begin{figure}
 \center

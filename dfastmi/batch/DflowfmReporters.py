@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -119,7 +119,7 @@ class AnalyserDflowfmReporter:
         ApplicationSettingsHelper.log_text("end_program", file=self.report)
 
     def report_missing_calculation_dzq_values(self, q, t):
-        if t > 0:
+        if t is not None and t > 0:
             ApplicationSettingsHelper.log_text(
                 "no_file_specified_q_and_t", dict={"q": q, "t": t}, file=self.report
             )

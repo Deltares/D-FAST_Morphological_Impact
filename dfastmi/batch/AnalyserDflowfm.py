@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -248,7 +248,7 @@ class AnalyserDflowfm:
         self._missing_data = False
 
         # determine the name of the first FM data file that will be used
-        if 0 in filenames.keys():  # the keys are 0,1,2
+        if 2 in filenames.keys():  # the keys are 0,1,2
             one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(
                 filenames
             )
@@ -267,7 +267,7 @@ class AnalyserDflowfm:
         self, filenames: Dict[Any, Tuple[str, str]]
     ) -> Optional[str]:
         for i in range(3):
-            if (
+            if self._q_threshold is None or (
                 self._discharges[i] is not None
                 and self._discharges[i] > self._q_threshold
             ):
@@ -312,7 +312,7 @@ class AnalyserDflowfm:
         dxi: numpy.ndarray,
         dyi: numpy.ndarray,
     ) -> numpy.ndarray:
-        if 0 in filenames.keys():  # the keys are 0,1,2
+        if 2 in filenames.keys():  # the keys are 0,1,2
             return self._get_dzq_based_on_numbered_keys(filenames, dxi, dyi, iface)
         else:  # the keys are the conditions
             return self._get_dzq_based_on_conditions_keys(filenames, dxi, dyi, iface)
@@ -329,7 +329,10 @@ class AnalyserDflowfm:
             if self._discharges[i] is None:
                 # ignore period
                 dzq[i] = 0
-            elif self._discharges[i] <= self._q_threshold:
+            elif (
+                self._q_threshold is not None
+                and self._discharges[i] <= self._q_threshold
+            ):
                 # intervention inactive, so zero-effect for this period
                 dzq[i] = numpy.zeros_like(iface, dtype=float)
             else:
@@ -496,8 +499,8 @@ class AnalyserDflowfm:
 
     def _map_grids(
         self,
-        output_file1,
-        output_file2,
+        output_file1: OutputFile,
+        output_file2: OutputFile,
         iface: numpy.ndarray,
     ) -> (bool, numpy.ndarray, numpy.ndarray):
         """

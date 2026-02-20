@@ -8,7 +8,7 @@ https://github.com/Deltares/D-FAST_Morphological_Impact
 
 License:
 
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -34,6 +34,6 @@ Stichting Deltares. All rights reserved.
 
 from typing import Any, List
 
-__version__ = "3.1.2"
+__version__ = "3.2.0"
 
 __all__: List[Any] = []

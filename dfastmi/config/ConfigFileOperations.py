@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -113,20 +113,19 @@ class ConfigFileOperations:
         rconfig : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis with as much as possible relative paths.
         """
-        for key in ("RiverKM", "FigureDir", "OutputDir"):
-            if key in config["General"]:
-                ConfigFileOperations._update_to_relative_path(
-                    rootdir, config, "General", key
-                )
-        for qstr in config.keys():
-            if "Reference" in config[qstr]:
-                ConfigFileOperations._update_to_relative_path(
-                    rootdir, config, qstr, "Reference"
-                )
-            if "WithIntervention" in config[qstr]:
-                ConfigFileOperations._update_to_relative_path(
-                    rootdir, config, qstr, "WithIntervention"
-                )
+        for key in (
+            "RiverKM",
+            "FigureDir",
+            "OutputDir",
+            "Reference",
+            "WithMeasure",
+            "WithIntervention",
+        ):
+            for qstr in config.keys():
+                if key in config[qstr]:
+                    ConfigFileOperations._update_to_relative_path(
+                        rootdir, config, qstr, key
+                    )
         return config
 
     @staticmethod
@@ -288,20 +287,19 @@ class ConfigFileOperations:
         aconfig : configparser.ConfigParser
             Configuration for the D-FAST Morphological Impact analysis with only absolute paths.
         """
-        for key in ("RiverKM", "FigureDir", "OutputDir"):
-            if key in config["General"]:
-                ConfigFileOperations._update_to_absolute_path(
-                    rootdir, config, "General", key
-                )
-        for qstr in config.keys():
-            if "Reference" in config[qstr]:
-                ConfigFileOperations._update_to_absolute_path(
-                    rootdir, config, qstr, "Reference"
-                )
-            if "WithIntervention" in config[qstr]:
-                ConfigFileOperations._update_to_absolute_path(
-                    rootdir, config, qstr, "WithIntervention"
-                )
+        for key in (
+            "RiverKM",
+            "FigureDir",
+            "OutputDir",
+            "Reference",
+            "WithMeasure",
+            "WithIntervention",
+        ):
+            for qstr in config.keys():
+                if key in config[qstr]:
+                    ConfigFileOperations._update_to_absolute_path(
+                        rootdir, config, qstr, key
+                    )
         return config
 
     @staticmethod

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -136,14 +136,8 @@ def _run_interactive_mode_once(
     if have_files and not all_q:
         return True
 
-    tmi = []
-    for i, value in enumerate(apply_q):
-        if value:
-            tmi.append(fraction_of_year[i])
-        else:
-            tmi.append(0.0)
     celerity = [celerity_lw, celerity_hg, celerity_hg]
-    slength = dfastmi.kernel.core.estimate_sedimentation_length(tmi, celerity)
+    slength = dfastmi.kernel.core.estimate_sedimentation_length(fraction_of_year, celerity)
     if slength > 1:
         nlength = int(slength)
     else:
@@ -643,7 +637,7 @@ def _write_report_nodata(
     if all_done:
         dfastmi.batch.core.write_report(
             report,
-            reach.name,
+            reach,
             q_location,
             q_threshold,
             q_bankfull,

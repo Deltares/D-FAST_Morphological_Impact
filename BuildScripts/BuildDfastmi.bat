@@ -35,12 +35,12 @@ START /B /WAIT poetry run nuitka ^
  --include-package-data=geopandas.datasets ^
  --include-module=fiona ^
  --company-name=Deltares ^
- --file-version=3.1.0 ^
- --product-version=2024.01 ^
+ --file-version=3.2.0 ^
+ --product-version=2026.01 ^
  --product-name="D-FAST Morphological Impact" ^
  --file-description="A Python tool to perform a morphological impact analysis based on a number of D-Flow FM simulations." ^
  --trademarks="All indications and logos of, and references to, \"D-FAST\", \"D-FAST Morphological Impact\" and \"D-FAST MI\" are registered trademarks of Stichting Deltares, and remain the property of Stichting Deltares. All rights reserved." ^
- --copyright="Copyright (C) 2024 Stichting Deltares." ^
+ --copyright="Copyright (C) 2026 Stichting Deltares." ^
  --windows-icon-from-ico=dfastmi/D-FASTMI.png ^
  --include-data-files=dfastmi/Dutch_rivers_v1.ini=dfastmi/Dutch_rivers_v1.ini ^
  --include-data-files=dfastmi/Dutch_rivers_v3.ini=dfastmi/Dutch_rivers_v3.ini ^

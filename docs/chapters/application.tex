@@ -31,15 +31,15 @@ The \dfmi GUI will provide you that list after selecting the appropriate branch/
 For the Dutch rivers these values are given by the following table
 \newline
 \newline
-\begin{tabular}{l|l|l}
+\begin{tabular}{p{2.5cm}|l|p{8.5cm}}
 river & location & flow conditions \\ \hline
 Rhine branches & Lobith & steady state 1300, 2000, 3000, 4000, 6000, 8000 \SI{}{\metre\cubed\per\second}\\
-Meuse & Borgharen & \emph{details to be confirmed}
-\comment{750, 1300, 1700, 2100, 2500, 3200 \SI{}{\metre\cubed\per\second}}
+Meuse (excluding Grensmaas) & Borgharen & steady state 750, 1300, 1700, 2100, 2500 \SI{}{\metre\cubed\per\second} and SD-run including the effect of flood wave attenuation (`topvervlakking') for 3200 \SI{}{\metre\cubed\per\second}
 \end{tabular}
 \newline
 \newline
-These flow conditions have been pre-configured for the latest \dflowfm schematizations of these rivers\footnote{The rationale behind the selection of these flow conditions and the associated bed celerity values is given in \autoref{Sec:memo_Sieben24}.}.
+These flow conditions have been pre-configured for the latest \dflowfm schematizations of these rivers\footnote{The rationale behind the selection of these flow conditions and the associated bed celerity values is given in \autoref{Sec:memo_Sieben24}.
+See section 4.2 `De Lymen' in the \dfmi validation document for a discussion about the need for runs including flood wave attenuation for more discharge conditions.}.
 It is not necessary to run simulations for conditions at which the intervention doesn't influence the flow patterns (i.e.~discharges associated with stagnant conditions due to closure of barriers, and discharges below the intervention specific $Q_\text{thr}$).
 At this stage, \dfmi already reports the impacted length (`aanzandingslengte'), which is the distance over which a bed level change can built up during the period that the discharge of the river is above the threshold discharge.
 \dfmi is not suitable for interventions that only (start to) have a noticeable effect at (or above) the highest discharge.

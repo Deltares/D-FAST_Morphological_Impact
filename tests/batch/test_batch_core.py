@@ -142,9 +142,27 @@ class Test_batch_mode:
         [
             (
                 "tests/c01 - GendtseWaardNevengeul",
+                "c01_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref",
+            ),
+            (
+                "tests/c01 - GendtseWaardNevengeul",
                 "Qmin_4000.cfg",
                 "dfastmi/Dutch_rivers_v1.ini",
                 "ref_Qmin_Q4000",
+            ),
+            (
+                "tests/c02 - DeLymen",
+                "c02_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref",
+            ),
+            (
+                "tests/c02 - DeLymen",
+                "c02a_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref_c02a_netcdf",
             ),
             (
                 "tests/c03 - Pontwaard",
@@ -324,6 +342,7 @@ class Test_batch_mode:
             ("01 - Palmerswaard", "example1.cfg"),
             ("02 - Pannerdensch Kanaal", "example2.cfg"),
             ("03 - Gendtse Waard", "GendtseWaard_v3.cfg"),
+            ("04 - De Lymen", "DeLymen_v3.cfg"),
         ],
     )
     def test_batch_examples(self, case, config):
