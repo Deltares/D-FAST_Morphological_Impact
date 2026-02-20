@@ -268,8 +268,6 @@ class ConfigurationInitializer(AConfigurationInitializerBase):
 
         t = numpy.zeros(q.shape)
         p_do = 1.0
-        p_th = math.exp(min(0.0, q_fit[0] - qthresh) / q_fit[1])
-
         for i, discharge in enumerate(q):
             if discharge <= q_stagnant:
                 if i < len(q) - 1 and q[i + 1] > q_stagnant:
