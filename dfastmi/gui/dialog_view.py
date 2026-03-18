@@ -977,7 +977,7 @@ class DialogView:
         """
         msg = QMessageBox()
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
-        msg.setInformativeText("Copyright (c) 2024 Deltares.")
+        msg.setInformativeText("Copyright (c) 2026 Deltares.")
         msg.setDetailedText(gui_text("license"))
         msg.setWindowTitle(gui_text("about"))
         msg.setStandardButtons(QMessageBox.Ok)
