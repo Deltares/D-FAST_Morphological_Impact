@@ -287,14 +287,7 @@ class DialogViewModel(QObject):
             If thrown, analysis has failed.
         """
         try:
-            run_config = self.model.get_configuration(
-                self.current_branch,
-                self.current_reach,
-                self.reference_files,
-                self.intervention_files,
-                self.ucritical,
-                self.qthreshold,
-            )
+            run_config = self.get_configuration()
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, run_config, gui=True
             )
@@ -431,14 +424,7 @@ class DialogViewModel(QObject):
             Name of the configuration file to be saved.
 
         """
-        config = self.model.get_configuration(
-            self.current_branch,
-            self.current_reach,
-            self.reference_files,
-            self.intervention_files,
-            self.ucritical,
-            self.qthreshold,
-        )
+        config = self.get_configuration()
         ConfigFileOperations.save_configuration_file(filename, config)
 
     def load_configuration(self, filename: str) -> bool:
