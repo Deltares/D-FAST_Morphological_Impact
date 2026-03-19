@@ -213,6 +213,9 @@ class DialogView:
 
         # Update reach label
         self._reach.setCurrentText(reach.name)
+        
+        # Refresh threshold and list of simulations
+        self._update_qthreshold(self._view_model._qthreshold)
 
     def _update_sedimentation_length(self, slength: str):
         """

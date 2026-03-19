@@ -180,7 +180,6 @@ class DialogViewModel(QObject):
         self._qthreshold = value
         self._qthreshold_cache[(self.current_branch, self.current_reach)] = value
 
-        self._update_slength()
         # Notify the view of the change
         self.qthreshold_changed.emit(self.qthreshold)
 
