@@ -38,8 +38,11 @@ Block & Keyword & Description \\ \hline
 \hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
 \endfoot
 \endlastfoot
-\keyw{General} & \keyw{Version} & Version number.
+\keyw{General} & \keyw{Version} & Version number of the file format.
 Should be \keyw{3.0}. \\
+\keyw{General} & \keyw{ConfigVersion} & Version number for the actual configuration stored in the file.
+This keyword is intended for version management of the file content.
+It is currently not used by the software. \\
 \keyw{General} & \keyw{checksum} & Checksum of the rivers configuration file.
 Used to verify that the rivers configuration file wasn't accidentally modified. \\
 BranchName<i> & \keyw{QLocation} & Location at which discharges for branch <i> are defined. \\
