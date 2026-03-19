@@ -167,7 +167,7 @@ class Test_batch_mode:
             (
                 "tests/c03 - Pontwaard",
                 "input_var1_dfast311_part_fou.cfg",
-                "dfastmi/Dutch_rivers_v3.ini",
+                "dfastmi/Dutch_rivers_v3_config1.ini",
                 "output_ref",
             ),
         ],
@@ -350,7 +350,7 @@ class Test_batch_mode:
         Testing batch_mode: example cases user manual
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = RiversObject("dfastmi/Dutch_rivers_v3.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v3_config1.ini")
         cwd = os.getcwd()
         tstdir = "examples" + os.sep + case
         outdir = tstdir + os.sep + "output"

@@ -325,6 +325,8 @@ class Test_batch_mode:
                     dfastexe,
                     "--mode",
                     "BATCH",
+                    "--rivers",
+                    "Dutch_rivers_v3_config1.ini",
                     "--config",
                     config,
                 ],
