@@ -72,7 +72,7 @@ START /B /WAIT python -m nuitka ^
  --include-data-files=%DOCS_SRC%/dfastmi_release_notes.pdf=%DOCS_DEST%/dfastmi_release_notes.pdf ^
  --include-data-files=%DOCS_SRC%/dfastmi_validation.pdf=%DOCS_DEST%/dfastmi_validation.pdf ^
  %cmd_box_args% ^
- src/dfastbe
+ dfastmi
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
