@@ -1,7 +1,7 @@
 Delft3D-QUICKPLOT 'session file' 1.1
 
 Expand
-  filename1 'C:\D\checkouts\D-FAST_Morphological_Impact\examples_references\04 - De Lymen\output\dfastmi_results.nc'
+  filename1 'examples_references\04 - De Lymen\output\dfastmi_results.nc'
 EndExpand
 
 Figure             ''

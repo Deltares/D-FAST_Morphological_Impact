@@ -167,7 +167,7 @@ class Test_batch_mode:
             (
                 "tests/c03 - Pontwaard",
                 "input_var1_dfast311_part_fou.cfg",
-                "dfastmi/Dutch_rivers_v3_config1.ini",
+                "dfastmi/Dutch_rivers_v3.ini",
                 "output_ref",
             ),
         ],
@@ -343,6 +343,7 @@ class Test_batch_mode:
             ("02 - Pannerdensch Kanaal", "example2.cfg"),
             ("03 - Gendtse Waard", "GendtseWaard_v3.cfg"),
             ("04 - De Lymen", "DeLymen_v3.cfg"),
+            ("05 - Grensmaas", "Grensmaas_v3.cfg"),
         ],
     )
     def test_batch_examples(self, case, config):
@@ -350,7 +351,7 @@ class Test_batch_mode:
         Testing batch_mode: example cases user manual
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = RiversObject("dfastmi/Dutch_rivers_v3_config1.ini")
+        rivers = RiversObject("dfastmi/Dutch_rivers_v3.ini")
         cwd = os.getcwd()
         tstdir = "examples" + os.sep + case
         outdir = tstdir + os.sep + "output"

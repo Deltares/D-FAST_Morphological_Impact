@@ -132,3 +132,36 @@ Overall conclusion: the results of the WAQMORF-compatible analysis and the new a
 The magnitude of the morphological response obtained from the WAQMORF-analysis depends significantly on the discharge settings chosen for the analysis.
 The new analysis method is less sensitive for such choices and it takes into account the impact of the intervention under a wider range of discharge conditions.
 Therefore, the new method is preferred and accepted.
+
+\section{Grensmaas}\label{Sec:Grensmaas}
+
+For the Grensmaas, we do not yet have an example study available.
+Instead we analyse here the effect of the Grensmaas settings using the `De Lymen' case discussed in the previous section.
+We start by using a normal width of \SI{100}{\metre} and celerities equal to 0.003, 0.006, 0.008, 0.008, 0.008 and \SI{0.009}{\kilo\metre\per\year} at discharges of 750, 1300, 1700, 2100, 2500, and \SI{3200}{\metre\cubed\per\second}.
+The resulting year-averaged equilibrium bed level change is presented in the left plot of \autoref{Grensmaas_6_vs_9}.
+The impacted length is only \SI{3}{\metre} compared to \SI{283}{\metre} for the Grave-Lith reach.
+This difference is caused by the much higher celerities there, which is partly offset by the stagnant flow conditions assumed when the Grave barrier is closed below \SI{1000}{\cubic\metre\per\second}.
+Furthermore, since the celerity varies less between high and low flow conditions for the Grensmaas, the infrequent high flow have a much smaller impact on the long-term equilibrium.
+The resulting year-averaged equilibrium bed level change corresponds largely with the equilibrium bed level change associated with the lowest discharges (compare with the \SI{1300}{\cubic\metre\per\second} condition in \autoref{DeLymen_equilibrium_effects}).
+
+\begin{figure}[h]
+	\includegraphics[width=\columnwidth/2]{figures/Grensmaas_v3_yearavg_6_levels.png}
+	\includegraphics[width=\columnwidth/2]{figures/Grensmaas_v3_yearavg_9_levels.png}
+	\caption{Morphological impact as computed by \dfmi for the De Lymen case under Grensmaas conditions using six discharge levels (left) and nine discharge levels (right).}
+	\label{Grensmaas_6_vs_9}
+\end{figure}
+
+Since the Grensmaas is also morphologically active during low flow conditions, the \dfmi analysis for this reach is extended with three additional low flow conditions: 50, 250 and \SI{500}{\cubic\metre\per\second}.
+As a first verification step, we include these three discharges, but keep the celerities and forcing conditions equal to those of the \SI{750}{\metre\cubed\per\second} condition in the previous run.
+One would expect that this change will little affect the results, and that is what we also observe if we compare the two plots of \autoref{Grensmaas_6_vs_9}.
+A numeric comparison shows that there still small differences (less than \num{7e-7}) due to the way the year-average is computed from the bed level (by only using the first term of \autoref{Eq:zbMean} in the \dfmi User Manual).
+
+Finally, we present (\autoref{Grensmaas_v3}) the results of the \dfmi analysis using the actual celerities 0.0001, 0.001 and \SI{0.001}{\kilo\metre\per\year} at discharges 50, 250 and \SI{500}{\cubic\metre\per\second}.
+This change reduce the impacted length to \SI{1}{\metre} and slightly increases the influence of the higher discharges on the year-averaged equilibrium bed level.
+Note that due to lack of other simulation results we have still applied the flow fields of \SI{750}{\metre\cubed\per\second} for all four lowest flow conditions.
+
+\begin{figure}[h]
+	\includegraphics[width=\columnwidth]{figures/Grensmaas_v3_yearavg.png}
+	\caption{Morphological impact as computed by \dfmi for the De Lymen case under Grensmaas conditions using current settings.}
+	\label{Grensmaas_v3}
+\end{figure}

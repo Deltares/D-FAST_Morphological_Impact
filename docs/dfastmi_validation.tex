@@ -1,5 +1,5 @@
 \documentclass[git]{deltares_manual}
-
+\usepackage{xr}
 \usepackage{tikz}
 \usepackage[pipeTables=true]{markdown}
 \usepackage{verbatimbox}
@@ -36,6 +36,8 @@
 
 \setgitdirectory{../.git}
 \deltarestitle
+
+\externaldocument{dfastmi_usermanual}
 
 \include{chapters/validation_introduction}
 \include{chapters/validation_backward_compatibility}

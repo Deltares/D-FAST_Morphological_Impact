@@ -368,18 +368,19 @@ The following sections describe a workflow of 9 phases to test the interactive w
 \item Start from Test 7.
 \item Press the \button{Compute} button.
 \item Verify that the analysis completes successfully.
-\item The generated figure should correspond to \autoref{fig:report_Figure1.png}.
+\item The generated figure should correspond to \autoref{fig:report_GendtseWaard.png}.
 \item The content of the \file{report.txt} file in the output folder, should be equal to the following \hyperlink{code-report}{listing}.
 \item Open the \file{dfastmi\_results.nc} file in QUICKPLOT.
 Select the quantity "year-averaged bed level change without dredging" , and plot it using default settings.
 See \autoref{fig:manual_system_test_8_quickplot_usage.png} for a snapshot of the steps in QUICKPLOT.
-The resulting figure should correspond to \autoref{fig:report_Figure1_QP.png}.
+The resulting figure should correspond to \autoref{fig:report_GendtseWaard_QP.png}.
+
 \begin{figure}[H]
-\center
-\includegraphics[width=12cm]{figures/report_Figure1.png}
-\caption{Analysis results as plotted by \dfmi itself.}
-\label{fig:report_Figure1.png}
-\end{figure}
+	\center
+	\includegraphics[width=12cm]{figures/GendtseWaard_jaargem_matplotlib.png}
+	\caption{Analysis results as plotted by \dfmi itself.}
+	\label{fig:report_GendtseWaard.png}
+	\end{figure}
 \end{enumerate}
 
 \hypertarget{code-report}{\verbfilenobox[\scriptsize]{figures/report.txt}}
@@ -387,15 +388,15 @@ The resulting figure should correspond to \autoref{fig:report_Figure1_QP.png}.
 \begin{figure}[H]
 	\center
 	\includegraphics[width=12cm]{figures/manual_system_test_8_quickplot_usage.png}
-	\caption{QUICKPLOT settings to create \autoref{fig:report_Figure1_QP.png}.}
+	\caption{QUICKPLOT settings to create \autoref{fig:report_GendtseWaard_QP.png}.}
 	\label{fig:manual_system_test_8_quickplot_usage.png}
 \end{figure}
 
 \begin{figure}[H]
-\center
-\includegraphics[width=12cm]{figures/report_Figure1_QP.png}
-\caption{Analysis results as plotted using QUICKPLOT.}
-\label{fig:report_Figure1_QP.png}
+	\center
+	\includegraphics[width=12cm]{figures/GendtseWaard_jaargem.png}
+	\caption{Analysis results as plotted using QUICKPLOT.}
+	\label{fig:report_GendtseWaard_QP.png}
 \end{figure}
 
 \subsection{Test 9: closing the software}

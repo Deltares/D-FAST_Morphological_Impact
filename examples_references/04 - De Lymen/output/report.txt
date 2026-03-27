@@ -23,7 +23,7 @@ The combination of the total equilibrium sedimentation volume and the
 yearly sediment load of the river determines the period over which the
 equilibrium can be reached.
 
-This is version 3.1.2.
+This is version 3.2.0.
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -39,7 +39,7 @@ Branch                              : Maas
 Reach                               : Grave-Lith                   km  176-200
 Discharge location                  : Borgharen
 Minimum flow-carrying discharge     : 1000.0 m3/s
-Impacted length                     : 195 m
+Impacted length                     : 283 m
 
 Critical flow velocity              : 0.3 m/s
 
@@ -64,6 +64,6 @@ containing three variables containing the characteristic bed level changes:
     mindzb: minimum change [m] after low flow without dredging
 
 If the bed level changes are removed on a yearly basis, the impacted river reach
-is estimated at 195 m from the upstream edge of the impacted reach.
+is estimated at 283 m from the upstream edge of the impacted reach.
 
 The program has ended !!!
