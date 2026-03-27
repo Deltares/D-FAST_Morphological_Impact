@@ -22,6 +22,8 @@
     pdfkeywords = {Validation Document \dfmi}
 }
 
+\externaldocument[UM:]{dfastmi_usermanual}
+
 \begin{document}
 \pagestyle{empty}
 \includepdf[pages=1, offset=72 -70]{cover/D-HYDRO Suite 2D3D-D-Fast D-Fast Morphological Impact-VD.pdf} % links-rechts past precies
@@ -36,8 +38,6 @@
 
 \setgitdirectory{../.git}
 \deltarestitle
-
-\externaldocument{dfastmi_usermanual}
 
 \include{chapters/validation_introduction}
 \include{chapters/validation_backward_compatibility}
