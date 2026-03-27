@@ -1,0 +1,97 @@
+Delft3D-QUICKPLOT 'session file' 1.1
+
+Expand
+  filename1 'Nederrijn\GIS\rivierkm.shp'
+  filename2 'Nederrijn\GIS\bandijken.shp'
+  filename3 'Nederrijn\GIS\overlaten.shp'
+  filename4 'examples_references\01 - Palmerswaard\output\dfastmi_results.nc'
+EndExpand
+
+Figure             ''
+  PaperType        'A4'
+  PaperOrientation 'portrait'
+  Colour           [255 255 255]
+  WindowSize       [758 576]
+  FrameStyle       'none'
+
+  Axes        ''
+    Position  [0.13 0.11 0.775 0.815]
+    Type      'X-Y'
+    Box       'on'
+    LineWidth 0.5
+    XLoc      'bottom'
+    XLim      [164000 167500]
+    XColour   [33 33 33]
+    YLoc      'left'
+    YLim      [440000 443000]
+    YColour   [33 33 33]
+
+    Item        'line'
+      FileName  '$filename1$'
+      Dimensions
+        m                        'all'
+      EndDimensions
+      Options
+        colour                   [ 0 0 0 ]
+        linestyle                '-'
+        marker                   'none'
+        linewidth                0.5
+        markersize               6
+        markercolour             'auto'
+        markerfillcolour         'none'
+        axestype                 'X-Y'
+      EndOptions
+    EndItem
+
+    Item        'line'
+      FileName  '$filename2$'
+      Dimensions
+        m                        'all'
+      EndDimensions
+      Options
+        colour                   [ 0 0 0 ]
+        linestyle                '-'
+        marker                   'none'
+        linewidth                0.5
+        markersize               6
+        markercolour             'auto'
+        markerfillcolour         'none'
+        axestype                 'X-Y'
+      EndOptions
+    EndItem
+
+    Item        'line'
+      FileName  '$filename3$'
+      Dimensions
+        m                        'all'
+      EndDimensions
+      Options
+        colour                   [ 0 0 0 ]
+        linestyle                '-'
+        marker                   'none'
+        linewidth                0.5
+        markersize               6
+        markercolour             'auto'
+        markerfillcolour         'none'
+        axestype                 'X-Y'
+      EndOptions
+    EndItem
+
+    Item        'year-averaged bed level change without dredging'
+      FileName  '$filename4$'
+      Dimensions
+        m                        'all'
+      EndDimensions
+      Options
+        presentationtype         'patches'
+        unicolour                0
+        colourlimits             [ -0.5 0.5 ]
+        climclipping             0
+        colourmap                'jet (5% white band)'
+        colourbar                'vert'
+        axestype                 'X-Y'
+        clippingvalues           -999
+      EndOptions
+    EndItem
+  EndAxes
+EndFigure

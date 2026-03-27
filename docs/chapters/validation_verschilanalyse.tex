@@ -26,12 +26,12 @@ In the backward compatibility mode \dfmi uses the flow fields at 3000, 4000, and
 For the new analysis, this list is extended with 1300, 2000, and \SI{8000}{\metre\cubed\per\second}.
 Furthermore, the bed celerity has changed.
 In the backward compatibility mode the algorithms use for the Boven-Waal \SI{0.81}{\kilo\metre\per\year} at a discharge of \SI{3000}{\metre\cubed\per\second}, and \SI{3.65}{\kilo\metre\per\year} at 4000 and \SI{6000}{\metre\cubed\per\second}.
-The celerity at the Boven-Waal equals 0.63, 0.97, 1.51, 2.06, 3.16 and \SI{5.35}{\kilo\metre\per\year} at a discharge of 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second}, respectively, for the new analysis.
+The celerity at the Boven-Waal equals 0.61, 0.93, 1.44, 1.94, 2.92 and \SI{4.85}{\kilo\metre\per\year} at a discharge of 1300, 2000, 3000, 4000, 6000, and \SI{8000}{\metre\cubed\per\second}, respectively, for the new analysis.
 The discharge statistics (exceedance curve) has not changed.
 
 \begin{figure}[h]
-\includegraphics[width=\columnwidth/2]{figures/report_Figure1_QP.png}
-\includegraphics[width=\columnwidth/2]{figures/report_Figure1_v3_QP.png}
+\includegraphics[width=\columnwidth/2]{figures/GendtseWaard_jaargem.png}
+\includegraphics[width=\columnwidth/2]{figures/GendtseWaard_v3_yearavg.png}
 \caption{Morphological impact as computed by \dfmi version 3 in backward compatibility mode (left; same as WAQMORF) and in the new default mode (right).}
 \label{GendtseWaard_diff}
 \end{figure}
@@ -39,7 +39,7 @@ The discharge statistics (exceedance curve) has not changed.
 The results of the WAQMORF-compatible analysis and the new analysis method are presented side-by-side in \autoref{GendtseWaard_diff}.
 The indicated year-averaged equilibrium sedimentation is on average slightly higher than before.
 This will have only a minor effect on the estimated sedimentation volume after one year since it is offset by a slightly reduced impacted length.
-The impacted length is \SI{1090}{\metre} for the new analysis method, compared to \SI{1319}{\metre} using the old analysis method.
+The impacted length is \SI{1038}{\metre} for the new analysis method\footnote{The length was \SI{1090}{\metre} for the \dfmi versions 3.0.0 until 3.2.0 using a rivers configuration stating celerities of 0.63, 0.97, 1.51, 2.06, 3.16 and \SI{5.35}{\kilo\metre\per\year}.}, compared to \SI{1319}{\metre} using the old analysis method.
 Overall, the new method gives a result that closely resembles the results previously obtained using WAQMORF (or the backward compatibility mode of \dfmi).
 
 \section{De Lymen}\label{Sec:DeLymen}
@@ -49,7 +49,7 @@ Overall, the new method gives a result that closely resembles the results previo
 This concerns a section of the "Bedijkte Maas" between Batenburg and Appeltern, along the river Meuse (reach between Grave and Lith).
 This case is also used for the backward compatibility tests, see \autoref{Sec:DeLymen_backward}.
 The discharge statistics (exceedance curve) has not changed.
-The celerity in this reach of the Meuse equals 0.60, 5.40, 5.98, 5.50, 5.53 and \SI{6.34}{\kilo\metre\per\year} at a discharge of 750, 1300, 1700, 2100, 2500, and \SI{3200}{\metre\cubed\per\second}, respectively, for the new analysis.
+The celerity in this reach of the Meuse equals 0.84, 7.80, 8.67, 8.21, 8.28 and \SI{9.56}{\kilo\metre\per\year} at a discharge of 750, 1300, 1700, 2100, 2500, and \SI{3200}{\metre\cubed\per\second}, respectively, for the new analysis.
 The values used in the backward compatibility mode depend on the exact characteristic discharges that the user selects for the analysis; more about this later.
 The results of the WAQMORF-compatible analysis (based on SIMONA/WAQUA results) and the new analysis method (based on D-Hydro/Delft3D FM results) are presented side-by-side in \autoref{DeLymen_diff}.
 There are significant differences in both the magnitude of the year-averaged bed level change and the spatial sedimentation and erosion patterns.
@@ -64,7 +64,7 @@ This difference requires a more in-depth analysis.
 
 We start by looking at the sensitivity of the WAQMORF (backward compatibility mode) results.
 We consider two cases: in the first case the user specifies a threshold discharge of \SI{1500}{\metre\cubed\per\second} (which was the setting used to obtain the WAQMORF results shown above.) and in the second case the user specifies a threshold discharge of \SI{1250}{\metre\cubed\per\second} and a bank full discharge of \SI{1500}{\metre\cubed\per\second}.
-In both cases we assume that the intervention has zero effect until \SI{1500}{\metre\cubed\per\second}, and in both cases a celerity of \SI{9.33}{\kilo\metre\per\year} is used for the high flow condition represented by \SI{1971}{\metre\cubed\per\second}.
+In both cases we assume that the intervention has zero effect until \SI{1500}{\metre\cubed\per\second}, and in both cases a celerity of \SI{9.56}{\kilo\metre\per\year} is used for the high flow condition represented by \SI{1971}{\metre\cubed\per\second}.
 The effect of this change is shown in \autoref{DeLymen_waqmorf_diff}.
 Note the difference in colour scale.
 
@@ -85,7 +85,9 @@ As a result the initial year effect (estimated by integrating the year-averaged 
 \end{figure}
 
 Although the user still specifies a threshold discharge for the new \dfmi v3 algorithm, it has no impact on the celerity being used for the various discharge regimes.
-The impacted length is now, based on different discharge levels and celerities, computed as \SI{195}{\metre} independent of the threshold discharge selected.\footnote{In \dfmi versions older than 3.2.0, the impacted length was computed by integrating the celerity over discharges above the threshold discharge. As of version 3.2.0 that integral has been corrected to start from the discharge below which the flow can be considered stagnant, e.g.\ due to barriers.}
+The impacted length is now, based on different discharge levels and celerities, computed as \SI{283}{\metre} independent of the threshold discharge selected.\footnote{The length was \SI{195}{\metre} for the \dfmi version 3.2.0 using a rivers configuration stating celerities of 0.60, 5.40, 5.98, 5.50, 5.53 and \SI{6.34}{\kilo\metre\per\year}.
+In \dfmi versions older than 3.2.0, the impacted length was computed by integrating the celerity only over discharge conditions above the threshold discharge.
+As of version 3.2.0 that integral has been corrected to start from the discharge below which the flow can be considered stagnant, e.g.\ due to barriers.}
 Specifying a larger threshold discharge may only reduce the number of simulations to be run.
 By definition of the `threshold discharge', the intervention should not have any effect at discharges lower than that value.
 Whether zero effect is assumed or derived from actual simulations should not lead to a different final conclusion.

@@ -1,0 +1,45 @@
+Delft3D-QUICKPLOT 'session file' 1.1
+
+Expand
+  filename1 'C:\D\checkouts\D-FAST_Morphological_Impact\examples_references\04 - De Lymen\output\dfastmi_results.nc'
+EndExpand
+
+Figure             ''
+  PaperType        'A4'
+  PaperOrientation 'landscape'
+  Colour           [255 255 255]
+  WindowSize       [6.544000e+02 3.672000e+02]
+  FrameStyle       'none'
+
+  Axes        ''
+    Position  [0.13 0.11 0.775 0.815]
+    Type      'X-Y'
+    Box       'on'
+    LineWidth 0.5
+    XGrid     'on'
+    XLoc      'bottom'
+    XLim      [169000 173000]
+    XColour   [33 33 33]
+    YGrid     'on'
+    YLoc      'left'
+    YLim      [425000 427000]
+    YColour   [33 33 33]
+
+    Item        'year-averaged bed level change without dredging'
+      FileName  '$filename1$'
+      Dimensions
+        m                        'all'
+      EndDimensions
+      Options
+        presentationtype         'patches'
+        unicolour                0
+        colourlimits             [ -0.60001 0.60001 ]
+        climclipping             0
+        colourmap                'red-green'
+        colourbar                'vert'
+        axestype                 'X-Y'
+        clippingvalues           '-999'
+      EndOptions
+    EndItem
+  EndAxes
+EndFigure
