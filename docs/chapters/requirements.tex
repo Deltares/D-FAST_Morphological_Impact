@@ -17,7 +17,9 @@ The functional requirements at the time of the development of \dfastmi version 2
 \begin{enumerate}
 \item This program must give the same results for the same data as WAQMORF.\footnote{This requirement was relaxed during the release of \dfmi version 3.0.0: it holds only in backward compatibility mode.
 	
-This requirement has again been relaxed during the release of \dfmi version 3.2.0 since a bug was found in WAQMORF: if a threshold discharge was specified then the contribution of the first block was not included in the computation of the impacted length. As of version 3.2.0, the impacted length includes the contribution of the first block and hence it will be larger than before. All other results (i.e.\ the computed bed level changes) are not changed and remain backward compatible.}
+This requirement has again been relaxed during the release of \dfmi version 3.2.0 since a bug was found in WAQMORF: if a threshold discharge was specified then the contribution of the first block was not included in the computation of the impacted length.
+As of version 3.2.0, the impacted length includes the contribution of the first block and hence it will be larger than before.
+All other results (i.e.\ the computed bed level changes) are not changed and remain backward compatible.}
 \item Users must be able to run this program in batch mode from the command line.
 \item Users must be able to run the analysis based on \dflowfm results.
 \item Users must be able to provide all data via an input file.
