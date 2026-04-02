@@ -96,7 +96,7 @@ We now continue by looking at the contribution of the various discharge levels t
 The equilibrium bed level change of the various regimes is shown in \autoref{DeLymen_equilibrium_effects}.
 Note that no results are shown for \SI{750}{\metre\cubed\per\second} since at discharge below  \SI{1000}{\metre\cubed\per\second} --- at which the barriers close --- all flow is assumed to be stagnant and hence simulations are not needed.
 
-\begin{figure}[h]
+\begin{figure}[p]
         \hspace*{2cm} \SI{1300}{\metre\cubed\per\second} \hfill \SI{1700}{\metre\cubed\per\second} \hspace*{3cm} \newline
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q1300_eq.png}
 	\includegraphics[width=\columnwidth/2]{figures/Lymen_v3_Q1700_eq.png}
@@ -135,21 +135,23 @@ Therefore, the new method is preferred and accepted.
 
 \section{Grensmaas}\label{Sec:Grensmaas}
 
-For the Grensmaas, we do not yet have an example study available.
-Instead we analyse here the effect of the Grensmaas settings using the `De Lymen' case discussed in the previous section.
-We start by using a normal width of \SI{100}{\metre} and celerities equal to 0.003, 0.006, 0.008, 0.008, 0.008 and \SI{0.009}{\kilo\metre\per\year} at discharges of 750, 1300, 1700, 2100, 2500, and \SI{3200}{\metre\cubed\per\second}.
-The resulting year-averaged equilibrium bed level change is presented in the left plot of \autoref{Grensmaas_6_vs_9}.
-The impacted length is only \SI{3}{\metre} compared to \SI{283}{\metre} for the Grave-Lith reach.
-This difference is caused by the much higher celerities there, which is partly offset by the stagnant flow conditions assumed when the Grave barrier is closed below \SI{1000}{\cubic\metre\per\second}.
-Furthermore, since the celerity varies less between high and low flow conditions for the Grensmaas, the infrequent high flow have a much smaller impact on the long-term equilibrium.
-The resulting year-averaged equilibrium bed level change corresponds largely with the equilibrium bed level change associated with the lowest discharges (compare with the \SI{1300}{\cubic\metre\per\second} condition in \autoref{DeLymen_equilibrium_effects}).
-
-\begin{figure}[h]
+\begin{figure}[b]
 	\includegraphics[width=\columnwidth/2]{figures/Grensmaas_v3_yearavg_6_levels.png}
 	\includegraphics[width=\columnwidth/2]{figures/Grensmaas_v3_yearavg_9_levels.png}
 	\caption{Morphological impact as computed by \dfmi for the De Lymen case under Grensmaas conditions using six discharge levels (left) and nine discharge levels (right).}
 	\label{Grensmaas_6_vs_9}
 \end{figure}
+
+For the Grensmaas, we do not yet have an example study available.
+Instead we analyse here the effect of the Grensmaas settings using the `De Lymen' case discussed in the previous section.
+We start by using a normal width of \SI{100}{\metre} and celerities equal to 0.003, 0.006, 0.008, 0.008, 0.008 and \SI{0.009}{\kilo\metre\per\year} at discharges of 750, 1300, 1700, 2100, 2500, and \SI{3200}{\metre\cubed\per\second}.
+The resulting year-averaged equilibrium bed level change is presented in the left plot of \autoref{Grensmaas_6_vs_9}.
+The impacted length is only \SI{3}{\metre} compared to \SI{283}{\metre} for the Grave-Lith reach.
+This difference is caused by the much higher celerities there, which is partly offset by the stagnant flow conditions assumed when the Grave barrier is closed below \SI{1000}{\cubic\metre\per\second}.\footnote{Since the lower discharges are by far the most common, the impacted length, that is a year-integrated celerity, for the Grensmaas (which is morphological active under \emph{all} flow conditions) does not differ significantly from the low-flow celerity \SI{0.003}{\kilo\metre\per\year} $\times$ \SI{1}{\year} = \SI{3}{\metre}.
+The Grave-Lith reach is considered to be only morphologically active above \SI{1000}{\cubic\metre\per\second} which happens only 3.5\% of the year.
+During those flow conditions the celerity varies between 7.8 and \SI{9.56}{\kilo\metre\per\year} hence the impacted length of \SI{283}{\metre} for that reach is in between \SI{7.8}{\kilo\metre\per\year} $\times$ \SI{0.035}{\year} = \SI{273}{\metre} and \SI{9.56}{\kilo\metre\per\year} $\times$ \SI{0.035}{\year} = \SI{335}{\metre}.}
+Furthermore, since the celerity varies less between high and low flow conditions for the Grensmaas, the infrequent high flow have a much smaller impact on the long-term equilibrium.
+The resulting year-averaged equilibrium bed level change corresponds largely with the equilibrium bed level change associated with the lowest discharges (compare with the \SI{1300}{\cubic\metre\per\second} condition in \autoref{DeLymen_equilibrium_effects}).
 
 Since the Grensmaas is also morphologically active during low flow conditions, the \dfmi analysis for this reach is extended with three additional low flow conditions: 50, 250 and \SI{500}{\cubic\metre\per\second}.
 As a first verification step, we include these three discharges, but keep the celerities and forcing conditions equal to those of the \SI{750}{\metre\cubed\per\second} condition in the previous run.
