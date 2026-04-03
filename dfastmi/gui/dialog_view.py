@@ -213,6 +213,9 @@ class DialogView:
 
         # Update reach label
         self._reach.setCurrentText(reach.name)
+        
+        # Refresh threshold and list of simulations
+        self._update_qthreshold(self._view_model._qthreshold)
 
     def _update_sedimentation_length(self, slength: str):
         """
@@ -977,7 +980,7 @@ class DialogView:
         """
         msg = QMessageBox()
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
-        msg.setInformativeText("Copyright (c) 2024 Deltares.")
+        msg.setInformativeText("Copyright (c) 2026 Deltares.")
         msg.setDetailedText(gui_text("license"))
         msg.setWindowTitle(gui_text("about"))
         msg.setStandardButtons(QMessageBox.Ok)

@@ -23,7 +23,7 @@ The combination of the total equilibrium sedimentation volume and the
 yearly sediment load of the river determines the period over which the
 equilibrium can be reached.
 
-This is version 3.0.0.
+This is version 3.2.0.
 
 
 In order to use D-FAST Morphological Impact you need to run reference and
@@ -39,7 +39,7 @@ Branch                              : Pannerdensch Kanaal & Nederrijn-Lek
 Reach                               : Nederrijn stuwpand Amerongen km  892-922
 Discharge location                  : Lobith
 Minimum flow-carrying discharge     : 1500.0 m3/s
-Impacted length                     : 865 m
+Impacted length                     : 721 m
 
 Critical flow velocity              : 0.3 m/s
 
@@ -64,6 +64,6 @@ containing three variables containing the characteristic bed level changes:
     mindzb: minimum change [m] after low flow without dredging
 
 If the bed level changes are removed on a yearly basis, the impacted river reach
-is estimated at 865 m from the upstream edge of the impacted reach.
+is estimated at 721 m from the upstream edge of the impacted reach.
 
 The program has ended !!!

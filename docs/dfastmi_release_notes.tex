@@ -5,7 +5,7 @@
 \newcommand{\dfmi}{\textrm{D-FAST~MI}\xspace}
 \newcommand{\dflowfm}{\textrm{D-Flow~FM}\xspace}
 \newcommand{\sobek}{\textrm{SOBEK}\xspace}
-\newcommand{\dfmiversion}{3.2.0}
+\newcommand{\dfmiversion}{3.3.0}
 
 \hypersetup
 {
@@ -64,6 +64,50 @@ The following documentation is distributed with this release:
 \chapter{Release summary}
 
 \section{Version \dfmiversion}
+
+\subsection{Key changes summary}
+Release validated for all Rhine and Meuse branches including the Grensmaas.
+The key changes of this update are:
+
+\begin{itemize}
+\item New river configuration file containing an extended list of required discharge conditions for the Grensmaas, and updated celerities for all Rhine/Meuse branches and reaches. (DFAST-321)
+\end{itemize}
+
+\subsection{Known issues}
+
+\begin{longtable}{l|l|p{8cm}}
+\caption{List of known issues} \\
+Issue & Type & Description \\ \hline
+\endfirsthead
+\multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
+Issue & Type & Description \\ \hline
+\endhead
+\hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
+\endfoot
+\endlastfoot 
+DFAST-240 & Bug & Not all fields update properly when loading another configuration file \\
+\end{longtable}
+
+\subsection{Overview of all issues}
+
+An overview of all closed issues since the release of version 3.1.1 is given in the table below.
+
+\begin{longtable}{l|l|p{8cm}}
+\caption{List of resolved issues for version \dfmiversion} \\
+Issue & Type & Description \\ \hline
+\endfirsthead
+\multicolumn{3}{l}{\textsl{(continued from previous page)}} \\
+Issue & Type & Description \\ \hline
+\endhead
+\hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
+\endfoot
+\endlastfoot
+DFAST-321 & Feature & Updated rivers configuration: new discharge levels for Grensmaas, and new celerities for all branches (added in 3.3.0) \\
+DFAST-322 & Bug & The discharge levels weren't updated unless the user updated the threshold discharge (fixed in 3.3.0) \\
+\end{longtable}
+
+\section{Version 3.2.0}
+
 \subsection{Key changes summary}
 Release validated for Rhine and Meuse applications (except for the Grensmaas section).
 The key changes of this update are:

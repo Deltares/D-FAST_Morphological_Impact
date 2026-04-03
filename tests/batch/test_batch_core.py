@@ -343,6 +343,7 @@ class Test_batch_mode:
             ("02 - Pannerdensch Kanaal", "example2.cfg"),
             ("03 - Gendtse Waard", "GendtseWaard_v3.cfg"),
             ("04 - De Lymen", "DeLymen_v3.cfg"),
+            ("05 - Grensmaas", "Grensmaas_v3.cfg"),
         ],
     )
     def test_batch_examples(self, case, config):

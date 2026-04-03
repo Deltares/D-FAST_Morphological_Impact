@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dfastmi"
-version = "3.2.0"
+version = "3.3.0"
 description = "A tool to perform a morphological impact analysis based on a number of D-Flow FM simulations."
 authors = ["Stichting Deltares <delft3d.support@deltares.nl>"]
 readme = "README.md"
