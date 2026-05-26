@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -62,17 +62,6 @@ class ConfigurationInitializerLegacy(AConfigurationInitializerBase):
         self._q_threshold = self._get_q_threshold_from_config(config)
 
         self._set_discharges(reach, config, celerity_hg, celerity_lw)
-        qthresh = self.q_threshold
-        if qthresh is None:
-            qthresh = reach.qstagnant
-        self._time_mi = tuple(
-            (
-                0.0
-                if self.discharges[i] is None or self.discharges[i] <= qthresh
-                else self.time_fractions_of_the_year[i]
-            )
-            for i in range(len(self.time_fractions_of_the_year))
-        )
         self._celerity = (celerity_lw, celerity_hg, celerity_hg)
         self._set_slength()
 

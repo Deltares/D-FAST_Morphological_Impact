@@ -69,28 +69,6 @@ The characteristics, such as the characteristic bed celerity and normal channel 
 Interventions located across reaches, should be evaluated against the settings of the dominant reach, i.e.~the reach in which the dominant effect is to be expected (typically the reach in which the largest part of the intervention is located).
 If an intervention is located close to, or even across branches, an additional verification should be done to determine whether \dfmi can be applied, and if so, how it should be applied.
 
-\item The morphological impact of an intervention will only accumulate over the period during which the intervention is active.
-The original WAQMORF algorithm selected discharges based on the specific characteristics of the intervention being evaluated, and as such it was not suited for evaluating multiple interventions at once.
-The new algorithm uses a fixed set of discharges, which makes it more generic, but the reported impacted length $L_s$, i.e.~the distance over which the morphological changes can develop over the period of one year, still depends on the specified minimum flow-carrying discharge $Q_\text{thr}$, i.e.~the discharge above which the intervention will be influencing the flow.
-Consider the following two interventions:
-
-\begin{itemize}
-\item One intervention that is active only at high flow (${Q_\text{thr}}_1$ is large).
-Let us assume that this intervention has a significant impact on the flow patterns in the main channel at those flow conditions and hence a significant long-term morphological impact, i.e.~a large year-averaged equilibrium bed level change $\bar{\Delta z_b}_1$.
-This intervention is associated with a small impacted length, ${L_s}_1 \ll {L_s}_2$, since its minimum flow-carrying discharge is exceeded only a small part of the year.
-Hence, when this intervention is evaluated by itself, the \emph{first-year} impact (estimated as the equilibrium effect accumulated over the impacted length) would be modest.
-
-\item One intervention that is almost always active (${Q_\text{thr}}_2 = 0$).
-Let us assume that this intervention has very little to no morphological impact by itself, i.e.~$\bar{\Delta z_b}_2 \ll \bar{\Delta z_b}_1$.
-Since this intervention is active under all flow conditions, the impacted length ${L_s}_2$ is basically equal to the distance over which any bed disturbance can travel in a year.
-However, the \emph{first-year} impact of just this intervention would also be modest since $\bar{\Delta z_b}_2$ is small.
-\end{itemize}
-
-However, when the two interventions are evaluated \emph{together}, the impacted length will be based on the smaller minimum flow-carrying discharge ${Q_\text{thr}}_2$ of intervention 2 (and hence $L_s$ will be large), while the year-averaged equilibrium bed level change of the two interventions together will be similar to that of the first intervention, $\bar{\Delta z_b}_1$.
-The estimated first-year effect, obtained by integrating $\bar{\Delta z_b}_1$ over ${L_s}_2$, will be significantly bigger than each of the measures individually.
-We conclude that it's wise to only evaluate interventions together if they have similar threshold discharges.
-If the threshold discharges differ significantly, then the estimate for the first-year effect will be on the conservative side.
-
 \item When combining multiple interventions, or when making a single intervention longer, you will reach the point at which the effect of an intervention on the flow can no longer be seen as one stretch where water leaves the main channel, and one where it flows back to it (or the other way around).
 There will be multiple of these stretches due to the sequence of interventions, or due to the alongstream variation of the left and right floodplain width.
 As a result, the morphological impact will not be represented by a single sedimentation (or erosion) area, but a series of them.

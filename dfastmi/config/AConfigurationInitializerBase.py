@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,6 @@ class AConfigurationInitializerBase(ABC):
         self._discharges: Vector = ()
         self._rsigma: Vector = ()
         self._time_fractions_of_the_year: Vector = ()
-        self._time_mi: Vector = ()
         self._apply_q: Vector = ()
         self._celerity: Vector = ()
         self._tide_bc: Tuple[str, ...] = ()
@@ -94,11 +93,6 @@ class AConfigurationInitializerBase(ABC):
     def time_fractions_of_the_year(self) -> Vector:
         """A vector of values each representing the fraction of the year during which the discharge is given by the corresponding entry in Q [-]."""
         return self._time_fractions_of_the_year
-
-    @property
-    def time_mi(self) -> Vector:
-        """A vector of values each representing the fraction of the year during which the discharge Q results in morphological impact [-]."""
-        return self._time_mi
 
     @property
     def celerity(self) -> Vector:
@@ -159,7 +153,7 @@ class AConfigurationInitializerBase(ABC):
         """
         Should only be called AFTER(!) init.
         Set the expected yearly impacted sedimentation length
-        depending on time_mi and celerity.
+        depending on time_fractions_of_the_year and celerity.
 
         Arguments
         ---------
@@ -169,4 +163,4 @@ class AConfigurationInitializerBase(ABC):
         ------
         None
         """
-        self._slength = estimate_sedimentation_length(self.time_mi, self.celerity)
+        self._slength = estimate_sedimentation_length(self.time_fractions_of_the_year, self.celerity)

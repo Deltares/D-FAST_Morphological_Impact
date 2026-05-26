@@ -39,7 +39,7 @@ Branch                              : Bovenrijn & Waal
 Reach                               : Boven-Waal                   km  868-886
 Discharge location                  : Lobith
 Minimum flow-carrying discharge     : 4000.0 m3/s
-Impacted length                     : 299 m
+Impacted length                     : 1043 m
 
 Critical flow velocity              : 0.3 m/s
 
@@ -61,6 +61,6 @@ containing three variables containing the characteristic bed level changes:
     mindzb: minimum change [m] after low flow without dredging
 
 If the bed level changes are removed on a yearly basis, the impacted river reach
-is estimated at 299 m from the upstream edge of the impacted reach.
+is estimated at 1043 m from the upstream edge of the impacted reach.
 
 The program has ended !!!

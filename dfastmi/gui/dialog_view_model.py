@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -201,7 +201,6 @@ class DialogViewModel(QObject):
         self._qthreshold = value
         self._qthreshold_cache[(self.current_branch, self.current_reach)] = value
 
-        self._update_slength()
         # Notify the view of the change
         self.qthreshold_changed.emit(self.qthreshold)
 
@@ -324,14 +323,7 @@ class DialogViewModel(QObject):
             If thrown, analysis has failed.
         """
         try:
-            run_config = self.model.get_configuration(
-                self.current_branch,
-                self.current_reach,
-                self.reference_files,
-                self.intervention_files,
-                self.ucritical,
-                self.qthreshold,
-            )
+            run_config = self.get_configuration()
             return dfastmi.batch.core.batch_mode_core(
                 self.model.rivers, False, run_config, gui=True
             )
@@ -429,7 +421,7 @@ class DialogViewModel(QObject):
 
         try:
             if self.current_reach.auto_time:
-                _, time_mi = ConfigurationInitializer.set_times(
+                time_fractions_of_the_year = ConfigurationInitializer.set_times(
                     self.current_reach.hydro_q,
                     self.current_reach.qfit,
                     self.current_reach.qstagnant,
@@ -441,16 +433,11 @@ class DialogViewModel(QObject):
                         self.current_reach.hydro_t
                     )
                 )
-                time_mi = ConfigurationInitializer.calculate_time_mi(
-                    self.qthreshold,
-                    self.current_reach.hydro_q,
-                    time_fractions_of_the_year,
-                )
             celerity = ConfigurationInitializer.get_bed_celerity(
                 self.current_reach, self.current_reach.hydro_q
             )
             slength = dfastmi.kernel.core.estimate_sedimentation_length(
-                time_mi, celerity
+                time_fractions_of_the_year, celerity
             )
             self.slength = str(int(slength))
         except (SystemExit, KeyboardInterrupt) as exception:
@@ -473,14 +460,7 @@ class DialogViewModel(QObject):
             Name of the configuration file to be saved.
 
         """
-        config = self.model.get_configuration(
-            self.current_branch,
-            self.current_reach,
-            self.reference_files,
-            self.intervention_files,
-            self.ucritical,
-            self.qthreshold,
-        )
+        config = self.get_configuration()
         ConfigFileOperations.save_configuration_file(filename, config)
 
     def load_configuration(self, filename: str) -> bool:
@@ -510,10 +490,7 @@ class DialogViewModel(QObject):
             reach = self.current_branch.reaches[0]
         self.current_reach = reach
 
-        self._qthreshold_cache[(self.current_branch, self.current_reach)] = (
-            self.model.qthreshold
-        )
-        self._initialize_qthreshold()
+        self.qthreshold = self.model.qthreshold
 
         self._ucrit_cache[(self.current_branch, self.current_reach)] = (
             self.model.ucritical

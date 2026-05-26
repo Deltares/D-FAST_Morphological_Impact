@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,8 @@ from dfastmi.batch.SedimentationData import SedimentationData
 from dfastmi.batch.XykmData import XykmData
 from dfastmi.io.ApplicationSettingsHelper import ApplicationSettingsHelper
 from dfastmi.io.MapFile import MapFile
+from dfastmi.io.OutputFile import OutputFile
+from dfastmi.io.OutputFileFactory import OutputFileFactory
 
 
 class ReporterDflowfm:
@@ -78,11 +80,11 @@ class ReporterDflowfm:
             List of condition strings
         """
         self._reporter.report_writing_output()
-        map_file = MapFile(report_data.one_fm_filename)
-        meshname = map_file.mesh2d_name
-        facedim = map_file.face_dimension_name
+        output_file = OutputFileFactory.generate(report_data.one_fm_filename)
+        meshname = output_file.mesh2d_name
+        facedim = output_file.face_dimension_name
         dst = Path(outputdir) / ApplicationSettingsHelper.get_filename("netcdf.out")
-        map_file.copy_ugrid(dst)
+        output_file.copy_ugrid(dst)
         nc_fill = netCDF4.default_fillvals["f8"]
         projmesh = Path(outputdir) / "projected_mesh.nc"
 
@@ -94,7 +96,7 @@ class ReporterDflowfm:
             dst,
             nc_fill,
             projmesh,
-            map_file,
+            output_file,
             condition_list,
         )
 
@@ -116,7 +118,7 @@ class ReporterDflowfm:
                 nc_fill,
                 report_data.sedimentation_data,
                 report_data.xykm_data,
-                map_file,
+                output_file,
             )
 
     def _grid_update(
@@ -128,7 +130,7 @@ class ReporterDflowfm:
         dst: Path,
         nc_fill: float,
         projmesh: Path,
-        map_file: MapFile,
+        output_file: OutputFile,
         condition_list: List[str],
     ):
         rsigma = report_data.rsigma
@@ -200,7 +202,7 @@ class ReporterDflowfm:
                     unit="m",
                 )
 
-        map_file.copy_ugrid(projmesh)
+        output_file.copy_ugrid(projmesh)
         projmesh_map_file = MapFile(projmesh)
         projmesh_map_file.add_variable(
             "avgdzb",
@@ -289,13 +291,13 @@ class ReporterDflowfm:
         nc_fill: float,
         sedimentation_data: SedimentationData,
         xykm_data: XykmData,
-        map_file: MapFile,
+        output_file: OutputFile,
     ):
         self._reporter.print_sedimentation_and_erosion(sedimentation_data)
 
         projmesh = Path(outputdir) / "sedimentation_weights.nc"
+        output_file.copy_ugrid(projmesh)
         projmesh_map_file = MapFile(projmesh)
-        map_file.copy_ugrid(projmesh)
         projmesh_map_file.add_variable(
             "interest_region",
             xykm_data.interest_region,

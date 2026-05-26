@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -37,12 +37,12 @@ import numpy
 class AreaData:
     """Class for keeping track of area data."""
 
-    area: numpy.ndarray = numpy.zeros(0)
+    area: numpy.ndarray = field(default_factory=numpy.zeros(0))
     """
     area
     """
 
-    volume: numpy.ndarray = numpy.zeros(0)
+    volume: numpy.ndarray = field(default_factory=numpy.zeros(0))
     """
     area volume
     """
@@ -52,7 +52,7 @@ class AreaData:
     List of sub areas
     """
 
-    total_area_weight: numpy.ndarray = numpy.zeros(0)
+    total_area_weight: numpy.ndarray = field(default_factory=numpy.zeros(0))
     """
     total area weight
     """

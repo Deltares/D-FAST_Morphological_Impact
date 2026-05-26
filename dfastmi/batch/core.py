@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -255,7 +255,7 @@ def _report_used_file_names(
     for i, q in enumerate(initialized_config.discharges):
         if not q:  # should only happen for version 1 files
             continue
-        if 0 in filenames:
+        if 2 in filenames:
             key = i
         elif initialized_config.needs_tide:
             key = (q, initialized_config.tide_bc[i])
@@ -703,7 +703,7 @@ def _log_length_estimate(report: TextIO, slength: float) -> None:
 
 def write_report(
     report: TextIO,
-    reach: str,
+    reach: IReach,
     q_location: str,
     q_threshold: Optional[float],
     q_bankfull: float,

@@ -58,7 +58,7 @@ class Test_basic:
             "",
             "D-FAST Morphological Impact.",
             "",
-            "optional arguments:",
+            "options:",
             "  -h, --help       show this help message and exit",
             "  --mode MODE      run mode 'BATCH' or 'GUI' (GUI is default)",
             "  --config CONFIG  name of analysis configuration file ('dfastmi.cfg' is",

@@ -36,9 +36,9 @@ class Test_AnalyserDflowfm:
         self.plotops = None
 
         initialized_config = Mock(spec=AConfigurationInitializerBase)
-        initialized_config.q_threshold = 1.0
+        initialized_config.q_threshold = 11.0
         initialized_config.tstag = 1.0
-        initialized_config.discharges = [1.0, 2.0, 3.0]
+        initialized_config.discharges = [11.0, 12.0, 13.0]
         initialized_config.time_fractions_of_the_year = [1.0, 2.0, 3.0]
         initialized_config.rsigma = [0.1, 0.2, 0.3]
         initialized_config.slength = 1.0

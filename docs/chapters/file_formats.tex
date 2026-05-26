@@ -17,10 +17,10 @@ Each file type is addressed separately in the following subsections.
 
 The rivers configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
-The version number should be \keyw{3.0}.\footnote{Initially this file version was named \keyw{2.0} but to avoid confusion with the fact that this file format is only supported by \dfastmi version 3.0, the version number has been increased.
-Files with version \keyw{2.0} are still accepted, but not recommended.}
+The version number should be \keyw{3}.\footnote{Initially this file version was named \keyw{2} but to avoid confusion with the fact that this file format is only supported by \dfastmi version 3.0.0, the version number has been increased.
+Files with version \keyw{2} are still accepted, but not recommended.}
 
-Besides the \keyw{[General]} block version 3.0 files should only contain data blocks identifying the river branches (in Dutch: takken).
+Besides the \keyw{[General]} block version 3 files should only contain data blocks identifying the river branches (in Dutch: takken).
 The names of those blocks will be used as branch names.
 For instance, a block [My branch] will be processed as a branch called "My branch".
 The order of the branches in the gui will correspond to the order of the blocks in the file.
@@ -38,8 +38,11 @@ Block & Keyword & Description \\ \hline
 \hline \multicolumn{3}{r}{\textsl{(continued on next page)}} \\
 \endfoot
 \endlastfoot
-\keyw{General} & \keyw{Version} & Version number.
-Should be \keyw{3.0}. \\
+\keyw{General} & \keyw{Version} & Version number of the file format.
+Should be \keyw{3} or equivalent e.g.\ \keyw{3.0} or \keyw{3.0.0}. \\
+\keyw{General} & \keyw{ConfigVersion} & Version number for the actual configuration stored in the file.
+This keyword is intended for version management of the file content.
+It is currently not used by the software. \\
 \keyw{General} & \keyw{checksum} & Checksum of the rivers configuration file.
 Used to verify that the rivers configuration file wasn't accidentally modified. \\
 BranchName<i> & \keyw{QLocation} & Location at which discharges for branch <i> are defined. \\
@@ -179,10 +182,10 @@ The header string contains one placeholder, namely \keyw{{version}} for the the 
 
 The analysis configuration file follows the common ini-file format.
 The file must contain a \keyw{[General]} block with a keyword \keyw{Version} to indicate the version number of the file.
-The version number should be \keyw{3.0}.\footnote{Initially this file version was named \keyw{2.0} but to avoid confusion with the fact that this file format is only supported by \dfastmi version 3.0, the version number has been increased.
-Files with version \keyw{2.0} are still accepted, but not recommended.}
+The version number should be \keyw{3}.\footnote{Initially this file version was named \keyw{2} but to avoid confusion with the fact that this file format is only supported by \dfastmi version 3.0.0, the version number has been increased.
+Files with version \keyw{2} are still accepted, but not recommended.}
 
-Version 3.0 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the intervention is located.
+Version 3 files must contain in the \keyw{[General]} block also the keywords \keyw{Branch} and \keyw{Reach} to identify the branch (in Dutch: tak) and reach (in Dutch: stuk) in which the intervention is located.
 The specified names may be shortened, but they should uniquely identify the branch and reach amongst the names of the other branches and reaches.
 The same block may also contain \keyw{QThreshold} and \keyw{UCrit} values representative for this particular intervention if they differ from those typical for the selected reach.
 Furthermore, this block may contain \keyw{FigureDir} and \keyw{OutputDir} specifying where the figures and other output files should be written.
@@ -195,8 +198,8 @@ The file names may be specified using relative or absolute paths.
 
 \begin{tabular}{l|l|p{8cm}}
 Block & Keyword & Description \\ \hline
-\keyw{General} & \keyw{Version} & Version number.
-Should be \keyw{3.0}. \\
+\keyw{General} & \keyw{Version} & Version number of the file format.
+Should be \keyw{3} or equivalent e.g.\ \keyw{3.0} or \keyw{3.0.0}. \\
 \keyw{General} & \keyw{CaseDescription} & Description of the analysis. \\
 \keyw{General} & \keyw{Branch} & Name of the selected branch. \\
 \keyw{General} & \keyw{Reach} & Name of the selected reach. \\

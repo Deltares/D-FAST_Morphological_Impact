@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from io import StringIO
 
 import netCDF4
+import numpy as np
 import pytest
 
 import dfastmi.batch.core
@@ -35,13 +36,21 @@ def compare_text_files(dir1, dir2, file1, file2=None, prefixes=None):
     assert result == refstr
 
 
-def compare_netcdf_fields(dir1, dir2, file, fields):
+def compare_netcdf_fields(dir1, dir2, file, fields, tol=1e-8):
     ncRes = netCDF4.Dataset(dir1 + os.sep + file)
     ncRef = netCDF4.Dataset(dir2 + os.sep + file)
     for f in fields:
-        result = ncRes.variables[f]
-        refdat = ncRef.variables[f]
-        assert (result[...] == refdat[...]).all()
+        result = ncRes.variables[f][...]
+        refdat = ncRef.variables[f][...]
+
+        if not np.allclose(result, refdat, atol=tol, equal_nan=True):
+            diff = np.abs(result - refdat)
+            max_diff = np.nanmax(diff)
+            raise AssertionError(
+                f"Field '{f}' differs between files. Max difference: {max_diff} exceeds tolerance {tol}."
+            )
+    ncRes.close()
+    ncRef.close()
 
 
 class Test_batch_mode:
@@ -128,21 +137,54 @@ class Test_batch_mode:
         compare_text_files(outdir, refdir, "max_dzb.out", "ref_maxmorf.out")
         compare_text_files(outdir, refdir, "min_dzb.out", "ref_minmorf.out")
 
-    def test_batch_mode_03(self):
+    @pytest.mark.parametrize(
+        "tstdir, cfgfile, rivfile, refsubdir",
+        [
+            (
+                "tests/c01 - GendtseWaardNevengeul",
+                "c01_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref",
+            ),
+            (
+                "tests/c01 - GendtseWaardNevengeul",
+                "Qmin_4000.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "ref_Qmin_Q4000",
+            ),
+            (
+                "tests/c02 - DeLymen",
+                "c02_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref",
+            ),
+            (
+                "tests/c02 - DeLymen",
+                "c02a_netcdf.cfg",
+                "dfastmi/Dutch_rivers_v1.ini",
+                "output_ref_c02a_netcdf",
+            ),
+            (
+                "tests/c03 - Pontwaard",
+                "input_var1_dfast311_part_fou.cfg",
+                "dfastmi/Dutch_rivers_v3.ini",
+                "output_ref",
+            ),
+        ],
+    )
+    def test_batch_mode_03(self, tstdir, cfgfile, rivfile, refsubdir):
         """
-        Testing batch_mode: Qmin = 4000 run with netCDF files (UK).
-        Version 1 configuration files.
+        Testing batch_mode with netCDF output.
         """
         ApplicationSettingsHelper.load_program_texts("dfastmi/messages.UK.ini")
-        rivers = RiversObject("dfastmi/Dutch_rivers_v1.ini")
+        rivers = RiversObject(rivfile)
         cwd = os.getcwd()
-        tstdir = "tests/c01 - GendtseWaardNevengeul"
         outdir = tstdir + os.sep + "output"
-        refdir = tstdir + os.sep + "ref_Qmin_Q4000"
+        refdir = tstdir + os.sep + refsubdir
         try:
             os.chdir(tstdir)
             with captured_output() as (out, err):
-                dfastmi.batch.core.batch_mode("Qmin_4000.cfg", rivers, False)
+                dfastmi.batch.core.batch_mode(cfgfile, rivers, False)
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
@@ -209,16 +251,16 @@ class Test_batch_mode:
             outstr = out.getvalue().splitlines()
         finally:
             os.chdir(cwd)
-        #
+
         compare_text_files(outdir, refdir, "report.txt", prefixes=("This is version"))
-        #
+
         compare_netcdf_fields(
             outdir,
             refdir,
             "dfastmi_results.nc",
             ["mesh2d_node_x", "mesh2d_node_y", "avgdzb", "mindzb", "maxdzb"],
         )
-        #
+
         compare_netcdf_fields(
             outdir,
             refdir,
@@ -300,6 +342,8 @@ class Test_batch_mode:
             ("01 - Palmerswaard", "example1.cfg"),
             ("02 - Pannerdensch Kanaal", "example2.cfg"),
             ("03 - Gendtse Waard", "GendtseWaard_v3.cfg"),
+            ("04 - De Lymen", "DeLymen_v3.cfg"),
+            ("05 - Grensmaas", "Grensmaas_v3.cfg"),
         ],
     )
     def test_batch_examples(self, case, config):

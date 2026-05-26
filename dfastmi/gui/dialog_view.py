@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -217,6 +217,9 @@ class DialogView:
 
         # Update reach label
         self._reach.setCurrentText(reach.name)
+        
+        # Refresh threshold and list of simulations
+        self._update_qthreshold(self._view_model._qthreshold)
 
     def _update_sedimentation_length(self, slength: str):
         """
@@ -980,7 +983,7 @@ class DialogView:
         """
         msg = QMessageBox()
         msg.setText("D-FAST Morphological Impact " + dfastmi.__version__)
-        msg.setInformativeText("Copyright (c) 2024 Deltares.")
+        msg.setInformativeText("Copyright (c) 2026 Deltares.")
         msg.setDetailedText(gui_text("license"))
         msg.setWindowTitle(gui_text("about"))
         msg.setStandardButtons(QMessageBox.Ok)
@@ -1239,7 +1242,7 @@ def main(rivers_configuration: RiversObject, config_file: Optional[str] = None) 
     # Create View instance with the ViewModel
     view = DialogView(view_model)
 
-    # Load the configuration if specified
+    # Set the appropriate configuration
     view_model.load_configuration(config_file)
 
     # Initialize the user interface and run the program

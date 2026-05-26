@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright © 2024 Stichting Deltares.
+Copyright © 2026 Stichting Deltares.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -79,15 +79,7 @@ def face_mean(
         vfn = numpy.ma.array(
             vn[face_node_connectivity_data], mask=face_node_connectivity.mask
         )
-
-        # determine number of (non-masked) nodes per face
-        nnodes = max_nnodes - face_node_connectivity.mask.sum(axis=1)
-
-        # sum values per face
-        vfsum = vfn.sum(axis=1)
-
-        # divide by the number of nodes per face
-        vf = vfsum / nnodes
+        vf = numpy.ma.mean(vfn, axis=1)
 
     return vf
 
