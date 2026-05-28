@@ -28,6 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 
 from pathlib import Path
+from typing import List
 
 import netCDF4
 import numpy
@@ -62,6 +63,7 @@ class ReporterDflowfm:
         outputdir: Path,
         plotting_options: PlotOptions,
         report_data: OutputDataDflowfm,
+        condition_list: List[str],
     ):
         """
         write report data to a netCDF UGRID file similar to D-Flow FM.
@@ -74,6 +76,8 @@ class ReporterDflowfm:
             Class containing the plot options.
         report_data  : OutputDataDflowfm
             DTO with the data which is needed to create a report.
+        condition_list : List[str]
+            List of condition strings
         """
         self._reporter.report_writing_output()
         output_file = OutputFileFactory.generate(report_data.one_fm_filename)
@@ -93,6 +97,7 @@ class ReporterDflowfm:
             nc_fill,
             projmesh,
             output_file,
+            condition_list,
         )
 
         if report_data.xykm_data.xykm is not None:
@@ -126,8 +131,8 @@ class ReporterDflowfm:
         nc_fill: float,
         projmesh: Path,
         output_file: OutputFile,
+        condition_list: List[str],
     ):
-
         rsigma = report_data.rsigma
         face_node_connectivity = report_data.face_node_connectivity
         dzq = report_data.dzq
@@ -178,7 +183,9 @@ class ReporterDflowfm:
                 dzb,
                 meshname,
                 facedim,
-                long_name="bed level change at end of period {}".format(i + 1),
+                long_name="bed level change at end of period {}: {}".format(
+                    i + 1, condition_list[i]
+                ),
                 unit="m",
             )
             if rsigma[i] < 1 and isinstance(dzq[i], numpy.ndarray):
@@ -189,8 +196,8 @@ class ReporterDflowfm:
                     dzq_full,
                     meshname,
                     facedim,
-                    long_name="equilibrium bed level change aimed for during period {}".format(
-                        i + 1
+                    long_name="equilibrium bed level change for {}".format(
+                        condition_list[i]
                     ),
                     unit="m",
                 )

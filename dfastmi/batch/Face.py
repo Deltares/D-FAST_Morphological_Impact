@@ -49,11 +49,28 @@ def face_all(bn: numpy.ndarray, face_node_connectivity: numpy.ndarray) -> numpy.
 def face_mean(
     vn: numpy.ndarray, face_node_connectivity: numpy.ndarray
 ) -> numpy.ndarray:
+    """
+    Compute the mean face values given data at nodes.
+    Assumption: there are no faces with zero nodes.
+
+    Arguments
+    ---------
+    vn : numpy.ndarray
+        Array of length M containing one value per nodes.
+    face_node_connectivity : numpy.ndarray
+        (Optionally masked) array of shape MxK containing the node indices for each face.
+
+    Returns
+    -------
+    vf : numpy.ndarray
+        Array of length N containing the mean value per face.
+    """
     if face_node_connectivity.mask.shape == ():
         # all faces have the same number of nodes
         vf = vn[face_node_connectivity].mean(axis=1)
+
     else:
-        # varying number of nodes
+        # collect all node values per face
         face_node_connectivity_data = face_node_connectivity.data
         face_node_connectivity_data[face_node_connectivity.mask] = 0
         vfn = numpy.ma.array(

@@ -109,7 +109,7 @@ class AnalyserDflowfm:
         filenames: Dict[Any, Tuple[str, str]],
         xykm: LineString,
         plotting_options: PlotOptions,
-    ) -> OutputDataDflowfm:
+    ) -> Optional[OutputDataDflowfm]:
         """
         Perform analysis based on D-Flow FM data.
         Read data from D-Flow FM output files and perform analysis.
@@ -248,7 +248,7 @@ class AnalyserDflowfm:
         self._missing_data = False
 
         # determine the name of the first FM data file that will be used
-        if 2 in filenames.keys():  # the keys are 0,1,2
+        if 2 in filenames:  # the keys are 0,1,2
             one_fm_filename = self._get_first_fm_data_filename_based_on_numbered_keys(
                 filenames
             )
@@ -282,7 +282,10 @@ class AnalyserDflowfm:
         for i in range(len(self._discharges)):
             if not self._missing_data and self._discharges[i] is not None:
                 key, q, t = self._get_condition_key(self._discharges, self._tide_bc, i)
-                if self._rsigma[i] == 1 or self._discharges[i] <= self._q_threshold:
+                if self._rsigma[i] == 1 or (
+                    self._q_threshold is not None
+                    and self._discharges[i] <= self._q_threshold
+                ):
                     # no celerity or intervention not active, so ignore field
                     pass
                 elif key in filenames:
@@ -312,7 +315,7 @@ class AnalyserDflowfm:
         dxi: numpy.ndarray,
         dyi: numpy.ndarray,
     ) -> numpy.ndarray:
-        if 2 in filenames.keys():  # the keys are 0,1,2
+        if 2 in filenames:  # the keys are 0,1,2
             return self._get_dzq_based_on_numbered_keys(filenames, dxi, dyi, iface)
         else:  # the keys are the conditions
             return self._get_dzq_based_on_conditions_keys(filenames, dxi, dyi, iface)
@@ -360,8 +363,8 @@ class AnalyserDflowfm:
                 if q <= self._q_threshold:
                     # intervention inactive, so zero-effect for this period
                     dzq[i] = numpy.zeros_like(iface, dtype=float)
-                elif key in filenames.keys():
-                    if t:
+                elif key in filenames:
+                    if t and t != "-":
                         n_fields_request = self._n_fields
                     else:
                         n_fields_request = 1

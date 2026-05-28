@@ -32,7 +32,7 @@ Module for Reach implementation
 Classes:
     Reach
 """
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from pydantic import model_validator
 
@@ -52,9 +52,10 @@ class Reach(AReach):
 
     use_tide: bool = False
     tide_boundary_condition: Tuple[str, ...] = ()
+    conditions: Tuple[str, ...] = ()
 
     celer_form: int = 0
-    _celer_object: ICelerObject = None
+    _celer_object: Optional[ICelerObject] = None
 
     @property
     def celer_object(self):
