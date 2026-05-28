@@ -28,7 +28,7 @@ This file is part of D-FAST Morphological Impact: https://github.com/Deltares/D-
 """
 import configparser
 import zlib
-from typing import List
+from typing import List, Optional
 
 from packaging.version import Version
 
@@ -208,6 +208,7 @@ class RiversObject:
         reach.use_tide = river_data.getboolean("Tide", reach, False)
         # for Tide = True
         reach.tide_boundary_condition = river_data.getstrings("TideBC", reach)
+        print(reach.tide_boundary_condition)
         if reach.use_tide:
             reach.conditions = [
                 str(q) + " m3/s, " + t if t != "-" else str(q) + " m3/s"

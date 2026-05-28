@@ -32,7 +32,7 @@ Module for Reach implementation
 Classes:
     Reach
 """
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from pydantic import model_validator
 
