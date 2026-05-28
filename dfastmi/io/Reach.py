@@ -55,7 +55,7 @@ class Reach(AReach):
     conditions: Tuple[str, ...] = ()
 
     celer_form: int = 0
-    _celer_object: ICelerObject = None
+    _celer_object: Optional[ICelerObject] = None
 
     @property
     def celer_object(self):

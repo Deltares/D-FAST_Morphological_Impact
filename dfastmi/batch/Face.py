@@ -70,9 +70,6 @@ def face_mean(
         vf = vn[face_node_connectivity].mean(axis=1)
 
     else:
-        # possibly varying number of nodes
-        max_nnodes = face_node_connectivity.data.shape[1]
-
         # collect all node values per face
         face_node_connectivity_data = face_node_connectivity.data
         face_node_connectivity_data[face_node_connectivity.mask] = 0
